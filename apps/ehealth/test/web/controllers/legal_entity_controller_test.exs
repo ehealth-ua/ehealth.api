@@ -939,10 +939,12 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       from_legal_entity = insert(:prm, :legal_entity)
       to_legal_entity = insert(:prm, :legal_entity)
 
-      conn = put_client_id_header(conn, to_legal_entity.id)
-      conn = get(conn, legal_entity_path(conn, :list_legators, from_legal_entity.id))
+      resp =
+        conn
+        |> put_client_id_header(to_legal_entity.id)
+        |> get(legal_entity_path(conn, :list_legators, from_legal_entity.id))
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert %{"error" => %{"message" => "User is not allowed to view"}} = resp
     end
 
@@ -951,10 +953,12 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       to_legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :related_legal_entity, merged_from: to_legal_entity, merged_to: from_legal_entity)
 
-      conn = put_client_id_header(conn, from_legal_entity.id)
-      conn = get(conn, legal_entity_path(conn, :list_legators, from_legal_entity.id))
+      resp =
+        conn
+        |> put_client_id_header(from_legal_entity.id)
+        |> get(legal_entity_path(conn, :list_legators, from_legal_entity.id))
+        |> json_response(200)
 
-      assert resp = json_response(conn, 200)
       assert_list_response_schema(resp["data"], "related_legal_entity")
     end
   end

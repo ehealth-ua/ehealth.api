@@ -106,9 +106,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid party", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, legal_entity.id)
-      conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
-      assert resp = json_response(conn, 400)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> post(medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
+        |> json_response(400)
+
       assert %{"error" => %{"message" => "Party not found"}} = resp
     end
 

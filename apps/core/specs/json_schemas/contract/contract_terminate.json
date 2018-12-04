@@ -4,6 +4,8 @@
     "properties": {
       "status_reason": {
         "type": "string",
+        "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$",
+        "maxLength": 3000,
         "description": "the reason of terminated status"
       },
       "type": {

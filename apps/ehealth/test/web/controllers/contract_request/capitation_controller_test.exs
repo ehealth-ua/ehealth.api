@@ -388,13 +388,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert_error(
         resp,
@@ -461,13 +461,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -532,13 +532,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert_error(
         resp,
@@ -583,13 +583,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert_error(resp, "$.external_contractor_flag", "Invalid external_contractor_flag")
     end
 
@@ -628,13 +629,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert_error(resp, "$.start_date", "Start date must be greater than current date")
     end
 
@@ -720,13 +722,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert_error(resp, "$.end_date", "The year of start_date and and date must be equal")
     end
 
@@ -1227,13 +1230,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn1 =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn1, 201)
+        |> json_response(201)
 
       schema =
         "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
@@ -1321,13 +1324,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        post(conn, contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
           "signed_content" => params |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -1439,14 +1442,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
 
-      conn =
-        patch(conn, contract_request_path(conn, :update, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), %{
           "nhs_signer_base" => "на підставі наказу",
           "nhs_contract_price" => 50_000,
           "nhs_payment_method" => "prepayment"
         })
-
-      assert resp = json_response(conn, 409)
+        |> json_response(409)
 
       assert %{
                "message" => "Incorrect status of contract_request to modify it",
@@ -1474,14 +1477,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
 
-      conn =
-        patch(conn, contract_request_path(conn, :update, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), %{
           "nhs_signer_base" => "на підставі наказу",
           "nhs_contract_price" => 50_000,
           "nhs_payment_method" => "prepayment"
         })
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       schema =
         "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
@@ -1609,12 +1612,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       conn = put_client_id_header(conn, legal_entity.id)
 
-      conn =
-        patch(conn, contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
           "employee_id" => employee.id
         })
-
-      assert resp = json_response(conn, 409)
+        |> json_response(409)
 
       assert %{
                "message" => "Incorrect status of contract_request to modify it",
@@ -1658,12 +1661,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       conn = put_client_id_header(conn, legal_entity.id)
 
-      conn =
-        patch(conn, contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
           "employee_id" => employee.id
         })
-
-      assert resp = json_response(conn, 403)
+        |> json_response(403)
 
       assert %{
                "message" => "Employee doesn't have required role",
@@ -2191,13 +2194,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 409)
+        |> json_response(409)
 
       assert %{
                "message" => "Incorrect status of contract_request to modify it",
@@ -2239,13 +2242,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_client_id_header(legal_entity.id)
         |> put_req_header("drfo", legal_entity.edrpou)
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2304,13 +2307,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2374,13 +2377,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2447,13 +2450,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       })
 
       # query path without contract type
-      conn =
-        patch(conn, "/api/contract_requests/#{contract_request.id}/actions/approve", %{
+      resp =
+        conn
+        |> patch("/api/contract_requests/#{contract_request.id}/actions/approve", %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2519,13 +2522,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2591,13 +2594,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2680,13 +2683,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2806,13 +2809,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -2916,13 +2919,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        patch(conn, contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       schema =
         "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
@@ -2980,13 +2983,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           start_date: start_date
         )
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(user_id)
-
-      conn = patch(conn, contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
-      assert resp = json_response(conn, 200)
+        |> patch(contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
+        |> json_response(200)
 
       schema =
         "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
@@ -3056,15 +3058,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
             ]
           )
 
-        conn_resp =
+        resp =
           conn
           |> put_client_id_header(legal_entity.id)
           |> put_consumer_id_header(user_id)
           |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
             "status_reason" => "Неправильний період контракту"
           })
-
-        assert resp = json_response(conn_resp, 200)
+          |> json_response(200)
 
         schema =
           "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
@@ -3097,14 +3098,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: UUID.generate())
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
           "status_reason" => "Неправильний період контракту"
         })
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
     end
 
@@ -3121,14 +3122,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           contractor_owner_id: employee.id
         )
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
           "status_reason" => "Неправильний період контракту"
         })
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
     end
 
@@ -3145,14 +3146,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           contractor_owner_id: employee.id
         )
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
           "status_reason" => "Неправильний період контракту"
         })
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert %{"message" => "User is not allowed to perform this action"} = resp["error"]
     end
 
@@ -3193,15 +3194,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
             ]
           )
 
-        conn_resp =
+        resp =
           conn
           |> put_client_id_header(legal_entity.id)
           |> put_consumer_id_header(user_id)
           |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
             "status_reason" => "Неправильний період контракту"
           })
-
-        assert resp = json_response(conn_resp, 422)
+          |> json_response(422)
 
         assert %{
                  "invalid" => [
@@ -4549,6 +4549,143 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                "type" => "request_conflict"
              } = resp["error"]
     end
+
+    test "status_reason is too long", context do
+      %{
+        conn: conn,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        employee_owner: employee_owner,
+        party_user: party_user
+      } = context
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          status: CapitationContractRequest.status(:signed),
+          nhs_signer_id: employee_owner.id
+        )
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => String.duplicate("a", 3001),
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :decline, @capitation, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.status_reason",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "expected value to have a maximum length of 3000 but was 3001",
+                       "params" => %{"max" => 3000},
+                       "rule" => "length"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "status_reason is not valid", context do
+      %{
+        conn: conn,
+        legal_entity: legal_entity,
+        user_id: user_id,
+        employee_owner: employee_owner,
+        party_user: party_user
+      } = context
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          status: CapitationContractRequest.status(:signed),
+          nhs_signer_id: employee_owner.id
+        )
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "%",
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :decline, @capitation, contract_request.id), %{
+          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.status_reason",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "string does not match pattern \"^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\\\\\"!\\\\^\\\\*)\\\\]\\\\[(._-].*$\"",
+                       "params" => ["^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"],
+                       "rule" => "format"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "get partially signed capitation contract request url" do
@@ -5682,12 +5819,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       id = contract_request.id
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_request_path(conn, :printout_content, @capitation, id))
+        |> json_response(200)
 
-      assert resp = json_response(conn, 200)
       assert %{"id" => id, "printout_content" => "<html></html>"} == resp["data"]
     end
 

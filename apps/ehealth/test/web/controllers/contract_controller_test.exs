@@ -239,18 +239,18 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :capitation_contract)
       insert(:prm, :capitation_contract)
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), %{created_by: UUID.generate()})
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-
-      Enum.each(resp, fn contract ->
+      Enum.each(data, fn contract ->
         Enum.each(~w(id_form parent_contract_id nhs_signed_date), fn key -> assert Map.has_key?(contract, key) end)
       end)
 
-      assert length(resp) == 2
+      assert length(data) == 2
     end
 
     test "validating search params: edrpou is defined, contractor_legal_entity_id is not defined", %{conn: conn} do
@@ -260,14 +260,15 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :capitation_contract)
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), %{edrpou: edrpou})
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
-      assert resp |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
+      assert length(data) == 1
+      assert data |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
     end
 
     test "validating search params: edrpou is not defined, contractor_legal_entity_id is defined", %{conn: conn} do
@@ -276,14 +277,15 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :capitation_contract)
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), %{contractor_legal_entity_id: contractor_legal_entity.id})
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
-      assert resp |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
+      assert length(data) == 1
+      assert data |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
     end
 
     test "validating search params: edrpou and contractor_legal_entity_id are defined and belong to the same legal entity",
@@ -294,17 +296,18 @@ defmodule EHealth.Web.ContractControllerTest do
       insert(:prm, :capitation_contract, contractor_legal_entity: contractor_legal_entity)
       insert(:prm, :capitation_contract)
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), %{
           edrpou: edrpou,
           contractor_legal_entity_id: contractor_legal_entity.id
         })
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
-      assert resp |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
+      assert length(data) == 1
+      assert data |> hd() |> Map.get("contractor_legal_entity_id") == contractor_legal_entity.id
     end
 
     test "validating search params: edrpou and contractor_legal_entity_id are defined and do not belong to the same legal entity",
@@ -386,13 +389,14 @@ defmodule EHealth.Web.ContractControllerTest do
         contract_number: contract.contract_number
       }
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), params)
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
+      assert length(data) == 1
     end
 
     test "success contract list for NHS admin user from dates only", %{conn: conn} do
@@ -405,13 +409,14 @@ defmodule EHealth.Web.ContractControllerTest do
         date_from_end_date: contract.end_date
       }
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), params)
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
+      assert length(data) == 1
     end
 
     test "success contract list for NHS admin user to dates only", %{conn: conn} do
@@ -424,13 +429,14 @@ defmodule EHealth.Web.ContractControllerTest do
         date_to_end_date: contract.end_date
       }
 
-      conn =
+      data =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :index, @capitation), params)
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
+      assert length(data) == 1
     end
 
     test "success contract list for non-NHS admin user", %{conn: conn} do
@@ -455,13 +461,14 @@ defmodule EHealth.Web.ContractControllerTest do
         contract_number: contract.contract_number
       }
 
-      conn =
+      data =
         conn
         |> put_client_id_header(contractor_legal_entity.id)
         |> get(contract_path(conn, :index, @capitation), params)
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-      assert length(resp) == 1
+      assert length(data) == 1
     end
 
     test "success filtering by nhs_signer_id", %{conn: conn} do
@@ -472,14 +479,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       params = %{nhs_signer_id: contract_in.nhs_signer_id}
 
-      conn =
+      data =
         conn
         |> put_client_id_header(contractor_legal_entity.id)
         |> get(contract_path(conn, :index, @capitation), params)
+        |> json_response(200)
+        |> Map.get("data")
 
-      assert resp = json_response(conn, 200)["data"]
-
-      contract_ids = Enum.map(resp, fn item -> Map.get(item, "id") end)
+      contract_ids = Enum.map(data, fn item -> Map.get(item, "id") end)
       assert contract_in.id in contract_ids
       refute contract_out.id in contract_ids
     end
@@ -927,6 +934,63 @@ defmodule EHealth.Web.ContractControllerTest do
 
       assert json_response(resp, 404)
     end
+
+    test "terminate contract with too long status_reason", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :capitation_contract)
+      params = %{"status_reason" => String.duplicate("a", 3001)}
+
+      resp =
+        conn
+        |> put_client_id_header(contract.nhs_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, @capitation, contract.id), params)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.status_reason",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "expected value to have a maximum length of 3000 but was 3001",
+                       "params" => %{"max" => 3000},
+                       "rule" => "length"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "terminate contract with wrong status_reason", %{conn: conn} do
+      nhs()
+      contract = insert(:prm, :capitation_contract)
+      params = %{"status_reason" => "%"}
+
+      resp =
+        conn
+        |> put_client_id_header(contract.nhs_legal_entity_id)
+        |> patch(contract_path(conn, :terminate, @capitation, contract.id), params)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.status_reason",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "string does not match pattern \"^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\\\\\"!\\\\^\\\\*)\\\\]\\\\[(._-].*$\"",
+                       "params" => ["^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"],
+                       "rule" => "format"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "update employees" do
@@ -952,12 +1016,11 @@ defmodule EHealth.Web.ContractControllerTest do
 
       invalid_signed_content()
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "invalid" => [
@@ -995,13 +1058,12 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, nil)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert %{
                "message" => "Invalid drfo"
@@ -1034,14 +1096,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(409)
 
-      assert resp = json_response(conn, 409)
       assert "Not active contract can't be updated" == resp["error"]["message"]
     end
 
@@ -1083,14 +1145,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert "Division must be active and within current legal_entity" == resp["error"]["message"]
     end
 
@@ -1156,14 +1218,13 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert [%{"employee" => %{"id" => ^employee_id}, "declaration_limit" => 10, "staff_units" => 0.33}] =
                resp["data"]["contractor_employee_divisions"]
@@ -1235,14 +1296,13 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert [%{"employee" => %{"id" => ^employee_id_active}}] = resp["data"]["contractor_employee_divisions"]
     end
@@ -1299,14 +1359,13 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
-
-      assert resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert [%{"employee" => %{"id" => ^employee_id}, "declaration_limit" => 10, "staff_units" => 0.33}] =
                resp["data"]["contractor_employee_divisions"]
@@ -1350,14 +1409,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert get_in(resp, ~w(error message)) == "declaration_limit is not allowed for employee speciality"
     end
 
@@ -1389,14 +1448,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert get_in(resp, ~w(error message)) == "declaration_limit is not allowed for employee speciality"
     end
 
@@ -1439,14 +1498,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert get_in(resp, ~w(error message)) == "Employee should be active Doctor within current legal_entity_id"
     end
 
@@ -1479,14 +1538,14 @@ defmodule EHealth.Web.ContractControllerTest do
 
       drfo_signed_content(content, party_user.party.tax_id)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(legal_entity.id)
         |> put_consumer_id_header(party_user.user_id)
         |> Plug.Conn.put_req_header("drfo", party_user.party.tax_id)
         |> patch(contract_path(conn, :update, @capitation, contract.id), params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert get_in(resp, ~w(error message)) == "Employee should be active Doctor within current legal_entity_id"
     end
   end
@@ -1530,12 +1589,12 @@ defmodule EHealth.Web.ContractControllerTest do
 
       edrpou_signed_content(content, legal_entity_signer.edrpou)
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :printout_content, @capitation, contract_id))
+        |> json_response(200)
 
-      assert resp = json_response(conn, 200)
       assert %{"id" => contract_id, "printout_content" => printout_content} == resp["data"]
     end
   end

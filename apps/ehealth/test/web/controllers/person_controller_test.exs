@@ -178,20 +178,25 @@ defmodule EHealth.Web.PersonControllerTest do
 
   describe "search persons" do
     test "no birth_date", %{conn: conn} do
-      conn = get(conn, person_path(conn, :search_persons))
-      assert response = json_response(conn, 422)
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons))
+        |> json_response(422)
 
       assert %{
                "error" => %{
                  "invalid" => [%{"entry" => "$.birth_date"}, %{"entry" => "$.first_name"}, %{"entry" => "$.last_name"}]
                }
-             } = response
+             } = resp
     end
 
     test "no first_name and last_name", %{conn: conn} do
-      conn = get(conn, person_path(conn, :search_persons), %{birth_date: "1990-01-01"})
-      assert response = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.first_name"}, %{"entry" => "$.last_name"}]}} = response
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{birth_date: "1990-01-01"})
+        |> json_response(422)
+
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.first_name"}, %{"entry" => "$.last_name"}]}} = resp
     end
 
     test "success search age > 16", %{conn: conn} do
@@ -199,15 +204,16 @@ defmodule EHealth.Web.PersonControllerTest do
         get_persons(params)
       end)
 
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
           birth_date: "1990-01-01",
           first_name: "string",
           last_name: "string"
         })
+        |> json_response(200)
 
-      assert response = json_response(conn, 200)
-      assert 1 == Enum.count(response["data"])
+      assert 1 == Enum.count(resp["data"])
       expected_keys = ~w(
         birth_country
         birth_date
@@ -217,7 +223,7 @@ defmodule EHealth.Web.PersonControllerTest do
         last_name
         merged_ids
         second_name)
-      assert expected_keys == Map.keys(hd(response["data"]))
+      assert expected_keys == Map.keys(hd(resp["data"]))
     end
 
     test "success search with unzr", %{conn: conn} do
@@ -225,16 +231,17 @@ defmodule EHealth.Web.PersonControllerTest do
         get_persons(params)
       end)
 
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
           unzr: "19930823-01234",
           birth_date: "1990-01-01",
           first_name: "string",
           last_name: "string"
         })
+        |> json_response(200)
 
-      assert response = json_response(conn, 200)
-      assert 1 == Enum.count(response["data"])
+      assert 1 == Enum.count(resp["data"])
       expected_keys = ~w(
         birth_country
         birth_date
@@ -246,20 +253,21 @@ defmodule EHealth.Web.PersonControllerTest do
         second_name
         unzr
         )
-      assert expected_keys == Map.keys(hd(response["data"]))
+      assert expected_keys == Map.keys(hd(resp["data"]))
     end
 
     test "invalid phone number", %{conn: conn} do
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
           birth_date: "1990-01-01",
           first_name: "string",
           last_name: "string",
           phone_number: "invalid"
         })
+        |> json_response(422)
 
-      assert response = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.phone_number"}]}} = response
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.phone_number"}]}} = resp
     end
 
     test "too many persons matched", %{conn: conn} do
@@ -267,21 +275,21 @@ defmodule EHealth.Web.PersonControllerTest do
         {:ok, %{"data" => [], "paging" => %{"total_pages" => 2}}}
       end)
 
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
           birth_date: "1990-01-01",
           first_name: "string",
           last_name: "string"
         })
-
-      assert response = json_response(conn, 403)
+        |> json_response(403)
 
       assert %{
                "error" => %{
                  "message" =>
                    "This API method returns only exact match results, please retry with more specific search parameters"
                }
-             } = response
+             } = resp
     end
 
     test "success search age > 16 with phone_number", %{conn: conn} do
@@ -289,16 +297,17 @@ defmodule EHealth.Web.PersonControllerTest do
         get_persons(params)
       end)
 
-      conn =
-        get(conn, person_path(conn, :search_persons), %{
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
           birth_date: "1990-01-01",
           first_name: "string",
           last_name: "string",
           phone_number: "+380631111111"
         })
+        |> json_response(200)
 
-      assert response = json_response(conn, 200)
-      assert 1 == Enum.count(response["data"])
+      assert 1 == Enum.count(resp["data"])
       expected_keys = ~w(
         birth_country
         birth_date
@@ -309,7 +318,7 @@ defmodule EHealth.Web.PersonControllerTest do
         merged_ids
         phones
         second_name)
-      assert expected_keys == Map.keys(hd(response["data"]))
+      assert expected_keys == Map.keys(hd(resp["data"]))
     end
   end
 

@@ -486,7 +486,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c", party: employee.party)
 
-      conn =
+      resp =
         conn
         |> put_req_header("edrpou", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
@@ -496,8 +496,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
           employee_id: employee.id,
           division_id: employee.division.id
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert [
                %{
@@ -1092,14 +1091,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         division_id: employee.division.id
       }
 
-      conn =
+      resp =
         conn
         |> put_req_header("edrpou", "2222222220")
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
         |> post(cabinet_declaration_requests_path(conn, :create), request_params)
+        |> json_response(422)
 
-      assert resp = json_response(conn, 422)
       assert [error] = resp["error"]["invalid"]
       assert "Confidant person is mandatory for children" == error["rules"] |> List.first() |> Map.get("description")
     end
@@ -1261,13 +1260,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "11111111"})
       end)
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :index))
+        |> json_response(401)
 
-      assert resp = json_response(conn, 401)
       assert %{"type" => "access_denied", "message" => "Person not found"} == resp["error"]
     end
 
@@ -1290,13 +1289,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :index))
+        |> json_response(401)
 
-      assert resp = json_response(conn, 401)
       assert %{"type" => "access_denied"} == resp["error"]
     end
 
@@ -1508,13 +1507,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
       %{id: declaration_request_id} = insert(:il, :declaration_request, data: fixture_params())
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :show, declaration_request_id))
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert %{"error" => %{"type" => "forbidden"}} = resp
     end
 
@@ -1537,13 +1536,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "11111111"})
       end)
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :show, UUID.generate()))
+        |> json_response(401)
 
-      assert resp = json_response(conn, 401)
       assert %{"type" => "access_denied", "message" => "Person not found"} == resp["error"]
     end
 
@@ -1566,13 +1565,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> get(cabinet_declaration_requests_path(conn, :show, UUID.generate()))
+        |> json_response(401)
 
-      assert resp = json_response(conn, 401)
       assert %{"type" => "access_denied"} == resp["error"]
     end
   end
@@ -1631,13 +1630,13 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
           channel: DeclarationRequest.channel(:mis)
         )
 
-      conn =
+      resp =
         conn
         |> put_consumer_id_header(@user_id)
         |> put_client_id_header(@user_id)
         |> patch(cabinet_declaration_requests_path(conn, :approve, declaration_request.id))
+        |> json_response(403)
 
-      assert resp = json_response(conn, 403)
       assert "Declaration request should be approved by Doctor" == resp["error"]["message"]
     end
   end

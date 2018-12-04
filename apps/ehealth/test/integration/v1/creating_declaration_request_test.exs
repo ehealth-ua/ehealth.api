@@ -1421,13 +1421,13 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
          }}
       end)
 
-      conn =
+      error =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: ""}))
         |> post(declaration_request_path(conn, :create), declaration_request_params)
-
-      assert resp = json_response(conn, 422)["error"]
+        |> json_response(422)
+        |> Map.get("error")
 
       assert %{
                "invalid" => [
@@ -1452,7 +1452,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                    ]
                  }
                ]
-             } = resp
+             } = error
     end
   end
 

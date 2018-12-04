@@ -50,8 +50,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "no required header", %{conn: conn} do
-      conn = patch(conn, cabinet_persons_path(conn, :update_person, UUID.generate()))
-      assert resp = json_response(conn, 401)
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, UUID.generate()))
+        |> json_response(401)
+
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
@@ -76,8 +79,10 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"))
-      assert resp = json_response(conn, 422)
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"))
+        |> json_response(422)
 
       assert %{
                "error" => %{
@@ -149,12 +154,12 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      conn =
-        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Jason.encode!(%{}))
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert [
                %{
@@ -200,12 +205,12 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      conn =
-        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+      resp =
+        conn
+        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
           "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
         })
-
-      assert resp = json_response(conn, 422)
+        |> json_response(422)
 
       assert [
                %{
@@ -585,8 +590,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "no required header", %{conn: conn} do
-      conn = get(conn, cabinet_persons_path(conn, :personal_info))
-      assert resp = json_response(conn, 401)
+      resp =
+        conn
+        |> get(cabinet_persons_path(conn, :personal_info))
+        |> json_response(401)
+
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
@@ -672,8 +680,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     end
 
     test "no required header", %{conn: conn} do
-      conn = get(conn, cabinet_persons_path(conn, :person_details))
-      assert resp = json_response(conn, 401)
+      resp =
+        conn
+        |> get(cabinet_persons_path(conn, :person_details))
+        |> json_response(401)
+
       assert %{"error" => %{"type" => "access_denied", "message" => "Missing header x-consumer-metadata"}} = resp
     end
 
@@ -719,8 +730,11 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      conn = get(conn, cabinet_persons_path(conn, :person_details))
-      assert resp = json_response(conn, 401)
+      resp =
+        conn
+        |> get(cabinet_persons_path(conn, :person_details))
+        |> json_response(401)
+
       assert %{"error" => %{"type" => "access_denied", "message" => "Person not found"}} = resp
     end
 
