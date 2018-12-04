@@ -21,7 +21,11 @@ defmodule GraphQL.Unit.FilteringMiddlewareTest do
         arg(:first, :integer)
         arg(:filter, :user_filter)
 
-        middleware(Filtering, filter: [name: :equal, organization: [name: :equal, type: :equal]])
+        middleware(Filtering,
+          database_id: :equal,
+          name: :equal,
+          organization: [name: :equal, type: :equal]
+        )
 
         resolve(fn args, _ ->
           send(self(), args)
@@ -31,6 +35,7 @@ defmodule GraphQL.Unit.FilteringMiddlewareTest do
     end
 
     input_object :user_filter do
+      field(:database_id, :id)
       field(:name, :string)
       field(:organization, :organization_filter)
     end
@@ -55,20 +60,10 @@ defmodule GraphQL.Unit.FilteringMiddlewareTest do
     test "without variables" do
       Absinthe.run(@query, Schema)
 
-      assert_receive(%{})
+      assert_receive(%{filter: []})
     end
 
-    test "with unrelated variables" do
-      variables = %{
-        "first" => 10
-      }
-
-      Absinthe.run(@query, Schema, variables: variables)
-
-      assert_receive(%{first: 10})
-    end
-
-    test "with missing arguments" do
+    test "with simple conditions" do
       variables = %{
         "filter" => %{
           "name" => "Foo"
@@ -80,6 +75,22 @@ defmodule GraphQL.Unit.FilteringMiddlewareTest do
       assert_receive(%{
         filter: [
           {:name, :equal, "Foo"}
+        ]
+      })
+    end
+
+    test "with condition on databaseId" do
+      variables = %{
+        "filter" => %{
+          "databaseId" => "1234"
+        }
+      }
+
+      Absinthe.run(@query, Schema, variables: variables)
+
+      assert_receive(%{
+        filter: [
+          {:id, :equal, "1234"}
         ]
       })
     end
