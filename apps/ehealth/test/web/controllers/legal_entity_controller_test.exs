@@ -6,6 +6,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   import Mox
   import Core.Expectations.Signature
   import Core.Expectations.Man
+  import Core.Expectations.Mithril
 
   alias Ecto.UUID
   alias Core.Employees.Employee
@@ -19,25 +20,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   setup :verify_on_exit!
   setup :set_mox_global
-
-  defp insert_dictionaries do
-    insert(:il, :dictionary_phone_type)
-    insert(:il, :dictionary_address_type)
-    insert(:il, :dictionary_document_type)
-  end
-
-  defp get_legal_entity_data do
-    "../core/test/data/legal_entity.json"
-    |> File.read!()
-    |> Jason.decode!()
-  end
-
-  defp sign_legal_entity(request_params) do
-    %{
-      "signed_legal_entity_request" => Base.encode64(Jason.encode!(request_params)),
-      "signed_content_encoding" => "base64"
-    }
-  end
 
   describe "create or update legal entity" do
     test "invalid legal entity", %{conn: conn} do
@@ -158,7 +140,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "create legal entity with type pharmacy", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
       validate_addresses()
@@ -188,7 +170,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "create legal entity sign edrpou", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
       validate_addresses()
@@ -213,7 +195,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "create legal entity sign drfo code", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
 
@@ -239,7 +221,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "create legal entity sign drfo code when edrpou empty string", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
       validate_addresses()
@@ -276,7 +258,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "create legal entity sign drfo code when edrpou nil string", %{conn: conn} do
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
 
@@ -316,7 +298,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     test "update legal entity sign drfo code when edrpou nil string", %{conn: conn} do
       %{edrpou: edrpou} = insert(:prm, :legal_entity)
 
-      get_client_type_by_name(UUID.generate())
+      get_client_type_by_name()
       put_client()
       upsert_client_connection()
 
@@ -425,7 +407,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
   describe "contract suspend on update legal entity" do
     test "contract suspend on change legal entity name", %{conn: conn} do
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
       validate_addresses(2)
@@ -475,8 +457,84 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       refute contract2.is_suspended
     end
 
+    test "contract suspend on changed legal entity owner", %{conn: conn} do
+      get_client_type_by_name()
+      put_client()
+      upsert_client_connection()
+      validate_addresses()
+      template(2)
+      get_roles_by_name()
+      get_user_roles()
+      create_user_role()
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "email" => "new-owner@example.com",
+             "type" => "user"
+           }
+         }}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :employee, employee_type: Employee.type(:owner), legal_entity_id: legal_entity.id)
+
+      %{id: contract_id} =
+        insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity, is_suspended: false)
+
+      %{id: contract_id2} = insert(:prm, :capitation_contract, is_suspended: false)
+
+      owner = %{
+        "birth_date" => "1988-08-19",
+        "documents" => [%{"number" => "120518", "type" => "PASSPORT"}],
+        "email" => "new-owner@example.com",
+        "first_name" => "Олесь",
+        "gender" => "MALE",
+        "last_name" => "Головко",
+        "no_tax_id" => false,
+        "phones" => [%{"number" => "+380701112233", "type" => "MOBILE"}],
+        "position" => "P1",
+        "second_name" => "Миколайович",
+        "tax_id" => "3243004010"
+      }
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "edrpou" => legal_entity.edrpou,
+          "type" => "MSP",
+          "owner" => owner
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      employee_request_id =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put_consumer_id_header()
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+        |> get_in(~w(urgent employee_request_id))
+
+      conn
+      |> put_consumer_id_header()
+      |> put_client_id_header(legal_entity.id)
+      |> post(employee_request_path(conn, :approve, employee_request_id))
+      |> json_response(200)
+
+      contract = PRMRepo.get(CapitationContract, contract_id)
+      contract2 = PRMRepo.get(CapitationContract, contract_id2)
+
+      assert contract.is_suspended
+      refute contract2.is_suspended
+    end
+
     test "contract suspend on change status", %{conn: conn} do
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
       validate_addresses(2)
@@ -516,7 +574,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "contract suspend on change address", %{conn: conn} do
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
       validate_addresses(2)
@@ -901,6 +959,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
   end
 
+  # ToDo: not used, but should
   def assert_security_in_urgent_response(resp) do
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], "security")
@@ -912,15 +971,28 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end)
   end
 
-  defp get_client_type_by_name(id, n \\ 1) do
-    expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
-      {:ok, %{"data" => [%{"id" => id}]}}
-    end)
-  end
-
   defp validate_addresses(n \\ 1) do
     expect(UAddressesMock, :validate_addresses, n, fn _, _ ->
       {:ok, %{"data" => %{}}}
     end)
+  end
+
+  defp insert_dictionaries do
+    insert(:il, :dictionary_phone_type)
+    insert(:il, :dictionary_address_type)
+    insert(:il, :dictionary_document_type)
+  end
+
+  defp get_legal_entity_data do
+    "../core/test/data/legal_entity.json"
+    |> File.read!()
+    |> Jason.decode!()
+  end
+
+  defp sign_legal_entity(request_params) do
+    %{
+      "signed_legal_entity_request" => Base.encode64(Jason.encode!(request_params)),
+      "signed_content_encoding" => "base64"
+    }
   end
 end

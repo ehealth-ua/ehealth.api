@@ -6,6 +6,7 @@ defmodule Core.Employees.EmployeeCreator do
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
 
+  alias Core.Contracts.ContractSuspender
   alias Core.EmployeeRequests
   alias Core.EmployeeRequests.EmployeeRequest
   alias Core.Employees
@@ -120,8 +121,15 @@ defmodule Core.Employees.EmployeeCreator do
       |> where([e], e.legal_entity_id == ^legal_entity_id)
       |> PRMRepo.one()
 
+    suspend_contracts(employee)
     deactivate_employee(employee, req_headers)
   end
+
+  defp suspend_contracts(%Employee{id: id}) do
+    ContractSuspender.suspend_by_contractor_owner_ids([id])
+  end
+
+  defp suspend_contracts(_), do: :ok
 
   def deactivate_employee(%Employee{} = employee, headers) do
     params = %{

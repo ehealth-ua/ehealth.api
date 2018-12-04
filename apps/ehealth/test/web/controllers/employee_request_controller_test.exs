@@ -1204,7 +1204,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
          }}
       end)
 
-      get_roles_by_name(role_id, 3)
+      get_roles_by_name(3, role_id)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1245,7 +1245,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve pharmacist", %{conn: conn} do
       get_user()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user_roles()
       create_user_role()
 
@@ -1275,7 +1275,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request if email matches", %{conn: conn} do
       get_user()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user_roles()
       create_user_role()
 
@@ -1344,7 +1344,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request if you created it'", %{conn: conn} do
       get_user()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1381,7 +1381,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
     test "can approve employee request with employee_id'", %{conn: conn} do
       get_user()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user_roles()
       create_user_role()
 
@@ -1472,12 +1472,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve new not-existing legal entity owner suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       birth_date = ~D[1991-08-19]
@@ -1543,12 +1543,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve existing employee as legal entity owner suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -1612,10 +1612,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve non-existing employee, suspend all party contracts", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user()
       put_client()
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       birth_date = ~D[1991-08-19]
@@ -1692,10 +1692,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve existing employee, suspend all party contracts", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user()
       put_client()
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       party = insert(:prm, :party)
@@ -1764,10 +1764,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve non-existing employee, keep party credentials", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user()
       put_client()
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       party = insert(:prm, :party)
@@ -1830,10 +1830,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "approve existing employee, keep party credentials", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
       get_user()
       put_client()
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       party = insert(:prm, :party)
@@ -1900,12 +1900,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "update employee first name suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -1955,12 +1955,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "update employee last name suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -2010,12 +2010,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "update employee second name suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -2069,12 +2069,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "update employee type suspend contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
@@ -2124,12 +2124,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "update employee status contract", %{conn: conn} do
       create_user_role()
       get_user_roles()
-      get_roles_by_name(UUID.generate())
+      get_roles_by_name()
 
       get_user()
       put_client()
 
-      get_client_type_by_name(UUID.generate(), 2)
+      get_client_type_by_name(2)
       template(2)
 
       legal_entity = insert(:prm, :legal_entity)
@@ -2307,29 +2307,5 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     "../core/test/data/employee_pharmacist_request.json"
     |> File.read!()
     |> Jason.decode!()
-  end
-
-  defp create_user_role(n \\ 1) do
-    expect(MithrilMock, :create_user_role, n, fn _, _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
-  end
-
-  defp get_user_roles(n \\ 1) do
-    expect(MithrilMock, :get_user_roles, n, fn _, _, _ ->
-      {:ok, %{"data" => []}}
-    end)
-  end
-
-  defp get_roles_by_name(id, n \\ 1) do
-    expect(MithrilMock, :get_roles_by_name, n, fn _, _ ->
-      {:ok, %{"data" => [%{"id" => id}]}}
-    end)
-  end
-
-  defp get_client_type_by_name(id, n) do
-    expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
-      {:ok, %{"data" => [%{"id" => id}]}}
-    end)
   end
 end

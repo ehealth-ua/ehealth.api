@@ -3,6 +3,8 @@ defmodule Core.Expectations.Mithril do
 
   import Mox
 
+  alias Ecto.UUID
+
   def mis(n \\ 1), do: get_client_type_name("MIS", n)
   def nhs(n \\ 1), do: get_client_type_name("NHS", n)
   def msp(n \\ 1), do: get_client_type_name("MSP", n)
@@ -79,6 +81,30 @@ defmodule Core.Expectations.Mithril do
            "type" => "user"
          }
        }}
+    end)
+  end
+
+  def get_roles_by_name(n \\ 1, id \\ UUID.generate()) do
+    expect(MithrilMock, :get_roles_by_name, n, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  def get_user_roles(n \\ 1) do
+    expect(MithrilMock, :get_user_roles, n, fn _, _, _ ->
+      {:ok, %{"data" => []}}
+    end)
+  end
+
+  def create_user_role(n \\ 1) do
+    expect(MithrilMock, :create_user_role, n, fn _, _, _ ->
+      {:ok, %{"data" => %{}}}
+    end)
+  end
+
+  def get_client_type_by_name(n \\ 1, id \\ UUID.generate()) do
+    expect(MithrilMock, :get_client_type_by_name, n, fn _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
     end)
   end
 end

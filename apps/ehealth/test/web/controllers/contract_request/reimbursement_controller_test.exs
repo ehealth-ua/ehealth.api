@@ -1374,8 +1374,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   end
 
   defp prepare_reimbursement_params(division, medical_program) do
-    now = Date.utc_today()
-    start_date = Date.to_iso8601(Date.add(now, 10))
+    now = contract_start_date()
+    start_date = Date.to_iso8601(now)
     end_date = Date.to_iso8601(Date.add(now, 30))
 
     %{
@@ -1514,5 +1514,14 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
              "message" => ^message,
              "type" => "request_malformed"
            } = resp["error"]
+  end
+
+  defp contract_start_date() do
+    today = Date.utc_today()
+
+    case today.month do
+      12 -> Date.add(today, 31)
+      _ -> today
+    end
   end
 end
