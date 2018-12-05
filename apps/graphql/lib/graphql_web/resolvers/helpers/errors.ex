@@ -2,6 +2,8 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   @moduledoc false
 
   alias Ecto.Changeset
+  alias EView.Helpers.ChangesetValidationsParser
+
   require Logger
 
   @unauthenticated_error_message "Unable to authenticate request"
@@ -18,7 +20,11 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
 
   def render_error({:error, [_ | _] = errors}), do: {:error, format_unprocessable_entity_error(errors)}
   def render_error({:error, {:"422", reason}}), do: {:error, format_unprocessable_entity_error(reason)}
-  def render_error({:error, %Changeset{} = errors}), do: {:error, format_unprocessable_entity_error(errors)}
+
+  def render_error({:error, %Changeset{valid?: false} = errors}),
+    do: {:error, format_unprocessable_entity_error(errors)}
+
+  def render_error({%Changeset{valid?: false} = errors}), do: {:error, format_unprocessable_entity_error(errors)}
 
   def render_error({:error, nil}) do
     {:error, format_not_found_error("Not found")}
@@ -75,22 +81,21 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     }
   end
 
-  def format_unprocessable_entity_error(message) when is_binary(message) do
-    %{
-      message: message,
-      extensions: %{code: "UNPROCESSABLE_ENTITY"}
-    }
-  end
-
-  def format_unprocessable_entity_error(errors) when is_list(errors) do
+  def format_unprocessable_entity_error(description) when is_binary(description) do
     %{
       message: "Validation error",
-      errors: Enum.map(errors, &elem(&1, 0)),
+      errors: [%{"description" => description, "rule" => "invalid"}],
       extensions: %{code: "UNPROCESSABLE_ENTITY"}
     }
   end
 
-  def format_unprocessable_entity_error(%{"rules" => errors}) do
+  def format_unprocessable_entity_error([{%{}, _field} | _] = errors) do
+    errors =
+      errors
+      |> Enum.map(fn {%{description: description, rule: rule}, field} ->
+        create_validation_error(field, rule, description)
+      end)
+
     %{
       message: "Validation error",
       errors: errors,
@@ -98,10 +103,28 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     }
   end
 
-  def format_unprocessable_entity_error(%Ecto.Changeset{errors: errors}) do
+  def format_unprocessable_entity_error(%{
+        "entry" => field,
+        "rules" => [%{"description" => description, "rule" => rule} | _]
+      }) do
     %{
       message: "Validation error",
-      errors: Enum.map(errors, fn {_field, {error, _}} -> error end),
+      errors: [create_validation_error(field, rule, description)],
+      extensions: %{code: "UNPROCESSABLE_ENTITY"}
+    }
+  end
+
+  def format_unprocessable_entity_error(%Ecto.Changeset{} = changeset) do
+    errors =
+      changeset
+      |> ChangesetValidationsParser.changeset_to_rules("json_data_property")
+      |> Enum.map(fn %{entry: field, rules: [%{description: description, rule: rule} | _]} ->
+        create_validation_error(field, rule, description)
+      end)
+
+    %{
+      message: "Validation error",
+      errors: errors,
       extensions: %{code: "UNPROCESSABLE_ENTITY"}
     }
   end
@@ -118,5 +141,9 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
       message: message,
       extensions: %{code: "CONFLICT"}
     }
+  end
+
+  defp create_validation_error(field, rule, description) do
+    %{"#{field}" => %{"description" => description, "rule" => to_string(rule)}}
   end
 end

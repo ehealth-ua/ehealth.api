@@ -1,6 +1,8 @@
 defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   @moduledoc false
 
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
+
   alias Absinthe.Relay.Connection
   alias BSON.ObjectId
   alias Core.Utils.TypesConverter
@@ -13,6 +15,8 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   def merge_legal_entities(args, resolution) do
     with {:ok, %Job{} = job} <- Jobs.create_merge_legal_entities_job(args, resolution.context.headers) do
       {:ok, %{legal_entity_merge_job: job_view(job)}}
+    else
+      err -> render_error(err)
     end
   end
 

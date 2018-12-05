@@ -594,7 +594,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
 
       assert [error] = resp_body["errors"]
-      assert "expected the value to be >= 0" == hd(error["errors"])["description"]
+      assert "expected the value to be >= 0" == hd(error["errors"])["$.nhs_contract_price"]["description"]
     end
 
     test "Start date must be greater than create date", %{
@@ -633,7 +633,7 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
       assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
 
       assert [error] = resp_body["errors"]
-      assert "Start date must be within this or next year" == hd(error["errors"])["description"]
+      assert "Start date must be within this or next year" == hd(error["errors"])["$.start_date"]["description"]
     end
 
     test "contract request not found", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
