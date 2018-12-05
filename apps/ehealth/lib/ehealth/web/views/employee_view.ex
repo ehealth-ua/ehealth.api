@@ -5,6 +5,7 @@ defmodule EHealth.Web.EmployeeView do
 
   alias Core.Divisions.Division
   alias Core.Employees.Employee
+  alias Core.Employees.Renderer, as: EmployeesRenderer
   alias Core.LegalEntities.LegalEntity
   alias Core.Parties.Party
   alias EHealth.Web.PartyView
@@ -57,15 +58,9 @@ defmodule EHealth.Web.EmployeeView do
 
   def render("employee_short.json", _), do: %{}
 
-  def render("employee_private.json", %{employee: employee}) do
-    %{
-      "id" => employee.id,
-      "position" => employee.position,
-      "party" => render(PartyView, "party_private.json", %{party: employee.party})
-    }
+  def render("employee_private.json", employee_data) do
+    EmployeesRenderer.render("employee_private.json", employee_data)
   end
-
-  def render("employee_private.json", _), do: %{}
 
   def render("employee.json", %{employee: %{employee_type: @doctor, additional_info: info} = employee}) do
     employee

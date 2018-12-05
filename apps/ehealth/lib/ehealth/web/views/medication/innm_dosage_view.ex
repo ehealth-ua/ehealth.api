@@ -1,6 +1,7 @@
 defmodule EHealth.Web.INNMDosageView do
   @moduledoc false
   use EHealth.Web, :view
+  alias Core.Medications.INNMDosage.Renderer, as: INNMDosageRenderer
 
   @view_fields [:id, :name, :type, :form, :is_active, :inserted_by, :updated_by, :inserted_at, :updated_at]
 
@@ -22,15 +23,7 @@ defmodule EHealth.Web.INNMDosageView do
   end
 
   def render("innm_dosage_short.json", %{innm_dosage: innm_dosage, medication_qty: medication_qty}) do
-    dosage = innm_dosage.ingredients |> Enum.filter(fn i -> i.is_primary end) |> Enum.at(0) |> Map.get(:dosage)
-
-    %{
-      medication_id: innm_dosage.id,
-      medication_name: innm_dosage.name,
-      dosage: dosage,
-      form: innm_dosage.form,
-      medication_qty: medication_qty
-    }
+    INNMDosageRenderer.render("innm_dosage_short.json", innm_dosage, medication_qty)
   end
 
   def render("ingredient.json", %{ingredient: ingredient}) do

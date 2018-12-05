@@ -5,7 +5,9 @@ defmodule Core.MedicationRequestRequest.Validations do
   alias Core.Dictionaries
   alias Core.Employees
   alias Core.Employees.Employee
+  alias Core.MedicationRequestRequest.Renderer, as: MedicationRequestRequestRenderer
   alias Core.Medications
+  alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
@@ -228,19 +230,32 @@ defmodule Core.MedicationRequestRequest.Validations do
     )
   end
 
-  def validate_sign_content(mrr, %{"content" => content, "signers" => [signer]}) do
-    with %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
+  def validate_sign_content(mrr, operation) do
+    with false <- is_nil(Map.get(operation.data, :decoded_content)),
+         %{"content" => content, "signers" => [signer]} = operation.data.decoded_content,
+         %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
          doctor_tax_id <- employee |> Map.get(:party) |> Map.get(:tax_id),
-         true <-
-           mrr.id == content["id"] && mrr.data.division_id == get_in(content, ["division", "id"]) &&
-             mrr.data.employee_id == get_in(content, ["employee", "id"]) &&
-             mrr.data.legal_entity_id == get_in(content, ["legal_entity", "id"]) &&
-             mrr.data.medication_id == get_in(content, ["medication_info", "medication_id"]) &&
-             mrr.data.person_id == get_in(content, ["person", "id"]) && doctor_tax_id == signer["drfo"] do
+         true <- doctor_tax_id == signer["drfo"],
+         :ok <- compare_with_db(content, mrr, operation) do
       {:ok, mrr}
     else
       _ -> {:error, {:"422", "Signed content does not match the previously created content!"}}
     end
+  end
+
+  defp compare_with_db(content, medication_request_request, operation) do
+    mrr_data =
+      operation.data
+      |> Map.delete(:decoded_content)
+      |> Map.merge(%{medication_request_request: medication_request_request})
+
+    db_content =
+      "medication_request_request_detail.json"
+      |> MedicationRequestRequestRenderer.render(mrr_data)
+      |> Jason.encode!()
+      |> Jason.decode!()
+
+    ContentValidator.compare_with_db(content, db_content, "medication_request_request_sign")
   end
 
   def validate_dates(attrs) do

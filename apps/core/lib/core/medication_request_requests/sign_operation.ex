@@ -25,6 +25,7 @@ defmodule Core.MedicationRequestRequest.SignOperation do
       fn _, e -> {:ok, e} end,
       key: :medical_program
     )
+    |> validate_data(mrr.data.context, &validate_medical_event_entity/2)
     |> validate_data({params, headers}, &decode_sign_content/2, key: :decoded_content)
     |> validate_sign_content(mrr)
     |> upload_sign_content(params, mrr)
@@ -35,7 +36,7 @@ defmodule Core.MedicationRequestRequest.SignOperation do
   def decode_sign_content(_operation, {params, headers}), do: Validations.decode_sign_content(params, headers)
 
   def validate_sign_content(operation, mrr) do
-    {operation, Validations.validate_sign_content(mrr, operation.data.decoded_content)}
+    {operation, Validations.validate_sign_content(mrr, operation)}
   end
 
   def upload_sign_content({operation, {:error, error}}, _, _), do: {operation, {:error, error}}
