@@ -34,13 +34,21 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     dosage_instruction
   )a
 
-  def fixture(:medication_request_request) do
+  def fixture(:medication_request_request, params \\ %{}, exclude_medical_program_id \\ false) do
     {medication_id, pm} = create_medications_structure()
 
     test_request =
       test_request()
       |> Map.put("medication_id", medication_id)
       |> Map.put("medical_program_id", pm.medical_program_id)
+      |> Map.merge(params)
+
+    test_request =
+      if exclude_medical_program_id do
+        Map.delete(test_request, "medical_program_id")
+      else
+        test_request
+      end
 
     {:ok, medication_request_request} =
       MedicationRequestRequests.create(test_request, "7488a646-e31f-11e4-aace-600308960662", @legal_entity_id)
@@ -110,6 +118,23 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert 1 =
                conn
                |> get(medication_request_request_path(conn, :index, data))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length
+    end
+
+    test "lists all medication_request_requests with data with different intents", %{conn: conn} do
+      expect_ops_get_declarations(2)
+      expect_mpi_get_person(4)
+      expect_encounter_status("finished", 2)
+
+      fixture(:medication_request_request, %{"intent" => "order"})
+      fixture(:medication_request_request, %{"intent" => "plan"}, true)
+
+      assert 2 =
+               conn
+               |> get(medication_request_request_path(conn, :index, %{}))
                |> json_response(200)
                |> Map.get("data")
                |> assert_list_response_schema("medication_request_request")
@@ -226,6 +251,28 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       Enum.each(@medication_request_request_data_fields, fn field ->
         assert Map.has_key?(medication_request_request_data, field)
       end)
+    end
+
+    test "render medication_request_request when PLAN data does not contain medical_program_id", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+
+      {medication_id, _} = create_medications_structure()
+
+      test_request =
+        test_request()
+        |> Map.merge(%{
+          "medication_id" => medication_id,
+          "intent" => "plan"
+        })
+        |> Map.delete("medical_program_id")
+
+      assert conn
+             |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+             |> json_response(201)
+             |> Map.get("data")
+             |> assert_show_response_schema("medication_request_request", "medication_request_request_plan")
     end
 
     test "render medication_request_request when optional fields are absent", %{conn: conn} do

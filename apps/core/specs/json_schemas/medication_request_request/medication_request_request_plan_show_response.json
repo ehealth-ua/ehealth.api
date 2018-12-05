@@ -1,0 +1,622 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "simple_quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Dictionary: TBD"
+        },
+        "system": {
+          "type": "string",
+          "description": "Dictionary: TBD"
+        },
+        "code": {
+          "type": "string",
+          "description": "Dictionary: TBD"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "$ref": "#/definitions/simple_quantity"
+        },
+        "high": {
+          "$ref": "#/definitions/simple_quantity"
+        }
+      },
+      "required": [
+        "low",
+        "high"
+      ],
+      "additionalProperties": false
+    },
+    "dosage": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "description": "The order of the dosage instructions"
+        },
+        "text": {
+          "type": "string",
+          "description": "Free text dosage instructions e.g. SIG"
+        },
+        "additional_instruction": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "coding": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "system": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Symbol in syntax defined by the system"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "system"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "coding"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "patient_instruction": {
+          "type": "string",
+          "description": "Patient or consumer oriented instructions"
+        },
+        "timing": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the event occurs. ISO 8601 date and time in UTC timezone."
+              }
+            },
+            "repeat": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "description": "Number of times to repeat"
+                },
+                "count_max": {
+                  "type": "integer",
+                  "description": "Maximum number of times to repeat"
+                },
+                "duration": {
+                  "type": "number",
+                  "description": "How long when it happens"
+                },
+                "duration_max": {
+                  "type": "number",
+                  "description": "How long when it happens Max"
+                },
+                "duration_unit": {
+                  "type": "string",
+                  "description": "Dictionary UNITS_OF_TIME"
+                },
+                "frequency": {
+                  "type": "integer",
+                  "description": "Event occurs frequency times per period"
+                },
+                "frequency_max": {
+                  "type": "integer",
+                  "description": "Event occurs up to frequencyMax times per period"
+                },
+                "period": {
+                  "type": "number",
+                  "description": "Event occurs frequency times per period"
+                },
+                "period_max": {
+                  "type": "number",
+                  "description": "Upper limit of period"
+                },
+                "period_unit": {
+                  "type": "string",
+                  "description": "Dictionary UNITS_OF_TIME"
+                },
+                "day_of_week": {
+                  "type": "array",
+                  "description": "day of week. Dictionary DAYS_OF_WEEK",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "time_of_day": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Time of day for action"
+                  }
+                },
+                "when": {
+                  "type": "array",
+                  "description": "Regular life events the event is tied to",
+                  "items": {
+                    "type": "string",
+                    "description": "Dictionary EVENT_TIMING"
+                  }
+                },
+                "offset": {
+                  "type": "integer",
+                  "description": "Minutes from event before or after"
+                }
+              },
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "bounds_duration": {
+                      "$ref": "#/definitions/simple_quantity"
+                    }
+                  },
+                  "required": [
+                    "bounds_duration"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "bounds_range": {
+                      "$ref": "#/definitions/range"
+                    }
+                  },
+                  "required": [
+                    "bounds_range"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "bounds_period": {
+                      "type": "object",
+                      "properties": {
+                        "start": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "C? Starting time with inclusive boundary"
+                        },
+                        "end": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "C? End time with inclusive boundary, if not ongoing"
+                        }
+                      },
+                      "required": [
+                        "start",
+                        "end"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bounds_period"
+                  ]
+                }
+              ]
+            },
+            "code": {
+              "type": "object",
+              "properties": {
+                "coding": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "system": {
+                        "type": "string",
+                        "description": "Dictionary TIMING_ABBREVIATION"
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Symbol in syntax defined by the system"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "system"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "coding"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Medication Request request identifier"
+    },
+    "status": {
+      "type": "string",
+      "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
+    },
+    "request_number": {
+      "type": "string",
+      "description": "Public medication request human readable number"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*"
+    },
+    "started_at": {
+      "type": "string",
+      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*"
+    },
+    "ended_at": {
+      "type": "string",
+      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*"
+    },
+    "dispense_valid_from": {
+      "type": "string",
+      "description": "Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*"
+    },
+    "dispense_valid_to": {
+      "type": "string",
+      "description": "End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*"
+    },
+    "legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "short_name": {
+          "type": "string"
+        },
+        "public_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "edrpou": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "CLOSED"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "short_name",
+        "public_name",
+        "type",
+        "edrpou",
+        "status"
+      ]
+    },
+    "division": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "addresses": {
+          "type": "array"
+        },
+        "phones": {
+          "type": "array"
+        },
+        "email": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "latitude",
+            "longitude"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "addresses",
+        "phones",
+        "email",
+        "type"
+      ]
+    },
+    "employee": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string",
+          "description": "Dictionary: POSITION"
+        },
+        "party": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "second_name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "phones": {
+              "type": "array"
+            },
+            "tax_id": {
+              "not": {}
+            },
+            "documents": {
+              "not": {}
+            }
+          },
+          "required": [
+            "id",
+            "first_name",
+            "last_name"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "position"
+      ]
+    },
+    "person": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer",
+          "description": "Full years between birth date and medication request date"
+        }
+      },
+      "required": [
+        "id",
+        "first_name",
+        "last_name",
+        "age"
+      ],
+      "additionalProperties": false
+    },
+    "medication_info": {
+      "type": "object",
+      "properties": {
+        "medication_id": {
+          "type": "string",
+          "description": "`Identifier medication with type **INNM_DOSAGE**`"
+        },
+        "medication_name": {
+          "type": "string",
+          "description": "`Name of medication with type **INNM_DOSAGE**`"
+        },
+        "form": {
+          "type": "string",
+          "description": "Dictionary: MEDICATION_FORM"
+        },
+        "dosage": {
+          "type": "object",
+          "properties": {
+            "numerator_unit": {
+              "type": "string",
+              "description": "Dictionary: MEDICATION_UNIT"
+            },
+            "numerator_value": {
+              "type": "number"
+            },
+            "denumerator_unit": {
+              "type": "string",
+              "description": "Dictionary: MEDICATION_UNIT"
+            },
+            "denumerator_value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "numerator_unit",
+            "numerator_value",
+            "denumerator_unit",
+            "denumerator_value"
+          ],
+          "description": "Dosage of innm_dosage object"
+        },
+        "medication_qty": {
+          "type": "number",
+          "description": "Medication quantity isuued by the doctor"
+        }
+      },
+      "required": [
+        "medication_id",
+        "medication_name",
+        "form",
+        "dosage",
+        "medication_qty"
+      ]
+    },
+    "medical_program": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "`Medical program Identifier`"
+        },
+        "name": {
+          "type": "string",
+          "description": "`Medical program name`"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "intent": {
+      "type": "string",
+      "description": "Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT"
+    },
+    "category": {
+      "type": "string",
+      "description": "Type of medication usage. Dictionary MEDICATION_REQUEST_CATEGORY"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "object",
+              "properties": {
+                "coding": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "system": {
+                        "type": "string"
+                      },
+                      "code": {
+                        "type": "string",
+                        "description": "Symbol in syntax defined by the system"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "system"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "coding"
+              ],
+              "additionalProperties": false
+            },
+            "value": {
+              "type": "string",
+              "description": "The value that is unique"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "dosage_instruction": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/dosage"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "status",
+    "request_number",
+    "created_at",
+    "started_at",
+    "ended_at",
+    "dispense_valid_from",
+    "dispense_valid_to",
+    "legal_entity",
+    "division",
+    "employee",
+    "person",
+    "medication_info",
+    "intent",
+    "category"
+  ],
+  "additionalProperties": false
+}
