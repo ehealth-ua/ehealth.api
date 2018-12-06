@@ -243,6 +243,7 @@ defmodule Core.LegalEntities do
 
   def nhs_verify(%{id: id, nhs_verified: nhs_verified}, consumer_id, check_nhs_reviewed? \\ false) do
     with {:ok, legal_entity} <- fetch_by_id(id),
+         :ok <- check_legal_entity_active(legal_entity),
          :ok <- check_nhs_verify_transition(legal_entity, nhs_verified),
          :ok <- check_nhs_reviewed(legal_entity, check_nhs_reviewed?) do
       update(legal_entity, %{nhs_verified: nhs_verified}, consumer_id)
@@ -259,11 +260,19 @@ defmodule Core.LegalEntities do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
-  defp check_nhs_verify_transition(%LegalEntity{status: status}, _) when status != @status_active do
+  defp check_nhs_verify_transition(_, _), do: :ok
+
+  defp check_nhs_reviewed_transition(%LegalEntity{nhs_reviewed: true}) do
+    {:error, {:conflict, "LegalEntity has been already reviewed."}}
+  end
+
+  defp check_nhs_reviewed_transition(_), do: :ok
+
+  defp check_legal_entity_active(%LegalEntity{status: status}) when status != @status_active do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
 
-  defp check_nhs_verify_transition(_, _), do: :ok
+  defp check_legal_entity_active(_), do: :ok
 
   # Create legal entity
 
@@ -385,11 +394,13 @@ defmodule Core.LegalEntities do
     |> EmployeeRequests.create_owner()
   end
 
-  def nhs_review(%{id: id, nhs_reviewed: nhs_reviewed?}, headers) do
+  def nhs_review(%{id: id}, headers) do
     updated_by = get_consumer_id(headers)
 
     with {:ok, legal_entity} <- fetch_by_id(id),
-         {:ok, legal_entity} <- update(legal_entity, %{nhs_reviewed: nhs_reviewed?}, updated_by) do
+         :ok <- check_legal_entity_active(legal_entity),
+         :ok <- check_nhs_reviewed_transition(legal_entity),
+         {:ok, legal_entity} <- update(legal_entity, %{nhs_reviewed: true}, updated_by) do
       {:ok, legal_entity}
     end
   end
@@ -398,6 +409,7 @@ defmodule Core.LegalEntities do
     updated_by = get_consumer_id(headers)
 
     with {:ok, legal_entity} <- fetch_by_id(id),
+         :ok <- check_legal_entity_active(legal_entity),
          :ok <- check_nhs_reviewed(legal_entity),
          {:ok, legal_entity} <- update(legal_entity, %{nhs_comment: nhs_comment}, updated_by) do
       {:ok, legal_entity}

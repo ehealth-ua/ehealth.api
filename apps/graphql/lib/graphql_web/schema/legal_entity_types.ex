@@ -91,7 +91,6 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
       input do
         field(:id, non_null(:id))
-        field(:nhs_reviewed, non_null(:boolean))
       end
 
       output do
