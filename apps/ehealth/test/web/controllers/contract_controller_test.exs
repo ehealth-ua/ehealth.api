@@ -962,35 +962,6 @@ defmodule EHealth.Web.ContractControllerTest do
                ]
              } = resp["error"]
     end
-
-    test "terminate contract with wrong status_reason", %{conn: conn} do
-      nhs()
-      contract = insert(:prm, :capitation_contract)
-      params = %{"status_reason" => "%"}
-
-      resp =
-        conn
-        |> put_client_id_header(contract.nhs_legal_entity_id)
-        |> patch(contract_path(conn, :terminate, @capitation, contract.id), params)
-        |> json_response(422)
-
-      assert %{
-               "invalid" => [
-                 %{
-                   "entry" => "$.status_reason",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" =>
-                         "string does not match pattern \"^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\\\\\"!\\\\^\\\\*)\\\\]\\\\[(._-].*$\"",
-                       "params" => ["^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"],
-                       "rule" => "format"
-                     }
-                   ]
-                 }
-               ]
-             } = resp["error"]
-    end
   end
 
   describe "update employees" do
