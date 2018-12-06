@@ -1,6 +1,8 @@
 defmodule Core.ContractRequests.ReimbursementContractRequest do
   @moduledoc false
 
+  alias Core.LegalEntities.LegalEntity
+  alias Core.MedicalPrograms.MedicalProgram
   alias Ecto.UUID
 
   @inheritance_name "REIMBURSEMENT"
@@ -32,6 +34,11 @@ defmodule Core.ContractRequests.ReimbursementContractRequest do
     fields: [
       {:medical_program_id, UUID}
     ]
+
+  def related_schemas, do: ~w(contractor_legal_entity medical_program)a
+
+  def related_schema(:contractor_legal_entity), do: LegalEntity
+  def related_schema(:medical_program), do: MedicalProgram
 
   def changeset(%__MODULE__{} = contract_request, params) do
     contract_request

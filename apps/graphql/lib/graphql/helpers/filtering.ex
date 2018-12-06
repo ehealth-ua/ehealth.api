@@ -60,6 +60,24 @@ defmodule GraphQL.Helpers.Filtering do
     |> filter(tail)
   end
 
+  def filter(query, [{:date, field, :in, %Date.Interval{first: %Date{} = first, last: %Date{} = last}} | tail]) do
+    query
+    |> where([..., r], fragment("? <@ daterange(?, ?, '[]')", field(r, ^field), ^first, ^last))
+    |> filter(tail)
+  end
+
+  def filter(query, [{:date, field, :in, %Date.Interval{first: %Date{} = first}} | tail]) do
+    query
+    |> where([..., r], fragment("? <@ daterange(?, 'infinity', '[)')", field(r, ^field), ^first))
+    |> filter(tail)
+  end
+
+  def filter(query, [{:date, field, :in, %Date.Interval{last: %Date{} = last}} | tail]) do
+    query
+    |> where([..., r], fragment("? <@ daterange('infinity', ?, '(]')", field(r, ^field), ^last))
+    |> filter(tail)
+  end
+
   def filter(query, [{{:array, _}, field, :contains, value} | tail]) do
     query
     |> where([..., r], fragment("? @> ?", field(r, ^field), ^value))

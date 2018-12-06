@@ -39,6 +39,18 @@ defmodule Date.Interval do
   defp raw_from_edtf(<<?., ?., ?/, last::binary-size(10)>>), do: {:ok, nil, last}
   defp raw_from_edtf(_), do: {:error, :invalid_format}
 
+  @spec from_edtf!(String.t()) :: t
+  def from_edtf!(string) do
+    case from_edtf(string) do
+      {:ok, value} ->
+        value
+
+      {:error, reason} ->
+        raise ArgumentError,
+              "cannot parse #{inspect(string)} as date interval, reason: #{inspect(reason)}"
+    end
+  end
+
   defp boundary_from_string(nil), do: {:ok, nil}
   defp boundary_from_string(date), do: Date.from_iso8601(date)
 

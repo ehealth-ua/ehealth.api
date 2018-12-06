@@ -181,8 +181,8 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:contract_request, :contract_request, resolve: load_by_parent(IL, CapitationContractRequest))
 
     # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, :naive_datetime)
-    field(:updated_at, :naive_datetime)
+    field(:inserted_at, non_null(:naive_datetime))
+    field(:updated_at, non_null(:naive_datetime))
   end
 
   connection node_type: :contract_employee_division do

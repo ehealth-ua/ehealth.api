@@ -103,8 +103,8 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
 
     # timestamps
     # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, :naive_datetime)
-    field(:updated_at, :naive_datetime)
+    field(:inserted_at, non_null(:naive_datetime))
+    field(:updated_at, non_null(:naive_datetime))
   end
 
   # embed

@@ -120,8 +120,6 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:id, non_null(:id))
     field(:database_id, non_null(:id))
     field(:contract_number, :string)
-    # field(:parent_contract, :contract)
-    # field(:previous_request, :contract_request)
     field(:assignee, :employee)
     field(:id_form, non_null(:string))
     field(:status, non_null(:contract_request_status))
@@ -134,27 +132,19 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:contractor_owner, non_null(:employee))
     field(:contractor_base, non_null(:string))
     field(:contractor_payment_details, non_null(:contractor_payment_details))
-    field(:contractor_rmsp_amount, non_null(:integer))
     field(:contractor_divisions, list_of(:division))
-    field(:contractor_employee_divisions, list_of(:contractor_employee_division))
-    field(:external_contractor_flag, non_null(:boolean))
-    field(:external_contractors, list_of(:external_contractor))
     field(:nhs_signer, :employee)
     field(:nhs_legal_entity, :legal_entity)
     field(:nhs_signer_base, :string)
-    field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
+    field(:attached_documents, non_null(list_of(:contract_document)))
     field(:miscellaneous, :string)
-
     field(:to_approve_content, :json)
     field(:to_decline_content, :json)
     field(:to_sign_content, :json)
-
-    field(:attached_documents, non_null(list_of(:contract_document)))
-
     # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, :naive_datetime)
-    field(:updated_at, :naive_datetime)
+    field(:inserted_at, non_null(:naive_datetime))
+    field(:updated_at, non_null(:naive_datetime))
 
     resolve_type(fn
       %{type: @capitation_type}, _ -> :capitation_contract_request

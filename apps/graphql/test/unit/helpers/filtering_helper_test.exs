@@ -8,6 +8,7 @@ defmodule GraphQL.Unit.FilteringHelperTest do
 
   alias Core.Divisions.Division
   alias Core.LegalEntities.LegalEntity
+  alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
 
   @division_status_active Division.status(:active)
@@ -64,6 +65,22 @@ defmodule GraphQL.Unit.FilteringHelperTest do
       condition = [{:type, :in, [@legal_entity_type_msp, @legal_entity_type_mis]}]
 
       results = do_filter(LegalEntity, condition)
+
+      assert 1 = length(results)
+      assert expected_result.id == hd(results).id
+    end
+
+    test "with in date interval condition" do
+      capitation_contracts =
+        for start_date <- ~w(2017-01-23 2018-09-12) do
+          insert(:prm, :capitation_contract, start_date: Date.from_iso8601!(start_date))
+        end
+
+      expected_result = hd(capitation_contracts)
+
+      condition = [{:start_date, :in, Date.Interval.from_edtf!("2016-12-01/2017-02-01")}]
+
+      results = do_filter(CapitationContract, condition)
 
       assert 1 = length(results)
       assert expected_result.id == hd(results).id

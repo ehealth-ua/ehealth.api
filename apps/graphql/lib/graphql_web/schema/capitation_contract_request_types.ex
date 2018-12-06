@@ -9,7 +9,8 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.CapitationContractRequest
-  alias Core.Contracts.CapitationContract
+  # TODO: uncomment when capitation contracts will be ready
+  # alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -63,10 +64,10 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
     value(:end_date_desc)
     value(:inserted_at_asc)
     value(:inserted_at_desc)
-    value(:status_asc)
-    value(:status_desc)
     value(:start_date_asc)
     value(:start_date_desc)
+    value(:status_asc)
+    value(:status_desc)
   end
 
   connection node_type: :capitation_contract_request do
@@ -82,6 +83,7 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
 
     field(:database_id, non_null(:id))
     field(:contract_number, :string)
+    # TODO: uncomment when capitation contracts will be ready
     # field(:parent_contract, :capitation_contract, resolve: load_by_parent(PRM, CapitationContract))
     field(:previous_request, :capitation_contract_request, resolve: dataloader(IL))
     field(:assignee, :employee, resolve: load_by_parent(PRM, Employee))
@@ -92,25 +94,17 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
     field(:printout_content, :string, resolve: &ContractRequestResolver.get_printout_content/3)
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))
+
     field(:contractor_legal_entity, non_null(:legal_entity), resolve: load_by_parent(PRM, LegalEntity))
+
     field(:contractor_owner, non_null(:employee), resolve: load_by_parent(PRM, Employee))
     field(:contractor_base, non_null(:string))
     field(:contractor_payment_details, non_null(:contractor_payment_details))
-    field(:contractor_rmsp_amount, non_null(:integer))
     field(:contractor_divisions, list_of(:division), resolve: load_by_parent(PRM, Division))
-    field(:contractor_employee_divisions, list_of(:contractor_employee_division))
-    field(:external_contractor_flag, non_null(:boolean))
-    field(:external_contractors, list_of(:external_contractor))
     field(:nhs_signer, :employee, resolve: load_by_parent(PRM, Employee))
     field(:nhs_legal_entity, :legal_entity, resolve: load_by_parent(PRM, LegalEntity))
     field(:nhs_signer_base, :string)
-    field(:nhs_contract_price, :float)
     field(:nhs_payment_method, :nhs_payment_method)
-    field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
-
-    field(:to_approve_content, :json, resolve: &ContractRequestResolver.get_to_approve_content/3)
-    field(:to_decline_content, :json, resolve: &ContractRequestResolver.get_to_decline_content/3)
-    field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
 
     field(
       :attached_documents,
@@ -118,9 +112,18 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
       resolve: &ContractRequestResolver.get_attached_documents/3
     )
 
+    field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
+    field(:to_approve_content, :json, resolve: &ContractRequestResolver.get_to_approve_content/3)
+    field(:to_decline_content, :json, resolve: &ContractRequestResolver.get_to_decline_content/3)
+    field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
+    field(:contractor_rmsp_amount, non_null(:integer))
+    field(:contractor_employee_divisions, list_of(:contractor_employee_division))
+    field(:external_contractor_flag, non_null(:boolean))
+    field(:external_contractors, list_of(:external_contractor))
+    field(:nhs_contract_price, :float)
     # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, :naive_datetime)
-    field(:updated_at, :naive_datetime)
+    field(:inserted_at, non_null(:naive_datetime))
+    field(:updated_at, non_null(:naive_datetime))
   end
 
   object :contractor_employee_division do

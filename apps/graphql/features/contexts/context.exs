@@ -7,8 +7,11 @@ defmodule GraphQL.Features.Context do
 
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo, EventManagerRepo}
-  alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
+  alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
+  alias Core.MedicalPrograms.MedicalProgram
+  alias Core.Parties.Party
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
   alias Mox
@@ -68,11 +71,46 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^there are (?<count>\d+) reimbursement contract requests exist$/,
+    fn state, %{count: count} ->
+      count = String.to_integer(count)
+      insert_list(count, :il, :reimbursement_contract_request)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following capitation contract requests exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
         attrs = prepare_attrs(CapitationContractRequest, row)
         insert(:il, :capitation_contract_request, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following reimbursement contract requests exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(ReimbursementContractRequest, row)
+        insert(:il, :reimbursement_contract_request, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following employees exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Employee, row)
+        # FIXME: There are should be better way to set party_id foreign key for employee
+        insert(:prm, :employee, [{:party, nil} | attrs])
       end
 
       {:ok, state}
@@ -91,6 +129,30 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  given_(
+    ~r/^the following medical programs exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(MedicalProgram, row)
+        insert(:prm, :medical_program, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following parties exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Party, row)
+        insert(:prm, :party, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests$/,
     fn %{conn: conn}, %{count: count} ->
@@ -99,6 +161,7 @@ defmodule GraphQL.Features.Context do
           capitationContractRequests(first: $first) {
             nodes {
               id
+              databaseId
             }
           }
         }
@@ -118,7 +181,34 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is "(?<value>[^"]+)"$/,
+    ~r/^I request first (?<count>\d+) reimbursement contract requests$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListReimbursementContractRequests($first: Int!) {
+          reimbursementContractRequests(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: String.to_integer(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListCapitationContractRequestsWithFilter(
@@ -135,7 +225,7 @@ defmodule GraphQL.Features.Context do
 
       variables = %{
         first: String.to_integer(count),
-        filter: filter_argument(field, value)
+        filter: filter_argument(field, Jason.decode!(value))
       }
 
       resp_body =
@@ -150,7 +240,108 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contract requests sorted by "(?<field>[^"]+)" in (?<direction>ascending|descending) order$/,
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where assigneeName is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, value: value} ->
+      query = """
+        query ListReimbursementContractRequestsWithAssigneeNameFilter(
+          $first: Int!
+          $filter: ReimbursementContractRequestFilter!
+        ) {
+          reimbursementContractRequests(first: $first, filter: $filter) {
+            nodes {
+              assignee {
+                databaseId
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: String.to_integer(count),
+        filter: filter_argument("assigneeName", Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListReimbursementContractRequestsWithFilter(
+          $first: Int!
+          $filter: ReimbursementContractRequestFilter!
+        ) {
+          reimbursementContractRequests(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: String.to_integer(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn},
+       %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListReimbursementContractRequestsWithAssocFilter(
+          $first: Int!
+          $filter: ReimbursementContractRequestFilter!
+        ) {
+          reimbursementContractRequests(first: $first, filter: $filter) {
+            nodes {
+              #{association_field} {
+                #{field}
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: String.to_integer(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contract requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """
         query ListCapitationContractRequestsWithOrderBy(
@@ -182,6 +373,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) reimbursement contract requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListReimbursementContractRequestsWithOrderBy(
+          $first: Int!
+          $order_by: ReimbursementContractRequestOrderBy!
+        ) {
+          reimbursementContractRequests(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: String.to_integer(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request capitation contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
       query = """
@@ -202,6 +425,86 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+        query GetReimbursementContractRequestQuery($id: ID!) {
+          reimbursementContractRequest(id: $id) {
+            databaseId
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ReimbursementContractRequest", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetReimbursementContractRequestQuery($id: ID!) {
+          reimbursementContractRequest(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ReimbursementContractRequest", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetReimbursementContractRequestQuery($id: ID!) {
+          reimbursementContractRequest(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ReimbursementContractRequest", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -263,29 +566,50 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>[\w_]+) of the first item in the collection should be "(?<value>[^"]+)"$/,
+    ~r/^the (?<field>\w+) of the first item in the collection should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{resp_entities: resp_entities} = state, %{field: field, value: value} ->
-      resp_value =
-        resp_entities
-        |> hd()
-        |> Map.get(field)
-        |> to_string()
+      expected_value = Jason.decode!(value)
+      resp_value = hd(resp_entities)[field]
 
-      assert value = resp_value
+      assert expected_value == resp_value
 
       {:ok, state}
     end
   )
 
   then_(
-    ~r/^the (?<field>[\w_]+) of the requested item should be "(?<value>[^"]+)"$/,
-    fn %{resp_entity: resp_entity} = state, %{field: field, value: value} ->
-      resp_value =
-        resp_entity
-        |> Map.get(field)
-        |> to_string()
+    ~r/^the (?<field>\w+) in the (?<association_field>\w+) of the first item in the collection should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{resp_entities: resp_entities} = state,
+       %{field: field, association_field: association_field, value: value} ->
+      expected_value = Jason.decode!(value)
+      resp_value = resp_entities |> hd() |> get_in([association_field, field])
 
-      assert value = resp_value
+      assert expected_value == resp_value
+
+      {:ok, state}
+    end
+  )
+
+  then_(
+    ~r/^the (?<field>\w+) of the requested item should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{resp_entity: resp_entity} = state, %{field: field, value: value} ->
+      expected_value = Jason.decode!(value)
+      resp_value = resp_entity[field]
+
+      assert expected_value == resp_value
+
+      {:ok, state}
+    end
+  )
+
+  then_(
+    ~r/^the (?<nested_field>\w+) in the (?<field>\w+) of the requested item should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{resp_entity: resp_entity} = state,
+       %{field: field, nested_field: nested_field, value: value} ->
+      expected_value = Jason.decode!(value)
+      resp_value = get_in(resp_entity, [field, nested_field])
+
+      assert expected_value == resp_value
 
       {:ok, state}
     end
@@ -306,12 +630,15 @@ defmodule GraphQL.Features.Context do
     post(conn, @graphql_path, %{query: query, variables: variables})
   end
 
-  def prepare_attrs(queryable, attrs) when is_map(attrs), do: prepare_attrs(queryable, Map.to_list(attrs))
+  def prepare_attrs(queryable, attrs) when is_map(attrs) do
+    prepare_attrs(queryable, Map.to_list(attrs))
+  end
 
   def prepare_attrs(_, []), do: []
 
   def prepare_attrs(queryable, [{field, value} | tail]) do
     with field <- prepare_field(field),
+         {:ok, value} <- Jason.decode(value),
          {:ok, value} <- prepare_value(queryable, field, value) do
       [{field, value} | prepare_attrs(queryable, tail)]
     else
@@ -340,6 +667,7 @@ defmodule GraphQL.Features.Context do
   end
 
   def filter_argument(field, value), do: %{field => value}
+  def filter_argument(assoc, field, value), do: %{assoc => %{field => value}}
 
   def order_by_argument(field, "ascending"), do: order_by_argument(field, "ASC")
   def order_by_argument(field, "descending"), do: order_by_argument(field, "DESC")

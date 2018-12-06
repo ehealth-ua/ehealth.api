@@ -60,8 +60,11 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
         contractRequest {
           miscellaneous
           nhsSignerBase
-          nhsContractPrice
           nhsPaymentMethod
+
+          ... on CapitationContractRequest {
+            nhsContractPrice
+          }
         }
       }
     }
@@ -74,12 +77,15 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           id
           databaseId
           status
-          contractorEmployeeDivisions {
-            employee {
-              databaseId
-            }
-            division {
-              databaseId
+
+          ... on CapitationContractRequest {
+            contractorEmployeeDivisions {
+              employee {
+                databaseId
+              }
+              division {
+                databaseId
+              }
             }
           }
         }
@@ -94,12 +100,15 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
           id
           databaseId
           status
-          contractorEmployeeDivisions {
-            employee {
-              databaseId
-            }
-            division {
-              databaseId
+
+          ... on CapitationContractRequest {
+            contractorEmployeeDivisions {
+              employee {
+                databaseId
+              }
+              division {
+                databaseId
+              }
             }
           }
         }

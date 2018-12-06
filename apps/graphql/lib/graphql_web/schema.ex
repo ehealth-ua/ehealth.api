@@ -13,13 +13,13 @@ defmodule GraphQLWeb.Schema do
     ScopeAuthorization
   }
 
-  alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
   alias Core.Contracts.CapitationContract
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
-  alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
+  alias Core.MedicalPrograms.MedicalProgram
   alias Core.Persons.Person
   alias GraphQLWeb.Loaders.{IL, PRM}
   alias TasKafka.Job
@@ -30,6 +30,7 @@ defmodule GraphQLWeb.Schema do
     ScalarTypes,
     AddressTypes,
     CapitationContractRequestTypes,
+    ReimbursementContractRequestTypes,
     ContractRequestTypes,
     ContractTypes,
     DictionaryTypes,
@@ -37,6 +38,7 @@ defmodule GraphQLWeb.Schema do
     EmployeeTypes,
     LegalEntityTypes,
     LegalEntityMergeJobTypes,
+    MedicalProgramTypes,
     PersonTypes,
     PhoneTypes,
     RelatedLegalEntityTypes,
@@ -45,6 +47,7 @@ defmodule GraphQLWeb.Schema do
 
   query do
     import_fields(:capitation_contract_request_queries)
+    import_fields(:reimbursement_contract_request_queries)
     import_fields(:contract_queries)
     import_fields(:employee_queries)
     import_fields(:dictionary_queries)
@@ -65,11 +68,13 @@ defmodule GraphQLWeb.Schema do
     resolve_type(fn
       %CapitationContract{}, _ -> :capitation_contract
       %CapitationContractRequest{}, _ -> :capitation_contract_request
+      %ReimbursementContractRequest{}, _ -> :reimbursement_contract_request
       %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
       %Employee{}, _ -> :employee
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
+      %MedicalProgram{}, _ -> :medical_program
       %Person{}, _ -> :person
       %Job{}, _ -> :legal_entity_merge_job
       _, _ -> nil
