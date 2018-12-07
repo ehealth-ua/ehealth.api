@@ -38,6 +38,26 @@ defmodule Core.LegalEntities.LegalEntityUpdater do
       legal_entity_id: legal_entity.id
     }
     |> Employees.list()
+    |> Enum.reduce_while(:ok, fn employee, acc ->
+      case EmployeeUpdater.deactivate(%{"id" => employee.id, "legal_entity_id" => legal_entity.id}, headers, true) do
+        {:error, err} ->
+          log_deactivate_employee_error(err, employee.id)
+          {:halt, {:error, err}}
+
+        _ ->
+          {:cont, acc}
+      end
+    end)
+  end
+
+  # ToDo: currently not used because of user auth revoke bug https://github.com/edenlabllc/ehealth.api/issues/3800
+  def deactivate_employees(%LegalEntity{} = legal_entity, headers, :async) do
+    %{
+      status: @employee_status_approved,
+      is_active: true,
+      legal_entity_id: legal_entity.id
+    }
+    |> Employees.list()
     |> Enum.map(
       &Task.async(fn ->
         id = Map.get(&1, :id)

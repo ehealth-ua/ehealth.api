@@ -107,4 +107,22 @@ defmodule Core.Expectations.Mithril do
       {:ok, %{"data" => [%{"id" => id}]}}
     end)
   end
+
+  def delete_user_roles_by_user_and_role_name(n \\ 1, id \\ UUID.generate()) do
+    expect(MithrilMock, :delete_user_roles_by_user_and_role_name, n, fn _, _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  def delete_apps_by_user_and_client(n \\ 1, id \\ UUID.generate()) do
+    expect(MithrilMock, :delete_apps_by_user_and_client, n, fn _, _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
+
+  def delete_tokens_by_user_and_client(n \\ 1, id \\ UUID.generate()) do
+    expect(MithrilMock, :delete_tokens_by_user_and_client, n, fn _, _, _ ->
+      {:ok, %{"data" => [%{"id" => id}]}}
+    end)
+  end
 end

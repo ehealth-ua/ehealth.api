@@ -932,6 +932,56 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       employee = PRMRepo.one(Employee)
       refute employee.is_active
     end
+
+    test "deactivate legal entity with two employees with same party and type", %{conn: conn} do
+      expect(OPSMock, :terminate_employee_declarations, 2, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
+        {:ok, %{}}
+      end)
+
+      delete_apps_by_user_and_client()
+      delete_tokens_by_user_and_client()
+      delete_user_roles_by_user_and_role_name()
+
+      %{id: id} = insert(:prm, :legal_entity)
+
+      party = insert(:prm, :party)
+      insert(:prm, :party_user, party: party)
+
+      employee =
+        insert(
+          :prm,
+          :employee,
+          employee_type: Employee.type(:doctor),
+          party: party,
+          legal_entity_id: id
+        )
+
+      employee2 =
+        insert(
+          :prm,
+          :employee,
+          employee_type: Employee.type(:doctor),
+          party: party,
+          legal_entity_id: id
+        )
+
+      assert employee.is_active
+      assert employee2.is_active
+
+      resp =
+        conn
+        |> put_client_id_header(id)
+        |> patch(legal_entity_path(conn, :deactivate, id))
+        |> json_response(200)
+
+      assert "CLOSED" == resp["data"]["status"]
+
+      assert employee = %Employee{} = PRMRepo.get(Employee, employee.id)
+      assert "DISMISSED" == employee.status
+
+      assert employee2 = %Employee{} = PRMRepo.get(Employee, employee2.id)
+      assert "DISMISSED" == employee2.status
+    end
   end
 
   describe "get related legal_entities" do
