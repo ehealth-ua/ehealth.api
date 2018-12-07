@@ -10,7 +10,7 @@ defmodule Core.FraudRepo.Migrations.CreateContracts do
       add(:contractor_legal_entity_id, :uuid, null: false)
       add(:contractor_owner_id, :uuid, null: false)
       add(:contractor_base, :string, null: false)
-      add(:contractor_payment_details, :map, null: false)
+      add(:contractor_payment_details, :map)
       add(:contractor_payment_details_mfo, :string)
       add(:contractor_payment_details_bank_name, :string)
       add(:contractor_payment_details_payer_account, :string)
