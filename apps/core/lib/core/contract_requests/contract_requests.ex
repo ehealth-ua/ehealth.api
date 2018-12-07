@@ -677,6 +677,16 @@ defmodule Core.ContractRequests do
     Preload.preload_references(contract_request, fields)
   end
 
+  def insert_events(multi, status, author_id) do
+    {_, contract_requests} = multi.contract_requests
+
+    Enum.each(contract_requests, fn contract_request ->
+      EventManager.insert_change_status(contract_request, status, author_id)
+    end)
+
+    {:ok, contract_requests}
+  end
+
   defp render_contract_request_data(%Changeset{} = changeset) do
     structure = Changeset.apply_changes(changeset)
     Renderer.render(structure, preload_references(structure))

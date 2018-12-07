@@ -55,3 +55,13 @@ release :merge_legal_entities_consumer do
     ]
   )
 end
+
+release :ehealth_scheduler do
+  set(version: current_version(:ehealth_scheduler))
+
+  set(
+    applications: [
+      ehealth_scheduler: :permanent
+    ]
+  )
+end
