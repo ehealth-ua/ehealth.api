@@ -704,6 +704,55 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       resp = json_response(conn, 422)
       assert 2 == Enum.count(resp["error"]["invalid"])
     end
+
+    test "failed when intent is PLAN", %{conn: conn} do
+      msp()
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: nil,
+          medication_id: innm_dosage_id,
+          intent: MedicationRequest.intent(:plan)
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> post(medication_request_path(conn, :qualify, medication_request["id"]), %{
+          "programs" => [%{"id" => UUID.generate()}]
+        })
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Medication request with type (intent) PLAN cannot be qualified"
+    end
   end
 
   describe "reject medication request" do

@@ -40,6 +40,8 @@ defmodule Core.MedicationRequests.API do
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
 
+  @intent_order MedicationRequest.intent(:order)
+
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
          {:ok, %{"data" => data, "paging" => paging}} <- get_medication_requests(changes, client_type, headers) do
@@ -118,10 +120,8 @@ defmodule Core.MedicationRequests.API do
   end
 
   def resend(params, client_type, headers) do
-    medication_request_intent_order = MedicationRequest.intent(:order)
-
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
-         {:intent, ^medication_request_intent_order} <- {:intent, medication_request["intent"]},
+         {:intent, @intent_order} <- {:intent, medication_request["intent"]},
          false <- is_nil(medication_request["verification_code"]) do
       SMSSender.maybe_send_sms(
         %{
@@ -148,11 +148,15 @@ defmodule Core.MedicationRequests.API do
     with params <- Map.drop(params, ~w(legal_entity_id is_active)),
          {:ok, medication_request} <- get_medication_request(%{"id" => id}, client_type, headers),
          :ok <- validate_medication_request_status(medication_request),
+         {:intent, @intent_order} <- {:intent, medication_request["intent"]},
          :ok <- JsonSchema.validate(:medication_request_qualify, params),
          {:ok, medical_programs} <- get_medical_programs(params),
          medical_programs <- filter_medical_programs_data(medical_programs, medication_request),
          validations <- validate_programs(medical_programs, medication_request) do
       {:ok, medical_programs, validations}
+    else
+      {:intent, _} -> {:error, {:conflict, "Medication request with type (intent) PLAN cannot be qualified"}}
+      err -> err
     end
   end
 
