@@ -19,10 +19,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   end
 
   describe "list medication requests" do
-    test "success list medication requests", %{conn: conn} do
+    test "success list medication requests with different intents", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
+      expect(MPIMock, :person, 2, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
 
@@ -42,12 +42,26 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
       person_id = Ecto.UUID.generate()
 
-      medication_request =
+      medication_request_order =
         build_resp(%{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
           medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          person_id: person_id,
+          status: "COMPLETED",
+          rejected_at: DateTime.utc_now(),
+          rejected_by: UUID.generate(),
+          reject_reason: "TEST"
+        })
+
+      medication_request_plan =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: nil,
           medication_id: innm_dosage_id,
           person_id: person_id,
           status: "COMPLETED"
@@ -56,25 +70,35 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
         {:ok,
          %{
-           "data" => [medication_request],
+           "data" => [medication_request_order, medication_request_plan],
            "paging" => %{
              "page_number" => 1,
              "page_size" => 50,
-             "total_entries" => 1,
+             "total_entries" => 2,
              "total_pages" => 1
            }
          }}
       end)
 
       conn =
-        get(conn, medication_request_path(conn, :index, %{"page_size" => 1}), %{
+        get(conn, medication_request_path(conn, :index, %{"page_size" => 2}), %{
           "employee_id" => employee_id,
           "person_id" => person_id
         })
 
       resp = json_response(conn, 200)
-      assert 1 == length(resp["data"])
+      assert 2 == length(resp["data"])
       assert_list_response_schema(resp, "medication_request")
+
+      rejected_fields = ~w(rejected_at rejected_by reject_reason)
+
+      Enum.each(rejected_fields, fn rejected_field ->
+        assert Map.has_key?(Enum.at(resp["data"], 0), rejected_field)
+      end)
+
+      Enum.each(rejected_fields, fn rejected_field ->
+        refute Map.has_key?(Enum.at(resp["data"], 1), rejected_field)
+      end)
     end
 
     test "no party user", %{conn: conn} do
@@ -133,10 +157,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   end
 
   describe "show medication_request" do
-    test "success get medication_request by id", %{conn: conn} do
-      msp()
+    test "success get medication_request by id (both ORDER and PLAN)", %{conn: conn} do
+      msp(2)
 
-      expect(MPIMock, :person, fn id, _headers ->
+      expect(MPIMock, :person, 2, fn id, _headers ->
         {:ok, %{"data" => string_params_for(:person, id: id)}}
       end)
 
@@ -182,6 +206,93 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("medication_request")
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [
+             medication_request
+             |> Map.delete("medical_program_id")
+             |> Map.merge(%{
+               "intent" => "plan",
+               "rejected_at" => DateTime.utc_now(),
+               "rejected_by" => UUID.generate(),
+               "reject_reason" => "TEST"
+             })
+           ],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(resp, "medication_request")
+
+      rejected_fields = ~w(rejected_at rejected_by reject_reason)
+
+      Enum.each(rejected_fields, fn rejected_field ->
+        assert Map.has_key?(resp, rejected_field)
+      end)
+    end
+
+    test "failed when medical program is invalid", %{conn: conn} do
+      msp()
+
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: UUID.generate(),
+          medication_id: innm_dosage_id
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(500)
+
+      assert get_in(resp, ~w(error message)) =~ "Could not load remote reference for medication_request"
     end
 
     test "no party user", %{conn: conn} do
@@ -593,7 +704,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   end
 
   describe "reject medication request" do
-    test "success", %{conn: conn} do
+    test "success ORDER", %{conn: conn} do
       msp(2)
 
       person = string_params_for(:person)
@@ -707,6 +818,124 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> assert_show_response_schema("medication_request")
 
       assert "REJECTED" == resp["status"]
+      assert reject_reason == resp["reject_reason"]
+    end
+
+    test "success PLAN", %{conn: conn} do
+      msp(2)
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+
+      party_user =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: nil,
+          medication_id: innm_dosage_id,
+          intent: "plan"
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(OPSMock, :update_medication_request, fn _id, %{"medication_request" => params}, _headers ->
+        {:ok, %{"data" => Map.merge(medication_request, params)}}
+      end)
+
+      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
+
+      reject_reason = "TEST"
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.put("reject_reason", reject_reason)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+          "signed_medication_reject" =>
+            content
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_show_response_schema("medication_request")
+
+      assert "REJECTED" == resp["status"]
+      assert reject_reason == resp["reject_reason"]
     end
 
     test "fail to find medication request", %{conn: conn} do

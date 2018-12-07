@@ -327,52 +327,276 @@
   },
   "type": "object",
   "properties": {
-    "person_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "Person identifier"
+    "id": {
+      "type": "string",
+      "description": "Medication Request identifier"
     },
-    "employee_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "Employee ID with `type=DOCTOR` who issued Medication Request."
+    "status": {
+      "type": "string",
+      "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
     },
-    "division_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "Division identifier"
+    "request_number": {
+      "type": "string",
+      "description": "Public medication request human readable number"
     },
     "created_at": {
-      "$ref": "#/definitions/date",
-      "description": "Medication request creation date, which is determined by the external system. Format DATE '2017-09-07'"
+      "type": "string",
+      "description": "Medication request creation date, which is determined by the external system. Format *DATE '2017-09-07'*"
     },
     "started_at": {
-      "$ref": "#/definitions/date",
-      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to created_at. Format DATE '2017-09-07'"
+      "type": "string",
+      "description": "Start date of a treatment period, which is determined by the external system. Greater or equal to **created_at**. Format *DATE '2017-09-07'*"
     },
     "ended_at": {
-      "$ref": "#/definitions/date",
-      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to started_at. Format DATE '2017-10-07'"
+      "type": "string",
+      "description": "End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*"
     },
     "dispense_valid_from": {
-      "$ref": "#/definitions/date",
-      "description": "Start date of dispense period, which is determined by the external system. Format DATE '2017-09-07'"
+      "type": "string",
+      "description": "Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*"
     },
     "dispense_valid_to": {
-      "$ref": "#/definitions/date",
-      "description": "End date of dispense period, which is determined by the external system. Greater or equal to dispense_valid_from. Format DATE '2017-10-07'"
+      "type": "string",
+      "description": "End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*"
     },
-    "medication_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "Medication identified"
+    "legal_entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "short_name": {
+          "type": "string"
+        },
+        "public_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "edrpou": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "CLOSED"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "short_name",
+        "public_name",
+        "type",
+        "edrpou",
+        "status"
+      ]
     },
-    "medication_qty": {
-      "type": "number",
-      "minimum": 0,
-      "exclusiveMinimum": true,
-      "description": "Medication quantity isuued by the doctor"
+    "division": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "legal_entity_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "addresses": {
+          "type": "array"
+        },
+        "phones": {
+          "type": "array"
+        },
+        "email": {
+          "type": "string"
+        },
+        "working_hours": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "description": "Dictionary DIVISION_TYPE"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "location": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "latitude",
+            "longitude"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "employee": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string",
+          "description": "Dictionary POSITION"
+        },
+        "party": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "second_name": {
+              "type": "string"
+            },
+            "phones": {
+              "type": "array"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "person": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer",
+          "description": "Full years between birth date and medication request date"
+        }
+      },
+      "required": [
+        "id",
+        "first_name",
+        "last_name",
+        "age"
+      ],
+      "additionalProperties": false
+    },
+    "medication_info": {
+      "type": "object",
+      "properties": {
+        "medication_id": {
+          "type": "string",
+          "description": "Identifier medication with type **INNM_DOSAGE**"
+        },
+        "form": {
+          "type": "string",
+          "description": "Dictionary MEDICATION_FORM"
+        },
+        "dosage": {
+          "type": "object",
+          "properties": {
+            "numerator_unit": {
+              "type": "string",
+              "description": "Dictionary MEDICATION_UNIT"
+            },
+            "numerator_value": {
+              "type": "number"
+            },
+            "denumerator_unit": {
+              "type": "string",
+              "description": "Dictionary MEDICATION_UNIT"
+            },
+            "denumerator_value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "numerator_unit",
+            "numerator_value",
+            "denumerator_unit",
+            "denumerator_value"
+          ],
+          "description": "Dosage of innm_dosage object"
+        },
+        "medication_name": {
+          "type": "string"
+        },
+        "medication_qty": {
+          "type": "number",
+          "description": "Medication quantity isuued by the doctor"
+        }
+      },
+      "required": [
+        "medication_id",
+        "medication_name",
+        "form",
+        "dosage",
+        "medication_qty"
+      ]
+    },
+    "medical_program": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Medical program Identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Medical program name"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rejected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejected_by": {
+      "$ref": "#/definitions/uuid"
+    },
+    "reject_reason": {
+      "type": "string",
+      "description": "Medication request reject reason"
     },
     "intent": {
       "type": "string",
       "enum": [
-        "plan"
+        "order"
       ],
       "description": "Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT"
     },
@@ -448,16 +672,21 @@
     }
   },
   "required": [
-    "person_id",
-    "employee_id",
-    "division_id",
+    "id",
+    "status",
+    "request_number",
     "created_at",
     "started_at",
     "ended_at",
     "dispense_valid_from",
     "dispense_valid_to",
-    "medication_id",
-    "medication_qty",
+    "legal_entity",
+    "division",
+    "employee",
+    "person",
+    "medication_info",
+    "medical_program",
+    "reject_reason",
     "intent",
     "category"
   ],

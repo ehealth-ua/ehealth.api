@@ -210,6 +210,23 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert resp["data"]["id"] == id
     end
 
+    test "success when PLAN data does not contain medical_program_id", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person(2)
+      expect_encounter_status("finished")
+
+      %{medication_request_request: %{id: id}} = fixture(:medication_request_request, %{"intent" => "plan"}, true)
+
+      resp =
+        conn
+        |> get(medication_request_request_path(conn, :show, id))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(resp, "medication_request_request", "medication_request_request_plan")
+      assert resp["id"] == id
+    end
+
     test "invalid request id", %{conn: conn} do
       id = Ecto.UUID.generate()
       conn = get(conn, medication_request_request_path(conn, :show, id))
@@ -599,6 +616,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request()
         |> Map.drop(~w(medical_program_id category))
         |> Map.merge(%{
+          "intent" => "plan",
           "medication_id" => UUID.generate(),
           "context" => %{
             "identifier" => %{
@@ -1042,7 +1060,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       test_request =
         test_request()
-        |> Map.put("medication_id", medication_id)
+        |> Map.merge(%{
+          "intent" => "plan",
+          "medication_id" => medication_id
+        })
         |> Map.delete("medical_program_id")
 
       data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}

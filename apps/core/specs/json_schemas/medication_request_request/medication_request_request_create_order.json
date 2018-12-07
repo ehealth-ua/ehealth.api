@@ -376,7 +376,6 @@
     "intent": {
       "type": "string",
       "enum": [
-        "plan",
         "order"
       ],
       "description": "Represents the medication request purpose. Dictionary MEDICATION_REQUEST_INTENT"

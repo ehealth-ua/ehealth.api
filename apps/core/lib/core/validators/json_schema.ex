@@ -110,8 +110,13 @@ defmodule Core.Validators.JsonSchema do
   use_schema(:medication_request_reject, "specs/json_schemas/medication_request/medication_request_reject_request.json")
 
   use_schema(
-    :medication_request_reject_content,
-    "specs/json_schemas/medication_request/medication_request_reject_content.json"
+    :medication_request_reject_content_order,
+    "specs/json_schemas/medication_request/medication_request_reject_content_order.json"
+  )
+
+  use_schema(
+    :medication_request_reject_content_plan,
+    "specs/json_schemas/medication_request/medication_request_reject_content_plan.json"
   )
 
   use_schema(:credentials_recovery_request, "specs/json_schemas/user/credentials_recovery_request.json")

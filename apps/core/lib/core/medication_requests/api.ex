@@ -75,13 +75,16 @@ defmodule Core.MedicationRequests.API do
 
   def reject(params, client_type, headers) do
     user_id = get_consumer_id(headers)
+    update_datetime = DateTime.utc_now()
 
     with :ok <- JsonSchema.validate(:medication_request_reject, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_request_reject"),
          {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
          :ok <- check_medication_dispenses(medication_request, headers),
-         :ok <- JsonSchema.validate(:medication_request_reject_content, content),
+         :ok <- JsonSchema.validate(:medication_request_request_create_generic, content),
+         schema <- String.to_atom("medication_request_reject_content_" <> content["intent"]),
+         :ok <- JsonSchema.validate(schema, content),
          :ok <- compare_with_db(content, medication_request),
          :ok <- save_signed_content(params["id"], params, headers),
          update_params <-
@@ -90,7 +93,9 @@ defmodule Core.MedicationRequests.API do
            |> Map.merge(%{
              "status" => "REJECTED",
              "updated_by" => get_client_id(headers),
-             "updated_at" => NaiveDateTime.utc_now()
+             "updated_at" => update_datetime,
+             "rejected_by" => get_client_id(headers),
+             "rejected_at" => update_datetime
            }),
          {:ok, %{"data" => mr}} <-
            @ops_api.update_medication_request(
@@ -272,20 +277,28 @@ defmodule Core.MedicationRequests.API do
   def get_references(medication_request) do
     with %Division{} = division <- Divisions.get_by_id(medication_request["division_id"]),
          %Employee{} = employee <- Employees.get_by_id(medication_request["employee_id"]),
-         %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]),
          %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_request["medication_id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(medication_request["legal_entity_id"]),
          {:ok, %{"data" => person}} <- @mpi_api.person(medication_request["person_id"], []) do
-      {
-        :ok,
+      result =
         medication_request
         |> Map.put("division", division)
         |> Map.put("employee", employee)
         |> Map.put("legal_entity", legal_entity)
-        |> Map.put("medical_program", medical_program)
         |> Map.put("medication", medication)
         |> Map.put("person", person)
-      }
+
+      with false <- is_nil(medication_request["medical_program_id"]),
+           %MedicalProgram{} = medical_program <- MedicalPrograms.get_by_id(medication_request["medical_program_id"]) do
+        {:ok, Map.put(result, "medical_program", medical_program)}
+      else
+        true ->
+          {:ok, result}
+
+        _ ->
+          {:error,
+           [{%{description: "Medication request is not valid", params: [], rule: :required}, "$.medication_request_id"}]}
+      end
     else
       _ ->
         {:error,

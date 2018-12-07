@@ -13,8 +13,9 @@ defmodule Core.MedicationRequests.Renderer do
     created_at = Timex.parse!(medication_request["created_at"], "{YYYY}-{0M}-{D}")
     person = MedicationRequestRequestRenderer.render_person(medication_request["person"], created_at)
 
-    medication_request
-    |> Map.take(~w(
+    response =
+      medication_request
+      |> Map.take(~w(
       id
       status
       request_number
@@ -23,15 +24,29 @@ defmodule Core.MedicationRequests.Renderer do
       ended_at
       dispense_valid_from
       dispense_valid_to
+      intent
+      category
+      context
+      dosage_instruction
+      rejected_at
+      rejected_by
+      reject_reason
     ))
-    |> Map.merge(%{
-      "legal_entity" => LegalEntitiesRenderer.render("show_reimbursement.json", legal_entity),
-      "employee" => render("employee.json", medication_request["employee"]),
-      "division" => render("division.json", medication_request["division"]),
-      "medical_program" => render("medical_program.json", medication_request["medical_program"]),
-      "medication_info" => render("medication_info.json", medication_request),
-      "person" => person
-    })
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Enum.into(%{})
+      |> Map.merge(%{
+        "legal_entity" => LegalEntitiesRenderer.render("show_reimbursement.json", legal_entity),
+        "employee" => render("employee.json", medication_request["employee"]),
+        "division" => render("division.json", medication_request["division"]),
+        "medication_info" => render("medication_info.json", medication_request),
+        "person" => person
+      })
+
+    if Map.get(medication_request, "medical_program") do
+      Map.put(response, "medical_program", render("medical_program.json", medication_request["medical_program"]))
+    else
+      response
+    end
   end
 
   def render("employee.json", %Employee{} = employee) do

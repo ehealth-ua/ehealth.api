@@ -10,7 +10,7 @@
   "medication_id": "1349a693-4db1-4a3f-9ac6-8c2f9e541982",
   "medication_qty": 10,
   "medical_program_id": "1349a693-4db1-4a3f-9ac6-8c2f9e541981",
-  "intent": "plan",
+  "intent": "order",
   "category": "community",
   "context": {
     "identifier": {
