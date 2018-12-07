@@ -14,7 +14,7 @@ defmodule GraphQLWeb.Schema do
   }
 
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
-  alias Core.Contracts.CapitationContract
+  alias Core.Contracts.{CapitationContract, ReimbursementContract}
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -33,6 +33,8 @@ defmodule GraphQLWeb.Schema do
     ReimbursementContractRequestTypes,
     ContractRequestTypes,
     ContractTypes,
+    CapitationContractTypes,
+    ReimbursementContractTypes,
     DictionaryTypes,
     DivisionTypes,
     EmployeeTypes,
@@ -46,9 +48,10 @@ defmodule GraphQLWeb.Schema do
   })
 
   query do
+    import_fields(:capitation_contract_queries)
+    import_fields(:reimbursement_contract_queries)
     import_fields(:capitation_contract_request_queries)
     import_fields(:reimbursement_contract_request_queries)
-    import_fields(:contract_queries)
     import_fields(:employee_queries)
     import_fields(:dictionary_queries)
     import_fields(:legal_entity_queries)
@@ -67,6 +70,7 @@ defmodule GraphQLWeb.Schema do
   node interface do
     resolve_type(fn
       %CapitationContract{}, _ -> :capitation_contract
+      %ReimbursementContract{}, _ -> :reimbursement_contract
       %CapitationContractRequest{}, _ -> :capitation_contract_request
       %ReimbursementContractRequest{}, _ -> :reimbursement_contract_request
       %Dictionary{}, _ -> :dictionary

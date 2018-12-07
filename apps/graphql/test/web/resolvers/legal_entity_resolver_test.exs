@@ -461,33 +461,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
       assert Enum.all?(resp_entities, &(&1["medicalServiceProvider"] == nil))
     end
-
-    test "filter by area and settlement", %{conn: conn} do
-      insert(:prm, :legal_entity)
-      address = Map.merge(build(:address), %{"area" => "ЛЬВІВСЬКА", "settlement" => "ЛЬВІВ"})
-      legal_entity = insert(:prm, :legal_entity, addresses: [address])
-
-      query = """
-        query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
-          legalEntities(first: $first, filter: $filter) {
-            nodes {
-              databaseId
-            }
-          }
-        }
-      """
-
-      variables = %{first: 1, filter: %{area: "ЛЬВІВСЬКА", settlement: "ЛЬВІВ", edrpou: legal_entity.edrpou}}
-
-      legal_entities =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-        |> get_in(~w(data legalEntities nodes))
-
-      refute [] == legal_entities
-      assert legal_entity.id == hd(legal_entities)["databaseId"]
-    end
   end
 
   describe "get by id" do
@@ -924,6 +897,8 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data nhsReviewLegalEntity legalEntity))
+
+      refute resp_entity
       assert "CONFLICT" == hd(resp_body["errors"])["extensions"]["code"]
     end
 
@@ -938,6 +913,8 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data nhsReviewLegalEntity legalEntity))
+
+      refute resp_entity
       assert "CONFLICT" == hd(resp_body["errors"])["extensions"]["code"]
     end
 

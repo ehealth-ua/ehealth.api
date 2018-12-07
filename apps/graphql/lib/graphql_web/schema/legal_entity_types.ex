@@ -36,12 +36,9 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   input_object :legal_entity_filter do
     field(:database_id, :id)
-    field(:type, :legal_entity_type)
     field(:edrpou, :string)
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
-    field(:area, :string)
-    field(:settlement, :string)
   end
 
   enum :legal_entity_order_by do

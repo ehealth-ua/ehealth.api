@@ -3,6 +3,9 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
 
+  alias Absinthe.Relay.Connection
+  alias GraphQLWeb.Loaders.PRM
+
   @type dataloader_tuple :: {:middleware, Absinthe.Middleware.Dataloader, term}
   @type key_function ::
           (Absinthe.Resolution.source(), Absinthe.Resolution.arguments(), Absinthe.Resolution.t() ->
@@ -57,6 +60,27 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
         do_load(loader, source, resource, params, item_keys)
       end
     end
+  end
+
+  def load_by_parent_with_connection(
+        parent,
+        args,
+        %{context: %{loader: loader}} = resolution,
+        resource,
+        source_name \\ PRM
+      ) do
+    resource = resource || resolution.definition.schema_node.identifier
+
+    loader
+    |> Dataloader.load(source_name, {resource, args}, parent)
+    |> on_load(fn loader ->
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+        records = Dataloader.get(loader, source_name, {resource, args}, parent)
+        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
+
+        Connection.from_slice(Enum.take(records, limit), offset, opts)
+      end
+    end)
   end
 
   defp apply_key_function(fun, parent, args, res) when is_function(fun, 3), do: fun.(parent, args, res)

@@ -210,7 +210,6 @@ defmodule GraphQLWeb.ContractRequestResolverTest do
   end
 
   describe "get by id" do
-    @tag :pending
     test "success with related entities", %{conn: conn} do
       nhs()
 

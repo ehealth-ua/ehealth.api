@@ -9,8 +9,7 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.ContractRequests.CapitationContractRequest
-  # TODO: uncomment when capitation contracts will be ready
-  # alias Core.Contracts.CapitationContract
+  alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -83,8 +82,7 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
 
     field(:database_id, non_null(:id))
     field(:contract_number, :string)
-    # TODO: uncomment when capitation contracts will be ready
-    # field(:parent_contract, :capitation_contract, resolve: load_by_parent(PRM, CapitationContract))
+    field(:parent_contract, :capitation_contract, resolve: load_by_parent(PRM, CapitationContract))
     field(:previous_request, :capitation_contract_request, resolve: dataloader(IL))
     field(:assignee, :employee, resolve: load_by_parent(PRM, Employee))
     field(:id_form, non_null(:string))

@@ -5,6 +5,7 @@ defmodule GraphQLWeb.Loaders.PRM do
 
   alias Absinthe.Relay.Connection
   alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
   alias Core.PRMRepo
   alias GraphQLWeb.Resolvers.Helpers.Search
@@ -13,6 +14,10 @@ defmodule GraphQLWeb.Loaders.PRM do
 
   def query(CapitationContract, %{client_type: "MSP", client_id: client_id}) do
     where(CapitationContract, contractor_legal_entity_id: ^client_id)
+  end
+
+  def query(ReimbursementContract, %{client_type: "MSP", client_id: client_id}) do
+    where(ReimbursementContract, contractor_legal_entity_id: ^client_id)
   end
 
   def query(Employee, %{client_type: "MSP", client_id: client_id}) do
