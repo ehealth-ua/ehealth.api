@@ -7,6 +7,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   import Mox
 
   alias Core.LegalEntities.LegalEntity
+  alias Core.MedicationRequests.MedicationRequest
   alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
@@ -50,6 +51,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medical_program_id: medical_program_id,
           medication_id: innm_dosage_id,
           person_id: person_id,
+          intent: MedicationRequest.intent(:order),
           status: "COMPLETED",
           rejected_at: DateTime.utc_now(),
           rejected_by: UUID.generate(),
@@ -64,6 +66,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medical_program_id: nil,
           medication_id: innm_dosage_id,
           person_id: person_id,
+          intent: MedicationRequest.intent(:plan),
           status: "COMPLETED"
         })
 
@@ -214,7 +217,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
              medication_request
              |> Map.delete("medical_program_id")
              |> Map.merge(%{
-               "intent" => "plan",
+               "intent" => MedicationRequest.intent(:plan),
                "rejected_at" => DateTime.utc_now(),
                "rejected_by" => UUID.generate(),
                "reject_reason" => "TEST"
@@ -851,7 +854,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           employee_id: employee_id,
           medical_program_id: nil,
           medication_id: innm_dosage_id,
-          intent: "plan"
+          intent: MedicationRequest.intent(:plan)
         })
 
       expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
@@ -1581,6 +1584,58 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       conn = patch(conn, medication_request_path(conn, :resend, UUID.generate()))
       assert json_response(conn, 404)
+    end
+
+    test "failed when intent is PLAN", %{conn: conn} do
+      msp()
+
+      expect(MPIMock, :person, fn id, _headers ->
+        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      end)
+
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      insert_medication(innm_dosage_id)
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      medication_request =
+        build_resp(%{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: nil,
+          medication_id: innm_dosage_id,
+          intent: MedicationRequest.intent(:plan)
+        })
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_request],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> patch(medication_request_path(conn, :resend, medication_request["id"]))
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "For medication request plan information cannot be resent"
     end
   end
 

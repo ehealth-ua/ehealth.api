@@ -13,6 +13,7 @@ defmodule Core.MedicationRequests.API do
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.MedicationRequests.MedicationRequest
   alias Core.MedicationRequests.Renderer, as: MedicationRequestsRenderer
   alias Core.MedicationRequests.Search
   alias Core.MedicationRequests.SMSSender
@@ -117,7 +118,10 @@ defmodule Core.MedicationRequests.API do
   end
 
   def resend(params, client_type, headers) do
+    medication_request_intent_order = MedicationRequest.intent(:order)
+
     with {:ok, %{"status" => "ACTIVE"} = medication_request} <- show(%{"id" => params["id"]}, client_type, headers),
+         {:intent, ^medication_request_intent_order} <- {:intent, medication_request["intent"]},
          false <- is_nil(medication_request["verification_code"]) do
       SMSSender.maybe_send_sms(
         %{
@@ -131,6 +135,7 @@ defmodule Core.MedicationRequests.API do
       {:ok, Map.merge(medication_request, medication_request)}
     else
       {:ok, _} -> {:error, {:conflict, "Invalid status Medication request for resend action!"}}
+      {:intent, _} -> {:error, {:conflict, "For medication request plan information cannot be resent"}}
       true -> {:error, {:forbidden, "Can't resend Medication request without verification code!"}}
       err -> err
     end
