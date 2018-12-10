@@ -6,6 +6,7 @@ defmodule Core.MedicationDispense.API do
   import Ecto.Query
   require Logger
 
+  alias Core.Contracts.ReimbursementContract
   alias Core.Divisions
   alias Core.Divisions.Division
   alias Core.Employees
@@ -39,6 +40,7 @@ defmodule Core.MedicationDispense.API do
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @intent_order MedicationRequest.intent(:order)
+  @reimbursement_contract_status_verified ReimbursementContract.status(:verified)
 
   @search_fields ~w(
     id
@@ -124,7 +126,8 @@ defmodule Core.MedicationDispense.API do
          {:intent, @intent_order} <- {:intent, medication_request["intent"]},
          :ok <- validate_employee(party_user, legal_entity_id),
          {:ok, division} <- validate_division(params["division_id"], legal_entity_id),
-         {:ok, medical_program} <- validate_medical_program(params["medical_program_id"], medication_request),
+         {:ok, medical_program} <-
+           validate_medical_program(params["medical_program_id"], medication_request, legal_entity_id),
          details <- params["dispense_details"],
          {:ok, dispense_details, medications} <- validate_medications(details, medical_program),
          :ok <- validate_code(code, medication_request),
@@ -238,11 +241,26 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
-  defp validate_legal_entity(%LegalEntity{is_active: is_active, status: status}) do
+  defp validate_legal_entity(%LegalEntity{} = legal_entity) do
+    with :ok <- validate_legal_entity_status(legal_entity),
+         :ok <- validate_legal_entity_mis_verified(legal_entity) do
+      :ok
+    end
+  end
+
+  defp validate_legal_entity_status(%LegalEntity{is_active: is_active, status: status}) do
     if is_active && status == LegalEntity.status(:active) do
       :ok
     else
       {:conflict, "Legal entity is not active"}
+    end
+  end
+
+  defp validate_legal_entity_mis_verified(%LegalEntity{mis_verified: mis_verified}) do
+    if mis_verified == LegalEntity.mis_verified(:verified) do
+      :ok
+    else
+      {:conflict, "Legal entity is not verified"}
     end
   end
 
@@ -277,7 +295,7 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
-  defp validate_medical_program(id, medication_request) do
+  defp validate_medical_program(id, medication_request, legal_entity_id) do
     is_active = fn medical_program ->
       {:is_active, medical_program.is_active}
     end
@@ -288,7 +306,8 @@ defmodule Core.MedicationDispense.API do
 
     with {:ok, medical_program} <- Reference.validate(:medical_program, id),
          {:is_active, true} <- is_active.(medical_program),
-         {:is_matched, true} <- is_matched.(medical_program) do
+         {:is_matched, true} <- is_matched.(medical_program),
+         :ok <- validate_contract(id, legal_entity_id) do
       {:ok, medical_program}
     else
       {:is_active, false} ->
@@ -303,6 +322,23 @@ defmodule Core.MedicationDispense.API do
       err ->
         err
     end
+  end
+
+  defp validate_contract(medical_program_id, legal_entity_id) do
+    case get_valid_reimbursement_contract(medical_program_id, legal_entity_id) do
+      %ReimbursementContract{} -> :ok
+      _ -> {:conflict, "Program cannot be used - no active contract exists"}
+    end
+  end
+
+  defp get_valid_reimbursement_contract(medical_program_id, legal_entity_id) do
+    ReimbursementContract
+    |> where(
+      [c],
+      c.status == @reimbursement_contract_status_verified and c.contractor_legal_entity_id == ^legal_entity_id and
+        c.medical_program_id == ^medical_program_id
+    )
+    |> PRMRepo.one()
   end
 
   defp validate_medications(dispense_details, %{id: medical_program_id}) do
