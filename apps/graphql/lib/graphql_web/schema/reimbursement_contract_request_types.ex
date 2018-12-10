@@ -119,7 +119,11 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     field(:nhs_legal_entity, :legal_entity, resolve: load_by_parent(PRM, LegalEntity))
     field(:nhs_signer_base, :string)
     field(:nhs_payment_method, :nhs_payment_method)
-    field(:attached_documents, non_null(list_of(:contract_document)))
+
+    field(:attached_documents, non_null(list_of(:contract_document)),
+      resolve: &ContractRequestResolver.get_attached_documents/3
+    )
+
     field(:miscellaneous, :string)
     field(:to_approve_content, :json)
     field(:to_decline_content, :json)

@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.ContractRequestResolverTest do
+defmodule GraphQLWeb.CapidationContractRequestResolverTest do
   @moduledoc false
 
   use GraphQLWeb.ConnCase, async: true
