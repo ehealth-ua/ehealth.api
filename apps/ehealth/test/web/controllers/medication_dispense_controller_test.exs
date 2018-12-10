@@ -4,6 +4,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   use EHealth.Web.ConnCase
   import Mox
   alias Ecto.UUID
+  alias Core.MedicationRequests.MedicationRequest
 
   setup :verify_on_exit!
 
@@ -745,6 +746,44 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].discount_amount"}]}} = resp
+    end
+
+    test "failed when medication request intent is PLAN", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity, is_active: false)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      {medication_request, _} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1),
+            intent: MedicationRequest.intent(:plan)
+          }
+        })
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+        |> post(medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Medication request with intent PLAN cannot be dispensed"
     end
 
     test "success create medication dispense in devitaion koeficient", %{conn: conn} do

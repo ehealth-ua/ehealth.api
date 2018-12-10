@@ -17,6 +17,7 @@ defmodule Core.MedicationDispense.API do
   alias Core.MedicationDispenses.Search
   alias Core.MedicationDispenses.SearchByMedicationRequest
   alias Core.MedicationRequests.API, as: MedicationRequests
+  alias Core.MedicationRequests.MedicationRequest
   alias Core.Medications
   alias Core.Medications.Medication
   alias Core.Medications.Program, as: ProgramMedication
@@ -36,6 +37,8 @@ defmodule Core.MedicationDispense.API do
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+
+  @intent_order MedicationRequest.intent(:order)
 
   @search_fields ~w(
     id
@@ -118,6 +121,7 @@ defmodule Core.MedicationDispense.API do
          {:ok, party_user} <- get_party_user(user_id),
          :ok <- validate_legal_entity(legal_entity),
          {:ok, medication_request} <- validate_medication_request(params["medication_request_id"]),
+         {:intent, @intent_order} <- {:intent, medication_request["intent"]},
          :ok <- validate_employee(party_user, legal_entity_id),
          {:ok, division} <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program} <- validate_medical_program(params["medical_program_id"], medication_request),
@@ -142,6 +146,9 @@ defmodule Core.MedicationDispense.API do
          medical_program: medical_program,
          party: party_user.party
        }}
+    else
+      {:intent, _} -> {:error, {:conflict, "Medication request with intent PLAN cannot be dispensed"}}
+      err -> err
     end
   end
 
