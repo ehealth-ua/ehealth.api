@@ -13,6 +13,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
   alias GraphQLWeb.Loaders.IL
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Middleware.Filtering
+  alias GraphQLWeb.Resolvers.ContractResolver
   alias GraphQLWeb.Resolvers.ReimbursementContractResolver
 
   object :reimbursement_contract_queries do
@@ -119,7 +120,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
     field(:status, non_null(:contract_status))
     field(:status_reason, :string)
     field(:issue_city, :string)
-    field(:printout_content, :string)
+    field(:printout_content, :string, resolve: &ContractResolver.get_printout_content/3)
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))
     field(:is_suspended, non_null(:boolean))

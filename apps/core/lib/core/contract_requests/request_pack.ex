@@ -43,6 +43,6 @@ defmodule Core.ContractRequests.RequestPack do
   def get_schema_by_type(@capitation), do: CapitationContractRequest
   def get_schema_by_type(@reimbursement), do: ReimbursementContractRequest
 
-  defp get_provider_by_type(@capitation), do: CapitationContractRequests
-  defp get_provider_by_type(@reimbursement), do: ReimbursementContractRequests
+  def get_provider_by_type(@capitation), do: CapitationContractRequests
+  def get_provider_by_type(@reimbursement), do: ReimbursementContractRequests
 end

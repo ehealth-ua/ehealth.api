@@ -4,11 +4,13 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
   use GraphQLWeb.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3, build: 2]
+  import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril
   import Mox
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.CapitationContractRequest
+  alias Ecto.UUID
 
   @list_query """
     query ListContractsQuery($filter: CapitationContractFilter) {
@@ -285,6 +287,64 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
 
       refute resp_body["errors"]
       assert global_contract_id == resp_entity["id"]
+    end
+
+    test "success for printoutContent field", %{conn: conn} do
+      nhs()
+      template()
+
+      query = """
+        query GetContractQuery($id: ID!) {
+          capitationContract(id: $id) {
+            id
+            printoutContent
+          }
+        }
+      """
+
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+
+      client_id = UUID.generate()
+      nhs_signer = insert(:prm, :employee)
+      external_contractor_legal_entity = insert(:prm, :legal_entity)
+      external_contractor_division = insert(:prm, :division)
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          nhs_signer_id: nhs_signer.id,
+          contractor_legal_entity_id: client_id,
+          status: CapitationContractRequest.status(:pending_nhs_sign),
+          external_contractors: [
+            %{
+              "legal_entity_id" => external_contractor_legal_entity.id,
+              "divisions" => [
+                %{
+                  "id" => external_contractor_division.id,
+                  "medical_service" => "Послуга ПМД"
+                }
+              ]
+            }
+          ]
+        )
+
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
+      variables = %{id: Node.to_global_id("CapitationContract", contract.id)}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data capitationContract))
+
+      refute resp_body["errors"]
+      assert "<html></html>" == resp_entity["printoutContent"]
     end
 
     test "return nothing for incorrect MSP client", %{conn: conn} = context do

@@ -6,6 +6,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.Dictionaries.Dictionary
   alias Core.LegalEntities.LegalEntity
@@ -18,12 +19,15 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   @review_text_dictionary "CONTRACT_REQUEST_REVIEW_TEXT"
 
-  def get_printout_content(%CapitationContractRequest{status: @status_pending_nhs_sign} = contract_request, _, %{
-        context: context
-      }) do
+  def get_printout_content(%ReimbursementContractRequest{printout_content: printout_content}, _, _) do
+    # TODO: Rewrite logic when reimbursement contract request form is ready
+    {:ok, printout_content}
+  end
+
+  def get_printout_content(%{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
-    # todo: causes N+1 problem with DB query and man template rendering
+    # TODO: causes N+1 problem with DB query and man template rendering
     with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
       {:ok, printout_content}
     else

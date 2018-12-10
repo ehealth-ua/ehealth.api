@@ -14,6 +14,7 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
   alias GraphQLWeb.Loaders.PRM
   alias GraphQLWeb.Middleware.Filtering
   alias GraphQLWeb.Resolvers.CapitationContractResolver
+  alias GraphQLWeb.Resolvers.ContractResolver
 
   object :capitation_contract_queries do
     connection field(:capitation_contracts, node_type: :capitation_contract) do
@@ -107,7 +108,7 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
     field(:status, non_null(:contract_status))
     field(:status_reason, :string)
     field(:issue_city, :string)
-    field(:printout_content, :string)
+    field(:printout_content, :string, resolve: &ContractResolver.get_printout_content/3)
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))
     field(:is_suspended, non_null(:boolean))

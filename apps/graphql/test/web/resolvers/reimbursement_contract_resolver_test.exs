@@ -9,6 +9,7 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ReimbursementContractRequest
+  alias Ecto.UUID
 
   @list_query """
     query ListContractsQuery($filter: ReimbursementContractFilter) {
@@ -33,6 +34,15 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
     query GetContractQuery($id: ID!) {
       reimbursementContract(id: $id) {
         id
+      }
+    }
+  """
+
+  @printout_content_query """
+    query GetContractQuery($id: ID!) {
+      reimbursementContract(id: $id) {
+        id
+        printoutContent
       }
     }
   """
@@ -409,6 +419,46 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
       refute resp_body["errors"]
       assert global_contract_id == resp_entity["id"]
+    end
+
+    test "success for printoutContent field", %{conn: conn} do
+      nhs()
+
+      printout_content = "<html>Some printout content is here</html>"
+      contract_request = insert(:il, :reimbursement_contract_request, printout_content: printout_content)
+      contract = insert(:prm, :reimbursement_contract, contract_request_id: contract_request.id)
+      variables = %{id: Node.to_global_id("ReimbursementContract", contract.id)}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@printout_content_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
+
+      refute resp_body["errors"]
+      assert printout_content == resp_entity["printoutContent"]
+    end
+
+    test "fails on reimbursementContract not found resolving printoutContent", %{conn: conn} do
+      nhs()
+
+      contract = insert(:prm, :reimbursement_contract, contract_request_id: UUID.generate())
+      variables = %{id: Node.to_global_id("ReimbursementContract", contract.id)}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@printout_content_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
+
+      assert resp_entity
+      refute resp_entity["printoutContent"]
+      assert %{"errors" => [error]} = resp_body
+      assert "NOT_FOUND" == error["extensions"]["code"]
     end
 
     test "return nothing for incorrect MSP client", %{conn: conn} = context do
