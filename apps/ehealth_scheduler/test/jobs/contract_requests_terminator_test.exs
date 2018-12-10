@@ -12,58 +12,83 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminatorTest do
   test "run/0" do
     start_date = ~D[2017-01-01]
 
-    insert(:il, :capitation_contract_request, start_date: ~D[3000-01-01], status: CapitationContractRequest.status(:new))
+    for _ <- 1..10,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: ~D[3000-01-01],
+            status: CapitationContractRequest.status(:new)
+          )
 
-    insert(:il, :capitation_contract_request, start_date: start_date, status: CapitationContractRequest.status(:new))
-    insert(:il, :capitation_contract_request, start_date: start_date, status: CapitationContractRequest.status(:new))
+    for _ <- 1..150,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:new)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:in_process)
-    )
+    for _ <- 1..100,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:in_process)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:approved)
-    )
+    for _ <- 1..50,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:approved)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:nhs_signed)
-    )
+    for _ <- 1..20,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:nhs_signed)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:pending_nhs_sign)
-    )
+    for _ <- 1..20,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:pending_nhs_sign)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:declined)
-    )
+    for _ <- 1..15,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:declined)
+          )
 
-    insert(:il, :capitation_contract_request,
-      start_date: start_date,
-      status: CapitationContractRequest.status(:terminated)
-    )
+    for _ <- 1..10,
+        do:
+          insert(:il, :capitation_contract_request,
+            start_date: start_date,
+            status: CapitationContractRequest.status(:terminated)
+          )
 
-    assert 3 == count_by_status(CapitationContractRequest.status(:new))
-    assert 1 == count_by_status(CapitationContractRequest.status(:in_process))
-    assert 1 == count_by_status(CapitationContractRequest.status(:approved))
-    assert 1 == count_by_status(CapitationContractRequest.status(:nhs_signed))
-    assert 1 == count_by_status(CapitationContractRequest.status(:pending_nhs_sign))
-    assert 1 == count_by_status(CapitationContractRequest.status(:declined))
-    assert 1 == count_by_status(CapitationContractRequest.status(:terminated))
+    assert 160 == count_by_status(CapitationContractRequest.status(:new))
+    assert 100 == count_by_status(CapitationContractRequest.status(:in_process))
+    assert 50 == count_by_status(CapitationContractRequest.status(:approved))
+    assert 20 == count_by_status(CapitationContractRequest.status(:nhs_signed))
+    assert 20 == count_by_status(CapitationContractRequest.status(:pending_nhs_sign))
+    assert 15 == count_by_status(CapitationContractRequest.status(:declined))
+    assert 10 == count_by_status(CapitationContractRequest.status(:terminated))
 
     ContractRequestsTerminator.run()
 
-    assert 1 == count_by_status(CapitationContractRequest.status(:new))
-    assert 1 == count_by_status(CapitationContractRequest.status(:declined))
-    assert 7 == count_by_status(CapitationContractRequest.status(:terminated))
+    assert 10 == count_by_status(CapitationContractRequest.status(:new))
+    assert 0 == count_by_status(CapitationContractRequest.status(:in_process))
+    assert 0 == count_by_status(CapitationContractRequest.status(:approved))
+    assert 0 == count_by_status(CapitationContractRequest.status(:nhs_signed))
+    assert 0 == count_by_status(CapitationContractRequest.status(:pending_nhs_sign))
+    assert 15 == count_by_status(CapitationContractRequest.status(:declined))
+    assert 350 == count_by_status(CapitationContractRequest.status(:terminated))
 
     assert events = EventManagerRepo.all(Event)
 
-    assert 6 == Enum.count(events)
+    assert 340 == Enum.count(events)
 
     terminated_status = CapitationContractRequest.status(:terminated)
 
