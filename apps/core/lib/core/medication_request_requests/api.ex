@@ -17,6 +17,7 @@ defmodule Core.MedicationRequestRequests do
   alias Core.MedicationRequestRequest.Operation
   alias Core.MedicationRequestRequest.PreloadFkOperation
   alias Core.MedicationRequestRequest.RejectOperation
+  alias Core.MedicationRequestRequest.Search
   alias Core.MedicationRequestRequest.SignOperation
   alias Core.MedicationRequestRequest.Validations
   alias Core.MedicationRequests.SMSSender
@@ -51,17 +52,23 @@ defmodule Core.MedicationRequestRequests do
   end
 
   def list_medication_request_requests(params, headers) do
-    query = from(dr in MedicationRequestRequest, order_by: [desc: :inserted_at])
-
-    query
-    |> filter_by_employee_id(params, headers)
-    |> filter_by_person_id(params)
-    |> filter_by_status(params)
-    |> Repo.paginate(params)
-    |> preload_fk()
+    with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params) do
+      MedicationRequestRequest
+      |> filter_by_employee_id(changes, headers)
+      |> filter_by_person_id(changes)
+      |> filter_by_status(changes)
+      |> filter_by_intent(changes)
+      |> order_by(desc: :inserted_at)
+      |> Repo.paginate(params)
+      |> preload_fk()
+    end
   end
 
-  defp filter_by_employee_id(query, %{"employee_id" => employee_id}, _) do
+  defp changeset(params) do
+    cast(%Search{}, params, Search.__schema__(:fields))
+  end
+
+  defp filter_by_employee_id(query, %{employee_id: employee_id}, _) do
     where(query, [r], fragment("?->'employee_id' = ?", r.data, ^employee_id))
   end
 
@@ -91,17 +98,23 @@ defmodule Core.MedicationRequestRequests do
     |> Enum.map(fn e -> e.id end)
   end
 
-  defp filter_by_status(query, %{"status" => status}) when is_binary(status) do
+  defp filter_by_status(query, %{status: status}) when is_binary(status) do
     where(query, [r], r.status == ^status)
   end
 
   defp filter_by_status(query, _), do: query
 
-  defp filter_by_person_id(query, %{"person_id" => person_id}) when is_binary(person_id) do
+  defp filter_by_person_id(query, %{person_id: person_id}) when is_binary(person_id) do
     where(query, [r], fragment("?->'person_id' = ?", r.data, ^person_id))
   end
 
   defp filter_by_person_id(query, _), do: query
+
+  defp filter_by_intent(query, %{intent: intent}) when is_binary(intent) do
+    where(query, [r], fragment("?->'intent' = ?", r.data, ^intent))
+  end
+
+  defp filter_by_intent(query, _), do: query
 
   def show(id) do
     with %MedicationRequestRequest{} = mrr <- get_medication_request_request(id) do

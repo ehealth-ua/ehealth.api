@@ -179,12 +179,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_mpi_get_person(2)
       expect_encounter_status("finished")
 
-      mrr = fixture(:medication_request_request)
+      mrr = fixture(:medication_request_request, %{"intent" => "order"})
 
       data = %{
         "person_id" => mrr.medication_request_request.data.person_id,
         "employee_id" => mrr.medication_request_request.data.employee_id,
-        "status" => "NEW"
+        "status" => "NEW",
+        "intent" => "order"
       }
 
       assert 1 =
@@ -194,6 +195,84 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                |> Map.get("data")
                |> assert_list_response_schema("medication_request_request")
                |> length
+    end
+
+    test "lists all medication_request_requests with data search by intent", %{conn: conn} do
+      expect_ops_get_declarations(2)
+      expect_mpi_get_person(3)
+      expect_encounter_status("finished", 2)
+
+      %{medication_request_request: %{id: mrr_id_in}} = fixture(:medication_request_request, %{"intent" => "order"})
+
+      %{medication_request_request: %{id: mrr_id_out}} =
+        fixture(:medication_request_request, %{"intent" => "plan"}, true)
+
+      resp =
+        conn
+        |> get(medication_request_request_path(conn, :index, %{"intent" => "order"}))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_list_response_schema(resp, "medication_request_request")
+      assert length(resp) == 1
+      assert mrr_id_in == resp |> Enum.at(0) |> Map.get("id")
+      refute mrr_id_out == resp |> Enum.at(0) |> Map.get("id")
+    end
+
+    test "ignore invalid search params", %{conn: conn} do
+      expect_ops_get_declarations(2)
+      expect_mpi_get_person(4)
+      expect_encounter_status("finished", 2)
+
+      fixture(:medication_request_request, %{"intent" => "order"})
+      fixture(:medication_request_request, %{"intent" => "plan"}, true)
+
+      assert 2 ==
+               conn
+               |> get(medication_request_request_path(conn, :index, %{"test" => 12345}))
+               |> json_response(200)
+               |> Map.get("data")
+               |> assert_list_response_schema("medication_request_request")
+               |> length()
+    end
+
+    test "failed when search params values is invalid", %{conn: conn} do
+      resp =
+        conn
+        |> get(
+          medication_request_request_path(conn, :index, %{
+            "person_id" => "test",
+            "employee_id" => 12345
+          })
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.employee_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "is invalid",
+                       "params" => ["Elixir.Ecto.UUID"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.person_id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "is invalid",
+                       "params" => ["Elixir.Ecto.UUID"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 

@@ -12,6 +12,7 @@ defmodule Core.MedicationRequests.Search do
     field(:created_from, :string)
     field(:created_to, :string)
     field(:medication_id, :string)
+    field(:intent, :string)
     field(:page, :integer)
     field(:page_size, :integer)
     field(:legal_entity_id, Ecto.UUID)
