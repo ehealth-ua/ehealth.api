@@ -169,6 +169,7 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
       nhs(2)
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_from: from, merged_to: to, is_active: false)
       insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
       contract_related_from = insert(:prm, :capitation_contract, %{contractor_legal_entity: from})
       contract_related_to = insert(:prm, :capitation_contract, %{contractor_legal_entity: to})

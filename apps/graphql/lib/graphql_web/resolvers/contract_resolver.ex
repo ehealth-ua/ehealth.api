@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.Resolvers.ContractResolver do
   @moduledoc false
 
-  import Ecto.Query, only: [join: 4]
+  import Ecto.Query, only: [join: 4, where: 3]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Core.ContractRequests.RequestPack
@@ -16,12 +16,14 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   def filter(query, [{:legal_entity_relation, :equal, :merged_from} | tail]) do
     query
     |> join(:inner, [r], assoc(r, :merged_from))
+    |> where([..., m], m.is_active)
     |> filter(tail)
   end
 
   def filter(query, [{:legal_entity_relation, :equal, :merged_to} | tail]) do
     query
     |> join(:inner, [r], assoc(r, :merged_to))
+    |> where([..., m], m.is_active)
     |> filter(tail)
   end
 
