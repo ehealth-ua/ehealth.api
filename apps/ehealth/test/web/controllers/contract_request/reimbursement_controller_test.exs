@@ -61,11 +61,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   end
 
   describe "show reimbursement contract requests" do
-    test "success by MSP", %{conn: conn} do
-      msp()
+    test "success by PHARMACY", %{conn: conn} do
+      pharmacy()
 
       %{id: employee_id} = insert(:prm, :employee)
-      %{id: legal_entity_id} = insert(:prm, :legal_entity, type: @msp)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, type: @pharmacy)
 
       %{id: id} =
         insert(:il, :reimbursement_contract_request,
@@ -84,6 +84,29 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+    end
+
+    test "MSP not allowed see reimbursement contract", %{conn: conn} do
+      msp()
+
+      %{id: employee_id} = insert(:prm, :employee)
+      %{id: legal_entity_id} = insert(:prm, :legal_entity, type: @msp)
+
+      %{id: id} =
+        insert(:il, :reimbursement_contract_request,
+          contractor_legal_entity_id: legal_entity_id,
+          contractor_owner_id: employee_id
+        )
+
+      err_message =
+        conn
+        |> put_consumer_id_header()
+        |> put_client_id_header(legal_entity_id)
+        |> get(contract_request_path(conn, :show, @path_type, id))
+        |> json_response(403)
+        |> get_in(~w(error message))
+
+      assert "User is not allowed to perform this action" == err_message
     end
 
     test "success by NHS", %{conn: conn} do
@@ -429,7 +452,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   describe "sign reimbursement contract MSP" do
     test "no contract_request found", %{conn: conn} do
-      msp()
+      pharmacy()
 
       assert conn
              |> put_client_id_header(UUID.generate())
