@@ -56,6 +56,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:dictionary_queries)
     import_fields(:legal_entity_queries)
     import_fields(:legal_entity_merge_job_queries)
+    import_fields(:medical_program_queries)
     import_fields(:person_queries)
   end
 

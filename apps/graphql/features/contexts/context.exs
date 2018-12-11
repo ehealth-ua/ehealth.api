@@ -81,6 +81,16 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^there are (?<count>\d+) medical programs exist$/,
+    fn state, %{count: count} ->
+      count = String.to_integer(count)
+      insert_list(count, :prm, :medical_program)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following capitation contract requests exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
@@ -167,7 +177,7 @@ defmodule GraphQL.Features.Context do
         }
       """
 
-      variables = %{first: String.to_integer(count)}
+      variables = %{first: Jason.decode!(count)}
 
       resp_body =
         conn
@@ -194,7 +204,7 @@ defmodule GraphQL.Features.Context do
         }
       """
 
-      variables = %{first: String.to_integer(count)}
+      variables = %{first: Jason.decode!(count)}
 
       resp_body =
         conn
@@ -202,6 +212,33 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) medical programs$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListMedicalPrograms($first: Int!) {
+          medicalPrograms(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -224,7 +261,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         filter: filter_argument(field, Jason.decode!(value))
       }
 
@@ -258,7 +295,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         filter: filter_argument("assigneeName", Jason.decode!(value))
       }
 
@@ -290,7 +327,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         filter: filter_argument(field, Jason.decode!(value))
       }
 
@@ -306,9 +343,40 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) medical programs where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListMedicalProgramsWithFilter(
+          $first: Int!
+          $filter: MedicalProgramFilter!
+        ) {
+          medicalPrograms(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{conn: conn},
-       %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListReimbursementContractRequestsWithAssocFilter(
           $first: Int!
@@ -325,7 +393,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         filter: filter_argument(association_field, field, Jason.decode!(value))
       }
 
@@ -357,7 +425,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         order_by: order_by_argument(field, direction)
       }
 
@@ -389,7 +457,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        first: String.to_integer(count),
+        first: Jason.decode!(count),
         order_by: order_by_argument(field, direction)
       }
 
@@ -399,6 +467,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) medical programs sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListMedicalProgramsWithOrderBy(
+          $first: Int!
+          $order_by: MedicalProgramOrderBy!
+        ) {
+          medicalPrograms(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -477,6 +577,32 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the medical program where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetMedicalProgramQuery($id: ID!) {
+          medicalProgram(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("MedicalProgram", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data medicalProgram))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -579,8 +705,7 @@ defmodule GraphQL.Features.Context do
 
   then_(
     ~r/^the (?<field>\w+) in the (?<association_field>\w+) of the first item in the collection should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{resp_entities: resp_entities} = state,
-       %{field: field, association_field: association_field, value: value} ->
+    fn %{resp_entities: resp_entities} = state, %{field: field, association_field: association_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entities |> hd() |> get_in([association_field, field])
 
@@ -604,8 +729,7 @@ defmodule GraphQL.Features.Context do
 
   then_(
     ~r/^the (?<nested_field>\w+) in the (?<field>\w+) of the requested item should be (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{resp_entity: resp_entity} = state,
-       %{field: field, nested_field: nested_field, value: value} ->
+    fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = get_in(resp_entity, [field, nested_field])
 
