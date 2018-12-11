@@ -527,14 +527,14 @@ defmodule Core.ContractRequests.Validator do
          :ok <- validate_employee_divisions(content, client_id),
          :ok <- validate_external_contractors(content),
          :ok <- validate_external_contractor_flag(content) do
-      {:ok, %CapitationContractRequest{id: content["id"]}}
+      {:ok, %CapitationContractRequest{}}
     end
   end
 
   def validate_contract_request_content(:create, %{"type" => @reimbursement} = content, _client_id) do
     with medical_program <- MedicalPrograms.get_by_id(content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
-      {:ok, %ReimbursementContractRequest{id: content["id"]}}
+      {:ok, %ReimbursementContractRequest{}}
     end
   end
 

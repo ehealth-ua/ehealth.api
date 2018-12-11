@@ -207,14 +207,20 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn
-      |> put_client_id_header(legal_entity.id)
-      |> put_consumer_id_header(user_id)
-      |> put_req_header("drfo", legal_entity.edrpou)
-      |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
-      |> json_response(201)
-      |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      contract_id = UUID.generate()
+
+      resp_data =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, @path_type, contract_id), signed_content_params(params))
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert contract_id == resp_data["id"]
+
+      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
     end
   end
 
