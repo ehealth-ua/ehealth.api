@@ -68,13 +68,10 @@ defmodule EHealth.Web.ContractController do
   end
 
   def terminate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id} = params) do
-    params =
-      params
-      |> drop_type()
-      |> Map.drop(~w(id contractor_legal_entity_id))
-      |> Map.put("type", @capitation)
+    params = Map.drop(params, ~w(id contractor_legal_entity_id))
 
-    with {:ok, contract, references} <- Contracts.terminate(id, params, headers) do
+    with {:ok, contract} <- Contracts.terminate(id, params, headers),
+         {:ok, contract, references} <- Contracts.load_contract_references(contract) do
       render(conn, "terminate.json", contract: contract, references: references)
     end
   end

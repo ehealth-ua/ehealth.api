@@ -139,6 +139,18 @@ defmodule GraphQLWeb.ContractResolverTest do
              } = resp_entity
     end
 
+    test "success terminate reimbursement contract by NHS", %{conn: conn} do
+      nhs()
+
+      contract_request = insert(:il, :reimbursement_contract_request, status: @contract_request_status_signed)
+      contract = insert(:prm, :reimbursement_contract, contract_request_id: contract_request.id)
+
+      {resp_body, resp_entity} = call_terminate(conn, contract, contract.nhs_legal_entity_id, "ReimbursementContract")
+
+      refute resp_body["errors"]
+      assert %{"status" => @contract_status_terminated, "status_reason" => @status_reason} = resp_entity
+    end
+
     test "NHS terminate not verified contract", %{conn: conn} do
       nhs()
       contract = insert(:prm, :capitation_contract, status: @contract_status_terminated)
@@ -210,10 +222,10 @@ defmodule GraphQLWeb.ContractResolverTest do
     end
   end
 
-  defp call_terminate(conn, contract, client_id \\ UUID.generate()) do
+  defp call_terminate(conn, contract, client_id \\ UUID.generate(), contract_node \\ "CapitationContract") do
     variables = %{
       input: %{
-        id: Node.to_global_id("CapitationContract", contract.id),
+        id: Node.to_global_id(contract_node, contract.id),
         status_reason: @status_reason
       }
     }

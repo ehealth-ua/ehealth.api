@@ -11,8 +11,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   alias GraphQL.Helpers.Filtering
   alias GraphQLWeb.Resolvers.ContractRequestResolver
 
-  @capitation CapitationContract.type()
-
   def filter(query, []), do: query
 
   def filter(query, [{:legal_entity_relation, :equal, :merged_from} | tail]) do
@@ -57,10 +55,10 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     end
   end
 
-  def terminate(%{id: %{id: id, type: _type}, status_reason: status_reason}, %{context: %{headers: headers}}) do
-    params = %{"status_reason" => status_reason, "type" => @capitation}
+  def terminate(%{id: %{id: id, type: type}, status_reason: status_reason}, %{context: %{headers: headers}}) do
+    params = %{"status_reason" => status_reason, "type" => RequestPack.get_type_by_atom(type)}
 
-    with {:ok, contract, _references} <- Contracts.terminate(id, params, headers) do
+    with {:ok, contract} <- Contracts.terminate(id, params, headers) do
       {:ok, %{contract: contract}}
     else
       err -> render_error(err)

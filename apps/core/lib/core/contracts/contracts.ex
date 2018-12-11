@@ -184,28 +184,29 @@ defmodule Core.Contracts do
     end
   end
 
-  def terminate(id, params, headers) do
+  def terminate(id, %{"type" => type} = params, headers) do
     legal_entity_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
 
-    with {:ok, contract, references} <- fetch_by_id(id, params),
+    with {:ok, contract} <- fetch_by_id(id, type),
+         :ok <- validate_contractor_legal_entity_id(contract, params),
          :ok <- JsonSchema.validate(:contract_terminate, params),
          :ok <-
            validate_legal_entity_allowed(legal_entity_id, [
              contract.contractor_legal_entity_id,
              contract.nhs_legal_entity_id
            ]),
-         :ok <- validate_status(contract, CapitationContract.status(:verified)),
+         :ok <- validate_status(contract, @status_verified),
          {:ok, contract} <-
            contract
            |> changeset(%{
              "status_reason" => params["status_reason"],
-             "status" => CapitationContract.status(:terminated),
+             "status" => @status_terminated,
              "updated_by" => user_id
            })
            |> PRMRepo.update(),
          EventManager.insert_change_status(contract, contract.status, user_id) do
-      {:ok, contract, references}
+      {:ok, contract}
     end
   end
 
@@ -327,13 +328,6 @@ defmodule Core.Contracts do
   def fetch_by_id(id, type) when is_binary(type) do
     case get_by_id(id, type) do
       %{} = contract -> {:ok, contract}
-      _ -> {:error, {:not_found, "Contract not found"}}
-    end
-  end
-
-  def fetch_by_id(id, %{} = params) do
-    case get_by_id_with_client_validation(id, params) do
-      {:ok, _contract, _references} = result -> result
       _ -> {:error, {:not_found, "Contract not found"}}
     end
   end
