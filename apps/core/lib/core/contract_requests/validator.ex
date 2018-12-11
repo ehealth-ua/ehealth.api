@@ -91,12 +91,10 @@ defmodule Core.ContractRequests.Validator do
 
   def validate_contract_request_client_access(@nhs, _client_id, _contract_request), do: :ok
 
-  def validate_contract_request_client_access(@msp, client_id, %{contractor_legal_entity_id: id}) do
-    validate_legal_entity_id(client_id, id)
-  end
+  def validate_contract_request_client_access(@msp, id, %{contractor_legal_entity_id: id}), do: :ok
 
-  defp validate_legal_entity_id(legal_entity_id, legal_entity_id), do: :ok
-  defp validate_legal_entity_id(_, _), do: {:error, {:forbidden, "User is not allowed to perform this action"}}
+  def validate_contract_request_client_access(_, _, _),
+    do: {:error, {:forbidden, "User is not allowed to perform this action"}}
 
   def validate_client_id(client_id, client_id, _), do: :ok
   def validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
@@ -292,16 +290,19 @@ defmodule Core.ContractRequests.Validator do
     do: {:error, {:forbidden, "You are not allowed to change this contract"}}
 
   def validate_contractor_owner_id(%{
+        type: type,
         contractor_owner_id: contractor_owner_id,
         contractor_legal_entity_id: contractor_legal_entity_id
       }) do
     validate_contractor_owner_id(%{
+      "type" => type,
       "contractor_owner_id" => contractor_owner_id,
       "contractor_legal_entity_id" => contractor_legal_entity_id
     })
   end
 
   def validate_contractor_owner_id(%{
+        "type" => type,
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
@@ -309,7 +310,7 @@ defmodule Core.ContractRequests.Validator do
          true <- employee.status == Employee.status(:approved),
          true <- employee.is_active,
          true <- employee.legal_entity_id == contractor_legal_entity_id,
-         true <- employee.employee_type in [Employee.type(:owner), Employee.type(:admin)] do
+         true <- employee.employee_type in allowed_contractor_owner_employee_type(type) do
       :ok
     else
       _ ->
@@ -319,6 +320,11 @@ defmodule Core.ContractRequests.Validator do
         })
     end
   end
+
+  def allowed_contractor_owner_employee_type(@capitation), do: [Employee.type(:owner), Employee.type(:admin)]
+
+  def allowed_contractor_owner_employee_type(@reimbursement),
+    do: [Employee.type(:pharmacy_owner), Employee.type(:admin)]
 
   defp validate_unique_contractor_employee_divisions(%{
          "contractor_employee_divisions" => employee_divisions

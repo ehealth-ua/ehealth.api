@@ -1244,7 +1244,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         "status" => ReimbursementContractRequest.status(:nhs_signed)
       }
 
-      contract = insert(:prm, :capitation_contract, contract_number: "1345")
+      contract = insert(:prm, :reimbursement_contract, contract_number: "1345")
       employee = insert(:prm, :employee)
       insert(:prm, :contract_employee, contract_id: contract.id, employee_id: employee.id)
       insert(:prm, :contract_division, contract_id: contract.id)
@@ -1301,7 +1301,9 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   describe "approve contract_request by msp" do
     test "success", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
-      employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
+
+      employee_owner =
+        insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
 
       division =
         insert(
@@ -1336,7 +1338,9 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
     test "fails on inactive medical program", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
-      employee_owner = insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:owner))
+
+      employee_owner =
+        insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
 
       division =
         insert(
@@ -1416,7 +1420,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       insert(
         :prm,
         :employee,
-        employee_type: Employee.type(:owner),
+        employee_type: Employee.type(:pharmacy_owner),
         party: party_user.party,
         legal_entity_id: legal_entity.id
       )
@@ -1470,7 +1474,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         id: user_id,
         party: party_user.party,
         legal_entity_id: legal_entity.id,
-        employee_type: Employee.type(:owner)
+        employee_type: Employee.type(:pharmacy_owner)
       )
 
     now = Date.utc_today()
