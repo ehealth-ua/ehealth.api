@@ -26,10 +26,6 @@
   },
   "type": "object",
   "properties": {
-    "type": {
-      "type": "string",
-      "pattern": "REIMBURSEMENT"
-    },
     "contractor_owner_id": {
       "type": "string",
       "$ref": "#/definitions/uuid",
@@ -119,7 +115,6 @@
     }
   },
   "required": [
-    "type",
     "statute_md5",
     "additional_document_md5",
     "contractor_owner_id",

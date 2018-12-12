@@ -118,40 +118,40 @@ defmodule Core.ContractRequests do
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
          :ok <- validate_contract_request_type(type, legal_entity),
-         content <- Map.put(content, "type", type),
-         :ok <- validate_create_content_schema(content),
+         :ok <- validate_create_content_schema(type, content),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
-         {:ok, params, contract} <- validate_contract_number(content, headers),
+         {:ok, content, contract} <- validate_contract_number(type, content, headers),
          :ok <- validate_contractor_legal_entity_id(client_id, contract),
-         :ok <- validate_previous_request(params, client_id),
-         :ok <- validate_dates(params),
-         params <- set_dates(contract, params),
-         {:ok, contract_request} <- validate_contract_request_content(:create, params, client_id),
-         :ok <- validate_unique_contractor_divisions(params),
-         :ok <- validate_contractor_divisions(params),
-         :ok <- validate_start_date(params),
-         :ok <- validate_end_date(params),
-         :ok <- validate_contractor_owner_id(params),
+         :ok <- validate_previous_request(content, client_id),
+         :ok <- validate_dates(content),
+         content <- set_dates(contract, content),
+         pack <- RequestPack.put_decoded_content(pack, content),
+         {:ok, contract_request} <- validate_contract_request_content(:create, pack, client_id),
+         :ok <- validate_unique_contractor_divisions(content),
+         :ok <- validate_contractor_divisions(content),
+         :ok <- validate_start_date(content),
+         :ok <- validate_end_date(content),
+         :ok <- validate_contractor_owner_id(type, content),
          :ok <-
            validate_document(
              id,
              "media/upload_contract_request_statute.pdf",
-             params["statute_md5"],
+             content["statute_md5"],
              headers
            ),
          :ok <-
            validate_document(
              id,
              "media/upload_contract_request_additional_document.pdf",
-             params["additional_document_md5"],
+             content["additional_document_md5"],
              headers
            ),
          :ok <- move_uploaded_documents(id, headers),
-         _ <- terminate_pending_contracts(params),
+         _ <- terminate_pending_contracts(type, content),
          insert_params <-
-           Map.merge(params, %{
+           Map.merge(content, %{
              "status" => CapitationContractRequest.status(:new),
              "inserted_by" => user_id,
              "updated_by" => user_id
@@ -694,11 +694,11 @@ defmodule Core.ContractRequests do
     Renderer.render(structure, preload_references(structure))
   end
 
-  defp terminate_pending_contracts(params) do
+  defp terminate_pending_contracts(type, params) do
     # TODO: add index here
 
     schema =
-      case params["type"] do
+      case type do
         @capitation -> CapitationContractRequest
         @reimbursement -> ReimbursementContractRequest
       end
@@ -708,7 +708,7 @@ defmodule Core.ContractRequests do
       |> select([c], c.id)
       |> where([c], c.contractor_legal_entity_id == ^params["contractor_legal_entity_id"])
       |> where([c], c.id_form == ^params["id_form"])
-      |> where_medical_program(params)
+      |> where_medical_program(type, params)
       |> where(
         [c],
         c.status in ^[
@@ -727,11 +727,11 @@ defmodule Core.ContractRequests do
     |> Repo.update_all(set: [status: CapitationContractRequest.status(:terminated)])
   end
 
-  defp where_medical_program(query, %{"type" => @reimbursement, "medical_program_id" => medical_program_id}) do
+  defp where_medical_program(query, @reimbursement, %{"medical_program_id" => medical_program_id}) do
     where(query, [c], c.medical_program_id == ^medical_program_id)
   end
 
-  defp where_medical_program(query, _), do: query
+  defp where_medical_program(query, _, _), do: query
 
   def user_has_role(data, role, reason \\ "FORBIDDEN") do
     case Enum.find(data, &(Map.get(&1, "role_name") == role)) do

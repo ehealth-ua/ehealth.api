@@ -381,6 +381,60 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       assert "Contract type \"#{@reimbursement}\" is not allowed for legal_entity with type \"#{@msp}\"" == reason
     end
+
+    test "invalid contract_type in payload", %{conn: conn} do
+      %{
+        medical_program: medical_program,
+        legal_entity: legal_entity,
+        division: division,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      contract_number = NumberGenerator.generate_from_sequence(1, 1)
+
+      insert(
+        :prm,
+        :reimbursement_contract,
+        contract_number: contract_number,
+        status: ReimbursementContract.status(:verified),
+        contractor_legal_entity: legal_entity,
+        medical_program_id: medical_program.id
+      )
+
+      params =
+        division
+        |> prepare_reimbursement_params(medical_program)
+        |> Map.merge(%{
+          "type" => "capitation",
+          "contractor_owner_id" => owner.id,
+          "contract_number" => contract_number
+        })
+        |> Map.drop(~w(start_date end_date))
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.type"
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "create reimbursement contract when medical program is invalid" do
@@ -405,11 +459,15 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         medical_program_id: medical_program.id
       )
 
+      another_medical_program = insert(:prm, :medical_program)
+
       params =
         division
-        |> prepare_reimbursement_params(legal_entity)
-        |> Map.put("contractor_owner_id", owner.id)
-        |> Map.put("contract_number", contract_number)
+        |> prepare_reimbursement_params(another_medical_program)
+        |> Map.merge(%{
+          "contractor_owner_id" => owner.id,
+          "contract_number" => contract_number
+        })
         |> Map.drop(~w(start_date end_date))
 
       expect_signed_content(params, %{

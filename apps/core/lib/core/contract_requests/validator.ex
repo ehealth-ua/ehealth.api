@@ -186,7 +186,7 @@ defmodule Core.ContractRequests.Validator do
 
   def validate_contract_id(_), do: :ok
 
-  def validate_contract_number(%{"contract_number" => contract_number} = params, _headers)
+  def validate_contract_number(type, %{"contract_number" => contract_number} = params, _headers)
       when not is_nil(contract_number) do
     search_params = [
       contract_number: contract_number,
@@ -194,14 +194,14 @@ defmodule Core.ContractRequests.Validator do
     ]
 
     contract_schema =
-      case params["type"] do
+      case type do
         @capitation -> CapitationContract
         @reimbursement -> ReimbursementContract
       end
 
     with %{__struct__: _} = contract <- PRMRepo.get_by(contract_schema, search_params),
-         :ok <- validate_parent_contract_type(contract, params),
-         :ok <- validate_parent_contract_medical_program_id(contract, params) do
+         :ok <- validate_parent_contract_type(contract, type),
+         :ok <- validate_parent_contract_medical_program_id(type, contract, params) do
       {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
     else
       nil -> Error.dump("Verified contract with such contract number does not exist")
@@ -209,16 +209,16 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_contract_number(%{"contractor_legal_entity_id" => legal_entity_id} = params, headers) do
+  def validate_contract_number(type, %{"contractor_legal_entity_id" => legal_entity_id} = params, headers) do
     search_params =
       %{
-        "type" => params["type"],
+        "type" => type,
         "contractor_legal_entity_id" => legal_entity_id,
         "status" => CapitationContract.status(:verified),
         "date_to_start_date" => params["end_date"],
         "date_from_end_date" => params["start_date"]
       }
-      |> put_medical_program_id(params)
+      |> put_medical_program_id(type, params)
 
     with {:ok, %Page{entries: [_ | _]}, _} <- Contracts.list(search_params, nil, headers) do
       Error.dump("Active contract is found. Contract number must be sent in request")
@@ -227,27 +227,26 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  defp validate_parent_contract_type(%{type: type}, %{"type" => type}), do: :ok
+  defp validate_parent_contract_type(%{type: type}, type), do: :ok
 
   defp validate_parent_contract_type(_contract, _),
     do: {:error, {:conflict, "Submitted contract type does not correspond to previously created content"}}
 
-  defp validate_parent_contract_medical_program_id(%{medical_program_id: id}, %{
-         "type" => @reimbursement,
+  defp validate_parent_contract_medical_program_id(@reimbursement, %{medical_program_id: id}, %{
          "medical_program_id" => id
        }),
        do: :ok
 
-  defp validate_parent_contract_medical_program_id(_, %{"type" => @reimbursement}),
+  defp validate_parent_contract_medical_program_id(@reimbursement, _, _),
     do: {:error, {:conflict, "Submitted medical_program_id does not correspond to previously created content"}}
 
-  defp validate_parent_contract_medical_program_id(_, _), do: :ok
+  defp validate_parent_contract_medical_program_id(_, _, _), do: :ok
 
-  defp put_medical_program_id(search_params, %{"type" => @reimbursement, "medical_program_id" => id}) do
+  defp put_medical_program_id(search_params, @reimbursement, %{"medical_program_id" => id}) do
     Map.put(search_params, "medical_program_id", id)
   end
 
-  defp put_medical_program_id(search_params, _), do: search_params
+  defp put_medical_program_id(search_params, _, _), do: search_params
 
   defp validate_external_contract(errors, contractor, params, error) do
     expires_at = Date.from_iso8601!(contractor["contract"]["expires_at"])
@@ -297,15 +296,13 @@ defmodule Core.ContractRequests.Validator do
         contractor_owner_id: contractor_owner_id,
         contractor_legal_entity_id: contractor_legal_entity_id
       }) do
-    validate_contractor_owner_id(%{
-      "type" => type,
+    validate_contractor_owner_id(type, %{
       "contractor_owner_id" => contractor_owner_id,
       "contractor_legal_entity_id" => contractor_legal_entity_id
     })
   end
 
-  def validate_contractor_owner_id(%{
-        "type" => type,
+  def validate_contractor_owner_id(type, %{
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
@@ -523,25 +520,25 @@ defmodule Core.ContractRequests.Validator do
 
   # content
 
-  def validate_create_content_schema(%{"type" => @capitation} = content) do
+  def validate_create_content_schema(@capitation, content) do
     JsonSchema.validate(:capitation_contract_request, content)
   end
 
-  def validate_create_content_schema(%{"type" => @reimbursement} = content) do
+  def validate_create_content_schema(@reimbursement, content) do
     JsonSchema.validate(:reimbursement_contract_request, content)
   end
 
-  def validate_contract_request_content(:create, %{"type" => @capitation} = content, client_id) do
-    with :ok <- validate_unique_contractor_employee_divisions(content),
-         :ok <- validate_employee_divisions(content, client_id),
-         :ok <- validate_external_contractors(content),
-         :ok <- validate_external_contractor_flag(content) do
+  def validate_contract_request_content(:create, %RequestPack{type: @capitation} = pack, client_id) do
+    with :ok <- validate_unique_contractor_employee_divisions(pack.decoded_content),
+         :ok <- validate_employee_divisions(pack.decoded_content, client_id),
+         :ok <- validate_external_contractors(pack.decoded_content),
+         :ok <- validate_external_contractor_flag(pack.decoded_content) do
       {:ok, %CapitationContractRequest{}}
     end
   end
 
-  def validate_contract_request_content(:create, %{"type" => @reimbursement} = content, _client_id) do
-    with medical_program <- MedicalPrograms.get_by_id(content["medical_program_id"]),
+  def validate_contract_request_content(:create, %RequestPack{type: @reimbursement} = pack, _client_id) do
+    with medical_program <- MedicalPrograms.get_by_id(pack.decoded_content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
       {:ok, %ReimbursementContractRequest{}}
     end

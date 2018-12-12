@@ -1155,8 +1155,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       params =
         division
         |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
-        |> Map.put("contractor_owner_id", owner.id)
-        |> Map.put("contract_number", contract_number)
+        |> Map.merge(%{
+          "contractor_owner_id" => owner.id,
+          "contract_number" => contract_number
+        })
         |> Map.drop(~w(start_date end_date))
 
       expect_signed_content(params, %{
