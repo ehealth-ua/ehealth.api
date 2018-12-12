@@ -58,9 +58,8 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def approve(%Plug.Conn{} = conn, params) do
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
-           ContractRequests.approve(conn.req_headers, drop_type(params)) do
+  def approve(%Plug.Conn{req_headers: headers} = conn, params) do
+    with {:ok, %{__struct__: _} = contract_request, references} <- ContractRequests.approve(params, headers) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

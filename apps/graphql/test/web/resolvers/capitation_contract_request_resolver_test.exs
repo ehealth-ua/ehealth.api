@@ -689,8 +689,7 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
           :prm,
           :division,
           legal_entity: legal_entity,
-          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}],
-          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
 
       employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)

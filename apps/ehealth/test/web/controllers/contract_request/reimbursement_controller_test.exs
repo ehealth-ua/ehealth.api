@@ -15,6 +15,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   setup :verify_on_exit!
 
+  @in_process ReimbursementContractRequest.status(:in_process)
+
   @msp LegalEntity.type(:msp)
   @nhs LegalEntity.type(:nhs)
   @pharmacy LegalEntity.type(:pharmacy)
@@ -1324,6 +1326,132 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("contract", "reimbursement_contract")
+    end
+  end
+
+  describe "approve contract_request" do
+    setup %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(:prm, :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:pharmacy_owner),
+          party: party_user.party
+        )
+
+      division =
+        insert(:prm, :division, legal_entity: legal_entity, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
+
+      %{
+        conn: conn,
+        user_id: user_id,
+        party_user: party_user,
+        legal_entity: legal_entity,
+        employee_owner: employee_owner,
+        division: division
+      }
+    end
+
+    test "success", %{conn: conn, legal_entity: legal_entity, party_user: party_user} = context do
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @in_process,
+          nhs_signer_id: context.employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: context.employee_owner.id,
+          contractor_divisions: [context.division.id],
+          start_date: contract_start_date()
+        )
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(context.user_id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> patch(contract_request_path(conn, :approve, @path_type, contract_request.id), signed_content_params(data))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+    end
+
+    test "fail on medication_program is not active",
+         %{conn: conn, legal_entity: legal_entity, party_user: party_user} = context do
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: false)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @in_process,
+          nhs_signer_id: context.employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: context.employee_owner.id,
+          contractor_divisions: [context.division.id],
+          medical_program_id: medical_program_id,
+          start_date: contract_start_date()
+        )
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      assert conn
+             |> put_client_id_header(legal_entity.id)
+             |> put_consumer_id_header(context.user_id)
+             |> put_req_header("drfo", legal_entity.edrpou)
+             |> patch(
+               contract_request_path(conn, :approve, @path_type, contract_request.id),
+               signed_content_params(data)
+             )
+             |> json_response(409)
     end
   end
 

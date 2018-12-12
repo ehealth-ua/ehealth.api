@@ -47,5 +47,7 @@ defmodule Core.ContractRequests.RequestPack do
   def get_provider_by_type(@reimbursement), do: ReimbursementContractRequests
 
   def get_type_by_atom(:capitation_contract), do: @capitation
+  def get_type_by_atom(:capitation_contract_request), do: @capitation
   def get_type_by_atom(:reimbursement_contract), do: @reimbursement
+  def get_type_by_atom(:reimbursement_contract_request), do: @reimbursement
 end

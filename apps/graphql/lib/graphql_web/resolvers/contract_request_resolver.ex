@@ -8,6 +8,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
+  alias Core.ContractRequests.RequestPack
   alias Core.Dictionaries.Dictionary
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.ContractRequestPrintoutForm
@@ -115,10 +116,13 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def approve(args, resolution) do
-    params = prepare_signed_content_params(args)
+  def approve(%{id: %{id: id, type: type}, signed_content: signed_content}, %{context: %{headers: headers}}) do
+    params =
+      %{id: id, signed_content: signed_content}
+      |> prepare_signed_content_params()
+      |> Map.put("type", RequestPack.get_type_by_atom(type))
 
-    with {:ok, contract_request, references} <- ContractRequests.approve(resolution.context.headers, params) do
+    with {:ok, contract_request, references} <- ContractRequests.approve(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
     else
       err -> render_error(err)

@@ -40,6 +40,7 @@ defmodule Core.ContractRequests do
   @reimbursement ReimbursementContractRequest.type()
 
   @approved CapitationContractRequest.status(:approved)
+  @in_process CapitationContractRequest.status(:in_process)
   @pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
 
   @forbidden_statuses_for_termination [
@@ -213,18 +214,19 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def approve(headers, %{"id" => id} = params) do
+  def approve(%{"id" => id, "type" => type} = params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.delete(params, "id")
+    params = Map.drop(params, ~w(id type))
+    request_pack = RequestPack.new(%{"id" => id, "type" => type})
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_approve"),
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contract_request_id(id, content["id"]),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id!(client_id),
-         %CapitationContractRequest{} = contract_request <- get_by_id!(content["id"]),
+         {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
+         {:ok, contract_request} <- fetch_by_id(request_pack),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -232,26 +234,22 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_approve_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
-         :ok <-
-           save_signed_content(
-             contract_request.id,
-             params,
-             headers,
-             "signed_content/contract_request_approved"
-           ),
+         :ok <- validate_status(contract_request, @in_process),
+         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_approved"),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_divisions(contract_request),
          :ok <- validate_start_date(contract_request),
+         :ok <- validate_medical_program_is_active(contract_request),
          update_params <-
            params
-           |> Map.delete("id")
-           |> Map.put("updated_by", user_id)
            |> set_contract_number(contract_request)
-           |> Map.put("status", CapitationContractRequest.status(:approved)),
+           |> Map.merge(%{
+             "updated_by" => user_id,
+             "status" => @approved
+           }),
          %Changeset{valid?: true} = changes <- approve_changeset(contract_request, update_params),
          data <- render_contract_request_data(changes),
          %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
@@ -528,8 +526,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp set_contract_number(params, %{parent_contract_id: parent_contract_id})
-       when not is_nil(parent_contract_id) do
+  defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do
     params
   end
 
@@ -572,24 +569,31 @@ defmodule Core.ContractRequests do
     |> validate_number(:nhs_contract_price, greater_than_or_equal_to: 0)
   end
 
-  def approve_changeset(%CapitationContractRequest{} = contract_request, params) do
-    fields_required = ~w(
-      nhs_legal_entity_id
-      nhs_signer_id
-      nhs_signer_base
-      nhs_contract_price
-      nhs_payment_method
-      issue_city
-      status
-      updated_by
-      contract_number
-    )a
-
+  def approve_changeset(%{__struct__: _} = contract_request, params) do
+    fields_required = get_approve_required_fields(contract_request)
     fields_optional = ~w(misc)a
 
     contract_request
     |> cast(params, fields_required ++ fields_optional)
     |> validate_required(fields_required)
+  end
+
+  defp get_approve_required_fields(contract_request) do
+    fields = ~w(
+        nhs_legal_entity_id
+        nhs_signer_id
+        nhs_signer_base
+        nhs_payment_method
+        issue_city
+        status
+        updated_by
+        contract_number
+      )a
+
+    case contract_request do
+      %CapitationContractRequest{} -> Enum.concat(fields, ~w(nhs_contract_price)a)
+      %ReimbursementContractRequest{} -> Enum.concat(fields, ~w(medical_program_id)a)
+    end
   end
 
   defp update_assignee_changeset(%CapitationContractRequest{} = contract_request, params) do

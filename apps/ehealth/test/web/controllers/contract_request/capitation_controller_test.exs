@@ -2137,16 +2137,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      assert_raise Ecto.NoResultsError, fn ->
-        conn
-        |> put_consumer_id_header(user_id)
-        |> put_client_id_header(legal_entity.id)
-        |> patch(contract_request_path(conn, :approve, @capitation, contract_request_id), %{
-          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-        |> json_response(404)
-      end
+      assert conn
+             |> put_consumer_id_header(user_id)
+             |> put_client_id_header(legal_entity.id)
+             |> patch(contract_request_path(conn, :approve, @capitation, contract_request_id), %{
+               "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(404)
     end
 
     test "contract_request has wrong status", %{conn: conn} do
@@ -2843,8 +2841,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      template()
-
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
@@ -2867,8 +2863,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           :prm,
           :division,
           legal_entity: legal_entity,
-          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}],
-          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
 
       employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
@@ -2956,8 +2951,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           :prm,
           :division,
           legal_entity: legal_entity,
-          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}],
-          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
 
       employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
