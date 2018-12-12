@@ -21,6 +21,7 @@ defmodule Core.ContractRequests.Validator do
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PRMRepo
+  alias Core.Repo
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
@@ -71,9 +72,14 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_previous_request(%{"previous_request_id" => previous_id}, contractor_legal_entity_id)
+  def validate_previous_request(
+        %RequestPack{decoded_content: %{"previous_request_id" => previous_id}} = pack,
+        contractor_legal_entity_id
+      )
       when not is_nil(previous_id) do
-    with {_, %CapitationContractRequest{} = contract_request} <- {:request, ContractRequests.get_by_id(previous_id)},
+    schema = RequestPack.get_schema_by_type(pack.type)
+
+    with {_, %{__struct__: _} = contract_request} <- {:request, Repo.get(schema, previous_id)},
          {_, true} <-
            {:contractor_legal_entity_id, contract_request.contractor_legal_entity_id == contractor_legal_entity_id},
          {_, true} <- {:status, contract_request.status != CapitationContractRequest.status(:signed)} do

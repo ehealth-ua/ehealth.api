@@ -179,6 +179,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       contract_number = NumberGenerator.generate_from_sequence(1, 1)
 
+      previous_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
+
       insert(
         :prm,
         :reimbursement_contract,
@@ -192,6 +194,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         division
         |> prepare_reimbursement_params(medical_program)
         |> Map.merge(%{
+          "previous_request_id" => previous_request.id,
           "contractor_owner_id" => owner.id,
           "contract_number" => contract_number
         })
