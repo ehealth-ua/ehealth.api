@@ -3,15 +3,12 @@ defmodule Core.Unit.Validators.AddressesTest do
 
   use ExUnit.Case
   alias Core.Validators.Addresses
-  import Mox
+  import Core.Expectations.RPC
 
   describe "validate" do
     test "success validate" do
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
-
-      assert :ok == Addresses.validate([], [])
+      expect_uaddresses_validate()
+      assert :ok == Addresses.validate([])
     end
 
     test "validate Requierd type ok" do
@@ -21,11 +18,8 @@ defmodule Core.Unit.Validators.AddressesTest do
         }
       ]
 
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
-
-      assert :ok == Addresses.validate(addresses, "RESIDENCE", [])
+      expect_uaddresses_validate()
+      assert :ok == Addresses.validate(addresses, "RESIDENCE")
     end
 
     test "address with type defined few times" do
@@ -38,9 +32,7 @@ defmodule Core.Unit.Validators.AddressesTest do
         }
       ]
 
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      expect_uaddresses_validate()
 
       assert {:error,
               [
@@ -49,15 +41,12 @@ defmodule Core.Unit.Validators.AddressesTest do
                    params: [],
                    rule: :invalid
                  }, "$.addresses"}
-              ]} == Addresses.validate(addresses, "RESIDENCE", [])
+              ]} == Addresses.validate(addresses, "RESIDENCE")
     end
 
     test "address without required type RESIDENCE" do
       addresses = []
-
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      expect_uaddresses_validate()
 
       assert {:error,
               [
@@ -66,7 +55,7 @@ defmodule Core.Unit.Validators.AddressesTest do
                    params: [],
                    rule: :invalid
                  }, "$.addresses"}
-              ]} == Addresses.validate(addresses, "RESIDENCE", [])
+              ]} == Addresses.validate(addresses, "RESIDENCE")
     end
   end
 end

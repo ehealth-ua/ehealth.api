@@ -24,9 +24,18 @@ defmodule EHealth do
       ),
       worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
       worker(EHealth.Contracts.Terminator, []),
-      worker(EHealth.Scheduler, []),
-      {Cluster.Supervisor, [Application.get_env(:ehealth, :topologies), [name: EHealth.ClusterSupervisor]]}
+      worker(EHealth.Scheduler, [])
     ]
+
+    children =
+      if Application.get_env(:ehealth, :env) == :prod do
+        children ++
+          [
+            {Cluster.Supervisor, [Application.get_env(:ehealth, :topologies), [name: EHealth.ClusterSupervisor]]}
+          ]
+      else
+        children
+      end
 
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
     result = Supervisor.start_link(children, opts)

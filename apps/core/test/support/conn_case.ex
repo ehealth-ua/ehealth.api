@@ -18,6 +18,7 @@ defmodule Core.ConnCase do
   using do
     quote do
       import Core.Expectations.Mithril
+      import Core.Expectations.RPC
       import Core.Factories
       import Core.ConnCase
     end

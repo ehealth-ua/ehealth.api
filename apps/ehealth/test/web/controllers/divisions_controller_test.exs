@@ -416,9 +416,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
       )
     end)
 
-    expect(UAddressesMock, :validate_addresses, fn _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
+    expect_uaddresses_validate()
   end
 
   defp get_settlement(params, response_status, mountain_group \\ false) do

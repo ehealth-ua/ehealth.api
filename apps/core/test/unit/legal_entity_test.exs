@@ -33,10 +33,7 @@ defmodule Core.Unit.LegalEntityTest do
         |> Jason.decode!()
 
       edrpou_signed_content(content, "38782323")
-
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      expect_uaddresses_validate()
 
       assert {:ok, _} =
                Validator.decode_and_validate(
@@ -222,7 +219,7 @@ defmodule Core.Unit.LegalEntityTest do
           "kveds" => ["12.21"]
         })
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
       upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
@@ -260,7 +257,7 @@ defmodule Core.Unit.LegalEntityTest do
           "kveds" => ["12.21"]
         })
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
       upsert_client_connection()
@@ -309,7 +306,7 @@ defmodule Core.Unit.LegalEntityTest do
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
       upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
@@ -344,7 +341,7 @@ defmodule Core.Unit.LegalEntityTest do
       end)
 
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
       upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
@@ -354,7 +351,7 @@ defmodule Core.Unit.LegalEntityTest do
   test "CLOSED Legal Entity cannot be updated" do
     insert_dictionaries()
     insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
-    uaddresses_mock_expect()
+    expect_uaddresses_validate()
     assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
   end
 
@@ -372,7 +369,7 @@ defmodule Core.Unit.LegalEntityTest do
       insert(:prm, :legal_entity, edrpou: "37367387")
 
       update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
       upsert_client_connection()
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
@@ -435,7 +432,7 @@ defmodule Core.Unit.LegalEntityTest do
 
     assert {:error,
             [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "settlement validation with empty settlement" do
@@ -455,7 +452,7 @@ defmodule Core.Unit.LegalEntityTest do
 
     assert {:error,
             [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "region validation with invalid region" do
@@ -474,7 +471,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
     assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "region validation with empty region" do
@@ -493,7 +490,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
 
     assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "area validation with invalid area" do
@@ -512,7 +509,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
     assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "area validation with empty area" do
@@ -531,7 +528,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
 
     assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
-             Validator.validate_addresses(content, [])
+             Validator.validate_addresses(content)
   end
 
   test "position validation with invalid position" do
@@ -584,28 +581,20 @@ defmodule Core.Unit.LegalEntityTest do
     insert(:il, :dictionary_document_type)
   end
 
-  defp uaddresses_mock_expect do
-    expect(UAddressesMock, :validate_addresses, fn _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
-  end
-
   defp uaddresses_invalid_mock(path \\ "$.addresses[0].settlement", message \\ "invalid settlement value") do
-    expect(UAddressesMock, :validate_addresses, fn _, _ ->
+    expect_uaddresses_validate(
       {:error,
        %{
-         "error" => %{
-           "invalid" => [
-             %{
-               "entry" => path,
-               "entry_type" => "json_data_property",
-               "rules" => [
-                 %{"description" => message, "params" => []}
-               ]
-             }
-           ]
-         }
+         invalid: [
+           %{
+             entry: path,
+             entry_type: "json_data_property",
+             rules: [
+               %{description: message, params: []}
+             ]
+           }
+         ]
        }}
-    end)
+    )
   end
 end

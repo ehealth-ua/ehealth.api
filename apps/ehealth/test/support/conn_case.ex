@@ -23,6 +23,7 @@ defmodule EHealth.Web.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
       import Core.Expectations.Mithril
+      import Core.Expectations.RPC
       import Core.Factories
       import EHealth.Web.ConnCase
       import EHealthWeb.Router.Helpers

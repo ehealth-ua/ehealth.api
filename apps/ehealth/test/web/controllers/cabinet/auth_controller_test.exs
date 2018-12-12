@@ -354,7 +354,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
@@ -407,7 +407,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
@@ -451,7 +451,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> post(cabinet_auth_path(conn, :registration), params)
@@ -503,7 +503,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
@@ -551,7 +551,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
@@ -590,7 +590,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "tax_id_exists" ==
                conn
@@ -615,7 +615,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "User blocked" ==
                conn
@@ -731,7 +731,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "Input last_name doesn't match name from DS" ==
                conn
@@ -766,7 +766,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "Input last_name doesn't match name from DS" ==
                conn
@@ -802,7 +802,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "Input first_name doesn't match name from DS" ==
                conn
@@ -837,7 +837,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "signer_empty_given_name" ==
                conn
@@ -855,7 +855,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "Email in signed content is incorrect" ==
                conn
@@ -929,7 +929,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert "Registration person and person that sign should be the same" ==
                conn
@@ -1040,7 +1040,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert [err] =
                conn
@@ -1404,12 +1404,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
     content
     |> Jason.encode!()
     |> Base.encode64()
-  end
-
-  defp uaddresses_mock_expect do
-    expect(UAddressesMock, :validate_addresses, fn _, _headers ->
-      {:ok, %{"data" => %{}}}
-    end)
   end
 
   defp get_person(id, response_status, params) do

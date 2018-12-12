@@ -44,6 +44,16 @@ config :ehealth,
         kubernetes_namespace: "me",
         polling_interval: 10_000
       ]
+    ],
+    k8s_uaddresses: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "uaddresses_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "uaddresses",
+        polling_interval: 10_000
+      ]
     ]
   ]
 

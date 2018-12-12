@@ -6,13 +6,13 @@ defmodule Core.Validators.Addresses do
   alias Core.ValidationError
   alias Core.Validators.Error
 
-  @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
-  def validate(addresses, headers) when is_list(addresses), do: validate_addresses_values(addresses, headers)
+  def validate(addresses) when is_list(addresses), do: validate_addresses_values(addresses)
 
-  def validate(addresses, required_type, headers) when is_list(addresses) do
+  def validate(addresses, required_type) when is_list(addresses) do
     with :ok <- validate_addresses_type(addresses, required_type) do
-      validate_addresses_values(addresses, headers)
+      validate_addresses_values(addresses)
     end
   end
 
@@ -40,20 +40,23 @@ defmodule Core.Validators.Addresses do
     end
   end
 
-  defp validate_addresses_values(addresses, headers) do
-    case @uaddresses_api.validate_addresses(addresses, headers) do
-      {:ok, %{"data" => _}} ->
+  defp validate_addresses_values(addresses) do
+    case @rpc_worker.run("uaddresses", Uaddresses.Rpc, :validate, [addresses], []) do
+      :ok ->
         :ok
 
-      {:error, %{"error" => %{"invalid" => errors}}} ->
+      {:error, %{invalid: errors}} ->
         Error.dump(
-          Enum.map(errors, fn %{"rules" => rules, "entry" => entry} ->
+          Enum.map(errors, fn %{rules: rules, entry: entry} ->
             %ValidationError{
-              description: rules |> hd |> Map.get("description"),
+              description: rules |> hd |> Map.get(:description),
               path: entry
             }
           end)
         )
+
+      _ ->
+        Error.dump("Invalid params")
     end
   end
 end

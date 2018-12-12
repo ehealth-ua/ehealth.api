@@ -16,4 +16,10 @@ defmodule Core.Expectations.RPC do
       {:ok, status}
     end)
   end
+
+  def expect_uaddresses_validate(response \\ :ok, times \\ 1) do
+    expect(RPCWorkerMock, :run, times, fn _, Uaddresses.Rpc, :validate, _, _ ->
+      response
+    end)
+  end
 end

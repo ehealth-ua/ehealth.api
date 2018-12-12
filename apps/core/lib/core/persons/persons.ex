@@ -45,7 +45,7 @@ defmodule Core.Persons do
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"], content, signer),
          :ok <- JsonSchema.validate(:person, content),
-         :ok <- Addresses.validate(content["addresses"], "RESIDENCE", headers),
+         :ok <- Addresses.validate(content["addresses"], "RESIDENCE"),
          :ok <- PersonsValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          :ok <-

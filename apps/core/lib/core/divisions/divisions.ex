@@ -158,7 +158,7 @@ defmodule Core.Divisions do
 
   def validate_addresses(data, headers) do
     addresses = Map.get(data, "addresses") || []
-    Addresses.validate(addresses, "RESIDENCE", headers)
+    Addresses.validate(addresses, "RESIDENCE")
   end
 
   defp validate_division_type(%LegalEntity{type: legal_entity_type}, params) do

@@ -35,7 +35,7 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_type(content),
          :ok <- validate_pharmacy_license_number(content),
          :ok <- validate_kveds(content),
-         :ok <- validate_addresses(content, headers),
+         :ok <- validate_addresses(content),
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
@@ -60,7 +60,9 @@ defmodule Core.LegalEntities.Validator do
 
   defp validate_type(%{"type" => @msp}), do: :ok
   defp validate_type(%{"type" => @pharmacy}), do: :ok
-  defp validate_type(_), do: Error.dump("Only legal_entity with type MSP or Pharmacy could be created")
+
+  defp validate_type(_),
+    do: Error.dump("Only legal_entity with type MSP or Pharmacy could be created")
 
   defp validate_pharmacy_license_number(%{"type" => @pharmacy} = content) do
     content
@@ -95,9 +97,9 @@ defmodule Core.LegalEntities.Validator do
 
   # Addresses validator
 
-  def validate_addresses(content, headers) do
+  def validate_addresses(content) do
     addresses = Map.get(content, "addresses") || []
-    Addresses.validate(addresses, "REGISTRATION", headers)
+    Addresses.validate(addresses, "REGISTRATION")
   end
 
   # Tax ID validator
@@ -106,12 +108,18 @@ defmodule Core.LegalEntities.Validator do
 
     case no_tax_id do
       true ->
-        Error.dump(%ValidationError{description: "'no_tax_id' must be false", path: "$.owner.no_tax_id"})
+        Error.dump(%ValidationError{
+          description: "'no_tax_id' must be false",
+          path: "$.owner.no_tax_id"
+        })
 
       _ ->
         content
         |> get_in(["owner", "tax_id"])
-        |> TaxID.validate(%ValidationError{description: "invalid tax_id value", path: "$.owner.tax_id"})
+        |> TaxID.validate(%ValidationError{
+          description: "invalid tax_id value",
+          path: "$.owner.tax_id"
+        })
     end
   end
 
@@ -145,7 +153,10 @@ defmodule Core.LegalEntities.Validator do
   end
 
   def validate_state_registry_number(_content, _signer) do
-    Error.dump(%ValidationError{description: "EDRPOU and DRFO is empty in digital sign", path: "$.data.signatures"})
+    Error.dump(%ValidationError{
+      description: "EDRPOU and DRFO is empty in digital sign",
+      path: "$.data.signatures"
+    })
   end
 
   defp content_edrpou(content) do
@@ -170,7 +181,10 @@ defmodule Core.LegalEntities.Validator do
         :ok
 
       _ ->
-        Error.dump(%ValidationError{description: "invalid birth_date value", path: "$.owner.birth_date"})
+        Error.dump(%ValidationError{
+          description: "invalid birth_date value",
+          path: "$.owner.birth_date"
+        })
     end
   end
 
@@ -185,13 +199,17 @@ defmodule Core.LegalEntities.Validator do
         :ok
 
       _ ->
-        Error.dump(%ValidationError{description: "invalid owner position value", path: "$.owner.position"})
+        Error.dump(%ValidationError{
+          description: "invalid owner position value",
+          path: "$.owner.position"
+        })
     end
   end
 
   defp valid_owner_position?(_position, nil), do: false
 
-  defp valid_owner_position?(position, positions), do: Enum.any?(positions, fn x -> x == position end)
+  defp valid_owner_position?(position, positions),
+    do: Enum.any?(positions, fn x -> x == position end)
 
   defp lowercase_emails(content) do
     email = Map.get(content, "email")

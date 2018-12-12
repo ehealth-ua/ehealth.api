@@ -99,7 +99,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> pop_in(["declaration_request", "person", "tax_id"])
         |> elem(1)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert %{"id" => declaration_request_id} =
                conn
@@ -140,7 +140,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
         |> put_in(["declaration_request", "employee_id"], employee_id)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       resp =
         conn
@@ -178,7 +178,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
         |> put_in(["declaration_request", "employee_id"], employee_id)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       resp =
         conn
@@ -229,7 +229,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -294,7 +294,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       resp =
         conn
@@ -379,7 +379,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -438,7 +438,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -512,7 +512,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -580,7 +580,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -604,7 +604,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), [%{"type" => "OTP"}])
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -696,7 +696,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       tax_id = get_in(params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -825,7 +825,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       resp =
         conn
@@ -923,7 +923,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       person =
         declaration_request_params
@@ -1003,7 +1003,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
@@ -1071,7 +1071,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "division_id"], "31506899-55a5-4011-b88c-10ba90c5e9bd")
         |> put_in(["declaration_request", "employee_id"], "b03f057f-aa84-4152-b6e5-3905ba821b66")
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -1152,7 +1152,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert conn
              |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -1282,7 +1282,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           }
         ])
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       assert conn
              |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -1330,7 +1330,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "returns error if global parameters do not exist", %{conn: conn} do
       declaration_request_params = File.read!("../core/test/data/declaration_request.json")
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -1361,7 +1361,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(["declaration_request", "employee_id"], wrong_id)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn =
         conn
@@ -1391,35 +1391,33 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "validation error is returned", %{conn: conn} do
       declaration_request_params = File.read!("../core/test/data/declaration_request.json")
 
-      expect(UAddressesMock, :validate_addresses, fn _, _headers ->
+      expect_uaddresses_validate(
         {:error,
          %{
-           "error" => %{
-             "invalid" => [
-               %{
-                 "entry" => "$.addresses[0].settlement_id",
-                 "entry_type" => "json_data_property",
-                 "rules" => [
-                   %{
-                     "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                     "params" => []
-                   }
-                 ]
-               },
-               %{
-                 "entry" => "$.addresses[1].settlement_id",
-                 "entry_type" => "json_data_property",
-                 "rules" => [
-                   %{
-                     "description" => "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
-                     "params" => []
-                   }
-                 ]
-               }
-             ]
-           }
+           invalid: [
+             %{
+               entry: "$.addresses[0].settlement_id",
+               entry_type: "json_data_property",
+               rules: [
+                 %{
+                   description: "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                   params: []
+                 }
+               ]
+             },
+             %{
+               entry: "$.addresses[1].settlement_id",
+               entry_type: "json_data_property",
+               rules: [
+                 %{
+                   description: "settlement with id = adaa4abf-f530-461c-bcbf-a0ac210d955b does not exist",
+                   params: []
+                 }
+               ]
+             }
+           ]
          }}
-      end)
+      )
 
       error =
         conn
@@ -1722,11 +1720,5 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     |> File.read!()
     |> Jason.decode!()
     |> Map.fetch!("declaration_request")
-  end
-
-  defp uaddresses_mock_expect do
-    expect(UAddressesMock, :validate_addresses, fn _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
   end
 end

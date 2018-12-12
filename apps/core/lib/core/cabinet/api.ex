@@ -40,7 +40,7 @@ defmodule Core.Cabinet.API do
          :ok <- PersonsValidator.validate_national_id(content),
          :ok <- PersonsValidator.validate_person_passports(content),
          :ok <- PersonsValidator.validate_birth_date(content["birth_date"], "$.birth_date"),
-         :ok <- Addresses.validate(content["addresses"], "RESIDENCE", headers),
+         :ok <- Addresses.validate(content["addresses"], "RESIDENCE"),
          {:ok, tax_id} <- validate_tax_id(content, signer),
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),

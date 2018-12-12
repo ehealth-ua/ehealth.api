@@ -47,7 +47,7 @@ defmodule Core.V2.DeclarationRequests do
     with :ok <- JsonSchema.validate(:declaration_request_v2, %{"declaration_request" => params}),
          params <- lowercase_email(params),
          :ok <- PersonsValidatorV2.validate(params["person"]),
-         :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "RESIDENCE", headers),
+         :ok <- Addresses.validate(get_in(params, ["person", "addresses"]), "RESIDENCE"),
          {:ok, %Employee{} = employee} <-
            Reference.validate(:employee, params["employee_id"], "$.declaration_request.employee_id"),
          :ok <- Creator.validate_employee_status(employee),

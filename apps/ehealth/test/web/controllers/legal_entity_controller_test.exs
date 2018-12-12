@@ -1026,9 +1026,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   end
 
   defp validate_addresses(n \\ 1) do
-    expect(UAddressesMock, :validate_addresses, n, fn _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
+    expect_uaddresses_validate(:ok, n)
   end
 
   defp insert_dictionaries do

@@ -145,7 +145,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, "success"}
       end)
 
-      uaddresses_mock_expect()
+      expect_uaddresses_validate()
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)
@@ -361,12 +361,6 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
                }
              ] = resp["error"]["invalid"]
     end
-  end
-
-  defp uaddresses_mock_expect do
-    expect(UAddressesMock, :validate_addresses, fn _, _ ->
-      {:ok, %{"data" => %{}}}
-    end)
   end
 
   defp get_jwt_token(email) do

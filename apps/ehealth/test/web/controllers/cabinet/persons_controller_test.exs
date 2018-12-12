@@ -347,10 +347,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
-
+      expect_uaddresses_validate()
       drfo_signed_content(data, data["tax_id"])
 
       assert conn
@@ -396,9 +393,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "8069cb5c-3156-410b-9039-a1b2f2a4136c")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      expect(UAddressesMock, :validate_addresses, fn _, _ ->
-        {:ok, %{"data" => %{}}}
-      end)
+      expect_uaddresses_validate()
 
       unzr = "#{String.replace(data["birth_date"], "-", "")}-01234"
       data = Map.put(data, "unzr", unzr)
