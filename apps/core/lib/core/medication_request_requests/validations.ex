@@ -103,7 +103,7 @@ defmodule Core.MedicationRequestRequest.Validations do
   end
 
   defp do_validate_medical_event_entity(:encounter, patient_id, entity_id) do
-    case @rpc_worker.run("me", Core.Rpc, :encounter_status_by_id, [patient_id, entity_id], []) do
+    case @rpc_worker.run("me", Core.Rpc, :encounter_status_by_id, [patient_id, entity_id]) do
       {:ok, "entered_in_error"} ->
         {:invalid_encounter, nil}
 
