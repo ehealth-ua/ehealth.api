@@ -10,6 +10,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.Employees.Employee
   alias GraphQLWeb.Loaders.PRM
+  alias GraphQLWeb.Middleware.Filtering
   alias GraphQLWeb.Resolvers.EmployeeResolver
 
   @type_admin Employee.type(:admin)
@@ -34,8 +35,14 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_desc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        employee_type: :in,
+        status: :equal,
+        is_active: :equal,
+        legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal],
+        party: [full_name: :full_text_search]
+      )
+
       resolve(&EmployeeResolver.list_employees/2)
     end
 
@@ -61,6 +68,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     field(:status, :employee_status)
     field(:is_active, :boolean)
     field(:legal_entity, :legal_entity_filter)
+    field(:party, :party_filter)
   end
 
   enum :employee_order_by do
@@ -109,16 +117,6 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
 
   # embed
 
-  node object(:party) do
-    field(:database_id, non_null(:id))
-    field(:first_name, non_null(:string))
-    field(:last_name, non_null(:string))
-    field(:second_name, :string)
-    field(:birth_date, non_null(:string))
-    field(:gender, non_null(:gender))
-    field(:phones, list_of(:phone))
-  end
-
   object :employee_additional_info do
     field(:specialities, list_of(:speciality))
   end
@@ -135,11 +133,6 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   end
 
   # enum
-  enum :gender do
-    value(:male, as: "MALE")
-    value(:female, as: "FEMALE")
-  end
-
   enum :employee_type do
     value(:admin, as: @type_admin)
     value(:doctor, as: @type_doctor)

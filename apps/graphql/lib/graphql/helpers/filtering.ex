@@ -6,6 +6,7 @@ defmodule GraphQL.Helpers.Filtering do
   def filter(query, []), do: query
 
   def filter(query, [{field, rule, value} | tail]) do
+    # TODO: generalize field introspection
     type = introspect(query, field)
 
     filter(query, [{type, field, rule, value} | tail])
@@ -100,15 +101,22 @@ defmodule GraphQL.Helpers.Filtering do
     |> filter(tail)
   end
 
-  def filter(query, [{%{cardinality: :one}, field, nil, conditions} | tail]) do
+  def filter(query, [{%{cardinality: :one, related: related}, field, nil, conditions} | tail]) do
+    conditions =
+      for {field, rule, value} <- conditions do
+        # TODO: generalize field introspection
+        type = introspect(related, field)
+        {type, field, rule, value}
+      end
+
     query
     |> filter(tail)
     |> join(:inner, [r], assoc(r, ^field))
     |> filter(conditions)
   end
 
-  defp introspect(query, field) do
-    %{from: {_, queryable}} = Ecto.Queryable.to_query(query)
+  defp introspect(queryable, field) do
+    %{from: {_, queryable}} = Ecto.Queryable.to_query(queryable)
 
     Enum.reduce_while(
       ~w(association embed type)a,

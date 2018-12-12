@@ -55,29 +55,29 @@ Feature: Get all reimbursement contract requests
 
   Scenario Outline: Request items filtered by condition on association
     Given the following <association_entity> exist:
-      | databaseId     | <field>           |
-      | <alternate_id> | <alternate_value> |
-      | <expected_id>  | <expected_value>  |
+      | databaseId                 | <field>           |
+      | <alternate_association_id> | <alternate_value> |
+      | <expected_association_id>  | <expected_value>  |
     And the following reimbursement contract requests exist:
-      | <association_field>Id |
-      | <alternate_id>        |
-      | <expected_id>         |
+      | databaseId     | <association_field>Id      |
+      | <alternate_id> | <alternate_association_id> |
+      | <expected_id>  | <expected_association_id>  |
     And my scope is "contract_request:read"
     And my client type is "NHS"
     When I request first 10 reimbursement contract requests where <field> of the associated <association_field> is <filter_value>
     Then no errors should be returned
     And I should receive collection with 1 item
-    And the <field> in the <association_field> of the first item in the collection should be <expected_value>
+    And the databaseId of the first item in the collection should be <expected_id>
 
     Examples:
-      | association_entity | association_field     | field       | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           |
-      | legal entities     | contractorLegalEntity | databaseId  | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" |
-      | legal entities     | contractorLegalEntity | edrpou      | "1234567890"                           | "1234567890"                           | "0987654321"                           | "66314869-66f1-45c2-948d-531491f6b17c" | "09bd6490-d4ff-4201-be77-df8b88eb3d04" |
-      | legal entities     | contractorLegalEntity | nhsReviewed | false                                  | false                                  | true                                   | "07b1ecef-81ea-47f8-b16a-e394920a3290" | "fb2f0f53-492d-477d-b62b-bc428da63110" |
-      | legal entities     | contractorLegalEntity | nhsVerified | true                                   | true                                   | false                                  | "f2f1d6a0-c4d2-4e61-a2c2-adad776d6cce" | "8f260981-0aeb-4d18-a426-18e029becd7b" |
-      | medical programs   | medicalProgram        | databaseId  | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "1e181257-aa03-4227-9f6b-cf04471a9391" | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "1e181257-aa03-4227-9f6b-cf04471a9391" |
-      | medical programs   | medicalProgram        | name        | "доступні"                             | "Доступні ліки"                        | "Безкоштовні вакцини"                  | "9d8f5f20-6857-4167-9776-95b873434abd" | "bd75746d-fde7-4064-9a13-57826ce7e2cd" |
-      | medical programs   | medicalProgram        | isActive    | true                                   | true                                   | false                                  | "fcfcf8a7-ffef-4708-98b2-3cd9e0718d33" | "cc362c95-f839-4bae-b248-b8ca747c0d99" |
+      | association_entity | association_field     | field       | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           | expected_association_id                | alternate_association_id               |
+      | legal entities     | contractorLegalEntity | databaseId  | "cfc3965c-e7bb-447e-9d80-354f3219ff22" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "cfc3965c-e7bb-447e-9d80-354f3219ff22" | "5fd99d7d-b1a8-4fff-b83f-4d617268647e" |
+      | legal entities     | contractorLegalEntity | edrpou      | "1234567890"                           | "1234567890"                           | "0987654321"                           | "66314869-66f1-45c2-948d-531491f6b17c" | "09bd6490-d4ff-4201-be77-df8b88eb3d04" | "807c7e3e-17fa-4736-8c10-d6783b5defcf" | "28c08ae7-dd7a-414d-b12b-9db6d05044bc" |
+      | legal entities     | contractorLegalEntity | nhsReviewed | false                                  | false                                  | true                                   | "07b1ecef-81ea-47f8-b16a-e394920a3290" | "fb2f0f53-492d-477d-b62b-bc428da63110" | "55b3ec1f-267a-4643-9459-7621089dab0d" | "d37d4f16-1a15-42a1-b054-281c89f0535e" |
+      | legal entities     | contractorLegalEntity | nhsVerified | true                                   | true                                   | false                                  | "f2f1d6a0-c4d2-4e61-a2c2-adad776d6cce" | "8f260981-0aeb-4d18-a426-18e029becd7b" | "90237d2b-273c-4306-91fa-a3925e4ef4bb" | "d3c92162-b648-4439-a840-2148e9288bdb" |
+      | medical programs   | medicalProgram        | databaseId  | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "1e181257-aa03-4227-9f6b-cf04471a9391" | "bd9c7e84-2fff-4d08-9a95-2e774b34241e" | "1e181257-aa03-4227-9f6b-cf04471a9391" | "bf2e25d6-63df-4456-991d-983a0322e4aa" | "d7a6913e-f125-49c2-b0c0-13a864686417" |
+      | medical programs   | medicalProgram        | name        | "доступні"                             | "Доступні ліки"                        | "Безкоштовні вакцини"                  | "9d8f5f20-6857-4167-9776-95b873434abd" | "bd75746d-fde7-4064-9a13-57826ce7e2cd" | "3a575fc9-24ba-40d4-8787-19d88ca1beca" | "9e59da23-2a7a-43f0-8d4f-4154d025e27e" |
+      | medical programs   | medicalProgram        | isActive    | true                                   | true                                   | false                                  | "fcfcf8a7-ffef-4708-98b2-3cd9e0718d33" | "cc362c95-f839-4bae-b248-b8ca747c0d99" | "66699051-c311-4835-a34d-0f9ca4a07fc4" | "7c9f7db7-7a59-4797-8a1a-1c5ad974215e" |
 
   Scenario: Request items filtered by assignee name
     Given the following parties exist:

@@ -63,7 +63,7 @@ defmodule GraphQL.Features.Context do
   given_(
     ~r/^there are (?<count>\d+) capitation contract requests exist$/,
     fn state, %{count: count} ->
-      count = String.to_integer(count)
+      count = Jason.decode!(count)
       insert_list(count, :il, :capitation_contract_request)
 
       {:ok, state}
@@ -73,7 +73,7 @@ defmodule GraphQL.Features.Context do
   given_(
     ~r/^there are (?<count>\d+) reimbursement contract requests exist$/,
     fn state, %{count: count} ->
-      count = String.to_integer(count)
+      count = Jason.decode!(count)
       insert_list(count, :il, :reimbursement_contract_request)
 
       {:ok, state}
@@ -83,8 +83,18 @@ defmodule GraphQL.Features.Context do
   given_(
     ~r/^there are (?<count>\d+) medical programs exist$/,
     fn state, %{count: count} ->
-      count = String.to_integer(count)
+      count = Jason.decode!(count)
       insert_list(count, :prm, :medical_program)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^there are (?<count>\d+) employees exist$/,
+    fn state, %{count: count} ->
+      count = Jason.decode!(count)
+      insert_list(count, :prm, :employee)
 
       {:ok, state}
     end
@@ -245,6 +255,33 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employees$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListEmployees($first: Int!) {
+          employees(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
@@ -375,6 +412,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListEmployeesWithFilter(
+          $first: Int!
+          $filter: EmployeeFilter!
+        ) {
+          employees(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
@@ -384,9 +453,7 @@ defmodule GraphQL.Features.Context do
         ) {
           reimbursementContractRequests(first: $first, filter: $filter) {
             nodes {
-              #{association_field} {
-                #{field}
-              }
+              databaseId
             }
           }
         }
@@ -403,6 +470,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListEmployeesWithAssocFilter(
+          $first: Int!
+          $filter: EmployeeFilter!
+        ) {
+          employees(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employees nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -505,6 +604,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListEmployeesWithOrderBy(
+          $first: Int!
+          $order_by: EmployeeOrderBy!
+        ) {
+          employees(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request capitation contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
       query = """
@@ -551,6 +682,32 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request employee where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+        query GetEmployeeQuery($id: ID!) {
+          employee(id: $id) {
+            databaseId
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("Employee", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employee))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -609,6 +766,32 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeQuery($id: ID!) {
+          employee(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("Employee", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employee))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
@@ -631,6 +814,34 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeQuery($id: ID!) {
+          employee(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("Employee", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employee))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end

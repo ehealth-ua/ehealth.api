@@ -41,6 +41,7 @@ defmodule GraphQLWeb.Schema do
     LegalEntityTypes,
     LegalEntityMergeJobTypes,
     MedicalProgramTypes,
+    PartyTypes,
     PersonTypes,
     PhoneTypes,
     RelatedLegalEntityTypes,
