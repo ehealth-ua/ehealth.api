@@ -9,6 +9,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
+  alias Core.EventManagerRepo
+  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
@@ -1326,6 +1328,90 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("contract", "reimbursement_contract")
+    end
+  end
+
+  describe "decline contract_request" do
+    test "success decline contract request and event manager registration", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:pharmacy_owner),
+          party: party_user.party
+        )
+
+      insert(:prm, :division, legal_entity: legal_entity)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @in_process,
+          nhs_signer_id: employee_owner.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id
+        )
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp_data =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :decline, @path_type, contract_request.id), signed_content_params(data))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
+      assert resp_data["status"] == ReimbursementContractRequest.status(:declined)
+
+      contract_request = Core.Repo.get(ReimbursementContractRequest, contract_request.id)
+      assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
+      assert contract_request.nhs_signer_id == user_id
+      assert contract_request.nhs_legal_entity_id == legal_entity.id
+
+      contract_request_id = contract_request.id
+      contract_request_status = contract_request.status
+      assert event = EventManagerRepo.one(Event)
+
+      assert %Event{
+               entity_type: "ReimbursementContractRequest",
+               event_type: "StatusChangeEvent",
+               entity_id: ^contract_request_id,
+               changed_by: ^user_id,
+               properties: %{"status" => %{"new_value" => ^contract_request_status}}
+             } = event
     end
   end
 

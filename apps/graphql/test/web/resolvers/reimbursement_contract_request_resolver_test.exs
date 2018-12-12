@@ -32,6 +32,24 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     }
   """
 
+  @decline_query """
+    mutation DeclineContractRequestMutation($input: DeclineContractRequestInput!) {
+      declineContractRequest(input: $input) {
+        contractRequest {
+          id
+          databaseId
+          status
+
+          ... on ReimbursementContractRequest {
+            medicalProgram {
+              databaseId
+            }
+          }
+        }
+      }
+    }
+  """
+
   setup :verify_on_exit!
 
   setup %{conn: conn} do
@@ -180,6 +198,80 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
       resp_contract_request = get_in(resp_body, ~w(data approveContractRequest contractRequest))
 
       assert medical_program.id == resp_contract_request["medicalProgram"]["databaseId"]
+    end
+  end
+
+  describe "decline contract_request" do
+    test "success decline contract request", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:pharmacy_owner),
+          party: party_user.party
+        )
+
+      insert(:prm, :division, legal_entity: legal_entity)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:in_process),
+          nhs_signer_id: employee_owner.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id
+        )
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      data = %{
+        "id" => contract_request.id,
+        "next_status" => "DECLINED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "status_reason" => "Не відповідає попереднім домовленостям",
+        "text" => "something"
+      }
+
+      expect_signed_content(data, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@decline_query, input_signed_content(contract_request.id, data))
+        |> json_response(200)
+
+      refute resp_body["errors"]
+      resp_contract_request = get_in(resp_body, ~w(data declineContractRequest contractRequest))
+
+      assert ReimbursementContractRequest.status(:declined) == resp_contract_request["status"]
+
+      contract_request = Core.Repo.get(ReimbursementContractRequest, contract_request.id)
+      assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
+      assert contract_request.nhs_signer_id == user_id
+      assert contract_request.nhs_legal_entity_id == legal_entity.id
     end
   end
 

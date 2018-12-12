@@ -40,6 +40,7 @@ defmodule Core.ContractRequests do
   @reimbursement ReimbursementContractRequest.type()
 
   @approved CapitationContractRequest.status(:approved)
+  @declined CapitationContractRequest.status(:declined)
   @in_process CapitationContractRequest.status(:in_process)
   @pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
 
@@ -289,10 +290,11 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def decline(headers, %{"id" => id} = params) do
+  def decline(%{"id" => id, "type" => _} = params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.delete(params, "id")
+    request_pack = RequestPack.new(params)
+    params = Map.drop(params, ~w(id type))
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
@@ -300,7 +302,7 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         %CapitationContractRequest{} = contract_request <- get_by_id(content["id"]),
+         {:ok, contract_request} <- fetch_by_id(request_pack),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -308,21 +310,16 @@ defmodule Core.ContractRequests do
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
-         :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
-         :ok <-
-           save_signed_content(
-             contract_request.id,
-             params,
-             headers,
-             "signed_content/contract_request_declined"
-           ),
+         :ok <- validate_status(contract_request, @in_process),
+         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_declined"),
          update_params <-
-           content
-           |> Map.take(~w(status_reason))
-           |> Map.put("status", CapitationContractRequest.status(:declined))
-           |> Map.put("nhs_signer_id", user_id)
-           |> Map.put("nhs_legal_entity_id", client_id)
-           |> Map.put("updated_by", user_id),
+           %{
+             "status_reason" => content["status_reason"],
+             "status" => @declined,
+             "nhs_signer_id" => user_id,
+             "nhs_legal_entity_id" => client_id,
+             "updated_by" => user_id
+           },
          %Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -753,7 +750,7 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp decline_changeset(%CapitationContractRequest{} = contract_request, params) do
+  defp decline_changeset(%{__struct__: _} = contract_request, params) do
     fields_required = ~w(status nhs_signer_id nhs_legal_entity_id updated_by)a
     fields_optional = ~w(status_reason)a
 

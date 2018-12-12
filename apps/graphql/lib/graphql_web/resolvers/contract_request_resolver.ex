@@ -139,10 +139,13 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def decline(args, resolution) do
-    params = prepare_signed_content_params(args)
+  def decline(%{id: %{id: id, type: type}, signed_content: signed_content}, %{context: %{headers: headers}}) do
+    params =
+      %{id: id, signed_content: signed_content}
+      |> prepare_signed_content_params()
+      |> Map.put("type", RequestPack.get_type_by_atom(type))
 
-    with {:ok, contract_request, references} <- ContractRequests.decline(resolution.context.headers, params) do
+    with {:ok, contract_request, references} <- ContractRequests.decline(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
     else
       err -> render_error(err)
