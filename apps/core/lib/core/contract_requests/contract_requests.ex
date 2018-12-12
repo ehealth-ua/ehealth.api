@@ -109,10 +109,11 @@ defmodule Core.ContractRequests do
   def create(headers, %{"id" => id, "type" => type} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.drop(params, ~w(id type))
+    pack = RequestPack.new(params)
+    params = pack.input_params
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(id))},
+         {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(pack))},
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),

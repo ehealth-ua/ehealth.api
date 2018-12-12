@@ -251,7 +251,50 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
   end
 
-  describe "create reimbursement contract request" do
+  describe "failed reimbursement contract request creation" do
+    test "duplicated id", %{conn: conn} do
+      contract_request = insert(:il, :reimbursement_contract_request)
+
+      %{
+        medical_program: medical_program,
+        legal_entity: legal_entity,
+        division: division,
+        user_id: user_id,
+        owner: owner
+      } = prepare_data()
+
+      contract_number = NumberGenerator.generate_from_sequence(1, 1)
+
+      insert(
+        :prm,
+        :reimbursement_contract,
+        contract_number: contract_number,
+        status: ReimbursementContract.status(:verified),
+        contractor_legal_entity: legal_entity,
+        medical_program_id: medical_program.id
+      )
+
+      params =
+        division
+        |> prepare_reimbursement_params(medical_program)
+        |> Map.merge(%{
+          "contractor_owner_id" => owner.id,
+          "contract_number" => contract_number
+        })
+        |> Map.drop(~w(start_date end_date))
+
+      err_message =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, @path_type, contract_request.id), signed_content_params(params))
+        |> json_response(409)
+        |> get_in(~w(error message))
+
+      assert "Invalid contract_request id" == err_message
+    end
+
     test "invalid previous contract type", %{conn: conn} do
       %{
         medical_program: medical_program,
