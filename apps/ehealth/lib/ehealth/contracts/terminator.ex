@@ -14,7 +14,7 @@ defmodule EHealth.Contracts.Terminator do
 
   @server __MODULE__
 
-  def start_link do
+  def start_link(_) do
     GenServer.start_link(@server, %{}, name: @server)
   end
 

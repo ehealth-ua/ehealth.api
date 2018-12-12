@@ -4,7 +4,6 @@ defmodule EHealth do
   """
 
   use Application
-  import Supervisor.Spec, warn: false
 
   alias Confex.Resolver
   alias EHealth.Scheduler
@@ -16,15 +15,17 @@ defmodule EHealth do
 
     # Define workers and child supervisors to be supervised
     children = [
-      supervisor(EHealth.Web.Endpoint, []),
-      worker(
-        EHealth.DeclarationRequests.Terminator,
-        [:declaration_request_terminator],
-        id: :declaration_request_terminator
-      ),
-      worker(EHealth.DeclarationRequests.Terminator, [:declaration_request_cleaner], id: :declaration_request_cleaner),
-      worker(EHealth.Contracts.Terminator, []),
-      worker(EHealth.Scheduler, [])
+      {EHealth.Web.Endpoint, []},
+      %{
+        id: :declaration_request_terminator,
+        start: {EHealth.DeclarationRequests.Terminator, :start_link, [:declaration_request_terminator]}
+      },
+      %{
+        id: :declaration_request_cleaner,
+        start: {EHealth.DeclarationRequests.Terminator, :start_link, [:declaration_request_cleaner]}
+      },
+      {EHealth.Contracts.Terminator, []},
+      {EHealth.Scheduler, []}
     ]
 
     children =
