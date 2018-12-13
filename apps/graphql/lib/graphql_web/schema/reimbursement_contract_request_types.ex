@@ -124,7 +124,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
       resolve: &ContractRequestResolver.get_attached_documents/3
     )
 
-    field(:miscellaneous, :string)
+    field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
     field(:to_approve_content, :json)
     field(:to_decline_content, :json)
     field(:to_sign_content, :json)

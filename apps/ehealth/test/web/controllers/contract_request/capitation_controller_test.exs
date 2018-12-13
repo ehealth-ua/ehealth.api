@@ -1167,24 +1167,17 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      resp =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", legal_entity.edrpou)
-        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
-          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-        |> json_response(201)
-        |> Map.get("data")
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp)
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+        "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
 
     test "success create contract request without contract_number", %{conn: conn} do
@@ -1232,20 +1225,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      resp =
-        conn
-        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
-          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-        |> json_response(201)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+        "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
 
     test "contract employees validation failed", %{conn: conn} do
@@ -1479,21 +1466,15 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, legal_entity.id)
 
-      resp =
-        conn
-        |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), %{
-          "nhs_signer_base" => "на підставі наказу",
-          "nhs_contract_price" => 50_000,
-          "nhs_payment_method" => "prepayment"
-        })
-        |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), %{
+        "nhs_signer_base" => "на підставі наказу",
+        "nhs_contract_price" => 50_000,
+        "nhs_payment_method" => "prepayment"
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
 
     test "success with zero nhs_contract_price", %{conn: conn} do
@@ -1521,18 +1502,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "nhs_signer_base" => "на підставі наказу"
       }
 
-      assert resp =
-               conn
-               |> put_client_id_header(legal_entity.id)
-               |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), request_data)
-               |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> patch(contract_request_path(conn, :update, @capitation, contract_request.id), request_data)
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
   end
 
@@ -1698,22 +1673,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      conn = put_client_id_header(conn, legal_entity.id)
-
-      assert response_data =
-               conn
-               |> patch(contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
-                 "employee_id" => employee.id
-               })
-               |> json_response(200)
-               |> Map.get("data")
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok == NExJsonSchema.Validator.validate(schema, response_data)
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> patch(contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
+        "employee_id" => employee.id
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
   end
 
@@ -2916,20 +2883,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      resp =
-        conn
-        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
-          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-        |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+        "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
   end
 
@@ -2979,19 +2940,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           start_date: start_date
         )
 
-      resp =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-        |> patch(contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
-        |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
+      |> patch(contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
 
     test "invalid contractor_owner_id", %{conn: conn} do
@@ -3062,15 +3017,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
             "status_reason" => "Неправильний період контракту"
           })
           |> json_response(200)
+          |> Map.get("data")
+          |> assert_show_response_schema("contract_request/capitation", "contract_request")
 
-        schema =
-          "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-          |> File.read!()
-          |> Jason.decode!()
-
-        assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
-
-        assert resp["data"]["status"] == CapitationContractRequest.status(:terminated)
+        assert resp["status"] == CapitationContractRequest.status(:terminated)
       end
     end
 
@@ -4110,23 +4060,17 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       contract_request = Core.Repo.get(CapitationContractRequest, contract_request.id)
       assert contract_request.nhs_signed_date == Date.utc_today()
 
-      assert resp =
-               conn
-               |> put_client_id_header(client_id)
-               |> put_consumer_id_header(user_id)
-               |> put_req_header("drfo", legal_entity.edrpou)
-               |> patch(contract_request_path(conn, :sign_nhs, @capitation, contract_request.id), %{
-                 "signed_content" => data |> Jason.encode!() |> Base.encode64(),
-                 "signed_content_encoding" => "base64"
-               })
-               |> json_response(200)
-
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+      conn
+      |> put_client_id_header(client_id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> patch(contract_request_path(conn, :sign_nhs, @capitation, contract_request.id), %{
+        "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
     end
   end
 
@@ -4223,15 +4167,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           "signed_content_encoding" => "base64"
         })
         |> json_response(200)
+        |> Map.get("data")
+        |> assert_show_response_schema("contract_request/capitation", "contract_request")
 
-      schema =
-        "../core/specs/json_schemas/contract_request/capitation_contract_request_show_response.json"
-        |> File.read!()
-        |> Jason.decode!()
-
-      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
-
-      assert resp["data"]["status"] == CapitationContractRequest.status(:declined)
+      assert resp["status"] == CapitationContractRequest.status(:declined)
 
       contract_request = Core.Repo.get(CapitationContractRequest, contract_request.id)
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"

@@ -12,7 +12,7 @@ defmodule Core.ContractRequests.RequestPack do
     type
     schema
     provider
-    input_params
+    request_params
     decoded_content
     contract_request
     contract_request_id
@@ -36,7 +36,7 @@ defmodule Core.ContractRequests.RequestPack do
       schema: get_schema_by_type(type),
       provider: get_provider_by_type(type),
       contract_request_id: params["id"],
-      input_params: Map.drop(params, ~w(id type))
+      request_params: Map.drop(params, ~w(id type))
     }
   end
 

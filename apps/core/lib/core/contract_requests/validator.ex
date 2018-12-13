@@ -534,6 +534,14 @@ defmodule Core.ContractRequests.Validator do
     JsonSchema.validate(:reimbursement_contract_request, content)
   end
 
+  def validate_update_params(%RequestPack{type: @capitation} = pack) do
+    JsonSchema.validate(:capitation_contract_request_update, pack.request_params)
+  end
+
+  def validate_update_params(%RequestPack{type: @reimbursement} = pack) do
+    JsonSchema.validate(:reimbursement_contract_request_update, pack.request_params)
+  end
+
   def validate_contract_request_content(:create, %RequestPack{type: @capitation} = pack, client_id) do
     with :ok <- validate_unique_contractor_employee_divisions(pack.decoded_content),
          :ok <- validate_employee_divisions(pack.decoded_content, client_id),

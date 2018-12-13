@@ -46,6 +46,18 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     }
   """
 
+  @update_query """
+    mutation UpdateContractRequestMutation($input: UpdateContractRequestInput!) {
+      updateContractRequest(input: $input) {
+        contractRequest {
+          miscellaneous
+          nhsSignerBase
+          nhsPaymentMethod
+        }
+      }
+    }
+  """
+
   @decline_query """
     mutation DeclineContractRequestMutation($input: DeclineContractRequestInput!) {
       declineContractRequest(input: $input) {
@@ -63,6 +75,8 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
       }
     }
   """
+
+  @contract_request_status_in_process ReimbursementContractRequest.status(:in_process)
 
   setup :verify_on_exit!
 
@@ -132,6 +146,127 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         assert Map.has_key?(document, "type")
         assert Map.has_key?(document, "url")
       end)
+    end
+  end
+
+  describe "update" do
+    setup %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      nhs_signer = insert(:prm, :employee, legal_entity: legal_entity)
+      nhs_signer_id = Node.to_global_id("Employee", nhs_signer.id)
+
+      {:ok, conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity}
+    end
+
+    test "success", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10)
+        )
+
+      id = Node.to_global_id("ReimbursementContractRequest", contract_request.id)
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_signer_base: "на підставі наказу",
+          nhs_payment_method: "BACKWARD",
+          miscellaneous: "Всяке дозволене"
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+
+      resp_entity = get_in(resp_body, ~w(data updateContractRequest contractRequest))
+
+      assert variables.input.miscellaneous == resp_entity["miscellaneous"]
+      assert variables.input.nhs_signer_base == resp_entity["nhsSignerBase"]
+      assert variables.input.nhs_payment_method == resp_entity["nhsPaymentMethod"]
+    end
+
+    test "nhs_contract_price is not allowed", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10)
+        )
+
+      id = Node.to_global_id("ReimbursementContractRequest", contract_request.id)
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_signer_base: "на підставі наказу",
+          nhs_contract_price: 150_000,
+          nhs_payment_method: "BACKWARD",
+          miscellaneous: "Всяке дозволене"
+        }
+      }
+
+      errors =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+        |> Map.get("errors")
+
+      assert Enum.any?(errors, &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+
+      assert [error] = errors
+      assert "schema does not allow additional properties" == hd(error["errors"])["$.nhs_contract_price"]["description"]
+    end
+
+    test "cannot update reimbursement contract request when global id for capitation", %{
+      conn: conn,
+      nhs_signer_id: nhs_signer_id,
+      legal_entity: legal_entity
+    } do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10)
+        )
+
+      id = Node.to_global_id("CapitationContractRequest", contract_request.id)
+
+      variables = %{
+        input: %{
+          id: id,
+          nhs_signer_id: nhs_signer_id,
+          nhs_contract_price: 100
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> post_query(@update_query, variables)
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "NOT_FOUND"}}, &1))
     end
   end
 

@@ -32,8 +32,7 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def update(%Plug.Conn{} = conn, params) do
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
-           ContractRequests.update(conn.req_headers, drop_type(params)) do
+    with {:ok, contract_request, references} <- ContractRequests.update(conn.req_headers, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

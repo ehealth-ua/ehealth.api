@@ -110,7 +110,7 @@ defmodule Core.ContractRequests do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
-    params = pack.input_params
+    params = pack.request_params
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
          {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(pack))},
@@ -166,22 +166,24 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def update(headers, %{"id" => id} = params) do
+  def update(headers, %{"id" => _} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.delete(params, "id")
+    pack = RequestPack.new(params)
 
-    with :ok <- JsonSchema.validate(:contract_request_update, params),
+    with :ok <- validate_update_params(pack),
          {:ok, %{"data" => data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(data, "NHS ADMIN SIGNER"),
-         %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
-         :ok <- validate_nhs_signer_id(params, client_id),
+         {:ok, contract_request} <- fetch_by_id(pack),
+         pack <- RequestPack.put_contract_request(pack, contract_request),
+         :ok <- validate_nhs_signer_id(pack.request_params, client_id),
          :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
          :ok <- validate_start_date(contract_request),
          update_params <-
-           params
-           |> Map.put("nhs_legal_entity_id", client_id)
-           |> Map.put("updated_by", user_id),
+           Map.merge(pack.request_params, %{
+             "nhs_legal_entity_id" => client_id,
+             "updated_by" => user_id
+           }),
          %Changeset{valid?: true} = changes <- update_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes) do
       {:ok, contract_request, preload_references(contract_request)}
@@ -428,9 +430,9 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_contract_request(pack, contract_request),
          {_, true} <- {:signed_nhs, pack.contract_request.status == CapitationContractRequest.status(:nhs_signed)},
          :ok <- validate_client_id(client_id, pack.contract_request.contractor_legal_entity_id, :forbidden),
-         :ok <- JsonSchema.validate(:contract_request_sign, pack.input_params),
+         :ok <- JsonSchema.validate(:contract_request_sign, pack.request_params),
          {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
-           decode_signed_content(pack.input_params, headers, 2, 1),
+           decode_signed_content(pack.request_params, headers, 2, 1),
          pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_contract_request_content(:sign, pack, client_id),
          :ok <- validate_contract_request_client_access(client_type, client_id, pack.contract_request),
@@ -453,13 +455,13 @@ defmodule Core.ContractRequests do
          :ok <-
            save_signed_content(
              contract_id,
-             pack.input_params,
+             pack.request_params,
              headers,
              "signed_content/signed_content",
              :contract_bucket
            ),
          update_params <-
-           Map.merge(pack.input_params, %{
+           Map.merge(pack.request_params, %{
              "updated_by" => user_id,
              "status" => CapitationContractRequest.status(:signed),
              "contract_id" => contract_id
@@ -566,6 +568,21 @@ defmodule Core.ContractRequests do
       )a
     )
     |> validate_number(:nhs_contract_price, greater_than_or_equal_to: 0)
+  end
+
+  def update_changeset(%ReimbursementContractRequest{} = contract_request, params) do
+    cast(
+      contract_request,
+      params,
+      ~w(
+        nhs_legal_entity_id
+        nhs_signer_id
+        nhs_signer_base
+        nhs_payment_method
+        issue_city
+        misc
+      )a
+    )
   end
 
   def approve_changeset(%{__struct__: _} = contract_request, params) do

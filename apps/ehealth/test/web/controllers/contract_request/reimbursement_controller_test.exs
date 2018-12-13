@@ -26,6 +26,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   @reimbursement ReimbursementContractRequest.type()
   @path_type String.downcase(@reimbursement)
 
+  @contract_request_status_in_process ReimbursementContractRequest.status(:in_process)
+
   describe "list reimbursement contract requests" do
     test "successfully finds only reimbursement contracts", %{conn: conn} do
       nhs()
@@ -87,7 +89,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> get(contract_request_path(conn, :show, @path_type, id))
       |> json_response(200)
       |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "MSP not allowed see reimbursement contract", %{conn: conn} do
@@ -134,7 +136,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> get(contract_request_path(conn, :show, @path_type, id))
       |> json_response(200)
       |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "fails on not finding reimbursement contract request", %{conn: conn} do
@@ -213,7 +215,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
       |> json_response(201)
       |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "without contract_number", %{conn: conn} do
@@ -237,20 +239,14 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         surname: party_user.party.last_name
       })
 
-      contract_id = UUID.generate()
-
-      resp_data =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-        |> put_req_header("drfo", legal_entity.edrpou)
-        |> post(contract_request_path(conn, :create, @path_type, contract_id), signed_content_params(params))
-        |> json_response(201)
-        |> Map.get("data")
-
-      assert contract_id == resp_data["id"]
-
-      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
   end
 
@@ -555,6 +551,39 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> get_in(~w(error message))
 
       assert "Reimbursement program is not active" == reason
+    end
+  end
+
+  describe "update reimbursement contract request" do
+    test "successful update", %{conn: conn} do
+      employee = insert(:prm, :employee)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: @contract_request_status_in_process,
+          start_date: Date.add(Date.utc_today(), 10),
+          contractor_owner_id: employee.id
+        )
+
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      legal_entity = insert(:prm, :legal_entity)
+
+      params = %{
+        "nhs_signer_base" => "на підставі наказу",
+        "nhs_payment_method" => "prepayment"
+      }
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> patch(contract_request_path(conn, :update, @path_type, contract_request.id), params)
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
   end
 
@@ -1496,8 +1525,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> patch(contract_request_path(conn, :decline, @path_type, contract_request.id), signed_content_params(data))
         |> json_response(200)
         |> Map.get("data")
+        |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
 
-      assert_show_response_schema(resp_data, "contract_request", "reimbursement_contract_request")
       assert resp_data["status"] == ReimbursementContractRequest.status(:declined)
 
       contract_request = Core.Repo.get(ReimbursementContractRequest, contract_request.id)
@@ -1595,7 +1624,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> patch(contract_request_path(conn, :approve, @path_type, contract_request.id), signed_content_params(data))
       |> json_response(200)
       |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "fail on medication_program is not active",
@@ -1680,7 +1709,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
       |> json_response(200)
       |> Map.get("data")
-      |> assert_show_response_schema("contract_request", "reimbursement_contract_request")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "fails on inactive medical program", %{conn: conn} do

@@ -98,7 +98,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   def get_to_sign_content(_, _, _), do: {:ok, nil}
 
   def update(args, resolution) do
-    params = prepare_update_params(args)
+    params = Enum.reduce(args, %{}, &prepare_update_param/2)
 
     with {:ok, contract_request, references} <- ContractRequests.update(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
@@ -107,20 +107,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  defp prepare_update_params(args) do
-    for {key, value} <- args, into: %{} do
-      case key do
-        :miscellaneous -> {"misc", value}
-        key -> {to_string(key), value}
-      end
-    end
-  end
-
-  def approve(%{id: %{id: id, type: type}, signed_content: signed_content}, %{context: %{headers: headers}}) do
-    params =
-      %{id: id, signed_content: signed_content}
-      |> prepare_signed_content_params()
-      |> Map.put("type", RequestPack.get_type_by_atom(type))
+  def approve(args, %{context: %{headers: headers}}) do
+    params = prepare_signed_content_params(args)
 
     with {:ok, contract_request, references} <- ContractRequests.approve(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
@@ -139,11 +127,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def decline(%{id: %{id: id, type: type}, signed_content: signed_content}, %{context: %{headers: headers}}) do
-    params =
-      %{id: id, signed_content: signed_content}
-      |> prepare_signed_content_params()
-      |> Map.put("type", RequestPack.get_type_by_atom(type))
+  def decline(args, %{context: %{headers: headers}}) do
+    params = prepare_signed_content_params(args)
 
     with {:ok, contract_request, references} <- ContractRequests.decline(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
@@ -152,6 +137,22 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
+  defp prepare_update_param({:id, %{id: id, type: type}}, acc),
+    do: Map.merge(acc, %{"id" => id, "type" => RequestPack.get_type_by_atom(type)})
+
+  defp prepare_update_param({:miscellaneous, value}, acc), do: Map.put(acc, "misc", value)
+  defp prepare_update_param({key, value}, acc), do: Map.put(acc, to_string(key), value)
+
+  defp prepare_signed_content_params(%{signed_content: signed_content, id: %{id: id, type: type}}) do
+    %{
+      "id" => id,
+      "type" => RequestPack.get_type_by_atom(type),
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
+  end
+
+  # ToDo: will be deleted after decline implementation in #3518
   defp prepare_signed_content_params(%{signed_content: signed_content, id: id}) do
     %{
       "id" => id,

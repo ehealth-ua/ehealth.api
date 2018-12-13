@@ -81,17 +81,29 @@ defmodule Core.Validators.JsonSchema do
   use_schema(:contract_update_employees, "specs/json_schemas/contract/contract_update_employees.json")
   use_schema(:contract_terminate, "specs/json_schemas/contract/contract_terminate.json")
 
+  # capitation contract requests
   use_schema(
     :capitation_contract_request,
-    "specs/json_schemas/contract_request/capitation_contract_request_create.json"
+    "specs/json_schemas/contract_request/capitation/contract_request_create.json"
   )
+
+  use_schema(
+    :capitation_contract_request_update,
+    "specs/json_schemas/contract_request/capitation/contract_request_update.json"
+  )
+
+  # reimbursement contract requests
 
   use_schema(
     :reimbursement_contract_request,
-    "specs/json_schemas/contract_request/reimbursement_contract_request_create.json"
+    "specs/json_schemas/contract_request/reimbursement/contract_request_create.json"
   )
 
-  use_schema(:contract_request_update, "specs/json_schemas/contract_request/contract_request_update.json")
+  use_schema(
+    :reimbursement_contract_request_update,
+    "specs/json_schemas/contract_request/reimbursement/contract_request_update.json"
+  )
+
   use_schema(:contract_request_sign, "specs/json_schemas/contract_request/contract_request_sign.json")
   use_schema(:contract_request_decline, "specs/json_schemas/contract_request/contract_request_decline.json")
   use_schema(:contract_request_approve, "specs/json_schemas/contract_request/contract_request_approve.json")
