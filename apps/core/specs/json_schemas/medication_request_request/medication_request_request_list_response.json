@@ -9,15 +9,17 @@
         },
         "unit": {
           "type": "string",
-          "description": "Dictionary: TBD"
+          "description": "Dictionary: eHealth/ucum/units"
         },
         "system": {
           "type": "string",
-          "description": "Dictionary: TBD"
+          "enum": [
+            "eHealth/ucum/units"
+          ]
         },
         "code": {
           "type": "string",
-          "description": "Dictionary: TBD"
+          "description": "Dictionary: eHealth/ucum/units"
         }
       },
       "required": [
@@ -42,11 +44,29 @@
       ],
       "additionalProperties": false
     },
+    "ratio": {
+      "type": "object",
+      "properties": {
+        "numerator": {
+          "$ref": "#/definitions/simple_quantity"
+        },
+        "denominator": {
+          "$ref": "#/definitions/simple_quantity"
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator"
+      ],
+      "additionalProperties": false
+    },
     "dosage": {
       "type": "object",
       "properties": {
         "sequence": {
           "type": "integer",
+          "minimum": 0,
+          "exclusiveMinimum": true,
           "description": "The order of the dosage instructions"
         },
         "text": {
@@ -60,15 +80,20 @@
             "properties": {
               "coding": {
                 "type": "array",
+                "minItems": 1,
                 "items": {
                   "type": "object",
                   "properties": {
                     "system": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "eHealth/SNOMED/additional_dosage_instructions"
+                      ]
                     },
                     "code": {
                       "type": "string",
-                      "description": "Symbol in syntax defined by the system"
+                      "minLength": 1,
+                      "description": "Dictionary: eHealth/SNOMED/additional_dosage_instructions"
                     }
                   },
                   "required": [
@@ -90,6 +115,7 @@
         },
         "patient_instruction": {
           "type": "string",
+          "minLength": 1,
           "description": "Patient or consumer oriented instructions"
         },
         "timing": {
@@ -108,49 +134,65 @@
               "properties": {
                 "count": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Number of times to repeat"
                 },
                 "count_max": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Maximum number of times to repeat"
                 },
                 "duration": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "How long when it happens"
                 },
                 "duration_max": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "How long when it happens Max"
                 },
                 "duration_unit": {
                   "type": "string",
-                  "description": "Dictionary UNITS_OF_TIME"
+                  "description": "Dictionary: UNITS_OF_TIME"
                 },
                 "frequency": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs frequency times per period"
                 },
                 "frequency_max": {
                   "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs up to frequencyMax times per period"
                 },
                 "period": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Event occurs frequency times per period"
                 },
                 "period_max": {
                   "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": true,
                   "description": "Upper limit of period"
                 },
                 "period_unit": {
                   "type": "string",
-                  "description": "Dictionary UNITS_OF_TIME"
+                  "description": "Dictionary: UNITS_OF_TIME"
                 },
                 "day_of_week": {
                   "type": "array",
-                  "description": "day of week. Dictionary DAYS_OF_WEEK",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Dictionary: DAYS_OF_WEEK"
                   }
                 },
                 "time_of_day": {
@@ -166,7 +208,7 @@
                   "description": "Regular life events the event is tied to",
                   "items": {
                     "type": "string",
-                    "description": "Dictionary EVENT_TIMING"
+                    "description": "Dictionary: EVENT_TIMING"
                   }
                 },
                 "offset": {
@@ -231,17 +273,20 @@
               "properties": {
                 "coding": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "type": "object",
                     "properties": {
                       "system": {
                         "type": "string",
-                        "description": "Dictionary TIMING_ABBREVIATION"
+                        "enum": [
+                          "TIMING_ABBREVIATION"
+                        ]
                       },
                       "code": {
                         "type": "string",
                         "minLength": 1,
-                        "description": "Symbol in syntax defined by the system"
+                        "description": "Dictionary: TIMING_ABBREVIATION"
                       }
                     },
                     "required": [
@@ -261,8 +306,299 @@
               "additionalProperties": false
             }
           }
+        },
+        "site": {
+          "type": "object",
+          "properties": {
+            "coding": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "system": {
+                    "type": "string",
+                    "enum": [
+                      "eHealth/SNOMED/anatomical_structure_administration_site_codes"
+                    ]
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Dictionary: eHealth/SNOMED/anatomical_structure_administration_site_codes"
+                  }
+                },
+                "required": [
+                  "code",
+                  "system"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "coding"
+          ],
+          "additionalProperties": false
+        },
+        "route": {
+          "type": "object",
+          "properties": {
+            "coding": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "system": {
+                    "type": "string",
+                    "enum": [
+                      "eHealth/SNOMED/route_codes"
+                    ]
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Dictionary: eHealth/SNOMED/route_codes"
+                  }
+                },
+                "required": [
+                  "code",
+                  "system"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "coding"
+          ],
+          "additionalProperties": false
+        },
+        "method": {
+          "type": "object",
+          "properties": {
+            "coding": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "system": {
+                    "type": "string",
+                    "enum": [
+                      "eHealth/SNOMED/administration_methods"
+                    ]
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Dictionary: eHealth/SNOMED/administration_methods"
+                  }
+                },
+                "required": [
+                  "code",
+                  "system"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "coding"
+          ],
+          "additionalProperties": false
+        },
+        "dose_and_rate": {
+          "type": "object",
+          "allOf": [
+            {
+              "properties": {
+                "type": {
+                  "type": "object",
+                  "properties": {
+                    "coding": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "system": {
+                            "type": "string",
+                            "enum": [
+                              "eHealth/dose_and_rate"
+                            ]
+                          },
+                          "code": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Dictionary: eHealth/dose_and_rate"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "system"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "coding"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "allOf": [
+                {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dose_range": {
+                          "$ref": "#/definitions/range"
+                        }
+                      },
+                      "required": [
+                        "dose_range"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dose_quantity": {
+                          "$ref": "#/definitions/simple_quantity"
+                        }
+                      },
+                      "required": [
+                        "dose_quantity"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "rate_ratio": {
+                          "$ref": "#/definitions/ratio"
+                        }
+                      },
+                      "required": [
+                        "rate_ratio"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "rate_range": {
+                          "$ref": "#/definitions/range"
+                        }
+                      },
+                      "required": [
+                        "rate_range"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "rate_quantity": {
+                          "$ref": "#/definitions/range"
+                        }
+                      },
+                      "required": [
+                        "rate_quantity"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "max_dose_per_period": {
+          "$ref": "#/definitions/ratio"
+        },
+        "max_dose_per_administration": {
+          "$ref": "#/definitions/simple_quantity"
+        },
+        "max_dose_per_lifetime": {
+          "$ref": "#/definitions/simple_quantity"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "as_needed_boolean": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "as_needed_boolean"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "as_needed_codeable_concept": {
+              "type": "object",
+              "properties": {
+                "coding": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "system": {
+                        "type": "string",
+                        "enum": [
+                          "eHealth/SNOMED/medication_as_needed_reason"
+                        ]
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Dictionary: eHealth/SNOMED/medication_as_needed_reason"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "system"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "coding"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "as_needed_codeable_concept"
+          ]
+        }
+      ]
     }
   },
   "type": "array",

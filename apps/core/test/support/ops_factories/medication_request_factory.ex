@@ -81,7 +81,7 @@ defmodule Core.OPSFactories.MedicationRequestFactory do
                 "bounds_duration" => %{
                   "value" => 10,
                   "unit" => "days",
-                  "system" => "http://unitsofmeasure.org",
+                  "system" => "eHealth/ucum/units",
                   "code" => "d"
                 },
                 "count" => 2,
@@ -108,7 +108,7 @@ defmodule Core.OPSFactories.MedicationRequestFactory do
               "code" => %{
                 "coding" => [
                   %{
-                    "system" => "eHealth/timing_abbreviation",
+                    "system" => "TIMING_ABBREVIATION",
                     "code" => "patient"
                   }
                 ]
@@ -151,32 +151,28 @@ defmodule Core.OPSFactories.MedicationRequestFactory do
               "dose_range" => %{
                 "low" => %{
                   "value" => 13,
-                  "comparator" => ">",
                   "unit" => "mg",
-                  "system" => "eHealth/units",
+                  "system" => "eHealth/ucum/units",
                   "code" => "mg"
                 },
                 "high" => %{
                   "value" => 13,
-                  "comparator" => ">",
                   "unit" => "mg",
-                  "system" => "eHealth/units",
+                  "system" => "eHealth/ucum/units",
                   "code" => "mg"
                 }
               },
               "rate_ratio" => %{
                 "numerator" => %{
                   "value" => 13,
-                  "comparator" => ">",
                   "unit" => "mg",
-                  "system" => "eHealth/units",
+                  "system" => "eHealth/ucum/units",
                   "code" => "mg"
                 },
                 "denominator" => %{
                   "value" => 13,
-                  "comparator" => ">",
                   "unit" => "mg",
-                  "system" => "eHealth/units",
+                  "system" => "eHealth/ucum/units",
                   "code" => "mg"
                 }
               }
@@ -184,29 +180,27 @@ defmodule Core.OPSFactories.MedicationRequestFactory do
             "max_dose_per_period" => %{
               "numerator" => %{
                 "value" => 13,
-                "comparator" => ">",
                 "unit" => "mg",
-                "system" => "eHealth/units",
+                "system" => "eHealth/ucum/units",
                 "code" => "mg"
               },
               "denominator" => %{
                 "value" => 13,
-                "comparator" => ">",
                 "unit" => "mg",
-                "system" => "eHealth/units",
+                "system" => "eHealth/ucum/units",
                 "code" => "mg"
               }
             },
             "max_dose_per_administration" => %{
               "value" => 13,
               "unit" => "mg",
-              "system" => "eHealth/units",
+              "system" => "eHealth/ucum/units",
               "code" => "mg"
             },
             "max_dose_per_lifetime" => %{
               "value" => 13,
               "unit" => "mg",
-              "system" => "eHealth/units",
+              "system" => "eHealth/ucum/units",
               "code" => "mg"
             }
           }

@@ -2510,5 +2510,93 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/medication_as_needed_reason",
+    "values": {
+      "109006": "Anxiety disorder of childhood OR adolescence",
+      "122003": "Choroidal hemorrhage",
+      "127009": "Spontaneous abortion with laceration of cervix",
+      "129007": "Homoiothermia",
+      "134006": "Decreased hair growth",
+      "140004": "Chronic pharyngitis",
+      "144008": "Normal peripheral vision",
+      "147001": "Superficial foreign body of scrotum without major open wound but with infection",
+      "150003": "Abnormal bladder continence",
+      "151004": "Gonococcal meningitis",
+      "162004": "Severe manic bipolar I disorder without psychotic features",
+      "165002": "Accident-prone",
+      "168000": "Typhlolithiasis"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/dose_and_rate",
+    "values": {
+      "calculated": "The dose specified is calculated by the prescriber or the system",
+      "ordered": "Ordered"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "TIMING_ABBREVIATION",
+    "values": {
+      "BID": "Two times a day at institution specified time",
+      "TID": "Three times a day at institution specified time",
+      "QID": "Four times a day at institution specified time",
+      "AM": "Every morning at institution specified times",
+      "PM": "Every afternoon at institution specified times",
+      "QD": "Every Day at institution specified times",
+      "QOD": "Every Other Day at institution specified times",
+      "Q4H": "Every 4 hours at institution specified times",
+      "Q6H": "Every 6 Hours  at institution specified times"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "UNITS_OF_TIME",
+    "values": {
+      "s": "second",
+      "min": "minute",
+      "h": "hour",
+      "d": "day",
+      "wk": "week",
+      "mo": "month",
+      "a": "year"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "DAYS_OF_WEEK",
+    "values": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
