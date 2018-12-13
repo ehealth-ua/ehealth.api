@@ -3,12 +3,13 @@ defmodule GraphQL.Jobs do
   Kafka Jobs entry
   """
 
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
   alias Absinthe.Relay.Node
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.Validator, as: LegalEntitiesValidator
   alias Core.Utils.TypesConverter
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature
@@ -23,11 +24,14 @@ defmodule GraphQL.Jobs do
 
   def create_merge_legal_entities_job(%{signed_content: %{content: encoded_content, encoding: encoding}}, headers) do
     user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
     with {:ok, %{"content" => content, "signers" => [signer]}} <-
            Signature.validate(encoded_content, encoding, headers),
          :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
+         {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
+         :ok <- LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer),
          :ok <- validate_merged_id(content["merged_from_legal_entity"]["id"], content["merged_to_legal_entity"]["id"]),
          :ok <- validate_is_merged(:from, content),
          :ok <- validate_is_merged(:to, content),

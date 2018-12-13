@@ -17,8 +17,6 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
   @type_merge_legal_entities GraphQL.Jobs.type(:merge_legal_entities)
 
-  @tax_id "002233445566"
-
   @query """
     mutation MergeLegalEntitiesMutation($input: MergeLegalEntitiesInput!) {
       mergeLegalEntities(input: $input) {
@@ -32,30 +30,33 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
   """
 
   setup %{conn: conn} do
-    consumer_id = UUID.generate()
+    user_id = UUID.generate()
+    tax_id = random_tax_id()
 
-    party = insert(:prm, :party, tax_id: @tax_id)
-    insert(:prm, :party_user, party: party, user_id: consumer_id)
+    party = insert(:prm, :party, tax_id: tax_id)
+    insert(:prm, :party_user, party: party, user_id: user_id)
+    %{id: client_id} = insert(:prm, :legal_entity, edrpou: tax_id)
 
     conn =
       conn
       |> put_scope("legal_entity:merge")
-      |> put_drfo(@tax_id)
-      |> put_consumer_id(consumer_id)
+      |> put_drfo(tax_id)
+      |> put_consumer_id(user_id)
+      |> put_client_id(client_id)
 
-    {:ok, %{conn: conn}}
+    {:ok, %{conn: conn, tax_id: tax_id, client_id: client_id}}
   end
 
   describe "merge legal entities" do
-    test "success", %{conn: conn} do
+    test "success", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
       insert(:prm, :related_legal_entity, merged_to: to)
 
       signed_content = merged_signed_content(from, to)
 
-      drfo_signed_content(signed_content, @tax_id)
-      drfo_signed_content(signed_content, @tax_id)
+      drfo_signed_content(signed_content, tax_id)
+      drfo_signed_content(signed_content, tax_id)
 
       job =
         conn
@@ -90,6 +91,25 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
                |> get_in(~w(data legalEntityMergeJob status))
     end
 
+    test "invalid client_id", %{conn: conn, tax_id: tax_id} do
+      from = insert(:prm, :legal_entity)
+      to = insert(:prm, :legal_entity)
+      insert(:prm, :related_legal_entity, merged_to: to)
+
+      signed_content = merged_signed_content(from, to)
+      drfo_signed_content(signed_content, tax_id)
+
+      resp =
+        conn
+        |> put_client_id(UUID.generate())
+        |> post_query(@query, input_signed_content(signed_content))
+        |> json_response(200)
+
+      refute get_in(resp, ~w(data legalEntityMergeJobs))
+
+      assert Enum.any?(resp["errors"], &match?(%{"extensions" => %{"code" => "NOT_FOUND"}}, &1))
+    end
+
     test "invalid scope", %{conn: conn} do
       resp =
         conn
@@ -101,12 +121,12 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert Enum.any?(resp["errors"], &match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, &1))
     end
 
-    test "merged from legal entity with status CLOSED", %{conn: conn} do
+    test "merged from legal entity with status CLOSED", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
       to = insert(:prm, :legal_entity)
 
       signed_content = merged_signed_content(from, to)
-      drfo_signed_content(signed_content, @tax_id)
+      drfo_signed_content(signed_content, tax_id)
 
       resp =
         conn
@@ -117,12 +137,12 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert Enum.any?(resp["errors"], &match?(%{"message" => "Merged from legal entity must be active"}, &1))
     end
 
-    test "merged to legal entity with status CLOSED", %{conn: conn} do
+    test "merged to legal entity with status CLOSED", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
 
       signed_content = merged_signed_content(from, to)
-      drfo_signed_content(signed_content, @tax_id)
+      drfo_signed_content(signed_content, tax_id)
 
       resp =
         conn
@@ -133,14 +153,14 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       assert Enum.any?(resp["errors"], &match?(%{"message" => "Merged to legal entity must be active"}, &1))
     end
 
-    test "merge with invalid legal entity type", %{conn: conn} do
+    test "merge with invalid legal entity type", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity)
       to1 = insert(:prm, :legal_entity, type: LegalEntity.type(:mis))
       to2 = insert(:prm, :legal_entity, type: LegalEntity.type(:pharmacy))
 
       Enum.each([to1, to2], fn to ->
         signed_content = merged_signed_content(from, to)
-        drfo_signed_content(signed_content, @tax_id)
+        drfo_signed_content(signed_content, tax_id)
 
         resp =
           conn
@@ -152,13 +172,13 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       end)
     end
 
-    test "merged to already merged", %{conn: conn} do
+    test "merged to already merged", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
       insert(:prm, :related_legal_entity, merged_from: to)
 
       signed_content = merged_signed_content(from, to)
-      drfo_signed_content(signed_content, @tax_id)
+      drfo_signed_content(signed_content, tax_id)
 
       resp =
         conn
@@ -173,13 +193,13 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
              )
     end
 
-    test "merged from already merged", %{conn: conn} do
+    test "merged from already merged", %{conn: conn, tax_id: tax_id} do
       from = insert(:prm, :legal_entity)
       to = insert(:prm, :legal_entity)
       insert(:prm, :related_legal_entity, merged_from: from)
 
       signed_content = merged_signed_content(from, to)
-      drfo_signed_content(signed_content, @tax_id)
+      drfo_signed_content(signed_content, tax_id)
 
       resp =
         conn

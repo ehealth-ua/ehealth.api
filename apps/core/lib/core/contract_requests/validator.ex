@@ -108,7 +108,7 @@ defmodule Core.ContractRequests.Validator do
   def validate_client_id(client_id, client_id, _), do: :ok
   def validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
 
-  def validate_legal_entity_edrpou(legal_entity, nil), do: {:ok, legal_entity}
+  def validate_legal_entity_edrpou(legal_entity, nil), do: :ok
 
   def validate_legal_entity_edrpou(legal_entity, signer),
     do: LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer)

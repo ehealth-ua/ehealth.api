@@ -12,7 +12,7 @@ defmodule Core.PRMFactories.PartyFactory do
           second_name: "Миколайович",
           birth_date: ~D[1991-08-19],
           gender: "MALE",
-          tax_id: sequence("222222222"),
+          tax_id: random_tax_id(),
           no_tax_id: false,
           documents: [
             %Core.Parties.Document{
@@ -38,6 +38,8 @@ defmodule Core.PRMFactories.PartyFactory do
           party: build(:party)
         }
       end
+
+      def random_tax_id, do: sequence(:tax_id, &(100_000_000 + &1)) |> to_string()
 
       defp last_name do
         Enum.random(~w(
