@@ -3,7 +3,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3]
+  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3]
   import Core.Expectations.Mithril, only: [nhs: 0]
   import Core.Expectations.Signature
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
@@ -12,6 +12,20 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Employees.Employee
   alias Ecto.UUID
+
+  @list_query """
+    query ListContractRequestsQuery(
+      $filter: ReimbursementContractRequestFilter
+      $orderBy: ReimbursementContractRequestOrderBy
+    ) {
+      reimbursementContractRequests(first: 10, filter: $filter, orderBy: $orderBy) {
+        nodes {
+          id
+          databaseId
+        }
+      }
+    }
+  """
 
   @approve_query """
     mutation ApproveContractRequestMutation($input: ApproveContractRequestInput!) {
@@ -56,6 +70,26 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     conn = put_scope(conn, "contract_request:read contract_request:update")
 
     {:ok, %{conn: conn}}
+  end
+
+  describe "list" do
+    test "query all", %{conn: conn} do
+      nhs()
+
+      insert_list(2, :il, :reimbursement_contract_request)
+      insert_list(10, :il, :capitation_contract_request)
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, %{filter: %{}})
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      refute resp_body["errors"]
+      assert 2 == length(resp_entities)
+    end
   end
 
   describe "get by id" do

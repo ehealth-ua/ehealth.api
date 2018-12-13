@@ -9,6 +9,7 @@ defmodule GraphQLWeb.Resolvers.ReimbursementContractRequestResolver do
   alias Core.{PRMRepo, Repo}
   alias GraphQL.Helpers.Filtering
 
+  @reimbursement ReimbursementContractRequest.type()
   @related_schemas ReimbursementContractRequest.related_schemas()
 
   def list_contract_requests(args, %{context: %{client_type: "NHS"}}),
@@ -22,6 +23,7 @@ defmodule GraphQLWeb.Resolvers.ReimbursementContractRequestResolver do
 
   defp list_contract_requests(%{filter: filter, order_by: order_by} = args) do
     ReimbursementContractRequest
+    |> where([c], c.type == @reimbursement)
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&Repo.all/1, args)

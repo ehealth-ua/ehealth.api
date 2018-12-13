@@ -2,6 +2,7 @@ Feature: Get all reimbursement contract requests
 
   Scenario: Request all items with NHS client
     Given there are 2 reimbursement contract requests exist
+    And there are 10 capitation contract requests exist
     And my scope is "contract_request:read"
     And my client type is "NHS"
     When I request first 10 reimbursement contract requests

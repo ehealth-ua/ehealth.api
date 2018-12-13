@@ -2,6 +2,7 @@ defmodule GraphQLWeb.Resolvers.ReimbursementContractResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
+  import Ecto.Query, only: [where: 3]
   import GraphQLWeb.Resolvers.ContractResolver, only: [filter: 2, order_by: 2]
   import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_parent_with_connection: 4]
 
@@ -13,6 +14,8 @@ defmodule GraphQLWeb.Resolvers.ReimbursementContractResolver do
   alias Core.PRMRepo
   alias GraphQLWeb.Loaders.IL
 
+  @reimbursement ReimbursementContract.type()
+
   def list_contracts(args, %{context: %{client_type: "NHS"}}), do: list_contracts(args)
 
   def list_contracts(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
@@ -23,6 +26,7 @@ defmodule GraphQLWeb.Resolvers.ReimbursementContractResolver do
 
   def list_contracts(%{filter: filter, order_by: order_by} = args) do
     ReimbursementContract
+    |> where([c], c.type == @reimbursement)
     |> filter(filter)
     |> order_by(order_by)
     |> Connection.from_query(&PRMRepo.all/1, args)

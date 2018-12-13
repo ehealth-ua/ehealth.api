@@ -2,6 +2,7 @@ Feature: Get all capitation contract requests
 
   Scenario: Request all items with NHS client
     Given there are 2 capitation contract requests exist
+    And there are 10 reimbursement contract requests exist
     And my scope is "contract_request:read"
     And my client type is "NHS"
     When I request first 10 capitation contract requests
@@ -10,9 +11,9 @@ Feature: Get all capitation contract requests
 
   Scenario: Request belonging items with MSP client
     Given the following legal entities exist:
-      | databaseId                             | type   |
-      | "07e526e1-077f-4327-aaad-438b7371924d" | "MSP"  |
-      | "72f7a4dd-e3b8-4db7-834a-71e500227eef" | "MSP"  |
+      | databaseId                             | type  |
+      | "07e526e1-077f-4327-aaad-438b7371924d" | "MSP" |
+      | "72f7a4dd-e3b8-4db7-834a-71e500227eef" | "MSP" |
     And the following capitation contract requests exist:
       | databaseId                             | contractorLegalEntityId                |
       | "837c8f92-239e-41b8-aa94-3c812738b677" | "07e526e1-077f-4327-aaad-438b7371924d" |

@@ -3,7 +3,7 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
+  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril
   import Mox
@@ -48,7 +48,8 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
     test "return all for NHS client", %{conn: conn} do
       nhs()
 
-      for _ <- 1..2, do: insert(:prm, :capitation_contract)
+      insert_list(2, :prm, :capitation_contract)
+      insert_list(10, :prm, :reimbursement_contract)
 
       resp_body =
         conn

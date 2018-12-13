@@ -3,7 +3,7 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
+  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [msp: 0, nhs: 0]
   import Core.Expectations.Signature
@@ -152,6 +152,24 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
   end
 
   describe "list" do
+    test "query all", %{conn: conn} do
+      nhs()
+
+      insert_list(2, :il, :capitation_contract_request)
+      insert_list(10, :il, :reimbursement_contract_request)
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@list_query, %{filter: %{}})
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
+
+      refute resp_body["errors"]
+      assert 2 == length(resp_entities)
+    end
+
     test "filter by contractor legal entity edrpou", %{conn: conn} do
       nhs()
 

@@ -10,6 +10,8 @@ defmodule GraphQLWeb.Resolvers.CapitationContractRequestResolver do
   alias Core.LegalEntities.LegalEntity
   alias Core.{PRMRepo, Repo}
 
+  @capitation CapitationContractRequest.type()
+
   def list_contract_requests(args, %{context: %{client_type: "NHS"}}), do: list_contract_requests(args)
 
   def list_contract_requests(args, %{context: %{client_type: "MSP", client_id: client_id}}) do
@@ -22,6 +24,7 @@ defmodule GraphQLWeb.Resolvers.CapitationContractRequestResolver do
     filter = prepare_filter(filter)
 
     CapitationContractRequest
+    |> where([c], c.type == @capitation)
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&Repo.all/1, args)

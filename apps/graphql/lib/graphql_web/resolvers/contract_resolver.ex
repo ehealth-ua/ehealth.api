@@ -6,7 +6,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
   alias Core.ContractRequests.RequestPack
   alias Core.Contracts
-  alias Core.Contracts.CapitationContract
   alias Ecto.Query
   alias GraphQL.Helpers.Filtering
   alias GraphQLWeb.Resolvers.ContractRequestResolver
