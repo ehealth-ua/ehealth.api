@@ -89,7 +89,7 @@ defmodule Core.Divisions do
   end
 
   def create(params, headers) do
-    with {:ok, attrs} <- prepare_division_data(params, get_client_id(headers), headers),
+    with {:ok, attrs} <- prepare_division_data(params, get_client_id(headers)),
          attrs <- Map.merge(attrs, %{"status" => @status_active, "is_active" => true}) do
       %Division{}
       |> changeset(attrs)
@@ -100,7 +100,7 @@ defmodule Core.Divisions do
   def update(id, params, headers) do
     legal_entity_id = get_client_id(headers)
 
-    with {:ok, attrs} <- prepare_division_data(params, legal_entity_id, headers),
+    with {:ok, attrs} <- prepare_division_data(params, legal_entity_id),
          %Division{} = division <- get_by_id(id),
          :ok <- validate_legal_entity(division, legal_entity_id) do
       division
@@ -109,7 +109,7 @@ defmodule Core.Divisions do
     end
   end
 
-  def prepare_division_data(params, legal_entity_id, headers) do
+  defp prepare_division_data(params, legal_entity_id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          :ok <- validate_division_type(legal_entity, params),
          params <-
@@ -119,7 +119,7 @@ defmodule Core.Divisions do
          :ok <- JsonSchema.validate(:division, params),
          params <- lowercase_email(params),
          :ok <- validate_json_objects(params),
-         :ok <- validate_addresses(params, headers) do
+         :ok <- validate_addresses(params) do
       put_mountain_group(params)
     else
       nil ->
@@ -156,7 +156,7 @@ defmodule Core.Divisions do
          do: :ok
   end
 
-  def validate_addresses(data, headers) do
+  def validate_addresses(data) do
     addresses = Map.get(data, "addresses") || []
     Addresses.validate(addresses, "RESIDENCE")
   end

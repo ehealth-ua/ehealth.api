@@ -161,13 +161,4 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       "signed_content_encoding" => to_string(signed_content.encoding)
     }
   end
-
-  # ToDo: will be deleted after decline implementation in #3518
-  defp prepare_signed_content_params(%{signed_content: signed_content, id: id}) do
-    %{
-      "id" => id,
-      "signed_content" => signed_content.content,
-      "signed_content_encoding" => to_string(signed_content.encoding)
-    }
-  end
 end

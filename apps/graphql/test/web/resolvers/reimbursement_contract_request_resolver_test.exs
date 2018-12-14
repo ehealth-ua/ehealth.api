@@ -3,7 +3,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3]
+  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
   import Core.Expectations.Mithril, only: [nhs: 0]
   import Core.Expectations.Signature
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
@@ -90,8 +90,23 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     }
   """
 
+  @sign_query """
+    mutation SignContractRequest($input: SignContractRequestInput!) {
+      signContractRequest(input: $input) {
+        contractRequest {
+          id
+          databaseId
+          status
+          printoutContent
+        }
+      }
+    }
+  """
+
   @contract_request_status_new ReimbursementContractRequest.status(:new)
   @contract_request_status_in_process ReimbursementContractRequest.status(:in_process)
+  @contract_request_status_pending_nhs_sign ReimbursementContractRequest.status(:pending_nhs_sign)
+  @contract_request_status_nhs_signed ReimbursementContractRequest.status(:nhs_signed)
 
   setup :verify_on_exit!
 
@@ -451,6 +466,237 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     end
   end
 
+  describe "sign" do
+    test "success", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      %{
+        user_id: user_id,
+        division: division,
+        legal_entity: legal_entity,
+        nhs_signer_id: nhs_signer_id,
+        employee_owner: employee_owner,
+        medical_program: medical_program,
+        nhs_signer_party: nhs_signer_party
+      } = prepare_data()
+
+      id = UUID.generate()
+      now = Date.utc_today()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => @contract_request_status_pending_nhs_sign
+      }
+
+      insert(
+        :il,
+        :reimbursement_contract_request,
+        id: id,
+        data: data,
+        status: @contract_request_status_pending_nhs_sign,
+        nhs_signed_date: Date.add(now, -10),
+        nhs_legal_entity_id: legal_entity.id,
+        nhs_signer_id: nhs_signer_id,
+        contractor_legal_entity_id: legal_entity.id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        medical_program_id: medical_program.id,
+        start_date: Date.add(now, 10)
+      )
+
+      printout_content = "<html>Reimbursement contract printout form</html>"
+      content = Map.put(data, "printout_content", printout_content)
+
+      expect_signed_content(content, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp_body =
+        conn
+        |> put_scope("contract_request:sign")
+        |> put_consumer_id(user_id)
+        |> put_client_id(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post_query(@sign_query, input_signed_content(id, content))
+        |> json_response(200)
+
+      refute resp_body["errors"]
+
+      resp_entity = get_in(resp_body, ~w(data signContractRequest contractRequest))
+
+      assert %{"status" => @contract_request_status_nhs_signed, "printoutContent" => ^printout_content} = resp_entity
+    end
+
+    test "medical program not exist", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+
+      %{
+        user_id: user_id,
+        division: division,
+        legal_entity: legal_entity,
+        nhs_signer_id: nhs_signer_id,
+        employee_owner: employee_owner,
+        nhs_signer_party: nhs_signer_party
+      } = prepare_data()
+
+      id = UUID.generate()
+      now = Date.utc_today()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => @contract_request_status_pending_nhs_sign
+      }
+
+      insert(
+        :il,
+        :reimbursement_contract_request,
+        id: id,
+        data: data,
+        status: @contract_request_status_pending_nhs_sign,
+        nhs_signed_date: Date.add(now, -10),
+        nhs_legal_entity_id: legal_entity.id,
+        nhs_signer_id: nhs_signer_id,
+        contractor_legal_entity_id: legal_entity.id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        medical_program_id: UUID.generate(),
+        start_date: Date.add(now, 10)
+      )
+
+      printout_content = "<html>Reimbursement contract printout form</html>"
+      content = Map.put(data, "printout_content", printout_content)
+
+      expect_signed_content(content, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp_body =
+        conn
+        |> put_scope("contract_request:sign")
+        |> put_consumer_id(user_id)
+        |> put_client_id(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post_query(@sign_query, input_signed_content(id, content))
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+
+      assert [error] = resp_body["errors"]
+
+      assert "Reimbursement program with such id does not exist" ==
+               hd(error["errors"])["$.medical_program_id"]["description"]
+    end
+
+    test "medical program not active", %{conn: conn} do
+      insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
+      insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
+      insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
+      insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      nhs()
+
+      %{
+        user_id: user_id,
+        division: division,
+        legal_entity: legal_entity,
+        nhs_signer_id: nhs_signer_id,
+        employee_owner: employee_owner,
+        nhs_signer_party: nhs_signer_party
+      } = prepare_data()
+
+      medical_program = insert(:prm, :medical_program, is_active: false)
+
+      id = UUID.generate()
+      now = Date.utc_today()
+
+      data = %{
+        "id" => id,
+        "contract_number" => "0000-9EAX-XT7X-3115",
+        "status" => @contract_request_status_pending_nhs_sign
+      }
+
+      insert(
+        :il,
+        :reimbursement_contract_request,
+        id: id,
+        data: data,
+        status: @contract_request_status_pending_nhs_sign,
+        nhs_signed_date: Date.add(now, -10),
+        nhs_legal_entity_id: legal_entity.id,
+        nhs_signer_id: nhs_signer_id,
+        contractor_legal_entity_id: legal_entity.id,
+        contractor_owner_id: employee_owner.id,
+        contractor_divisions: [division.id],
+        medical_program_id: medical_program.id,
+        start_date: Date.add(now, 10)
+      )
+
+      printout_content = "<html>Reimbursement contract printout form</html>"
+      content = Map.put(data, "printout_content", printout_content)
+
+      expect_signed_content(content, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name
+        },
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: nhs_signer_party.tax_id,
+          surname: nhs_signer_party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp_body =
+        conn
+        |> put_scope("contract_request:sign")
+        |> put_consumer_id(user_id)
+        |> put_client_id(legal_entity.id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post_query(@sign_query, input_signed_content(id, content))
+        |> json_response(200)
+
+      assert match?(
+               %{"message" => "Reimbursement program is not active", "extensions" => %{"code" => "CONFLICT"}},
+               hd(resp_body["errors"])
+             )
+    end
+  end
+
   describe "decline contract_request" do
     test "success decline contract request", %{conn: conn} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -534,6 +780,51 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
           encoding: "BASE64"
         }
       }
+    }
+  end
+
+  defp prepare_data do
+    user_id = UUID.generate()
+    nhs_signer_id = UUID.generate()
+
+    legal_entity = insert(:prm, :legal_entity)
+    %{party: nhs_signer_party} = build(:party_user, user_id: nhs_signer_id)
+
+    insert(
+      :prm,
+      :employee,
+      legal_entity_id: legal_entity.id,
+      id: nhs_signer_id,
+      party: nhs_signer_party
+    )
+
+    division =
+      insert(
+        :prm,
+        :division,
+        legal_entity: legal_entity,
+        phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+      )
+
+    employee_owner =
+      insert(
+        :prm,
+        :employee,
+        id: user_id,
+        legal_entity_id: legal_entity.id,
+        employee_type: Employee.type(:pharmacy_owner)
+      )
+
+    medical_program = insert(:prm, :medical_program)
+
+    %{
+      user_id: user_id,
+      division: division,
+      legal_entity: legal_entity,
+      nhs_signer_id: nhs_signer_id,
+      employee_owner: employee_owner,
+      medical_program: medical_program,
+      nhs_signer_party: nhs_signer_party
     }
   end
 end

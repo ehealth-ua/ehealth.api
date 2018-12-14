@@ -104,7 +104,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
       meta(:client_metadata, ~w(client_id client_type)a)
       meta(:allowed_clients, ~w(NHS))
 
-      middleware(ParseIDs, id: :capitation_contract_request)
+      middleware(ParseIDs, id: [:capitation_contract_request, :reimbursement_contract_request])
 
       input do
         field(:id, non_null(:id))

@@ -6,6 +6,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
   import Ecto.Query
 
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts.CapitationContract
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
@@ -58,6 +59,11 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
 
     template_id = config()[:id]
     @man_api.render_template(template_id, prepare_data(template_data), headers)
+  end
+
+  # ToDo: form is not ready yet. Waiting for НСЗУ
+  def render(%ReimbursementContractRequest{} = _contract_request, _headers) do
+    {:ok, "<html>Reimbursement contract printout form</html>"}
   end
 
   defp prepare_data(data) do

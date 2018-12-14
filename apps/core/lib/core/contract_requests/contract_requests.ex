@@ -43,6 +43,7 @@ defmodule Core.ContractRequests do
   @approved CapitationContractRequest.status(:approved)
   @declined CapitationContractRequest.status(:declined)
   @in_process CapitationContractRequest.status(:in_process)
+  @nhs_signed CapitationContractRequest.status(:nhs_signed)
   @pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
 
   @forbidden_statuses_for_termination [
@@ -295,16 +296,15 @@ defmodule Core.ContractRequests do
   def decline(%{"id" => id, "type" => _} = params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    request_pack = RequestPack.new(params)
-    params = Map.drop(params, ~w(id type))
+    pack = RequestPack.new(params)
 
-    with :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+    with :ok <- JsonSchema.validate(:contract_request_sign, pack.request_params),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(pack.request_params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_decline"),
          :ok <- JsonSchema.validate(:contract_request_decline, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         {:ok, contract_request} <- fetch_by_id(request_pack),
+         {:ok, contract_request} <- fetch_by_id(pack),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -313,7 +313,13 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_decline_content(content, contract_request, references),
          :ok <- validate_status(contract_request, @in_process),
-         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_declined"),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             pack.request_params,
+             headers,
+             "signed_content/contract_request_declined"
+           ),
          update_params <-
            %{
              "status_reason" => content["status_reason"],
@@ -360,14 +366,15 @@ defmodule Core.ContractRequests do
   def sign_nhs(headers, %{"id" => id} = params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
-    params = Map.take(params, ~w(signed_content signed_content_encoding))
+    pack = RequestPack.new(params)
 
     with {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         :ok <- JsonSchema.validate(:contract_request_sign, params),
+         :ok <- JsonSchema.validate(:contract_request_sign, pack.request_params),
          {:ok, %{"content" => content, "signers" => [signer], "stamps" => [stamp]}} <-
-           decode_signed_content(params, headers, 1, 1),
+           decode_signed_content(pack.request_params, headers, 1, 1),
+         pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_contract_request_id(id, content["id"]),
-         {:ok, contract_request} <- fetch_by_id(id),
+         {:ok, contract_request} <- fetch_by_id(pack),
          :ok <- validate_client_id(client_id, contract_request.nhs_legal_entity_id, :forbidden),
          :ok <-
            SignatureValidator.check_drfo(
@@ -376,7 +383,7 @@ defmodule Core.ContractRequests do
              "$.drfo",
              "contract_request_sign_nhs"
            ),
-         {_, false} <- {:already_signed, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
+         {_, false} <- {:already_signed, contract_request.status == @nhs_signed},
          :ok <- validate_status(contract_request, CapitationContractRequest.status(:pending_nhs_sign)),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_legal_entity_edrpou(legal_entity, stamp),
@@ -392,20 +399,22 @@ defmodule Core.ContractRequests do
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
+         :ok <- validate_medical_program_is_active(contract_request),
          :ok <- validate_start_date(contract_request),
          :ok <-
            save_signed_content(
              contract_request.id,
-             params,
+             pack.request_params,
              headers,
              "signed_content/signed_content"
            ),
          update_params <-
-           params
-           |> Map.put("updated_by", user_id)
-           |> Map.put("status", CapitationContractRequest.status(:nhs_signed))
-           |> Map.put("nhs_signed_date", Date.utc_today())
-           |> Map.put("printout_content", printout_content),
+           Map.merge(pack.request_params, %{
+             "updated_by" => user_id,
+             "status" => @nhs_signed,
+             "nhs_signed_date" => Date.utc_today(),
+             "printout_content" => printout_content
+           }),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
          _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
@@ -426,7 +435,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_type(pack.type, legal_entity),
          {:ok, contract_request} <- pack.provider.fetch_by_id(pack.contract_request_id),
          pack <- RequestPack.put_contract_request(pack, contract_request),
-         {_, true} <- {:signed_nhs, pack.contract_request.status == CapitationContractRequest.status(:nhs_signed)},
+         {_, true} <- {:signed_nhs, pack.contract_request.status == @nhs_signed},
          :ok <- validate_client_id(client_id, pack.contract_request.contractor_legal_entity_id, :forbidden),
          :ok <- JsonSchema.validate(:contract_request_sign, pack.request_params),
          {:ok, %{"content" => content, "signers" => [signer_msp, signer_nhs], "stamps" => [nhs_stamp]}} <-
@@ -489,7 +498,7 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
 
     with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
-         {_, true} <- {:signed_nhs, contract_request.status == CapitationContractRequest.status(:nhs_signed)},
+         {_, true} <- {:signed_nhs, contract_request.status == @nhs_signed},
          :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
          {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
       {:ok, url}
@@ -726,16 +735,7 @@ defmodule Core.ContractRequests do
       |> where([c], c.contractor_legal_entity_id == ^params["contractor_legal_entity_id"])
       |> where([c], c.id_form == ^params["id_form"])
       |> where_medical_program(type, params)
-      |> where(
-        [c],
-        c.status in ^[
-          CapitationContractRequest.status(:new),
-          CapitationContractRequest.status(:in_process),
-          CapitationContractRequest.status(:approved),
-          CapitationContractRequest.status(:nhs_signed),
-          CapitationContractRequest.status(:pending_nhs_sign)
-        ]
-      )
+      |> where([c], c.status in ^[@new, @in_process, @approved, @nhs_signed, @pending_nhs_sign])
       |> where([c], c.end_date >= ^params["start_date"] and c.start_date <= ^params["end_date"])
       |> Repo.all()
 
