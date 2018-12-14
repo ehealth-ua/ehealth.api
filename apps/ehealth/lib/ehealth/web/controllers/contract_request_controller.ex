@@ -50,9 +50,9 @@ defmodule EHealth.Web.ContractRequestController do
   end
 
   def update_assignee(%Plug.Conn{req_headers: headers} = conn, params) do
-    update_result = ContractRequests.update_assignee(headers, drop_type(params))
+    update_result = ContractRequests.update_assignee(params, headers)
 
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <- update_result do
+    with {:ok, %{__struct__: _} = contract_request, references} <- update_result do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

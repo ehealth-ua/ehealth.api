@@ -107,6 +107,16 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
+  def update_assignee(args, %{context: %{headers: headers}}) do
+    params = Enum.reduce(args, %{}, &prepare_update_param/2)
+
+    with {:ok, contract_request, _} <- ContractRequests.update_assignee(params, headers) do
+      {:ok, %{contract_request: contract_request}}
+    else
+      err -> render_error(err)
+    end
+  end
+
   def approve(args, %{context: %{headers: headers}}) do
     params = prepare_signed_content_params(args)
 
@@ -159,14 +169,5 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       "signed_content" => signed_content.content,
       "signed_content_encoding" => to_string(signed_content.encoding)
     }
-  end
-
-  def update_assignee(%{id: id, employee_id: employee_id}, %{context: %{headers: headers}}) do
-    with {:ok, contract_request, _} <-
-           ContractRequests.update_assignee(headers, %{"id" => id, "employee_id" => employee_id}) do
-      {:ok, %{contract_request: contract_request}}
-    else
-      err -> render_error(err)
-    end
   end
 end

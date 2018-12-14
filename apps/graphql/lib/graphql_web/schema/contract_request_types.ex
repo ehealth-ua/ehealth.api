@@ -85,7 +85,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     payload field(:assign_contract_request) do
       meta(:scope, ~w(contract_request:update))
 
-      middleware(ParseIDs, id: :capitation_contract_request, employee_id: :employee)
+      middleware(ParseIDs, id: [:capitation_contract_request, :reimbursement_contract_request], employee_id: :employee)
 
       input do
         field(:id, non_null(:id))

@@ -39,6 +39,7 @@ defmodule Core.ContractRequests do
   @capitation CapitationContractRequest.type()
   @reimbursement ReimbursementContractRequest.type()
 
+  @new CapitationContractRequest.status(:new)
   @approved CapitationContractRequest.status(:approved)
   @declined CapitationContractRequest.status(:declined)
   @in_process CapitationContractRequest.status(:in_process)
@@ -190,22 +191,19 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def update_assignee(headers, %{"id" => contract_request_id} = params) do
+  def update_assignee(%{"id" => _, "type" => _} = params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     employee_id = params["employee_id"]
+    pack = RequestPack.new(params)
 
     with :ok <- JsonSchema.validate(:contract_request_assign, Map.take(params, ~w(employee_id))),
          {:ok, %{"data" => user_data}} <- @mithril_api.get_user_roles(user_id, %{}, headers),
          :ok <- user_has_role(user_data, "NHS ADMIN SIGNER"),
-         %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, contract_request_id),
+         {:ok, contract_request} <- fetch_by_id(pack),
          {:ok, employee} <- validate_employee(employee_id, client_id),
          :ok <- validate_employee_role(employee, "NHS ADMIN SIGNER"),
-         :ok <-
-           validate_status(contract_request, [
-             CapitationContractRequest.status(:new),
-             CapitationContractRequest.status(:in_process)
-           ]),
+         :ok <- validate_status(contract_request, [@new, @in_process]),
          update_params <- %{
            "status" => CapitationContractRequest.status(:in_process),
            "updated_at" => NaiveDateTime.utc_now(),
@@ -612,7 +610,8 @@ defmodule Core.ContractRequests do
     end
   end
 
-  defp update_assignee_changeset(%CapitationContractRequest{} = contract_request, params) do
+  defp update_assignee_changeset(%{__struct__: struct} = contract_request, params)
+       when struct in [CapitationContractRequest, ReimbursementContractRequest] do
     fields_required = ~w(
       status
       assignee_id
