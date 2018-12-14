@@ -388,40 +388,6 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contract requests where assigneeName is (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{conn: conn}, %{count: count, value: value} ->
-      query = """
-        query ListReimbursementContractRequestsWithAssigneeNameFilter(
-          $first: Int!
-          $filter: ReimbursementContractRequestFilter!
-        ) {
-          reimbursementContractRequests(first: $first, filter: $filter) {
-            nodes {
-              assignee {
-                databaseId
-              }
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count),
-        filter: filter_argument("assigneeName", Jason.decode!(value))
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
-
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
@@ -518,6 +484,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListCapitationContractRequestsWithAssocFilter(
+          $first: Int!
+          $filter: CapitationContractRequestFilter!
+        ) {
+          capitationContractRequests(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
@@ -576,6 +574,70 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, nested_association_field: nested_association_field, field: field, value: value} ->
+      query = """
+        query ListCapitationContractRequestsWithAssocFilter(
+          $first: Int!
+          $filter: CapitationContractRequestFilter!
+        ) {
+          capitationContractRequests(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, nested_association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, nested_association_field: nested_association_field, field: field, value: value} ->
+      query = """
+        query ListReimbursementContractRequestsWithAssocFilter(
+          $first: Int!
+          $filter: ReimbursementContractRequestFilter!
+        ) {
+          reimbursementContractRequests(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, nested_association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -1077,6 +1139,7 @@ defmodule GraphQL.Features.Context do
 
   def filter_argument(field, value), do: %{field => value}
   def filter_argument(assoc, field, value), do: %{assoc => %{field => value}}
+  def filter_argument(assoc, nested_assoc, field, value), do: %{assoc => %{nested_assoc => %{field => value}}}
 
   def order_by_argument(field, "ascending"), do: order_by_argument(field, "ASC")
   def order_by_argument(field, "descending"), do: order_by_argument(field, "DESC")

@@ -1,6 +1,7 @@
 defmodule Core.ContractRequests.ReimbursementContractRequest do
   @moduledoc false
 
+  alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms.MedicalProgram
   alias Ecto.UUID
@@ -35,10 +36,12 @@ defmodule Core.ContractRequests.ReimbursementContractRequest do
       {:medical_program_id, UUID}
     ]
 
-  def related_schemas, do: ~w(contractor_legal_entity medical_program)a
+  def related_schemas, do: ~w(assignee contractor_legal_entity medical_program)a
 
+  def related_schema(:assignee), do: Employee
   def related_schema(:contractor_legal_entity), do: LegalEntity
   def related_schema(:medical_program), do: MedicalProgram
+  def related_schema(_), do: nil
 
   def changeset(%__MODULE__{} = contract_request, params) do
     contract_request

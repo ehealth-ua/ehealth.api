@@ -20,6 +20,58 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
   @review_text_dictionary "CONTRACT_REQUEST_REVIEW_TEXT"
 
+  defmacro __using__(opts) do
+    quote do
+      import Ecto.Query, only: [where: 3, select: 3, order_by: 2]
+
+      alias Absinthe.Relay.Connection
+      alias Core.{PRMRepo, Repo}
+      alias GraphQL.Helpers.Filtering
+
+      @schema unquote(opts[:schema])
+      @related_schemas @schema.related_schemas()
+
+      def list_contract_requests(args, %{context: %{client_type: "NHS"}}), do: list_contract_requests(args)
+
+      def list_contract_requests(args, %{
+            context: %{client_type: unquote(opts[:restricted_client_type]), client_id: client_id}
+          }) do
+        args
+        |> Map.update!(:filter, &[{:contractor_legal_entity_id, :equal, client_id} | &1])
+        |> list_contract_requests()
+      end
+
+      defp list_contract_requests(%{filter: filter, order_by: order_by} = args) do
+        @schema
+        |> where([c], c.type == ^@schema.type())
+        |> filter(filter)
+        |> order_by(^order_by)
+        |> Connection.from_query(&Repo.all/1, args)
+      end
+
+      defp filter(query, []), do: query
+
+      defp filter(query, [{field, nil, conditions} | tail]) when field in @related_schemas do
+        ids =
+          field
+          |> @schema.related_schema()
+          |> Filtering.filter(conditions)
+          |> select([r], r.id)
+          |> PRMRepo.all()
+
+        filter(query, [{:"#{field}_id", :in, ids} | tail])
+      end
+
+      # BUG: When association condition goes before regular conditions,
+      # all following conditions will be applied to the associated table
+      defp filter(query, [condition | tail]) do
+        query
+        |> Filtering.filter([condition])
+        |> filter(tail)
+      end
+    end
+  end
+
   def get_printout_content(%ReimbursementContractRequest{printout_content: printout_content}, _, _) do
     # TODO: Rewrite logic when reimbursement contract request form is ready
     {:ok, printout_content}

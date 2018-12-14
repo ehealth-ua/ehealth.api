@@ -14,6 +14,7 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias GraphQLWeb.Loaders.{IL, PRM}
+  alias GraphQLWeb.Middleware.Filtering
   alias GraphQLWeb.Resolvers.{CapitationContractRequestResolver, ContractRequestResolver}
 
   object :capitation_contract_request_queries do
@@ -25,8 +26,29 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
       arg(:filter, :capitation_contract_request_filter)
       arg(:order_by, :capitation_contract_request_order_by, default_value: :inserted_at_desc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        contract_number: :equal,
+        status: :equal,
+        start_date: :in,
+        end_date: :in,
+        assignee: [
+          database_id: :equal,
+          employee_type: :in,
+          status: :equal,
+          is_active: :equal,
+          legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal]
+          # TODO: implement resolver-independent FTS
+          # party: [full_name: :full_text_search]
+        ],
+        contractor_legal_entity: [
+          database_id: :equal,
+          edrpou: :equal,
+          nhs_verified: :equal,
+          nhs_reviewed: :equal
+        ]
+      )
+
       resolve(&CapitationContractRequestResolver.list_contract_requests/2)
     end
 
@@ -49,13 +71,12 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
 
   input_object :capitation_contract_request_filter do
     field(:database_id, :id)
-    field(:contractor_legal_entity_edrpou, :string)
     field(:contract_number, :string)
     field(:status, :contract_request_status)
     field(:start_date, :date_interval)
     field(:end_date, :date_interval)
-    field(:assignee_id, :id)
-    field(:assignee_name, :string)
+    field(:assignee, :employee_filter)
+    field(:contractor_legal_entity, :legal_entity_filter)
   end
 
   enum :capitation_contract_request_order_by do

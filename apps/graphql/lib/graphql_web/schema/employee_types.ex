@@ -36,6 +36,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
       arg(:order_by, :employee_order_by, default_value: :inserted_at_desc)
 
       middleware(Filtering,
+        database_id: :equal,
         employee_type: :in,
         status: :equal,
         is_active: :equal,
@@ -64,6 +65,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   end
 
   input_object :employee_filter do
+    field(:database_id, :id)
     field(:employee_type, list_of(:employee_type))
     field(:status, :employee_status)
     field(:is_active, :boolean)

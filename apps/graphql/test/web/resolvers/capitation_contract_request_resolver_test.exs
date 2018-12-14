@@ -3,7 +3,7 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
+  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [msp: 0, nhs: 0]
   import Core.Expectations.Signature
@@ -21,28 +21,6 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
   @contract_request_status_in_process CapitationContractRequest.status(:in_process)
   @contract_request_status_pending_nhs_sign CapitationContractRequest.status(:pending_nhs_sign)
   @contract_request_status_nhs_signed CapitationContractRequest.status(:nhs_signed)
-
-  @list_query """
-    query ListContractRequestsQuery(
-      $filter: CapitationContractRequestFilter
-      $orderBy: CapitationContractRequestOrderBy
-    ) {
-      capitationContractRequests(first: 10, filter: $filter, orderBy: $orderBy) {
-        nodes {
-          id
-          databaseId
-          status
-          startDate
-          contractorLegalEntity {
-            databaseId
-          }
-          assignee {
-            databaseId
-          }
-        }
-      }
-    }
-  """
 
   @printout_content_query """
     query GetContractRequestPrintoutContentQuery($id: ID!) {
@@ -149,82 +127,6 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
     conn = put_scope(conn, "contract_request:read contract_request:update")
 
     {:ok, %{conn: conn}}
-  end
-
-  describe "list" do
-    test "query all", %{conn: conn} do
-      nhs()
-
-      insert_list(2, :il, :capitation_contract_request)
-      insert_list(10, :il, :reimbursement_contract_request)
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, %{filter: %{}})
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
-
-      refute resp_body["errors"]
-      assert 2 == length(resp_entities)
-    end
-
-    test "filter by contractor legal entity edrpou", %{conn: conn} do
-      nhs()
-
-      contractor_legal_entities =
-        for edrpou <- ["1234567890", "0987654321"] do
-          insert(:prm, :legal_entity, edrpou: edrpou)
-        end
-
-      for %{id: id} <- contractor_legal_entities,
-          do: insert(:il, :capitation_contract_request, contractor_legal_entity_id: id)
-
-      requested_contractor_legal_entity = hd(contractor_legal_entities)
-
-      variables = %{filter: %{contractorLegalEntityEdrpou: requested_contractor_legal_entity.edrpou}}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert requested_contractor_legal_entity.id == hd(resp_entities)["contractorLegalEntity"]["databaseId"]
-    end
-
-    test "filter by assignee name", %{conn: conn} do
-      nhs()
-
-      parties =
-        for [last_name, first_name, second_name] <- [~w(Островський Олег Едуардович), ~w(Островський Едуард Олегович)] do
-          insert(:prm, :party, last_name: last_name, first_name: first_name, second_name: second_name)
-        end
-
-      assignees = for party <- parties, do: insert(:prm, :employee, employee_type: "NHS", party: party)
-      for %{id: id} <- assignees, do: insert(:il, :capitation_contract_request, assignee_id: id)
-
-      requested_assignee = hd(assignees)
-
-      variables = %{filter: %{assigneeName: "Островський Олег Едуардович"}}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@list_query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
-
-      assert nil == resp_body["errors"]
-      assert 1 == length(resp_entities)
-      assert requested_assignee.id == hd(resp_entities)["assignee"]["databaseId"]
-    end
   end
 
   describe "get by id" do

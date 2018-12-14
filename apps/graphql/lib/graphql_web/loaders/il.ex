@@ -14,7 +14,7 @@ defmodule GraphQLWeb.Loaders.IL do
 
   def query(CapitationContractRequest, %{client_type: "NHS"}), do: CapitationContractRequest
 
-  def query(ReimbursementContractRequest, %{client_type: "MSP", client_id: client_id}) do
+  def query(ReimbursementContractRequest, %{client_type: "PHARMACY", client_id: client_id}) do
     where(ReimbursementContractRequest, contractor_legal_entity_id: ^client_id)
   end
 

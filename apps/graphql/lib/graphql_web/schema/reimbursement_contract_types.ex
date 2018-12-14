@@ -20,7 +20,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
     connection field(:reimbursement_contracts, node_type: :reimbursement_contract) do
       meta(:scope, ~w(contract:read))
       meta(:client_metadata, ~w(client_id client_type)a)
-      meta(:allowed_clients, ~w(NHS MSP))
+      meta(:allowed_clients, ~w(NHS PHARMACY))
 
       arg(:filter, :reimbursement_contract_filter)
       arg(:order_by, :reimbursement_contract_order_by, default_value: :inserted_at_desc)
@@ -52,7 +52,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
     field :reimbursement_contract, :reimbursement_contract do
       meta(:scope, ~w(contract:read))
       meta(:client_metadata, ~w(client_id client_type)a)
-      meta(:allowed_clients, ~w(NHS MSP))
+      meta(:allowed_clients, ~w(NHS PHARMACY))
 
       arg(:id, non_null(:id))
 

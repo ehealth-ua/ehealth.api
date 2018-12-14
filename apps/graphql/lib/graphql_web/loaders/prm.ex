@@ -16,7 +16,7 @@ defmodule GraphQLWeb.Loaders.PRM do
     where(CapitationContract, contractor_legal_entity_id: ^client_id)
   end
 
-  def query(ReimbursementContract, %{client_type: "MSP", client_id: client_id}) do
+  def query(ReimbursementContract, %{client_type: "PHARMACY", client_id: client_id}) do
     where(ReimbursementContract, contractor_legal_entity_id: ^client_id)
   end
 

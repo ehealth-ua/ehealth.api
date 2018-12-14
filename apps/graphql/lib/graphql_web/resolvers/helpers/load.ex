@@ -62,6 +62,7 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
     end
   end
 
+  # TODO: This function should accept options and return resolver function
   def load_by_parent_with_connection(
         parent,
         args,

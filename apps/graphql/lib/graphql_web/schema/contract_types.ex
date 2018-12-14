@@ -15,14 +15,6 @@ defmodule GraphQLWeb.Schema.ContractTypes do
   @contract_status_terminated CapitationContract.status(:terminated)
   @contract_status_verified CapitationContract.status(:verified)
 
-  connection node_type: :contract do
-    field :nodes, list_of(:contract) do
-      resolve(fn _, %{source: conn} -> {:ok, Enum.map(conn.edges, & &1.node)} end)
-    end
-
-    edge(do: nil)
-  end
-
   object :contract_mutations do
     payload field(:terminate_contract) do
       meta(:scope, ~w(contract:terminate))

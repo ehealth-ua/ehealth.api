@@ -1,6 +1,9 @@
 defmodule Core.ContractRequests.CapitationContractRequest do
   @moduledoc false
 
+  alias Core.Employees.Employee
+  alias Core.LegalEntities.LegalEntity
+
   @inheritance_name "CAPITATION"
 
   @fields_required ~w(
@@ -37,6 +40,12 @@ defmodule Core.ContractRequests.CapitationContractRequest do
       {:contractor_employee_divisions, {:array, :map}},
       {:nhs_contract_price, :float}
     ]
+
+  def related_schemas, do: ~w(assignee contractor_legal_entity)a
+
+  def related_schema(:assignee), do: Employee
+  def related_schema(:contractor_legal_entity), do: LegalEntity
+  def related_schema(_), do: nil
 
   def changeset(%__MODULE__{} = contract_request, params) do
     contract_request

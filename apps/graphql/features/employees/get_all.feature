@@ -46,10 +46,11 @@ Feature: Get all employees
     And the databaseId of the first item in the collection should be <expected_id>
 
     Examples:
-      | field        | filter_value | expected_value | alternate_value | expected_id                            | alternate_id                           |
-      # | employeeType | ["DOCTOR", "OWNER"] | "DOCTOR"       | "PHARMACIST"    | "244052f0-7177-4794-a2fb-8a3476758596" | "a391906e-b687-47d3-a0f6-d8006c617936" |
-      | status       | "APPROVED"   | "APPROVED"     | "DISMISSED"     | "f93dcf7e-bc30-4cf0-8f8a-f70d2f1ef209" | "25a0ac46-0c83-4c37-b798-7b90cee1d7fa" |
-      | isActive     | true         | true           | false           | "b04cd9a4-66ba-44e7-8bbb-7f70c11158d0" | "34e59e35-8ad4-4e02-8174-858ba324d76b" |
+      | field        | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           |
+      | databaseId   | "fb5a0cab-4e36-401a-87c5-9852c11f1104" | "fb5a0cab-4e36-401a-87c5-9852c11f1104" | "13e7452f-899f-4a97-a856-93d790570d36" | "fb5a0cab-4e36-401a-87c5-9852c11f1104" | "13e7452f-899f-4a97-a856-93d790570d36" |
+      # | employeeType | ["DOCTOR", "OWNER"]                    | "DOCTOR"                               | "PHARMACIST"                           | "244052f0-7177-4794-a2fb-8a3476758596" | "a391906e-b687-47d3-a0f6-d8006c617936" |
+      | status       | "APPROVED"                             | "APPROVED"                             | "DISMISSED"                            | "f93dcf7e-bc30-4cf0-8f8a-f70d2f1ef209" | "25a0ac46-0c83-4c37-b798-7b90cee1d7fa" |
+      | isActive     | true                                   | true                                   | false                                  | "b04cd9a4-66ba-44e7-8bbb-7f70c11158d0" | "34e59e35-8ad4-4e02-8174-858ba324d76b" |
 
   Scenario Outline: Request items filtered by condition on association
     Given the following <association_entity> exist:

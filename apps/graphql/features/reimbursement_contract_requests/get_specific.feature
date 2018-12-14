@@ -11,31 +11,31 @@ Feature: Get specific reimbursement contract request
     And I should receive requested item
     And the databaseId of the requested item should be "5f8e3a74-24cd-4483-9373-aa52034f2917"
 
-  Scenario: Request belonging item with MSP client
+  Scenario: Request belonging item with PHARMACY client
     Given the following legal entities exist:
       | databaseId                             | type   |
-      | "1b94ce95-b7d9-4056-9170-d2fab034583b" | "MSP"  |
+      | "1b94ce95-b7d9-4056-9170-d2fab034583b" | "PHARMACY"  |
     And the following reimbursement contract requests exist:
       | databaseId                             | contractorLegalEntityId                |
       | "ae795118-3422-45a4-88ad-17f3cb5ebe87" | "1b94ce95-b7d9-4056-9170-d2fab034583b" |
     And my scope is "contract_request:read"
-    And my client type is "MSP"
+    And my client type is "PHARMACY"
     And my client ID is "1b94ce95-b7d9-4056-9170-d2fab034583b"
     When I request reimbursement contract request where databaseId is "ae795118-3422-45a4-88ad-17f3cb5ebe87"
     Then no errors should be returned
     And I should receive requested item
     And the databaseId of the requested item should be "ae795118-3422-45a4-88ad-17f3cb5ebe87"
 
-  Scenario: Request not belonging item with MSP client
+  Scenario: Request not belonging item with PHARMACY client
     Given the following legal entities exist:
       | databaseId                             | type  |
-      | "c6349af7-d8f3-4a4d-9dac-21e3770cffa7" | "MSP" |
-      | "9ed5a994-c06a-47f0-bd04-675f94001295" | "MSP" |
+      | "c6349af7-d8f3-4a4d-9dac-21e3770cffa7" | "PHARMACY" |
+      | "9ed5a994-c06a-47f0-bd04-675f94001295" | "PHARMACY" |
     And the following reimbursement contract requests exist:
       | databaseId                             | contractorLegalEntityId                |
       | "c3267262-9280-4693-8091-9492d16c1048" | "9ed5a994-c06a-47f0-bd04-675f94001295" |
     And my scope is "contract_request:read"
-    And my client type is "MSP"
+    And my client type is "PHARMACY"
     And my client ID is "c6349af7-d8f3-4a4d-9dac-21e3770cffa7"
     When I request reimbursement contract request where databaseId is "c3267262-9280-4693-8091-9492d16c1048"
     Then no errors should be returned
@@ -46,7 +46,7 @@ Feature: Get specific reimbursement contract request
       | databaseId                             |
       | "fb40aa7a-be9d-444b-8772-bde1fdba0f44" |
     And my scope is "contract_request:read"
-    And my client type is "MIS"
+    And my client type is "MSP"
     When I request reimbursement contract request where databaseId is "fb40aa7a-be9d-444b-8772-bde1fdba0f44"
     Then the "FORBIDDEN" error should be returned
     And I should not receive requested item
@@ -102,3 +102,21 @@ Feature: Get specific reimbursement contract request
       | "f6aa4371-bb1b-44f8-aefb-64c18b6b9950" | employees                       | nhsSigner             | "9e07e59d-c427-468c-b6c0-1d3cb9e330df" |
       | "2f2a31d6-0980-4493-b4ce-ecd982492218" | legal entities                  | nhsLegalEntity        | "04c58653-5639-456f-9103-a5c7a9fb02ea" |
       | "4eeca663-f967-4c72-90a9-e59effe8fe00" | medical programs                | medicalProgram        | "0a55e9a4-ae08-4d0a-bdcd-e79d62b59405" |
+
+  # Scenario Outline: Request one-to-many association fields
+  #   Given the following <association_entity> exist:
+  #     | databaseId       |
+  #     | <association_id> |
+  #   And the following reimbursement contract requests exist:
+  #     | databaseId    | <association_field>Id |
+  #     | <database_id> | <association_id>      |
+  #   And my scope is "contract_request:read"
+  #   And my client type is "NHS"
+  #   When I request databaseId of the <association_field> of the reimbursement contract request where databaseId is <database_id>
+  #   Then no errors should be returned
+  #   And I should receive requested item
+  #   And the databaseId in the first <association_field> of the requested item should be <association_id>
+
+  #   Examples:
+  #     | database_id                            | association_entity | association_field   | association_id                         |
+  #     | "90b48d7c-c30a-46eb-b56b-560f2fbc4e4c" | divisions          | contractorDivisions | "3fbcde1a-ad29-4998-8f28-7812e6b034bd" |

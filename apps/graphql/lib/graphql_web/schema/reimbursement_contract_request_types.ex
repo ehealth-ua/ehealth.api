@@ -22,7 +22,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     connection field(:reimbursement_contract_requests, node_type: :reimbursement_contract_request) do
       meta(:scope, ~w(contract_request:read))
       meta(:client_metadata, ~w(client_id client_type)a)
-      meta(:allowed_clients, ~w(NHS MSP))
+      meta(:allowed_clients, ~w(NHS PHARMACY))
 
       arg(:filter, :reimbursement_contract_request_filter)
       arg(:order_by, :reimbursement_contract_request_order_by, default_value: :inserted_at_desc)
@@ -33,14 +33,26 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
         status: :equal,
         start_date: :in,
         end_date: :in,
-        assignee_name: :full_text_search,
+        assignee: [
+          database_id: :equal,
+          employee_type: :in,
+          status: :equal,
+          is_active: :equal,
+          legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal]
+          # TODO: implement resolver-independent FTS
+          # party: [full_name: :full_text_search]
+        ],
         contractor_legal_entity: [
           database_id: :equal,
           edrpou: :equal,
           nhs_verified: :equal,
           nhs_reviewed: :equal
         ],
-        medical_program: [database_id: :equal, name: :like, is_active: :equal]
+        medical_program: [
+          database_id: :equal,
+          name: :like,
+          is_active: :equal
+        ]
       )
 
       resolve(&ReimbursementContractRequestResolver.list_contract_requests/2)
@@ -49,7 +61,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     field :reimbursement_contract_request, :reimbursement_contract_request do
       meta(:scope, ~w(contract_request:read))
       meta(:client_metadata, ~w(client_id client_type)a)
-      meta(:allowed_clients, ~w(NHS MSP))
+      meta(:allowed_clients, ~w(NHS PHARMACY))
 
       arg(:id, non_null(:id))
 
@@ -69,7 +81,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     field(:status, :contract_request_status)
     field(:start_date, :date_interval)
     field(:end_date, :date_interval)
-    field(:assignee_name, :string)
+    field(:assignee, :employee_filter)
     field(:contractor_legal_entity, :legal_entity_filter)
     field(:medical_program, :medical_program_filter)
   end

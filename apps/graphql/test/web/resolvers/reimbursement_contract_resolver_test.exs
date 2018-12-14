@@ -3,7 +3,7 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
   use GraphQLWeb.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, build: 2, insert_list: 3]
+  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
   import Core.Expectations.Mithril
   import Mox
 
@@ -74,8 +74,8 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
       assert 2 == length(resp_entities)
     end
 
-    test "return only related for MSP client", %{conn: conn} do
-      msp()
+    test "return only related for PHARMACY client", %{conn: conn} do
+      pharmacy()
 
       contract = for _ <- 1..2, do: insert(:prm, :reimbursement_contract)
       related_contract = hd(contract)
@@ -405,8 +405,9 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
       assert global_contract_id == resp_entity["id"]
     end
 
-    test "success for correct MSP client", %{conn: conn, contract: contract, global_contract_id: global_contract_id} do
-      msp()
+    test "success for correct PHARMACY client",
+         %{conn: conn, contract: contract, global_contract_id: global_contract_id} do
+      pharmacy()
 
       variables = %{id: global_contract_id}
 
@@ -420,6 +421,41 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
       refute resp_body["errors"]
       assert global_contract_id == resp_entity["id"]
+    end
+
+    test "return nothing for incorrect PHARMACY client", %{conn: conn} = context do
+      pharmacy()
+
+      variables = %{id: context.global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
+
+      refute resp_body["errors"]
+      refute resp_entity
+    end
+
+    test "return forbidden error for incorrect client type", %{conn: conn} = context do
+      mis()
+
+      variables = %{id: context.global_contract_id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(@get_by_id_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
+
+      assert is_list(resp_body["errors"])
+      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
+      refute resp_entity
     end
 
     test "success for printoutContent field", %{conn: conn} do
@@ -460,41 +496,6 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
       refute resp_entity["printoutContent"]
       assert %{"errors" => [error]} = resp_body
       assert "NOT_FOUND" == error["extensions"]["code"]
-    end
-
-    test "return nothing for incorrect MSP client", %{conn: conn} = context do
-      msp()
-
-      variables = %{id: context.global_contract_id}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
-
-      refute resp_body["errors"]
-      refute resp_entity
-    end
-
-    test "return forbidden error for incorrect client type", %{conn: conn} = context do
-      mis()
-
-      variables = %{id: context.global_contract_id}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@get_by_id_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
-
-      assert is_list(resp_body["errors"])
-      assert match?(%{"extensions" => %{"code" => "FORBIDDEN"}}, hd(resp_body["errors"]))
-      refute resp_entity
     end
 
     test "success with related entities", %{conn: conn} do
