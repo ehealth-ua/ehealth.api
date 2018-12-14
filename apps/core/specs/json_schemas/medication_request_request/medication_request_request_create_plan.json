@@ -653,10 +653,6 @@
       "exclusiveMinimum": true,
       "description": "Medication quantity isuued by the doctor"
     },
-    "medical_program_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "Medical program identifier"
-    },
     "intent": {
       "type": "string",
       "enum": [

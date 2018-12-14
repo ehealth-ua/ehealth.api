@@ -733,6 +733,12 @@
             "latitude",
             "longitude"
           ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "mountain_group": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -764,6 +770,9 @@
             },
             "phones": {
               "type": "array"
+            },
+            "no_tax_id": {
+              "type": "boolean"
             }
           },
           "additionalProperties": false
