@@ -1,10 +1,9 @@
 defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   @moduledoc false
 
+  alias Core.Log
   alias Ecto.Changeset
   alias EView.Helpers.ChangesetValidationsParser
-
-  require Logger
 
   @unauthenticated_error_message "Unable to authenticate request"
   @forbidden_error_message "Current client is not allowed to access this resource"
@@ -39,7 +38,7 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   end
 
   def render_error({:error, error}) do
-    Logger.error("Got undefined error #{inspect(error)}}")
+    Log.error("Got undefined error #{inspect(error)}}")
 
     {:error,
      %{

@@ -9,7 +9,7 @@ config :graphql, GraphQLWeb.Endpoint,
   secret_key_base: "CYmgC8ImSRDRzR8UuogkPi3LY9xnvdta6S4pJmKDSQPnqRF9p5PNNS11eE7a2Uc5",
   debug_errors: false,
   render_errors: [
-    view: EView.Views.PhoenixError,
+    view: GraphQLWeb.Resolvers.Helpers.ErrorView,
     accepts: ~w(json)
   ]
 

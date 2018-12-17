@@ -3,18 +3,20 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
 
   use Confex, otp_app: :core
   use TasKafka.Task, topic: "merge_legal_entities"
+
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
+
   alias Core.Employees.Employee
   alias Core.Employees.EmployeeUpdater
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntityUpdater
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.Log
   alias Core.PRMRepo
   alias Ecto.Changeset
   alias Ecto.UUID
   alias TasKafka.Jobs
-  require Logger
 
   defstruct [:job_id, :reason, :headers, :merged_from_legal_entity, :merged_to_legal_entity, :signed_content]
 
@@ -39,24 +41,24 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
             end)
           end)
 
-        Logger.error("failed to merge legal entities with: #{inspect(errors)}")
+        Log.error("Failed to merge legal entities with: #{inspect(errors)}")
         Jobs.failed(job.job_id, errors)
 
       {:error, reason} ->
-        Logger.error("failed to merge legal entities with: #{inspect(reason)}")
+        Log.error("Failed to merge legal entities with: #{inspect(reason)}")
         Jobs.failed(job.job_id, reason)
     end
 
     :ok
   rescue
     e ->
-      Logger.error("failed to merge legal entities with: #{inspect(e)}")
+      Log.error("Failed to merge legal entities with: #{inspect(e)}")
       Jobs.failed(job.job_id, "raised an exception: #{inspect(e)}")
       :ok
   end
 
   def consume(value) do
-    Logger.warn(fn -> "unknown kafka event: #{inspect(value)}" end)
+    Log.warn("Unknown kafka event: #{inspect(value)}")
     :ok
   end
 
