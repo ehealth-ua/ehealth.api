@@ -156,7 +156,6 @@ defmodule EHealth.DeclarationRequests.Terminator do
           status: ^status,
           data: nil,
           authentication_method_current: nil,
-          documents: nil,
           printout_content: nil,
           updated_by: ^user_id,
           updated_at: ^NaiveDateTime.utc_now()

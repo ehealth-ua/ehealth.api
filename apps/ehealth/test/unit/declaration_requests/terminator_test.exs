@@ -37,10 +37,10 @@ defmodule EHealth.DeclarationRequests.TerminatorTest do
 
     expired = DeclarationRequest.status(:expired)
     updated_request = Repo.get(DeclarationRequest, declaration_request1.id)
-    assert %{data: nil, documents: nil, printout_content: nil, status: ^expired} = updated_request
+    assert %{data: nil, printout_content: nil, status: ^expired} = updated_request
 
     signed = DeclarationRequest.status(:signed)
     updated_request = Repo.get(DeclarationRequest, declaration_request2.id)
-    assert %{data: nil, documents: nil, printout_content: nil, status: ^signed} = updated_request
+    assert %{data: nil, printout_content: nil, status: ^signed} = updated_request
   end
 end
