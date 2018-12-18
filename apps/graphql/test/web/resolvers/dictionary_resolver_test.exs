@@ -87,20 +87,20 @@ defmodule GraphQLWeb.DictionaryResolverTest do
 
   describe "update dictionary" do
     test "success", %{conn: conn} do
-      %{id: id} = insert(:il, :dictionary, is_active: true)
+      %{id: id} = insert(:il, :dictionary)
+      labels = ["ADMIN", "SYSTEM", "EXTERNAL"]
 
       dictionary_params = %{
         id: Node.to_global_id("Dictionary", id),
-        is_active: false,
-        labels: ["ADMIN", "SYSTEM", "EXTERNAL"],
+        labels: labels,
         values: Jason.encode!(%{"key" => "value"})
       }
 
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_body["errors"]
-      assert %{"databaseId" => ^id, "isActive" => false, "values" => %{"key" => "value"}} = resp_entity
-      assert %Dictionary{is_active: false} = Dictionaries.get_by_id(id)
+      assert %{"databaseId" => ^id, "values" => %{"key" => "value"}} = resp_entity
+      assert %Dictionary{labels: ^labels} = Dictionaries.get_by_id(id)
     end
 
     test "fails to update with invalid label", %{conn: conn} do
@@ -116,6 +116,54 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       refute resp_entity
       assert [error] = resp_body["errors"]
       assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+    end
+
+    test "fails to update on duplicated labels", %{conn: conn} do
+      %{id: id} = insert(:il, :dictionary, is_active: true)
+
+      dictionary_params = %{
+        id: Node.to_global_id("Dictionary", id),
+        labels: ["SYSTEM", "SYSTEM"]
+      }
+
+      {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
+
+      refute resp_entity
+      assert [error] = resp_body["errors"]
+      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+      assert Map.has_key?(hd(error["errors"]), "$.labels")
+    end
+
+    test "fails to rename dictionary", %{conn: conn} do
+      %{id: id} = insert(:il, :dictionary, name: "TEST_DICTIONARY", is_active: true)
+
+      dictionary_params = %{
+        id: Node.to_global_id("Dictionary", id),
+        name: "NEW_NAME"
+      }
+
+      {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
+
+      refute resp_entity
+      assert [error] = resp_body["errors"]
+      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+      assert Map.has_key?(hd(error["errors"]), "$.name")
+    end
+
+    test "fails to update deactivated dictionary", %{conn: conn} do
+      %{id: id} = insert(:il, :dictionary, name: "TEST_DICTIONARY", is_active: false)
+
+      dictionary_params = %{
+        id: Node.to_global_id("Dictionary", id),
+        values: Jason.encode!(%{"key" => "value"})
+      }
+
+      {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
+
+      refute resp_entity
+      assert [error] = resp_body["errors"]
+      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+      assert Map.has_key?(hd(error["errors"]), "$.is_active")
     end
 
     test "fails to update on empty values", %{conn: conn} do

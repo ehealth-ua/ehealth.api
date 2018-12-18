@@ -35,7 +35,6 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
       input do
         field(:id, non_null(:id))
         field(:name, :string)
-        field(:is_active, :boolean)
         field(:labels, list_of(:string))
         field(:values, :json)
       end

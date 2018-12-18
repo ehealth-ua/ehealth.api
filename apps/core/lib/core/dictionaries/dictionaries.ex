@@ -10,6 +10,21 @@ defmodule Core.Dictionaries do
   alias Core.Dictionaries.DictionarySearch
   alias Core.Repo
 
+  @fields ~W(
+    name
+    values
+    labels
+    is_active
+  )a
+
+  @labels ~W(
+    SYSTEM
+    EXTERNAL
+    ADMIN
+    READ_ONLY
+    TRANSLATIONS
+  )
+
   def get_by_id(id), do: Repo.get(Dictionary, id)
 
   def fetch_by_id(id) do
@@ -21,7 +36,7 @@ defmodule Core.Dictionaries do
 
   def list_dictionaries(attrs \\ %{}) do
     %DictionarySearch{}
-    |> dictionary_changeset(attrs)
+    |> changeset_search(attrs)
     |> search_dictionaries()
   end
 
@@ -51,17 +66,17 @@ defmodule Core.Dictionaries do
 
   def create_dictionary(attrs \\ %{}) do
     %Dictionary{}
-    |> dictionary_changeset(attrs)
+    |> changeset_create(attrs)
     |> Repo.insert()
   end
 
   def update_dictionary(%Dictionary{} = dictionary, attrs) do
     dictionary
-    |> dictionary_changeset(attrs)
+    |> changeset_update(attrs)
     |> Repo.update()
   end
 
-  defp dictionary_changeset(%DictionarySearch{} = dictionary, attrs) do
+  defp changeset_search(%DictionarySearch{} = dictionary, attrs) do
     fields = ~W(
       name
       is_active
@@ -70,26 +85,23 @@ defmodule Core.Dictionaries do
     cast(dictionary, attrs, fields)
   end
 
-  defp dictionary_changeset(%Dictionary{} = dictionary, attrs) do
-    fields = ~W(
-      name
-      values
-      labels
-      is_active
-    )a
-
-    labels = ~W(
-      SYSTEM
-      EXTERNAL
-      ADMIN
-      READ_ONLY
-      TRANSLATIONS
-    )
-
+  defp changeset_create(%Dictionary{} = dictionary, attrs) do
     dictionary
-    |> cast(attrs, fields)
-    |> validate_required(fields)
-    |> validate_subset(:labels, labels)
+    |> cast(attrs, @fields)
+    |> validate_required(@fields)
+    |> validate_subset(:labels, @labels)
+    |> validate_labels()
+    |> validate_values()
+  end
+
+  defp changeset_update(%Dictionary{} = dictionary, attrs) do
+    dictionary
+    |> cast(attrs, @fields)
+    |> validate_required(@fields)
+    |> validate_is_active(dictionary)
+    |> validate_name()
+    |> validate_subset(:labels, @labels)
+    |> validate_labels()
     |> validate_values()
   end
 
@@ -116,6 +128,32 @@ defmodule Core.Dictionaries do
     dictionary_list
     |> get_dictionaries()
     |> Enum.reduce(%{}, fn {d_name, d_values}, acc -> Map.put(acc, d_name, Map.keys(d_values)) end)
+  end
+
+  defp validate_name(changeset) do
+    validate_change(changeset, :name, fn :name, _ -> [name: "Name can't be changed"] end)
+  end
+
+  defp validate_is_active(changeset, %Dictionary{is_active: false}) do
+    add_error(changeset, :is_active, "Deactivated dictionary is not allowed to be updated")
+  end
+
+  defp validate_is_active(changeset, _) do
+    validate_change(changeset, :is_active, fn _, _ -> [is_active: "Dictionary is not allowed to be deactivated"] end)
+  end
+
+  defp validate_labels(changeset) do
+    case fetch_field(changeset, :labels) do
+      {:changes, labels} ->
+        if labels != Enum.uniq(labels) do
+          add_error(changeset, :labels, "Labels are duplicated")
+        else
+          changeset
+        end
+
+      _ ->
+        changeset
+    end
   end
 
   defp validate_values(changeset) do
