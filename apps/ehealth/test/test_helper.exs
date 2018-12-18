@@ -2,6 +2,7 @@
 
 ExUnit.start()
 
+Ecto.Adapters.SQL.Sandbox.mode(Core.ReadRepo, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, :manual)

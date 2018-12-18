@@ -21,7 +21,6 @@ defmodule Core.ContractRequests.Validator do
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.PRMRepo
-  alias Core.Repo
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
@@ -39,6 +38,8 @@ defmodule Core.ContractRequests.Validator do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   # Contract Request
 
@@ -79,7 +80,7 @@ defmodule Core.ContractRequests.Validator do
       when not is_nil(previous_id) do
     schema = RequestPack.get_schema_by_type(pack.type)
 
-    with {_, %{__struct__: _} = contract_request} <- {:request, Repo.get(schema, previous_id)},
+    with {_, %{__struct__: _} = contract_request} <- {:request, @read_repo.get(schema, previous_id)},
          {_, true} <-
            {:contractor_legal_entity_id, contract_request.contractor_legal_entity_id == contractor_legal_entity_id},
          {_, true} <- {:status, contract_request.status != CapitationContractRequest.status(:signed)} do

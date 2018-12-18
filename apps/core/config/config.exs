@@ -3,7 +3,7 @@ use Mix.Config
 config :core,
   namespace: Core,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
-  ecto_repos: [Core.Repo, Core.PRMRepo, Core.FraudRepo, Core.EventManagerRepo]
+  ecto_repos: [Core.ReadRepo, Core.Repo, Core.PRMRepo, Core.FraudRepo, Core.EventManagerRepo]
 
 config :ecto, json_library: Jason
 
@@ -31,7 +31,10 @@ config :core,
   cache: [
     validators: Core.Validators.Cache
   ],
-  rpc_worker: Core.Rpc.Worker
+  rpc_worker: Core.Rpc.Worker,
+  repos: [
+    read_repo: Core.ReadRepo
+  ]
 
 # Configures Legal Entities token permission
 config :core, Core.Context,

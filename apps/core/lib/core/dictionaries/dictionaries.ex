@@ -10,6 +10,8 @@ defmodule Core.Dictionaries do
   alias Core.Dictionaries.DictionarySearch
   alias Core.Repo
 
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
+
   @fields ~W(
     name
     values
@@ -25,7 +27,7 @@ defmodule Core.Dictionaries do
     TRANSLATIONS
   )
 
-  def get_by_id(id), do: Repo.get(Dictionary, id)
+  def get_by_id(id), do: @read_repo.get(Dictionary, id)
 
   def fetch_by_id(id) do
     case get_by_id(id) do
@@ -44,11 +46,11 @@ defmodule Core.Dictionaries do
     params = Map.to_list(changes)
     query = from(d in Dictionary, where: ^params)
 
-    {:ok, Repo.all(query)}
+    {:ok, @read_repo.all(query)}
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: true}) do
-    {:ok, Repo.all(Dictionary)}
+    {:ok, @read_repo.all(Dictionary)}
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: false} = changeset) do
@@ -62,7 +64,7 @@ defmodule Core.Dictionaries do
     end
   end
 
-  def get_dictionary(name), do: Repo.get_by(Dictionary, name: name)
+  def get_dictionary(name), do: @read_repo.get_by(Dictionary, name: name)
 
   def create_dictionary(attrs \\ %{}) do
     %Dictionary{}
@@ -120,7 +122,7 @@ defmodule Core.Dictionaries do
     query = from(d in Dictionary, where: d.name in ^dictionary_list and d.is_active, select: {d.name, d.values})
 
     query
-    |> Repo.all()
+    |> @read_repo.all()
     |> Map.new()
   end
 

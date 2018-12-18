@@ -29,6 +29,7 @@ defmodule Core.DeclarationRequests do
   @status_new DeclarationRequest.status(:new)
   @status_rejected DeclarationRequest.status(:rejected)
   @status_approved DeclarationRequest.status(:approved)
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   @fields_optional ~w(
     data
@@ -51,7 +52,7 @@ defmodule Core.DeclarationRequests do
     |> filter_by_employee_id(params)
     |> filter_by_legal_entity_id(params)
     |> filter_by_status(params)
-    |> Repo.paginate(params)
+    |> @read_repo.paginate(params)
   end
 
   def approve(id, verification_code, headers) do
@@ -112,7 +113,7 @@ defmodule Core.DeclarationRequests do
   def get_documents(declaration_id) do
     DeclarationRequest
     |> where([dr], dr.declaration_id == ^declaration_id)
-    |> Repo.one!()
+    |> @read_repo.one!()
     |> Documents.generate_links()
   end
 
@@ -123,7 +124,7 @@ defmodule Core.DeclarationRequests do
     DeclarationRequest
     |> where([dr], dr.id == ^id)
     |> filter_by_legal_entity_id(params)
-    |> Repo.one!()
+    |> @read_repo.one!()
   end
 
   def create_offline(params, headers) do

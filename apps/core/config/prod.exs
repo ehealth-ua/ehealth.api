@@ -1,5 +1,17 @@
 use Mix.Config
 
+config :core, Core.ReadRepo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "${READ_DB_NAME}",
+  username: "${READ_DB_USER}",
+  password: "${READ_DB_PASSWORD}",
+  hostname: "${READ_DB_HOST}",
+  port: "${READ_DB_PORT}",
+  pool_size: "${READ_DB_POOL_SIZE}",
+  timeout: 15_000,
+  pool_timeout: 15_000,
+  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+
 config :core, Core.Repo,
   adapter: Ecto.Adapters.Postgres,
   database: "${DB_NAME}",

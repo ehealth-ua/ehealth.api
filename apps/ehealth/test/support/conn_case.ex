@@ -13,6 +13,7 @@ defmodule EHealth.Web.ConnCase do
   of the test unless the test case is marked as async.
   """
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   @client_id "d290f1ee-6c54-4b01-90e6-d701748f0851"
   @header_consumer_id "x-consumer-id"
@@ -34,14 +35,16 @@ defmodule EHealth.Web.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.Repo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.PRMRepo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.EventManagerRepo)
+    :ok = Sandbox.checkout(Core.ReadRepo)
+    :ok = Sandbox.checkout(Core.Repo)
+    :ok = Sandbox.checkout(Core.PRMRepo)
+    :ok = Sandbox.checkout(Core.EventManagerRepo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
+      Sandbox.mode(Core.ReadRepo, {:shared, self()})
+      Sandbox.mode(Core.Repo, {:shared, self()})
+      Sandbox.mode(Core.PRMRepo, {:shared, self()})
+      Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
     end
 
     conn =

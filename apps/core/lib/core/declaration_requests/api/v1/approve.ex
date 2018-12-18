@@ -7,7 +7,6 @@ defmodule Core.DeclarationRequests.API.Approve do
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.Parties.Party
-  alias Core.Repo
   alias Core.Validators.Error
   require Logger
 
@@ -15,6 +14,7 @@ defmodule Core.DeclarationRequests.API.Approve do
   @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @auth_otp DeclarationRequest.authentication_method(:otp)
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   def verify(declaration_request, code, headers) do
     with {:ok, _} <- verify_auth(declaration_request, code),
@@ -140,7 +140,7 @@ defmodule Core.DeclarationRequests.API.Approve do
       [dr],
       dr.status == ^status and fragment("?->'employee'->>'id'", dr.data) in ^employee_ids
     )
-    |> Repo.one()
+    |> @read_repo.one()
   end
 
   defp get_declaration_limit(employees) do

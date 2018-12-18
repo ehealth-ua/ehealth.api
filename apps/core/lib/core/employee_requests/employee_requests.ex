@@ -32,6 +32,7 @@ defmodule Core.EmployeeRequests do
   alias Core.Validators.Signature
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -54,7 +55,7 @@ defmodule Core.EmployeeRequests do
       |> filter_by_legal_entities_params(params)
       |> filter_by_status(params)
       |> filter_by_no_tax_id(params)
-      |> Repo.paginate(params)
+      |> @read_repo.paginate(params)
 
     legal_entity_ids =
       paging.entries
@@ -129,12 +130,10 @@ defmodule Core.EmployeeRequests do
 
   defp filter_by_status(query, _), do: query
 
-  def get_by_id!(id) do
-    Repo.get!(Request, id)
-  end
+  def get_by_id!(id), do: @read_repo.get!(Request, id)
 
   def get_by_id(id) do
-    with %Request{} = employee_request <- Repo.get(Request, id) do
+    with %Request{} = employee_request <- @read_repo.get(Request, id) do
       {:ok, employee_request, preload_references(employee_request)}
     end
   end

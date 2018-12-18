@@ -37,6 +37,7 @@ defmodule Core.MedicationRequestRequests do
   @status_rejected MedicationRequestRequest.status(:rejected)
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   @doc """
   Returns the list of medication_request_requests.
@@ -48,7 +49,7 @@ defmodule Core.MedicationRequestRequests do
 
   """
   def list_medication_request_requests do
-    Repo.all(MedicationRequestRequest)
+    @read_repo.all(MedicationRequestRequest)
   end
 
   def list_medication_request_requests(params, headers) do
@@ -59,7 +60,7 @@ defmodule Core.MedicationRequestRequests do
       |> filter_by_status(changes)
       |> filter_by_intent(changes)
       |> order_by(desc: :inserted_at)
-      |> Repo.paginate(params)
+      |> @read_repo.paginate(params)
       |> preload_fk()
     end
   end
@@ -123,9 +124,9 @@ defmodule Core.MedicationRequestRequests do
     end
   end
 
-  def get_medication_request_request(id), do: Repo.get(MedicationRequestRequest, id)
-  def get_medication_request_request!(id), do: Repo.get!(MedicationRequestRequest, id)
-  def get_medication_request_request_by_query(clauses), do: Repo.get_by(MedicationRequestRequest, clauses)
+  def get_medication_request_request(id), do: @read_repo.get(MedicationRequestRequest, id)
+  def get_medication_request_request!(id), do: @read_repo.get!(MedicationRequestRequest, id)
+  def get_medication_request_request_by_query(clauses), do: @read_repo.get_by(MedicationRequestRequest, clauses)
 
   @doc """
   Creates a medication_request_request.

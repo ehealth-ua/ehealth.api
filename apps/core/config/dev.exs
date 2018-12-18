@@ -66,6 +66,14 @@ config :core, Core.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}
 
 # Configure your database
+config :core, Core.ReadRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "ehealth",
+  hostname: "localhost",
+  pool_size: 10
+
 config :core, Core.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",

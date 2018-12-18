@@ -2,6 +2,7 @@ defmodule Casher.Web.ConnCase do
   @moduledoc false
 
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -19,14 +20,15 @@ defmodule Casher.Web.ConnCase do
   setup tags do
     Casher.Redis.flushdb()
 
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.Repo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.PRMRepo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.EventManagerRepo)
+    :ok = Sandbox.checkout(Core.ReadRepo)
+    :ok = Sandbox.checkout(Core.Repo)
+    :ok = Sandbox.checkout(Core.PRMRepo)
+    :ok = Sandbox.checkout(Core.EventManagerRepo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
+      Sandbox.mode(Core.Repo, {:shared, self()})
+      Sandbox.mode(Core.PRMRepo, {:shared, self()})
+      Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

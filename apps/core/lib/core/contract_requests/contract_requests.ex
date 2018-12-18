@@ -1,7 +1,7 @@
 defmodule Core.ContractRequests do
   @moduledoc false
 
-  use Core.Search, Core.Repo
+  use Core.Search, Application.get_env(:core, :repos)[:read_repo]
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Changeset
@@ -52,17 +52,20 @@ defmodule Core.ContractRequests do
     CapitationContractRequest.status(:terminated)
   ]
 
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
+
   defmacro __using__(schema: schema) do
     quote do
       import Core.API.Helpers.Connection, only: [get_client_id: 1]
 
       alias Core.ContractRequests
       alias Core.ContractRequests.Validator
-      alias Core.Repo
 
-      def get_by_id(id), do: Repo.get_by(unquote(schema), %{id: id, type: unquote(schema).type()})
+      @read_repo Application.get_env(:core, :repos)[:read_repo]
 
-      def get_by_id!(id), do: Repo.get_by!(unquote(schema), %{id: id, type: unquote(schema).type()})
+      def get_by_id(id), do: @read_repo.get_by(unquote(schema), %{id: id, type: unquote(schema).type()})
+
+      def get_by_id!(id), do: @read_repo.get_by!(unquote(schema), %{id: id, type: unquote(schema).type()})
 
       def fetch_by_id(id) do
         case get_by_id(id) do
@@ -497,7 +500,7 @@ defmodule Core.ContractRequests do
   def get_partially_signed_content_url(headers, %{"id" => id}) do
     client_id = get_client_id(headers)
 
-    with %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
+    with %CapitationContractRequest{} = contract_request <- @read_repo.get(CapitationContractRequest, id),
          {_, true} <- {:signed_nhs, contract_request.status == @nhs_signed},
          :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
          {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
@@ -737,7 +740,7 @@ defmodule Core.ContractRequests do
       |> where_medical_program(type, params)
       |> where([c], c.status in ^[@new, @in_process, @approved, @nhs_signed, @pending_nhs_sign])
       |> where([c], c.end_date >= ^params["start_date"] and c.start_date <= ^params["end_date"])
-      |> Repo.all()
+      |> @read_repo.all()
 
     CapitationContractRequest
     |> where([c], c.id in ^contract_ids)

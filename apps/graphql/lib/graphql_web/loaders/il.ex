@@ -4,9 +4,10 @@ defmodule GraphQLWeb.Loaders.IL do
   import Ecto.Query, only: [where: 2]
 
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
-  alias Core.Repo
 
-  def data, do: Dataloader.Ecto.new(Repo, query: &query/2)
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
+
+  def data, do: Dataloader.Ecto.new(@read_repo, query: &query/2)
 
   def query(CapitationContractRequest, %{client_type: "MSP", client_id: client_id}) do
     where(CapitationContractRequest, contractor_legal_entity_id: ^client_id)

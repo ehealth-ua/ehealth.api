@@ -48,6 +48,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   @allowed_employee_specialities [@pediatrician, @therapist, @family_doctor]
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   def create(params, user_id, person, employee, division, legal_entity, headers) do
     global_parameters = GlobalParameters.get_values()
@@ -78,7 +79,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   def cancel_declaration_requests(user_id, pending_declaration_requests) do
     previous_request_ids =
       pending_declaration_requests
-      |> Repo.all()
+      |> @read_repo.all()
       |> Enum.map(&Map.get(&1, :id))
 
     DeclarationRequest

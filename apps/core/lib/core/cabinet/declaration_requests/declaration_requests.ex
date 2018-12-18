@@ -6,12 +6,12 @@ defmodule Core.Cabinet.DeclarationRequests do
 
   alias Core.Cabinet.DeclarationRequestsSearch
   alias Core.DeclarationRequests.DeclarationRequest
-  alias Core.Repo
   alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @status_expired DeclarationRequest.status(:expired)
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   def search(search_params, headers) do
     user_id = get_consumer_id(headers)
@@ -33,7 +33,7 @@ defmodule Core.Cabinet.DeclarationRequests do
          {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
          :ok <- validate_user_person(user, person),
          :ok <- check_user_blocked(user["is_blocked"]),
-         %DeclarationRequest{} = declaration_request <- Repo.get(DeclarationRequest, id),
+         %DeclarationRequest{} = declaration_request <- @read_repo.get(DeclarationRequest, id),
          :ok <- validate_person_id(declaration_request, person["id"]) do
       {:ok, declaration_request}
     end
@@ -67,7 +67,7 @@ defmodule Core.Cabinet.DeclarationRequests do
     |> filter_by_person_id(person_id)
     |> filter_by_status(params)
     |> filter_by_start_year(params)
-    |> Repo.paginate(params)
+    |> @read_repo.paginate(params)
   end
 
   defp filter_by_person_id(query, person_id) when is_binary(person_id) do

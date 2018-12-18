@@ -16,6 +16,7 @@ defmodule Core.Users.API do
   require Logger
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   def create_credentials_recovery_request(attrs, opts \\ []) do
     upstream_headers = Keyword.get(opts, :upstream_headers, [])
@@ -58,7 +59,7 @@ defmodule Core.Users.API do
   end
 
   defp fetch_credentials_recovery_request(request_id) do
-    case Repo.get_by(CredentialsRecoveryRequest, id: request_id, is_active: true) do
+    case @read_repo.get_by(CredentialsRecoveryRequest, id: request_id, is_active: true) do
       nil -> {:error, :not_found}
       %CredentialsRecoveryRequest{} = request -> {:ok, request}
     end

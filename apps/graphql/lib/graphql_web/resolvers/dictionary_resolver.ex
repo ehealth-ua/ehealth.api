@@ -7,14 +7,15 @@ defmodule GraphQLWeb.Resolvers.DictionaryResolver do
   alias Absinthe.Relay.Connection
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
-  alias Core.Repo
+
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   def list_dictionaries(%{filter: filter} = args, _resolution) do
     filter = prepare_filter(filter)
 
     Dictionary
     |> filter(filter)
-    |> Connection.from_query(&Repo.all/1, args)
+    |> Connection.from_query(&@read_repo.all/1, args)
   end
 
   defp prepare_filter([]), do: []

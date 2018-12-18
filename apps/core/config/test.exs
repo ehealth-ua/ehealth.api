@@ -18,7 +18,10 @@ config :core,
   cache: [
     validators: Core.Validators.CacheTest
   ],
-  rpc_worker: RPCWorkerMock
+  rpc_worker: RPCWorkerMock,
+  repos: [
+    read_repo: Core.Repo
+  ]
 
 # Configures PRM API
 config :core, Core.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
@@ -58,6 +61,15 @@ config :core, Core.API.MediaStorage,
   enabled?: {:system, :boolean, "MEDIA_STORAGE_ENABLED", false}
 
 # Databases configuration
+config :core, Core.ReadRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "ehealth_test",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 120_000_000
+
 config :core, Core.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
@@ -127,7 +139,7 @@ config :core, :emails,
   }
 
 config :core, Core.Man.Templates.HashChainVerificationNotification,
-  id: 32167,
+  id: 32_167,
   format: "text/html",
   locale: "uk_UA"
 

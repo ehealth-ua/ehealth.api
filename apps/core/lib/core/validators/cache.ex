@@ -5,7 +5,7 @@ defmodule Core.Validators.Cache do
 
   @behaviour Core.Validators.CacheBehaviour
 
-  def start_link do
+  def start_link(_) do
     GenServer.start_link(__MODULE__, [])
   end
 
