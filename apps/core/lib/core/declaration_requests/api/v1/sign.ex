@@ -222,6 +222,17 @@ defmodule Core.DeclarationRequests.API.Sign do
     with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
       :ok
     end
+  rescue
+    error ->
+      Logger.warn(fn ->
+        Jason.encode!(%{
+          "log_type" => "warn",
+          "message" => "Failed to save cache #{inspect(error)}",
+          "request_id" => Logger.metadata()[:request_id]
+        })
+      end)
+
+      :ok
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do
