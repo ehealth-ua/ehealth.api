@@ -252,8 +252,12 @@ config :core, :employee_specialities_types,
   pharmacist: {:system, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PHARMACIST2"]}
 
 config :core, :medication_request_request,
-  expire_in_minutes: {:system, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},
-  otp_code_length: {:system, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4}
+  expire_in_minutes: {:system, :integer, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},
+  otp_code_length: {:system, :integer, "MEDICATION_REQUEST_REQUEST_OTP_CODE_LENGTH", 4},
+  delay_input: {:system, :integer, "MEDICATION_REQUEST_REQUEST_DELAY_INPUT", 3},
+  standard_duration: {:system, :integer, "MEDICATION_REQUEST_REQUEST_STANDARD_DURATION", 21},
+  min_renew_days: {:system, :integer, "MEDICATION_REQUEST_MIN_RENEW_DAY", 3},
+  max_renew_days: {:system, :integer, "MEDICATION_REQUEST_MAX_RENEW_DAY", 7}
 
 config :core, :medication_request,
   sign_template_sms:

@@ -1,17 +1,25 @@
 defmodule Core.MedicationRequestRequest.Validations do
   @moduledoc false
 
+  import Ecto.Changeset
+  require Logger
+
   alias Core.Declarations.API, as: DeclarationsAPI
   alias Core.Dictionaries
   alias Core.Employees
   alias Core.Employees.Employee
+  alias Core.GlobalParameters
+  alias Core.MedicationRequestRequest.EmbeddedData
   alias Core.MedicationRequestRequest.Renderer, as: MedicationRequestRequestRenderer
+  alias Core.MedicationRequests.MedicationRequest
   alias Core.Medications
+  alias Core.Rpc.Error, as: RpcError
   alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
+  @intent_order EmbeddedData.intent(:order)
 
   def validate_create_schema(:generic, params) do
     JsonSchema.validate(:medication_request_request_create_generic, params)
@@ -222,6 +230,125 @@ defmodule Core.MedicationRequestRequest.Validations do
     end)
   end
 
+  def validate_dispense_valid_from(operation, %{"intent" => @intent_order} = attrs) do
+    {:ok,
+     Map.put(
+       operation,
+       :changeset,
+       put_change(operation.changeset, :dispense_valid_from, Date.from_iso8601!(attrs["created_at"]))
+     )}
+  end
+
+  def validate_dispense_valid_from(operation, _attrs), do: {:ok, operation}
+
+  def validate_dispense_valid_to(operation, %{"intent" => @intent_order}) do
+    medication_dispense_period =
+      GlobalParameters.get_values()
+      |> Map.get("medication_dispense_period")
+      |> String.to_integer()
+
+    {:ok,
+     Map.put(
+       operation,
+       :changeset,
+       put_change(
+         operation.changeset,
+         :dispense_valid_to,
+         Date.add(operation.changeset.changes.dispense_valid_from, medication_dispense_period)
+       )
+     )}
+  end
+
+  def validate_dispense_valid_to(operation, _attrs), do: {:ok, operation}
+
+  def validate_treatment_period(
+        %{
+          changeset: %{
+            changes: %{
+              started_at: started_at,
+              ended_at: ended_at,
+              dispense_valid_from: dispense_valid_from,
+              dispense_valid_to: dispense_valid_to
+            }
+          }
+        },
+        %{"intent" => @intent_order}
+      ) do
+    treatment_period = Timex.diff(ended_at, started_at, :days)
+    medication_dispense_period = Timex.diff(dispense_valid_to, dispense_valid_from, :days)
+
+    if treatment_period < medication_dispense_period do
+      {:invalid_period, nil}
+    else
+      {:ok, nil}
+    end
+  end
+
+  def validate_treatment_period(_operation, _attrs), do: {:ok, nil}
+
+  def validate_existing_medication_requests(_data, nil), do: {:ok, nil}
+
+  def validate_existing_medication_requests(%{"intent" => @intent_order} = data, medical_program_id) do
+    search_params = %{
+      "person_id" => data["person_id"],
+      "medication_id" => data["medication_id"],
+      "medical_program_id" => medical_program_id,
+      "status" => [MedicationRequest.status(:active), MedicationRequest.status(:completed)]
+    }
+
+    case @rpc_worker.run("ops", Core.Rpc, :last_medication_request_dates, [search_params]) do
+      {:ok, nil} ->
+        {:ok, nil}
+
+      {:ok, medication_request_dates} ->
+        do_validate_existing_medication_requests(medication_request_dates, Date.from_iso8601!(data["created_at"]))
+
+      {:error, error} ->
+        Logger.error(
+          "RPC fail: Core.Rpc.last_medication_request_dates: #{inspect(search_params)} with error #{inspect(error)}"
+        )
+
+        raise(RpcError, message: "Cannot fetch persons medication requests")
+    end
+  end
+
+  def validate_existing_medication_requests(_data, _medical_program_id), do: {:ok, nil}
+
+  defp do_validate_existing_medication_requests(
+         %{"started_at" => last_mr_started_at, "ended_at" => last_mr_ended_at},
+         created_at
+       ) do
+    config = Confex.fetch_env!(:core, :medication_request_request)
+    mrr_standard_duration = config[:standard_duration]
+    min_mrr_renew_days = config[:min_renew_days]
+    max_mrr_renew_days = config[:max_renew_days]
+
+    comparison_period = Date.diff(last_mr_ended_at, last_mr_started_at)
+
+    with {:greater_than_today, true} <-
+           {:greater_than_today, Date.compare(last_mr_ended_at, Date.utc_today()) in [:gt, :eq]},
+         {:greater_than_mrr_standard_duration, true} <-
+           {:greater_than_mrr_standard_duration, comparison_period >= mrr_standard_duration} do
+      if Date.compare(created_at, Date.add(last_mr_ended_at, -max_mrr_renew_days)) in [:gt, :eq] and
+           Date.compare(Date.add(last_mr_ended_at, -max_mrr_renew_days), Date.utc_today()) in [:gt, :eq] do
+        {:ok, nil}
+      else
+        {:invalid_existing_medication_requests, nil}
+      end
+    else
+      {:greater_than_today, false} ->
+        {:ok, nil}
+
+      {:greater_than_mrr_standard_duration, false} ->
+        if Date.compare(created_at, Date.add(last_mr_ended_at, -min_mrr_renew_days)) in [:gt, :eq] and
+             Date.compare(Date.add(last_mr_ended_at, -min_mrr_renew_days), Date.utc_today()) in [:gt, :eq] do
+          {:ok, nil}
+        else
+          {:invalid_existing_medication_requests, nil}
+        end
+    end
+  end
+
   def decode_sign_content(content, headers) do
     SignatureValidator.validate(
       content["signed_medication_request_request"],
@@ -259,24 +386,32 @@ defmodule Core.MedicationRequestRequest.Validations do
   end
 
   def validate_dates(attrs) do
+    medication_request_request_delay_input = Confex.fetch_env!(:core, :medication_request_request)[:delay_input]
+
+    boundary_date =
+      Date.utc_today()
+      |> Date.add(-medication_request_request_delay_input)
+      |> Date.to_string()
+
     cond do
-      attrs["ended_at"] < attrs["started_at"] ->
+      compare_dates(attrs["ended_at"], attrs["started_at"]) == :lt ->
         {:invalid_state, {:ended_at, "Ended date must be >= Started date!"}}
 
-      attrs["started_at"] < attrs["created_at"] ->
+      compare_dates(attrs["started_at"], attrs["created_at"]) == :lt ->
         {:invalid_state, {:started_at, "Started date must be >= Created date!"}}
 
-      attrs["started_at"] < to_string(Timex.today()) ->
+      compare_dates(attrs["started_at"], to_string(Date.utc_today())) == :lt ->
         {:invalid_state, {:started_at, "Started date must be >= Current date!"}}
 
-      attrs["dispense_valid_from"] < attrs["started_at"] ->
-        {:invalid_state, {:dispense_valid_from, "Dispense valid from date must be >= Started date!"}}
-
-      attrs["dispense_valid_to"] < attrs["dispense_valid_from"] ->
-        {:invalid_state, {:dispense_valid_from, "Dispense valid to date must be >= Dispense valid from date!"}}
+      compare_dates(attrs["created_at"], boundary_date) == :lt ->
+        {:invalid_state, {:created_at, "Create date must be >= Current date - MRR delay input!"}}
 
       true ->
         {:ok, nil}
     end
+  end
+
+  defp compare_dates(date1, date2) when is_binary(date1) and is_binary(date2) do
+    Date.compare(Date.from_iso8601!(date1), Date.from_iso8601!(date2))
   end
 end

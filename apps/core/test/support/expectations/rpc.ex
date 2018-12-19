@@ -22,4 +22,24 @@ defmodule Core.Expectations.RPC do
       response
     end)
   end
+
+  def expect_ops_last_medication_request_dates(params, times_called \\ 1)
+
+  def expect_ops_last_medication_request_dates(nil, times_called) do
+    expect(RPCWorkerMock, :run, times_called, fn _, _, :last_medication_request_dates, _ ->
+      {:ok, nil}
+    end)
+  end
+
+  def expect_ops_last_medication_request_dates(:error, times_called) do
+    expect(RPCWorkerMock, :run, times_called, fn _, _, :last_medication_request_dates, _ ->
+      {:error, "error message"}
+    end)
+  end
+
+  def expect_ops_last_medication_request_dates(params, times_called) when is_map(params) do
+    expect(RPCWorkerMock, :run, times_called, fn _, _, :last_medication_request_dates, _ ->
+      {:ok, Map.merge(%{"started_at" => Date.utc_today(), "ended_at" => Date.utc_today()}, params)}
+    end)
+  end
 end

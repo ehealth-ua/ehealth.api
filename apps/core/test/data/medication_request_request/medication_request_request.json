@@ -5,8 +5,6 @@
   "created_at": "2020-09-22",
   "started_at": "2020-09-22",
   "ended_at": "2020-10-22",
-  "dispense_valid_from": "2020-09-25",
-  "dispense_valid_to": "2020-10-25",
   "medication_id": "1349a693-4db1-4a3f-9ac6-8c2f9e541982",
   "medication_qty": 10,
   "medical_program_id": "1349a693-4db1-4a3f-9ac6-8c2f9e541981",

@@ -36,13 +36,16 @@ defmodule Core.MedicationRequestRequest.EmbeddedData do
   @moduledoc false
   use Ecto.Schema
 
+  @intent_order "order"
+  @intent_plan "plan"
+
   @primary_key false
   embedded_schema do
     field(:created_at, :date, null: false)
     field(:started_at, :date, null: false)
     field(:ended_at, :date, null: false)
-    field(:dispense_valid_from, :date, null: false)
-    field(:dispense_valid_to, :date, null: false)
+    field(:dispense_valid_from, :date)
+    field(:dispense_valid_to, :date)
     field(:person_id, Ecto.UUID, null: false)
     field(:employee_id, Ecto.UUID, null: false)
     field(:division_id, Ecto.UUID, null: false)
@@ -55,4 +58,7 @@ defmodule Core.MedicationRequestRequest.EmbeddedData do
     field(:context, :map)
     field(:dosage_instruction, {:array, :map})
   end
+
+  def intent(:order), do: @intent_order
+  def intent(:plan), do: @intent_plan
 end

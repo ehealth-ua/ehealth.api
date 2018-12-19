@@ -635,14 +635,6 @@
       "$ref": "#/definitions/date",
       "description": "End date of a treatment period, which is determined by the external system. Greater or equal to started_at. Format DATE '2017-10-07'"
     },
-    "dispense_valid_from": {
-      "$ref": "#/definitions/date",
-      "description": "Start date of dispense period, which is determined by the external system. Format DATE '2017-09-07'"
-    },
-    "dispense_valid_to": {
-      "$ref": "#/definitions/date",
-      "description": "End date of dispense period, which is determined by the external system. Greater or equal to dispense_valid_from. Format DATE '2017-10-07'"
-    },
     "medication_id": {
       "$ref": "#/definitions/uuid",
       "description": "Medication identified"
@@ -742,8 +734,6 @@
     "created_at",
     "started_at",
     "ended_at",
-    "dispense_valid_from",
-    "dispense_valid_to",
     "medication_id",
     "medication_qty",
     "medical_program_id",

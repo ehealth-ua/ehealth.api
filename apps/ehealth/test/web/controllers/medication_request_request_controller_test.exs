@@ -5,12 +5,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   import Mox
   import Core.Expectations.RPC
   import Core.Expectations.Signature
+
+  alias Core.GlobalParameters
   alias Core.MedicationRequestRequest
   alias Core.MedicationRequestRequests
-  alias EHealth.MockServer
-  alias Core.Repo
   alias Core.PRMRepo
+  alias Core.Repo
+  alias Core.Rpc.Error, as: RpcError
   alias Ecto.UUID
+  alias EHealth.MockServer
 
   setup :verify_on_exit!
 
@@ -38,9 +41,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     {medication_id, pm} = create_medications_structure()
 
     test_request =
-      test_request()
-      |> Map.put("medication_id", medication_id)
-      |> Map.put("medical_program_id", pm.medical_program_id)
+      test_request(%{
+        "medication_id" => medication_id,
+        "medical_program_id" => pm.medical_program_id
+      })
       |> Map.merge(params)
 
     test_request =
@@ -51,7 +55,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end
 
     {:ok, medication_request_request} =
-      MedicationRequestRequests.create(test_request, "7488a646-e31f-11e4-aace-600308960662", @legal_entity_id)
+      MedicationRequestRequests.create(
+        test_request,
+        "7488a646-e31f-11e4-aace-600308960662",
+        @legal_entity_id
+      )
 
     medication_request_request
   end
@@ -81,7 +89,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     user_id = Ecto.UUID.generate()
     PRMRepo.insert!(%Core.PartyUsers.PartyUser{user_id: user_id, party_id: party_id})
 
-    insert(:il, :dictionary, name: "eHealth/SNOMED/additional_dosage_instructions", values: %{"311504000" => ""})
+    insert(:il, :dictionary,
+      name: "eHealth/SNOMED/additional_dosage_instructions",
+      values: %{"311504000" => ""}
+    )
+
     insert(:il, :dictionary, name: "eHealth/timing_abbreviation", values: %{"patient" => ""})
 
     insert(:il, :dictionary,
@@ -90,7 +102,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     )
 
     insert(:il, :dictionary, name: "eHealth/SNOMED/route_codes", values: %{"46713006" => ""})
-    insert(:il, :dictionary, name: "eHealth/SNOMED/administration_methods", values: %{"419747000" => ""})
+
+    insert(:il, :dictionary,
+      name: "eHealth/SNOMED/administration_methods",
+      values: %{"419747000" => ""}
+    )
+
     insert(:il, :dictionary, name: "eHealth/dose_and_rate", values: %{"ordered" => ""})
 
     conn =
@@ -110,6 +127,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       mrr = fixture(:medication_request_request)
@@ -127,6 +145,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data with different intents", %{conn: conn} do
       expect_ops_get_declarations(2)
       expect_mpi_get_person(4)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished", 2)
 
       fixture(:medication_request_request, %{"intent" => "order"})
@@ -144,6 +163,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data search by status", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       fixture(:medication_request_request)
@@ -160,6 +180,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       mrr = fixture(:medication_request_request)
@@ -174,9 +195,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                |> length
     end
 
-    test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
+    test "lists all medication_request_requests with data search by all posible filters", %{
+      conn: conn
+    } do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       mrr = fixture(:medication_request_request, %{"intent" => "order"})
@@ -200,6 +224,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "lists all medication_request_requests with data search by intent", %{conn: conn} do
       expect_ops_get_declarations(2)
       expect_mpi_get_person(3)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished", 2)
 
       %{medication_request_request: %{id: mrr_id_in}} = fixture(:medication_request_request, %{"intent" => "order"})
@@ -222,6 +247,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "ignore invalid search params", %{conn: conn} do
       expect_ops_get_declarations(2)
       expect_mpi_get_person(4)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished", 2)
 
       fixture(:medication_request_request, %{"intent" => "order"})
@@ -280,6 +306,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "success", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       %{medication_request_request: %{id: id}} = fixture(:medication_request_request)
@@ -302,7 +329,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> json_response(200)
         |> Map.get("data")
 
-      assert_show_response_schema(resp, "medication_request_request", "medication_request_request_plan")
+      assert_show_response_schema(
+        resp,
+        "medication_request_request",
+        "medication_request_request_plan"
+      )
+
       assert resp["id"] == id
     end
 
@@ -317,18 +349,27 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => Date.add(Date.utc_today(), -2),
+        "ended_at" => Date.add(Date.utc_today(), -1)
+      })
+
       expect_encounter_status("finished")
 
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       assert %{"id" => id} =
                conn
-               |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+               |> post(medication_request_request_path(conn, :create),
+                 medication_request_request: test_request
+               )
                |> json_response(201)
                |> Map.get("data")
                |> assert_show_response_schema("medication_request_request")
@@ -349,6 +390,135 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
     end
 
+    test "invalid request params", %{conn: conn} do
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request:
+            test_request(%{
+              "dispense_valid_from" => Date.utc_today() |> Date.to_string(),
+              "dispense_valid_to" => Date.utc_today() |> Date.to_string()
+            })
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.dispense_valid_from",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "schema does not allow additional properties",
+                       "rule" => "schema"
+                     }
+                   ]
+                 },
+                 %{
+                   "entry" => "$.dispense_valid_to",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "schema does not allow additional properties",
+                       "rule" => "schema"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "invalid created_at parameter", %{conn: conn} do
+      expect_mpi_get_person()
+      {medication_id, pm} = create_medications_structure()
+
+      medication_request_request_delay_input = Confex.fetch_env!(:core, :medication_request_request)[:delay_input]
+
+      created_at =
+        Date.utc_today()
+        |> Date.add(-(medication_request_request_delay_input + 1))
+        |> Date.to_string()
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => created_at,
+          "started_at" => Date.utc_today() |> to_string(),
+          "ended_at" => Date.utc_today() |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.created_at",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Create date must be >= Current date - MRR delay input!",
+                       "params" => [],
+                       "rule" => nil
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "invalid treatment preriod", %{conn: conn} do
+      expect_mpi_get_person()
+      {medication_id, pm} = create_medications_structure()
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => Date.utc_today() |> to_string(),
+          "started_at" => Date.utc_today() |> to_string(),
+          "ended_at" => Date.utc_today() |> Date.add(medication_dispense_period - 1) |> Date.to_string()
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.ended_at",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Treatment period cannot be less than MR expiration period",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "render medication_request_request when PLAN data does not contain medical_program_id", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
@@ -357,36 +527,43 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, _} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "intent" => "plan"
         })
         |> Map.delete("medical_program_id")
 
       assert conn
-             |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+             |> post(medication_request_request_path(conn, :create),
+               medication_request_request: test_request
+             )
              |> json_response(201)
              |> Map.get("data")
-             |> assert_show_response_schema("medication_request_request", "medication_request_request_plan")
+             |> assert_show_response_schema(
+               "medication_request_request",
+               "medication_request_request_plan"
+             )
     end
 
     test "render medication_request_request when optional fields are absent", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
 
+      expect_ops_last_medication_request_dates(nil)
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id
         })
         |> Map.drop(~w(context dosage_instruction))
 
       assert conn
-             |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+             |> post(medication_request_request_path(conn, :create),
+               medication_request_request: test_request
+             )
              |> json_response(201)
              |> Map.get("data")
              |> assert_show_response_schema("medication_request_request")
@@ -420,34 +597,34 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         {:error, %{"error" => %{"type" => "not_found"}, "meta" => %{"code" => 404}}}
       end)
 
-      test_request =
-        test_request()
-        |> Map.put("person_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      test_request = test_request(%{"person_id" => "585041f5-1272-4bca-8d41-8440eefe7d26"})
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.person_id"
     end
 
     test "render errors when employee_id is invalid", %{conn: conn} do
-      test_request =
-        test_request()
-        |> Map.put("employee_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      test_request = test_request(%{"employee_id" => "585041f5-1272-4bca-8d41-8440eefe7d26"})
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.employee_id"
     end
 
     test "render errors when division_id is invalid", %{conn: conn} do
       expect_mpi_get_person()
 
-      test_request =
-        test_request()
-        |> Map.put("division_id", "585041f5-1272-4bca-8d41-8440eefe7d26")
+      test_request = test_request(%{"division_id" => "585041f5-1272-4bca-8d41-8440eefe7d26"})
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.division_id"
     end
 
@@ -461,12 +638,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("person_id", "575041f5-1272-4bca-8d41-8440eefe7d26")
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "person_id" => "575041f5-1272-4bca-8d41-8440eefe7d26",
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
 
       error_msg =
@@ -486,14 +665,17 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
-        |> Map.put("ended_at", to_string(Timex.shift(Timex.today(), days: 2)))
-        |> Map.put("started_at", to_string(Timex.shift(Timex.today(), days: 3)))
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "ended_at" => Timex.today() |> Timex.shift(days: 2) |> to_string(),
+          "started_at" => Timex.today() |> Timex.shift(days: 3) |> to_string()
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.ended_at"
     end
 
@@ -502,14 +684,17 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
-        |> Map.put("started_at", to_string(Timex.shift(Timex.today(), days: 2)))
-        |> Map.put("created_at", to_string(Timex.shift(Timex.today(), days: 3)))
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "started_at" => Timex.today() |> Timex.shift(days: 2) |> to_string(),
+          "created_at" => Timex.today() |> Timex.shift(days: 3) |> to_string()
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
     end
 
@@ -518,29 +703,35 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
-        |> Map.put("started_at", to_string(Timex.shift(Timex.today(), days: -2)))
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "started_at" => Timex.today() |> Timex.shift(days: -2) |> to_string()
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.started_at"
     end
 
     test "render errors when medication doesn't exists", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
 
       {_, pm} = create_medications_structure()
       {medication_id1, _} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id1)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id1,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
 
       error_msg =
@@ -558,16 +749,19 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render errors when medication_qty is invalid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
 
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medication_qty", 7)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medication_qty" => 7,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
 
       error_msg =
@@ -586,6 +780,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render medication_request_request when medication created with different qty", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
 
       {medication_id, pm} = create_medications_structure()
@@ -602,12 +797,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       insert(:prm, :ingredient_medication, parent_id: med_id1, medication_child_id: medication_id)
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medication_qty", 5)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medication_qty" => 5,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 201)
     end
 
@@ -617,20 +814,21 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, _} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", Ecto.UUID.generate())
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => Ecto.UUID.generate()
+        })
 
       conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert json_response(conn, 422)
+
       assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.medical_program_id"
     end
 
     test "render errors when request ORDER data is invalid", %{conn: conn} do
       test_request =
-        test_request()
-        |> Map.drop(~w(medical_program_id category))
-        |> Map.merge(%{
+        test_request(%{
           "intent" => "order",
           "medication_id" => UUID.generate(),
           "context" => %{
@@ -645,10 +843,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
             }
           }
         })
+        |> Map.drop(~w(medical_program_id category))
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -692,9 +893,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "render errors when request PLAN data is invalid", %{conn: conn} do
       test_request =
-        test_request()
-        |> Map.drop(~w(medical_program_id category))
-        |> Map.merge(%{
+        test_request(%{
           "intent" => "plan",
           "medication_id" => UUID.generate(),
           "context" => %{
@@ -709,10 +908,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
             }
           }
         })
+        |> Map.drop(~w(medical_program_id category))
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -745,8 +947,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "render errors when context coding type is invalid", %{conn: conn} do
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => UUID.generate(),
           "medical_program_id" => UUID.generate(),
           "context" => %{
@@ -766,7 +967,9 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -789,18 +992,22 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render errors when context encounter status is invalid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("entered_in_error")
 
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -823,17 +1030,21 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render errors when context encounter not found", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status(nil)
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -856,21 +1067,26 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render errors when sequence is not unique within dosage instruction array", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       dosage_instruction = Map.get(test_request, "dosage_instruction")
       dosage_instruction_item = hd(dosage_instruction)
+
       test_request = Map.put(test_request, "dosage_instruction", [dosage_instruction_item | dosage_instruction])
 
       resp =
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
         |> json_response(422)
 
       assert %{
@@ -893,19 +1109,25 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render errors when dosage instruction entry code is not valid in dictionary", %{conn: conn} do
       expect_ops_get_declarations(2)
       expect_mpi_get_person(2)
-      expect_encounter_status("finished", 2)
+      expect_ops_last_medication_request_dates(nil)
+      expect_encounter_status("finished")
+      expect_ops_last_medication_request_dates(nil)
+      expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       dosage_instruction = Map.get(test_request, "dosage_instruction")
 
       endpoint_call = fn request ->
         conn
-        |> post(medication_request_request_path(conn, :create), medication_request_request: request)
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: request
+        )
         |> json_response(422)
       end
 
@@ -941,7 +1163,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         })
 
       resp =
-        endpoint_call.(Map.put(test_request, "dosage_instruction", dosage_instruction ++ [dosage_instruction_item]))
+        endpoint_call.(
+          Map.put(
+            test_request,
+            "dosage_instruction",
+            dosage_instruction ++ [dosage_instruction_item]
+          )
+        )
 
       assert %{
                "invalid" => [
@@ -996,6 +1224,266 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                ]
              } = resp["error"]
     end
+
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period => mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      config = Confex.fetch_env!(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      max_mrr_renew_days = config[:max_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, max_mrr_renew_days - 1)
+      started_at = Date.add(ended_at, -mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.created_at",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "It's to early to create new medication request for such innm_dosage and medical_program_id",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period => mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      current_config = Application.get_env(:core, :medication_request_request)
+
+      on_exit(fn ->
+        Application.put_env(:core, :medication_request_request, current_config)
+      end)
+
+      Application.put_env(
+        :core,
+        :medication_request_request,
+        expire_in_minutes: current_config[:expire_in_minutes],
+        otp_code_length: current_config[:otp_code_length],
+        delay_input: current_config[:delay_input],
+        min_renew_days: current_config[:min_renew_days],
+        standard_duration: 3,
+        max_renew_days: 2
+      )
+
+      config = Application.get_env(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      max_mrr_renew_days = config[:max_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, max_mrr_renew_days)
+      started_at = Date.add(ended_at, -mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      expect_encounter_status("finished")
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+
+      assert conn
+             |> post(medication_request_request_path(conn, :create),
+               medication_request_request: test_request
+             )
+             |> json_response(201)
+    end
+
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period < mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      config = Confex.fetch_env!(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      min_mrr_renew_days = config[:min_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, min_mrr_renew_days - 1)
+      started_at = Date.add(ended_at, 1 - mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.created_at",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "It's to early to create new medication request for such innm_dosage and medical_program_id",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period < mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+
+      current_config = Application.get_env(:core, :medication_request_request)
+
+      on_exit(fn ->
+        Application.put_env(:core, :medication_request_request, current_config)
+      end)
+
+      Application.put_env(
+        :core,
+        :medication_request_request,
+        expire_in_minutes: current_config[:expire_in_minutes],
+        otp_code_length: current_config[:otp_code_length],
+        delay_input: current_config[:delay_input],
+        max_renew_days: current_config[:max_renew_days],
+        standard_duration: 3,
+        min_renew_days: 2
+      )
+
+      config = Application.get_env(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      min_mrr_renew_days = config[:min_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, min_mrr_renew_days)
+      started_at = Date.add(ended_at, 1 - mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      expect_encounter_status("finished")
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+
+      assert conn
+             |> post(medication_request_request_path(conn, :create),
+               medication_request_request: test_request
+             )
+             |> json_response(201)
+    end
+
+    test "internal error when RPC call OPS returns error", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(:error)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      assert_raise(RpcError, fn ->
+        post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+      end)
+    end
   end
 
   describe "prequalify medication request request" do
@@ -1003,6 +1491,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
       expect_encounter_status("finished")
+      expect_ops_last_medication_request_dates(nil)
 
       expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => []}}
@@ -1011,8 +1500,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "intent" => "order"
         })
@@ -1045,8 +1533,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       inactive_pm = insert(:prm, :program_medication, medical_program_id: inactive_mp.id)
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "intent" => "order"
         })
@@ -1054,7 +1541,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       data = %{
         medication_request_request: test_request,
-        programs: [%{id: pm.medical_program_id}, %{id: inactive_pm.medical_program_id}, %{id: UUID.generate()}]
+        programs: [
+          %{id: pm.medical_program_id},
+          %{id: inactive_pm.medical_program_id},
+          %{id: UUID.generate()}
+        ]
       }
 
       resp =
@@ -1094,12 +1585,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_mpi_get_person()
       expect_encounter_status("finished")
+      expect_ops_last_medication_request_dates(nil)
       {medication_id, _} = create_medications_structure()
       pm1 = insert(:prm, :program_medication)
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "intent" => "order"
         })
@@ -1122,9 +1613,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render error when data is invalid", %{conn: conn} do
-      test_request =
-        test_request()
-        |> Map.put("person_id", "")
+      test_request = test_request(%{"person_id" => ""})
 
       assert conn
              |> post(medication_request_request_path(conn, :prequalify), %{
@@ -1138,8 +1627,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "intent" => "plan",
           "medication_id" => medication_id
         })
@@ -1158,6 +1646,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "render medication_request_request when optional fields are absent", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
 
       expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => []}}
@@ -1166,8 +1655,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.merge(%{
+        test_request(%{
           "medication_id" => medication_id,
           "intent" => "order"
         })
@@ -1179,21 +1667,292 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              |> post(medication_request_request_path(conn, :prequalify), data)
              |> json_response(200)
     end
+
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period => mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+
+      config = Confex.fetch_env!(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      max_mrr_renew_days = config[:max_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, max_mrr_renew_days - 1)
+      started_at = Date.add(ended_at, -mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+        |> Map.delete("medical_program_id")
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.programs[0].id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "It's to early to create new medication request for such innm_dosage and medical_program_id",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period => mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+
+      current_config = Application.get_env(:core, :medication_request_request)
+
+      on_exit(fn ->
+        Application.put_env(:core, :medication_request_request, current_config)
+      end)
+
+      Application.put_env(
+        :core,
+        :medication_request_request,
+        expire_in_minutes: current_config[:expire_in_minutes],
+        otp_code_length: current_config[:otp_code_length],
+        delay_input: current_config[:delay_input],
+        min_renew_days: current_config[:min_renew_days],
+        standard_duration: 3,
+        max_renew_days: 2
+      )
+
+      config = Application.get_env(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      max_mrr_renew_days = config[:max_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, max_mrr_renew_days)
+      started_at = Date.add(ended_at, -mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+        |> Map.delete("medical_program_id")
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      schema_path =
+        "../core/specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_json_schema(schema_path)
+        |> Enum.at(0)
+
+      assert %{"status" => "VALID"} = resp
+    end
+
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period < mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+
+      config = Confex.fetch_env!(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      min_mrr_renew_days = config[:min_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, min_mrr_renew_days - 1)
+      started_at = Date.add(ended_at, 1 - mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+        |> Map.delete("medical_program_id")
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.programs[0].id",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "It's to early to create new medication request for such innm_dosage and medical_program_id",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period < mrr_standart_duration",
+         %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+
+      current_config = Application.get_env(:core, :medication_request_request)
+
+      on_exit(fn ->
+        Application.put_env(:core, :medication_request_request, current_config)
+      end)
+
+      Application.put_env(
+        :core,
+        :medication_request_request,
+        expire_in_minutes: current_config[:expire_in_minutes],
+        otp_code_length: current_config[:otp_code_length],
+        delay_input: current_config[:delay_input],
+        max_renew_days: current_config[:max_renew_days],
+        standard_duration: 3,
+        min_renew_days: 2
+      )
+
+      config = Application.get_env(:core, :medication_request_request)
+      mrr_standard_duration = config[:standard_duration]
+      min_mrr_renew_days = config[:min_renew_days]
+
+      current_day = Date.utc_today()
+      created_at = current_day
+      ended_at = Date.add(current_day, min_mrr_renew_days)
+      started_at = Date.add(ended_at, 1 - mrr_standard_duration)
+
+      medication_dispense_period =
+        GlobalParameters.get_values()
+        |> Map.get("medication_dispense_period")
+        |> String.to_integer()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => started_at,
+        "ended_at" => ended_at
+      })
+
+      expect(OPSMock, :get_prequalify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "created_at" => created_at |> Date.to_string(),
+          "started_at" => created_at |> Date.to_string(),
+          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+        })
+        |> Map.delete("medical_program_id")
+
+      data = %{medication_request_request: test_request, programs: [%{id: pm.medical_program_id}]}
+
+      schema_path =
+        "../core/specs/json_schemas/medication_request_request/medication_request_request_prequalify_response.json"
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :prequalify), data)
+        |> json_response(200)
+        |> Map.get("data")
+        |> assert_json_schema(schema_path)
+        |> Enum.at(0)
+
+      assert %{"status" => "VALID"} = resp
+    end
   end
 
   describe "reject medication request request" do
     test "works when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person(2)
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
       conn2 = patch(conn, medication_request_request_path(conn, :reject, id))
@@ -1214,18 +1973,24 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "with direct call", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert %{"id" => id} = json_response(conn1, 201)["data"]
 
-      Repo.update_all(Core.MedicationRequestRequest, set: [inserted_at: ~N[1970-01-01 13:26:08.003]])
+      Repo.update_all(Core.MedicationRequestRequest,
+        set: [inserted_at: ~N[1970-01-01 13:26:08.003]]
+      )
+
       MedicationRequestRequests.autoterminate()
       mrr = MedicationRequestRequests.get_medication_request_request(id)
       assert mrr.status == "EXPIRED"
@@ -1240,6 +2005,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
 
       expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished", 2)
 
       person = string_params_for(:person)
@@ -1262,11 +2028,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert mrr = json_response(conn1, 201)["data"]
 
       signed_mrr =
@@ -1306,15 +2074,18 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     test "return 409 if request status is not new", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert mrr = json_response(conn1, 201)["data"]
       Repo.update_all(Core.MedicationRequestRequest, set: [status: "EXPIRED"])
 
@@ -1339,6 +2110,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "when some data is invalid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished", 2)
       person = string_params_for(:person)
 
@@ -1349,11 +2121,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert mrr = json_response(conn1, 201)["data"]
       signed_mrr = put_in(mrr, ["employee", "id"], Ecto.UUID.generate())
       drfo_signed_content(signed_mrr, nil)
@@ -1372,6 +2146,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "when context in signed context is invalid", %{conn: conn} do
       expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
 
       person = string_params_for(:person)
 
@@ -1382,13 +2157,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       {medication_id, pm} = create_medications_structure()
 
       test_request =
-        test_request()
-        |> Map.put("medication_id", medication_id)
-        |> Map.put("medical_program_id", pm.medical_program_id)
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
 
       expect_encounter_status("finished")
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
       assert mrr = json_response(conn1, 201)["data"]
 
       signed_mrr =
@@ -1437,22 +2214,42 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     %{id: innm_id} = insert(:prm, :innm, name: "Будафинол")
     %{id: dosage_id} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний")
     %{id: dosage_id2} = insert(:prm, :innm_dosage, name: "Будафинолон Альтернативний 2")
+
     %{id: med_id} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон")
+
     %{id: med_id2} = insert(:prm, :medication, package_qty: 10, package_min_qty: 5, name: "Будафинолодон2")
+
     insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id, innm_child_id: innm_id)
     insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id2, innm_child_id: innm_id)
     insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)
     insert(:prm, :ingredient_medication, parent_id: med_id2, medication_child_id: dosage_id2)
 
     pm = insert(:prm, :program_medication, medication_id: med_id)
-    insert(:prm, :program_medication, medication_id: med_id2, medical_program_id: pm.medical_program_id)
+
+    insert(:prm, :program_medication,
+      medication_id: med_id2,
+      medical_program_id: pm.medical_program_id
+    )
 
     {dosage_id, pm}
   end
 
-  defp test_request do
+  defp test_request(params) do
+    medication_dispense_period =
+      GlobalParameters.get_values()
+      |> Map.get("medication_dispense_period")
+      |> String.to_integer()
+
+    day = Date.utc_today()
+
     "../core/test/data/medication_request_request/medication_request_request.json"
     |> File.read!()
     |> Jason.decode!()
+    |> Map.merge(%{
+      "created_at" => day |> Date.to_string(),
+      "started_at" => day |> Date.to_string(),
+      "ended_at" => day |> Date.add(medication_dispense_period) |> Date.to_string()
+    })
+    |> Map.merge(params)
   end
 end

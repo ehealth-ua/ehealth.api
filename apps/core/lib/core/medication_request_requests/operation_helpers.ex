@@ -77,6 +77,22 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
     Validations.validate_divison(division, operation.data.legal_entity.id)
   end
 
+  def validate_dispense_valid_from(operation, attrs) do
+    Validations.validate_dispense_valid_from(operation, attrs)
+  end
+
+  def validate_dispense_valid_to(operation, attrs) do
+    Validations.validate_dispense_valid_to(operation, attrs)
+  end
+
+  def validate_treatment_period(operation, attrs) do
+    Validations.validate_treatment_period(operation, attrs)
+  end
+
+  def validate_existing_medication_requests(_operation, data) do
+    Validations.validate_existing_medication_requests(data, data["medical_program_id"])
+  end
+
   def validate_dates(_operation, data) do
     Validations.validate_dates(data)
   end
@@ -223,6 +239,22 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
     Operation.call_changeset(operation, &add_error/4, [
       :dosage_instruction,
       "incorrect #{description} (#{path})",
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:invalid_period, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :ended_at,
+      "Treatment period cannot be less than MR expiration period",
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:invalid_existing_medication_requests, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :created_at,
+      "It's to early to create new medication request for such innm_dosage and medical_program_id",
       [validation: :invalid]
     ])
   end

@@ -627,14 +627,6 @@
       "type": "string",
       "description": "End date of a treatment period, which is determined by the external system. Greater or equal to **started_at**. Format *DATE '2017-10-07'*"
     },
-    "dispense_valid_from": {
-      "type": "string",
-      "description": "Start date of dispense period, which is determined by the external system. Format *DATE '2017-09-07'*"
-    },
-    "dispense_valid_to": {
-      "type": "string",
-      "description": "End date of dispense period, which is determined by the external system. Greater or equal to **dispense_valid_from**. Format *DATE '2017-10-07'*"
-    },
     "legal_entity": {
       "type": "object",
       "properties": {
@@ -944,8 +936,6 @@
     "created_at",
     "started_at",
     "ended_at",
-    "dispense_valid_from",
-    "dispense_valid_to",
     "legal_entity",
     "division",
     "employee",
