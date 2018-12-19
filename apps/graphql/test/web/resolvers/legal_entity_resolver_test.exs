@@ -15,6 +15,8 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
 
   @owner Employee.type(:owner)
   @doctor Employee.type(:doctor)
+  @msp LegalEntity.type(:msp)
+  @nhs LegalEntity.type(:nhs)
 
   @legal_entity_status_closed LegalEntity.status(:closed)
 
@@ -282,6 +284,35 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert 2 == length(result_ids)
       assert legal_entity_id in result_ids
       assert legal_entity_id2 in result_ids
+    end
+
+    test "success with filter by type", %{conn: conn} do
+      insert_list(2, :prm, :legal_entity, type: @msp)
+      insert_list(4, :prm, :legal_entity, type: @nhs)
+
+      query = """
+        query GetLegalEntitiesQuery($filter: LegalEntityFilter) {
+          legalEntities(first: 10, filter: $filter) {
+            nodes {
+              databaseId
+              type
+            }
+          }
+        }
+      """
+
+      variables = %{filter: %{type: @msp}}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
+
+      refute resp_body["errors"]
+      assert 2 == length(resp_entities)
+      assert Enum.all?(resp_entities, &(&1["type"] == @msp))
     end
 
     test "success with ordering", %{conn: conn} do
