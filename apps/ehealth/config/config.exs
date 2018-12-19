@@ -55,7 +55,7 @@ config :ehealth,
         polling_interval: 10_000
       ]
     ],
-    k8s_uaddresses: [
+    k8s_ops: [
       strategy: Elixir.Cluster.Strategy.Kubernetes,
       config: [
         mode: :dns,
