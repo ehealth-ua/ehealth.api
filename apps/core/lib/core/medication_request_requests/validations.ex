@@ -6,8 +6,6 @@ defmodule Core.MedicationRequestRequest.Validations do
 
   alias Core.Declarations.API, as: DeclarationsAPI
   alias Core.Dictionaries
-  alias Core.Employees
-  alias Core.Employees.Employee
   alias Core.GlobalParameters
   alias Core.MedicationRequestRequest.EmbeddedData
   alias Core.MedicationRequestRequest.Renderer, as: MedicationRequestRequestRenderer
@@ -15,6 +13,7 @@ defmodule Core.MedicationRequestRequest.Validations do
   alias Core.Medications
   alias Core.Rpc.Error, as: RpcError
   alias Core.Validators.Content, as: ContentValidator
+  alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
@@ -357,17 +356,25 @@ defmodule Core.MedicationRequestRequest.Validations do
     )
   end
 
-  def validate_sign_content(mrr, operation) do
-    with false <- is_nil(Map.get(operation.data, :decoded_content)),
-         %{"content" => content, "signers" => [signer]} = operation.data.decoded_content,
-         %Employee{} = employee <- Employees.get_by_id(mrr.data.employee_id),
-         doctor_tax_id <- employee |> Map.get(:party) |> Map.get(:tax_id),
-         true <- doctor_tax_id == signer["drfo"],
-         :ok <- compare_with_db(content, mrr, operation) do
+  def validate_sign_content(mrr, %{data: %{decoded_content: decoded_content}} = operation) do
+    with %{"content" => content, "signers" => [signer]} <- decoded_content,
+         :ok <-
+           SignatureValidator.check_drfo(
+             signer,
+             mrr.data.employee_id,
+             "$.employee_id.drfo",
+             "medication_dispense_process"
+           ),
+         {:comparison, :ok} <- {:comparison, compare_with_db(content, mrr, operation)} do
       {:ok, mrr}
     else
-      _ -> {:error, {:"422", "Signed content does not match the previously created content!"}}
+      {:comparison, _} -> Error.dump("Signed content does not match the previously created content!")
+      error -> error
     end
+  end
+
+  def validate_sign_content(_, _) do
+    Error.dump("Signed content does not match the previously created content!")
   end
 
   defp compare_with_db(content, medication_request_request, operation) do
