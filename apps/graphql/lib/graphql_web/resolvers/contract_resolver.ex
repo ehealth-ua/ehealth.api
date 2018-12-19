@@ -16,10 +16,11 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       alias Absinthe.Relay.Connection
       alias Core.ContractRequests
       alias Core.Contracts.Storage
-      alias Core.PRMRepo
       alias Ecto.Query
       alias GraphQL.Helpers.Filtering
       alias GraphQLWeb.Loaders.IL
+
+      @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
       @schema unquote(opts[:schema])
       @request_schema unquote(opts[:request_schema])
@@ -37,7 +38,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
         |> where([c], c.type == ^@schema.type())
         |> filter(filter)
         |> order_by(order_by)
-        |> Connection.from_query(&PRMRepo.all/1, args)
+        |> Connection.from_query(&@read_prm_repo.all/1, args)
       end
 
       defp filter(query, []), do: query

@@ -20,7 +20,6 @@ defmodule Core.ContractRequests.Validator do
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Parties
   alias Core.Parties.Party
-  alias Core.PRMRepo
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
@@ -40,6 +39,7 @@ defmodule Core.ContractRequests.Validator do
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @read_repo Application.get_env(:core, :repos)[:read_repo]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   # Contract Request
 
@@ -206,7 +206,7 @@ defmodule Core.ContractRequests.Validator do
         @reimbursement -> ReimbursementContract
       end
 
-    with %{__struct__: _} = contract <- PRMRepo.get_by(contract_schema, search_params),
+    with %{__struct__: _} = contract <- @read_prm_repo.get_by(contract_schema, search_params),
          :ok <- validate_parent_contract_type(contract, type),
          :ok <- validate_parent_contract_medical_program_id(type, contract, params) do
       {:ok, Map.put(params, "parent_contract_id", contract.id), contract}
@@ -754,7 +754,7 @@ defmodule Core.ContractRequests.Validator do
   def validate_employee_role(%Employee{} = employee, role) do
     user_ids =
       employee
-      |> PRMRepo.preload(:party_users)
+      |> @read_prm_repo.preload(:party_users)
       |> Map.get(:party_users)
       |> Enum.map(& &1.user_id)
       |> Enum.join(",")

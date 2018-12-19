@@ -10,8 +10,9 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.LegalEntityUpdater
-  alias Core.PRMRepo
   alias GraphQLWeb.Loaders.PRM
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @address_search_fields ~w(area settlement)a
 
@@ -20,7 +21,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
 
     LegalEntity
     |> search(%{args | filter: filter})
-    |> Connection.from_query(&PRMRepo.all/1, args)
+    |> Connection.from_query(&@read_prm_repo.all/1, args)
   end
 
   defp prepare_filter([]), do: []

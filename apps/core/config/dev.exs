@@ -82,6 +82,15 @@ config :core, Core.Repo,
   hostname: "localhost",
   pool_size: 10
 
+config :core, Core.ReadPRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "prm_dev",
+  hostname: "localhost",
+  pool_size: 10,
+  types: Core.PRM.PostgresTypes
+
 config :core, Core.PRMRepo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",

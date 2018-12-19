@@ -1,7 +1,7 @@
 defmodule Core.BlackListUsers do
   @moduledoc false
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Ecto.{Query, Changeset}, warn: false
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
@@ -14,6 +14,7 @@ defmodule Core.BlackListUsers do
   alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @fields_required [:tax_id]
   @fields_optional [:is_active]
@@ -26,7 +27,7 @@ defmodule Core.BlackListUsers do
       parties =
         Party
         |> where([p], p.tax_id in ^tax_ids)
-        |> PRMRepo.all()
+        |> @read_prm_repo.all()
         |> Enum.group_by(&Map.get(&1, :tax_id))
 
       users =
@@ -38,9 +39,9 @@ defmodule Core.BlackListUsers do
     end
   end
 
-  def get_by_id!(id), do: PRMRepo.get!(BlackListUser, id)
+  def get_by_id!(id), do: @read_prm_repo.get!(BlackListUser, id)
 
-  def get_by(params), do: PRMRepo.get_by(BlackListUser, params)
+  def get_by(params), do: @read_prm_repo.get_by(BlackListUser, params)
 
   def blacklisted?(tax_id) do
     case get_by(%{tax_id: tax_id, is_active: true}) do
@@ -143,7 +144,7 @@ defmodule Core.BlackListUsers do
   end
 
   defp load_references(%BlackListUser{} = entity) do
-    PRMRepo.preload(entity, :parties)
+    @read_prm_repo.preload(entity, :parties)
   end
 
   defp load_references(err) do

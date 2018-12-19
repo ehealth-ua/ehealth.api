@@ -25,6 +25,8 @@ defmodule Core.Employees.EmployeeCreator do
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
   @status_approved Employee.status(:approved)
 
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
   def create(%EmployeeRequest{data: data} = employee_request, headers) do
     party_params = EmployeeRequests.create_party_params(data)
     search_params = %{tax_id: party_params["tax_id"], birth_date: party_params["birth_date"]}
@@ -119,7 +121,7 @@ defmodule Core.Employees.EmployeeCreator do
       |> where([e], e.is_active)
       |> where([e], e.employee_type == ^type)
       |> where([e], e.legal_entity_id == ^legal_entity_id)
-      |> PRMRepo.one()
+      |> @read_prm_repo.one()
 
     suspend_contracts(employee)
     deactivate_employee(employee, req_headers)

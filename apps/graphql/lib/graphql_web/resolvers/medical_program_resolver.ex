@@ -6,12 +6,13 @@ defmodule GraphQLWeb.Resolvers.MedicalProgramResolver do
 
   alias Absinthe.Relay.Connection
   alias Core.MedicalPrograms.MedicalProgram
-  alias Core.PRMRepo
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list_medical_programs(%{filter: filter, order_by: order_by} = args, _) do
     MedicalProgram
     |> filter(filter)
     |> order_by(^order_by)
-    |> Connection.from_query(&PRMRepo.all/1, args)
+    |> Connection.from_query(&@read_prm_repo.all/1, args)
   end
 end

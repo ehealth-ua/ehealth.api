@@ -1,7 +1,7 @@
 defmodule Core.Employees do
   @moduledoc false
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Core.API.Helpers.Connection
   import Ecto.Changeset
@@ -20,6 +20,7 @@ defmodule Core.Employees do
   alias Ecto.Changeset
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @doctor Employee.type(:doctor)
   @pharmacist Employee.type(:pharmacist)
@@ -55,7 +56,7 @@ defmodule Core.Employees do
   def list!(params) do
     Employee
     |> where([e], ^params)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
     |> load_references()
   end
 
@@ -64,7 +65,7 @@ defmodule Core.Employees do
     |> where([e], e.is_active)
     |> where([e], e.status == ^Employee.status(:approved))
     |> where([e], e.party_id == ^party_id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_search_query(Employee = entity, %{ids: _} = changes) do
@@ -91,13 +92,13 @@ defmodule Core.Employees do
   def get_by_id!(id) do
     Employee
     |> get_by_id_query(id)
-    |> PRMRepo.one!()
+    |> @read_prm_repo.one!()
   end
 
   def get_by_id(id) do
     Employee
     |> get_by_id_query(id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def get_by_id(id, headers) do
@@ -110,7 +111,7 @@ defmodule Core.Employees do
       |> join(:left, [e], d in assoc(e, :division))
       |> preload([..., d], division: d)
 
-    with employee <- PRMRepo.one!(query),
+    with employee <- @read_prm_repo.one!(query),
          {:ok, client_type} <- @mithril_api.get_client_type_name(client_id, headers),
          :ok <- authorize_legal_entity_id(employee.legal_entity_id, client_id, client_type) do
       {:ok, employee}
@@ -135,23 +136,23 @@ defmodule Core.Employees do
   def get_by_ids(ids) when is_list(ids) do
     Employee
     |> where([d], d.id in ^ids)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_preloaded_by_ids(ids) when is_list(ids) do
     Employee
     |> where([d], d.id in ^ids)
     |> load_references()
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_by_id_with_users(id) do
     Employee
     |> where([e], e.id == ^id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
     |> case do
       nil -> nil
-      employee -> {:ok, PRMRepo.preload(employee, party: [:users])}
+      employee -> {:ok, @read_prm_repo.preload(employee, party: [:users])}
     end
   end
 
@@ -166,7 +167,7 @@ defmodule Core.Employees do
     |> join(:left, [e], p in assoc(e, :party))
     |> join(:left, [e, p], pu in assoc(p, :users))
     |> where([e, p, pu], pu.user_id == ^id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def create_or_update_employee(
@@ -236,7 +237,7 @@ defmodule Core.Employees do
       Employee
       |> select([e], e.id)
       |> where([e], e.party_id == ^party_id)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
       |> suspend_by_contractor_owner_ids()
     else
       :ok
@@ -309,9 +310,9 @@ defmodule Core.Employees do
 
   defp load_references(%Employee{} = employee) do
     employee
-    |> PRMRepo.preload(:party)
-    |> PRMRepo.preload(:division)
-    |> PRMRepo.preload(:legal_entity)
+    |> @read_prm_repo.preload(:party)
+    |> @read_prm_repo.preload(:division)
+    |> @read_prm_repo.preload(:legal_entity)
   end
 
   defp load_references(employees) when is_list(employees) do

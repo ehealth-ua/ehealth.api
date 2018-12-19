@@ -25,13 +25,14 @@ defmodule Core.MedicationRequests.API do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.PartyUsers
   alias Core.PartyUsers.PartyUser
-  alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
   alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
   require Logger
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
@@ -332,7 +333,7 @@ defmodule Core.MedicationRequests.API do
       |> where([i], i.medication_child_id == ^medication_request["medication_id"])
       |> where([i, m], m.is_active)
       |> select([i, m], count(m.id))
-      |> PRMRepo.one()
+      |> @read_prm_repo.one()
 
     if ingredients > 0 do
       :ok
@@ -379,7 +380,7 @@ defmodule Core.MedicationRequests.API do
       INNMDosageIngredient
       |> where([idi], idi.parent_id in ^medication_ids)
       |> where([idi], idi.is_primary and idi.innm_child_id == ^check_innm_id)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
 
     if Enum.empty?(ingredients) do
       :ok
@@ -395,7 +396,7 @@ defmodule Core.MedicationRequests.API do
       Enum.map(programs, fn %{"id" => id} ->
         MedicalProgram
         |> where([mp], mp.is_active)
-        |> PRMRepo.get(id)
+        |> @read_prm_repo.get(id)
       end)
 
     errors =
@@ -426,7 +427,7 @@ defmodule Core.MedicationRequests.API do
         )
         |> join(:left, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
         |> preload([mp, pm, m], program_medications: {pm, medication: m})
-        |> PRMRepo.get(id)
+        |> @read_prm_repo.get(id)
       end
     end)
   end
@@ -447,7 +448,7 @@ defmodule Core.MedicationRequests.API do
         ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
       )
       |> select([ing, m, pm], {pm.id, m.id})
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
 
     program_medications_ids = Enum.map(ids, fn {program_medications_ids, _} -> program_medications_ids end)
     medications_ids = Enum.map(ids, fn {_, medications_id} -> medications_id end)

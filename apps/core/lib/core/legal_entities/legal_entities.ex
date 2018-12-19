@@ -3,7 +3,7 @@ defmodule Core.LegalEntities do
   The boundary for the LegalEntity system.
   """
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Core.Contracts.ContractSuspender
@@ -31,6 +31,7 @@ defmodule Core.LegalEntities do
   require Logger
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @search_fields ~w(
     id
@@ -97,7 +98,7 @@ defmodule Core.LegalEntities do
     |> where([rle], rle.merged_to_id == ^id)
     |> join(:left, [rle], from_le in assoc(rle, :merged_from))
     |> preload([rle, from_le], merged_from: from_le)
-    |> PRMRepo.paginate(Map.delete(params, "id"))
+    |> @read_prm_repo.paginate(Map.delete(params, "id"))
   end
 
   def list_legators(_, _) do
@@ -127,7 +128,7 @@ defmodule Core.LegalEntities do
   def get_by_id(id) do
     id
     |> get_by_id_query()
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def fetch_by_id(id) do
@@ -140,7 +141,7 @@ defmodule Core.LegalEntities do
   def get_by_id!(id) do
     id
     |> get_by_id_query()
-    |> PRMRepo.one!()
+    |> @read_prm_repo.one!()
   end
 
   defp get_by_id_query(id) do
@@ -165,10 +166,10 @@ defmodule Core.LegalEntities do
     |> where([le], le.id in ^ids)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
     |> preload([le, msp], medical_service_provider: msp)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
-  def get_related_by(args), do: PRMRepo.get_by(RelatedLegalEntity, args)
+  def get_related_by(args), do: @read_prm_repo.get_by(RelatedLegalEntity, args)
 
   def create(%LegalEntity{} = legal_entity, attrs, author_id) do
     legal_entity

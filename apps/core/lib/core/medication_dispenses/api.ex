@@ -26,7 +26,6 @@ defmodule Core.MedicationDispense.API do
   alias Core.Parties.Party
   alias Core.PartyUsers
   alias Core.PartyUsers.PartyUser
-  alias Core.PRMRepo
   alias Core.ValidationError
   alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.Error
@@ -36,6 +35,7 @@ defmodule Core.MedicationDispense.API do
 
   use Confex, otp_app: :core
 
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
@@ -338,7 +338,7 @@ defmodule Core.MedicationDispense.API do
       c.status == @reimbursement_contract_status_verified and c.contractor_legal_entity_id == ^legal_entity_id and
         c.medical_program_id == ^medical_program_id
     )
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   defp validate_medications(dispense_details, %{id: medical_program_id}) do
@@ -385,7 +385,7 @@ defmodule Core.MedicationDispense.API do
       |> where([pm], pm.medication_id == ^medication_id)
       |> where([pm], pm.medical_program_id == ^medical_program_id)
       |> limit(1)
-      |> PRMRepo.one()
+      |> @read_prm_repo.one()
 
     if is_nil(program_medication) do
       Error.dump(%ValidationError{

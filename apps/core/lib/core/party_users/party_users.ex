@@ -1,13 +1,15 @@
 defmodule Core.PartyUsers do
   @moduledoc false
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Ecto.{Query, Changeset}, warn: false
 
   alias Core.PartyUsers.PartyUser
   alias Core.PartyUsers.Search
   alias Core.PRMRepo
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @fields_required ~w(
     user_id
@@ -27,7 +29,7 @@ defmodule Core.PartyUsers do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params) do
       PartyUser
       |> get_search_query(changes)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
     end
   end
 

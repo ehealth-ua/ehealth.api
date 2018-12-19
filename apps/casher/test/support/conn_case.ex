@@ -20,7 +20,6 @@ defmodule Casher.Web.ConnCase do
   setup tags do
     Casher.Redis.flushdb()
 
-    :ok = Sandbox.checkout(Core.ReadRepo)
     :ok = Sandbox.checkout(Core.Repo)
     :ok = Sandbox.checkout(Core.PRMRepo)
     :ok = Sandbox.checkout(Core.EventManagerRepo)

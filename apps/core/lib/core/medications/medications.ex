@@ -3,7 +3,7 @@ defmodule Core.Medications do
   The Medications context.
   """
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Changeset
@@ -26,6 +26,8 @@ defmodule Core.Medications do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Scrivener.Page
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
@@ -54,7 +56,7 @@ defmodule Core.Medications do
   def get_by_ids(ids) do
     Medication
     |> where([e], e.id in ^ids)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_drugs(params) do
@@ -130,11 +132,11 @@ defmodule Core.Medications do
       query
       |> limit([a], ^page_size)
       |> offset([], ^offset)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
 
     total_entries =
       query
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
       |> length()
 
     total_pages =
@@ -309,7 +311,7 @@ defmodule Core.Medications do
     |> join(:left, [e, i, id], idi in assoc(id, :ingredients))
     |> join(:left, [e, i, id, idi], innm in assoc(idi, :innm))
     |> preload([e, i, id, idi, innm], ingredients: {i, innm_dosage: {id, ingredients: {idi, innm: innm}}})
-    |> PRMRepo.get_by(id: id, type: entity.type())
+    |> @read_prm_repo.get_by(id: id, type: entity.type())
   end
 
   def get_innm_dosage_by_id!(id), do: get_medication_entity_by_id!(INNMDosage, id)
@@ -318,7 +320,7 @@ defmodule Core.Medications do
 
   defp get_medication_entity_by_id!(entity, id) do
     entity
-    |> PRMRepo.get_by!(id: id, type: entity.type())
+    |> @read_prm_repo.get_by!(id: id, type: entity.type())
     |> preload_references()
   end
 
@@ -328,7 +330,7 @@ defmodule Core.Medications do
 
   defp get_active_medication_entity_by_id!(entity, id) do
     entity
-    |> PRMRepo.get_by!(id: id, type: entity.type(), is_active: true)
+    |> @read_prm_repo.get_by!(id: id, type: entity.type(), is_active: true)
     |> preload_references()
   end
 
@@ -336,7 +338,7 @@ defmodule Core.Medications do
     innm_dosage_id
     |> get_medication_for_medication_request_request_query()
     |> maybe_validate_medication_program_for_medication_request_request(program_id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def maybe_validate_medication_program_for_medication_request_request(query, nil), do: query
@@ -438,7 +440,7 @@ defmodule Core.Medications do
     |> join(:inner, [..., i], m in assoc(i, :medication))
     |> where([..., m], m.is_active)
     |> select([..., m], count(m.id))
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
     |> case do
       0 -> deactivate_medication_entity(entity, headers)
       _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
@@ -522,7 +524,7 @@ defmodule Core.Medications do
   end
 
   @doc false
-  def get_innm!(id), do: PRMRepo.get!(INNM, id)
+  def get_innm!(id), do: @read_prm_repo.get!(INNM, id)
 
   @doc false
   def create_innm(attrs, headers) do
@@ -558,7 +560,7 @@ defmodule Core.Medications do
     |> where([..., i, _id], i.is_primary)
     |> preload([_, m, mp, i, id], medication: {m, ingredients: {i, innm_dosage: id}}, medical_program: mp)
     |> select([program_medication], program_medication)
-    |> PRMRepo.paginate(params)
+    |> @read_prm_repo.paginate(params)
   end
 
   defp search_program_medications(changeset, _params) do
@@ -581,11 +583,11 @@ defmodule Core.Medications do
     |> where([_, medication], medication.is_active)
   end
 
-  def get_program_medication!(id), do: PRMRepo.get!(ProgramMedication, id)
+  def get_program_medication!(id), do: @read_prm_repo.get!(ProgramMedication, id)
 
   def get_program_medication!(id, :preload) do
     ProgramMedication
-    |> PRMRepo.get!(id)
+    |> @read_prm_repo.get!(id)
     |> preload_references()
   end
 
@@ -595,7 +597,7 @@ defmodule Core.Medications do
     ProgramMedication
     |> where(^params)
     |> select([pm], count(pm.id))
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def create_program_medication(attrs, headers) do
@@ -633,15 +635,15 @@ defmodule Core.Medications do
   end
 
   defp preload_references(%ProgramMedication{} = program) do
-    PRMRepo.preload(program, medication: [ingredients: [innm_dosage: []]], medical_program: [])
+    @read_prm_repo.preload(program, medication: [ingredients: [innm_dosage: []]], medical_program: [])
   end
 
   defp preload_references(%Medication{} = medication) do
-    PRMRepo.preload(medication, ingredients: [innm_dosage: []])
+    @read_prm_repo.preload(medication, ingredients: [innm_dosage: []])
   end
 
   defp preload_references(%INNMDosage{} = innm_dosage) do
-    PRMRepo.preload(innm_dosage, ingredients: [innm: []])
+    @read_prm_repo.preload(innm_dosage, ingredients: [innm: []])
   end
 
   defp preload_references(entity) do

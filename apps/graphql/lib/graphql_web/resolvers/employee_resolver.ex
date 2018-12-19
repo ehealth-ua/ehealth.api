@@ -5,8 +5,9 @@ defmodule GraphQLWeb.Resolvers.EmployeeResolver do
 
   alias Absinthe.Relay.Connection
   alias Core.Employees.Employee
-  alias Core.PRMRepo
   alias GraphQL.Helpers.Filtering
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list_employees(args, %{context: %{client_type: "NHS"}}), do: list_employees(args)
 
@@ -20,7 +21,7 @@ defmodule GraphQLWeb.Resolvers.EmployeeResolver do
     Employee
     |> filter(filter)
     |> order_by(^order_by)
-    |> Connection.from_query(&PRMRepo.all/1, args)
+    |> Connection.from_query(&@read_prm_repo.all/1, args)
   end
 
   defp filter(query, []), do: query

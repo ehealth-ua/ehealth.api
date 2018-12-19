@@ -9,6 +9,8 @@ defmodule Core.GlobalParameters do
   alias Core.GlobalParameters.GlobalParameter
   alias Core.PRMRepo
 
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
   @fields_required ~w(
     parameter
     value
@@ -18,8 +20,7 @@ defmodule Core.GlobalParameters do
 
   def list do
     query = from(gp in GlobalParameter, order_by: [desc: :inserted_at])
-
-    PRMRepo.all(query)
+    @read_prm_repo.all(query)
   end
 
   def create(attrs, user_id) do
@@ -51,7 +52,7 @@ defmodule Core.GlobalParameters do
   end
 
   defp create_or_update(key, value, client_id) do
-    case PRMRepo.get_by(GlobalParameter, parameter: key) do
+    case @read_prm_repo.get_by(GlobalParameter, parameter: key) do
       %GlobalParameter{} = global_parameter ->
         update(
           global_parameter,

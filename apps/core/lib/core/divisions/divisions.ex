@@ -3,7 +3,7 @@ defmodule Core.Divisions do
   The boundary for the Divisions system.
   """
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Ecto.Changeset, warn: false
@@ -24,6 +24,7 @@ defmodule Core.Divisions do
   alias Scrivener.Page
 
   @uaddresses_api Application.get_env(:core, :api_resolvers)[:uaddresses]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @search_fields ~w(
     ids
@@ -59,27 +60,27 @@ defmodule Core.Divisions do
            %Search{}
            |> changeset(params)
            |> search(params, Division) do
-      %{page | entries: PRMRepo.preload(entries, :addresses)}
+      %{page | entries: @read_prm_repo.preload(entries, :addresses)}
     end
   end
 
   def get_by_id!(id) do
     Division
-    |> PRMRepo.get!(id)
-    |> PRMRepo.preload(:addresses)
+    |> @read_prm_repo.get!(id)
+    |> @read_prm_repo.preload(:addresses)
   end
 
   def get_by_id(id) do
     Division
-    |> PRMRepo.get(id)
-    |> PRMRepo.preload(:addresses)
+    |> @read_prm_repo.get(id)
+    |> @read_prm_repo.preload(:addresses)
   end
 
   def get_by_ids(ids) when is_list(ids) do
     Division
     |> where([d], d.id in ^ids)
-    |> PRMRepo.all()
-    |> PRMRepo.preload(:addresses)
+    |> @read_prm_repo.all()
+    |> @read_prm_repo.preload(:addresses)
   end
 
   def search(legal_entity_id, params \\ %{}) do

@@ -27,7 +27,6 @@ defmodule Core.MedicationRequestRequests do
   alias Core.Medications.Medication
   alias Core.Medications.Medication.Ingredient
   alias Core.Medications.Program, as: ProgramMedication
-  alias Core.PRMRepo
   alias Core.Repo
   alias Core.Utils.NumberGenerator
 
@@ -38,6 +37,7 @@ defmodule Core.MedicationRequestRequests do
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @read_repo Application.get_env(:core, :repos)[:read_repo]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @doc """
   Returns the list of medication_request_requests.
@@ -242,7 +242,7 @@ defmodule Core.MedicationRequestRequests do
       INNMDosageIngredient
       |> where([idi], idi.parent_id in ^medication_ids)
       |> where([idi], idi.is_primary and idi.innm_child_id == ^check_innm_id)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
 
     if Enum.empty?(ingredients) do
       :ok
@@ -303,7 +303,7 @@ defmodule Core.MedicationRequestRequests do
     )
     |> join(:left, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
     |> preload([mp, pm, m], program_medications: {pm, medication: m})
-    |> PRMRepo.get(id)
+    |> @read_prm_repo.get(id)
   end
 
   defp get_medical_programs_data_ids(medical_program_id, medication_id) do
@@ -322,7 +322,7 @@ defmodule Core.MedicationRequestRequests do
         ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
       )
       |> select([ing, m, pm], {pm.id, m.id})
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
 
     program_medications_ids = Enum.map(ids, fn {program_medications_ids, _} -> program_medications_ids end)
     medications_ids = Enum.map(ids, fn {_, medications_id} -> medications_id end)
@@ -420,7 +420,7 @@ defmodule Core.MedicationRequestRequests do
   defp validate_medical_programs(%{"programs" => programs}) do
     errors =
       programs
-      |> Enum.map(fn %{"id" => id} -> PRMRepo.get(MedicalProgram, id) end)
+      |> Enum.map(fn %{"id" => id} -> @read_prm_repo.get(MedicalProgram, id) end)
       |> Enum.with_index()
       |> Enum.reduce([], fn {medical_program, i}, acc ->
         case medical_program do

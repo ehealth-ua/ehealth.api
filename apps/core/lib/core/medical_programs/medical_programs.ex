@@ -1,12 +1,14 @@
 defmodule Core.MedicalPrograms do
   @moduledoc false
 
-  use Core.Search, Core.PRMRepo
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.MedicalPrograms.Search
   alias Core.Medications
   alias Core.PRMRepo
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @fields_required ~w(name)a
   @fields_optional ~w(is_active)a
@@ -26,12 +28,12 @@ defmodule Core.MedicalPrograms do
   def get_by_ids(ids) do
     MedicalProgram
     |> where([mp], mp.id in ^ids)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
-  def get_by_id(id), do: PRMRepo.get(MedicalProgram, id)
+  def get_by_id(id), do: @read_prm_repo.get(MedicalProgram, id)
 
-  def get_by_id!(id), do: PRMRepo.get!(MedicalProgram, id)
+  def get_by_id!(id), do: @read_prm_repo.get!(MedicalProgram, id)
 
   def fetch_by_id(id) do
     case get_by_id(id) do
@@ -40,7 +42,7 @@ defmodule Core.MedicalPrograms do
     end
   end
 
-  def get_by!(params), do: PRMRepo.get_by!(MedicalProgram, params)
+  def get_by!(params), do: @read_prm_repo.get_by!(MedicalProgram, params)
 
   def create(user_id, params) do
     %MedicalProgram{}

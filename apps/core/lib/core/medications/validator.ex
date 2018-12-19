@@ -12,10 +12,11 @@ defmodule Core.Medications.Validator do
   alias Core.Medications.INNMDosage.Ingredient, as: INNMIngredient
   alias Core.Medications.Medication
   alias Core.Medications.Medication.Ingredient, as: MedicationIngredient
-  alias Core.PRMRepo
 
   @type_innm_dosage INNMDosage.type()
   @type_medication Medication.type()
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def validate_ingredients(changeset) do
     changeset
@@ -37,7 +38,7 @@ defmodule Core.Medications.Validator do
 
   def validate_medication_is_active(changeset) do
     validate_change(changeset, :medication_id, fn :medication_id, medication_id ->
-      case PRMRepo.get_by(Medication, id: medication_id, type: Medication.type(), is_active: true) do
+      case @read_prm_repo.get_by(Medication, id: medication_id, type: Medication.type(), is_active: true) do
         nil -> [medication_id: "Medication is not active"]
         _ -> []
       end
@@ -46,7 +47,7 @@ defmodule Core.Medications.Validator do
 
   def validate_medical_program_is_active(changeset) do
     validate_change(changeset, :medical_program_id, fn :medical_program_id, medical_program_id ->
-      case PRMRepo.get_by(MedicalProgram, id: medical_program_id, is_active: true) do
+      case @read_prm_repo.get_by(MedicalProgram, id: medical_program_id, is_active: true) do
         nil -> [medical_program_id: "Medical program is not active"]
         _ -> []
       end
@@ -166,7 +167,7 @@ defmodule Core.Medications.Validator do
     |> where([m], m.type == @type_innm_dosage)
     |> where([m], m.is_active)
     |> select(count("*"))
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   defp count_by_ids(ids, @type_innm_dosage) do
@@ -174,6 +175,6 @@ defmodule Core.Medications.Validator do
     |> where([s], s.id in ^ids)
     |> where([s], s.is_active)
     |> select(count("*"))
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 end

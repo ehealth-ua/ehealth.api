@@ -7,9 +7,9 @@ defmodule Casher.PersonData do
   alias Casher.StorageKeys
   alias Core.Employees.Employee
   alias Core.PartyUsers.PartyUser
-  alias Core.PRMRepo
 
   @ops_client Application.get_env(:core, :api_resolvers)[:ops]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @spec get_and_update(map) :: {:ok, [binary]} | {:error, term}
   def get_and_update(%{user_id: user_id, client_id: client_id}) do
@@ -44,7 +44,7 @@ defmodule Casher.PersonData do
     PartyUser
     |> select([pu], pu.user_id)
     |> where([pu], pu.party_id == ^party_id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   @spec get_party_id(binary) :: {:ok, binary} | {:error, binary}
@@ -52,7 +52,7 @@ defmodule Casher.PersonData do
     PartyUser
     |> select([pu], pu.party_id)
     |> where([pu], pu.user_id == ^user_id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
     |> case do
       party_id when is_binary(party_id) -> {:ok, party_id}
       _ -> {:error, {:not_found, "PartyUser not found."}}
@@ -62,7 +62,7 @@ defmodule Casher.PersonData do
   @spec get_employee(binary) :: %Employee{} | {:error, term}
   def get_employee(employee_id) do
     Employee
-    |> PRMRepo.get(employee_id)
+    |> @read_prm_repo.get(employee_id)
     |> case do
       %Employee{} = employee -> employee
       _ -> {:error, {:not_found, "Employee not found."}}
@@ -75,7 +75,7 @@ defmodule Casher.PersonData do
     |> select([e], e.id)
     |> where([e], e.party_id == ^party_id)
     |> where([e], e.legal_entity_id == ^client_id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   @spec update_redis(binary, binary, [binary]) :: :ok | {:error, term}

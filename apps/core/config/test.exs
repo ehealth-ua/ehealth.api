@@ -20,7 +20,8 @@ config :core,
   ],
   rpc_worker: RPCWorkerMock,
   repos: [
-    read_repo: Core.Repo
+    read_repo: Core.Repo,
+    read_prm_repo: Core.PRMRepo
   ]
 
 # Configures PRM API
@@ -77,6 +78,16 @@ config :core, Core.Repo,
   database: "ehealth_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 120_000_000
+
+config :core, Core.ReadPRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "prm_test",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  types: Core.PRM.PostgresTypes,
   ownership_timeout: 120_000_000
 
 config :core, Core.PRMRepo,

@@ -16,7 +16,6 @@ defmodule GraphQLWeb.ConnCase do
   use ExUnit.CaseTemplate
   alias Core.EventManagerRepo
   alias Core.PRMRepo
-  alias Core.ReadRepo
   alias Core.Repo
   alias Ecto.Adapters.SQL.Sandbox
   alias Phoenix.ConnTest
@@ -53,13 +52,11 @@ defmodule GraphQLWeb.ConnCase do
   end
 
   setup tags do
-    :ok = Sandbox.checkout(ReadRepo)
     :ok = Sandbox.checkout(Repo)
     :ok = Sandbox.checkout(PRMRepo)
     :ok = Sandbox.checkout(EventManagerRepo)
 
     unless tags[:async] do
-      Sandbox.mode(ReadRepo, {:shared, self()})
       Sandbox.mode(Repo, {:shared, self()})
       Sandbox.mode(PRMRepo, {:shared, self()})
       Sandbox.mode(EventManagerRepo, {:shared, self()})

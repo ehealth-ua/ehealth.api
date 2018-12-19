@@ -10,8 +10,9 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
   alias Core.Contracts.CapitationContract
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
-  alias Core.PRMRepo
   alias Core.Validators.Preload
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @man_api Application.get_env(:core, :api_resolvers)[:man]
   @working_hours [
@@ -33,7 +34,7 @@ defmodule Core.Man.Templates.ContractRequestPrintoutForm do
     parent_contract =
       CapitationContract
       |> where([c], c.contract_number == ^contract_number and is_nil(c.parent_contract_id))
-      |> PRMRepo.one()
+      |> @read_prm_repo.one()
 
     template_data =
       contract_request

@@ -7,10 +7,11 @@ defmodule GraphQLWeb.Loaders.PRM do
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
-  alias Core.PRMRepo
   alias GraphQLWeb.Resolvers.Helpers.Search
 
-  def data, do: Dataloader.Ecto.new(PRMRepo, query: &query/2)
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
+  def data, do: Dataloader.Ecto.new(@read_prm_repo, query: &query/2)
 
   def query(CapitationContract, %{client_type: "MSP", client_id: client_id}) do
     where(CapitationContract, contractor_legal_entity_id: ^client_id)

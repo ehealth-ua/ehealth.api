@@ -7,10 +7,11 @@ defmodule Core.Registries do
 
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.Registry, as: UkrMedRegistry
-  alias Core.PRMRepo, as: Repo
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def count_registries_with_edrpou(edrpou, type) do
-    Repo.one(
+    @read_prm_repo.one(
       from(
         u in UkrMedRegistry,
         select: count("*"),

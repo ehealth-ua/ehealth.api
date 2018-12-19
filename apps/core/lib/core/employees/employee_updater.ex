@@ -7,7 +7,6 @@ defmodule Core.Employees.EmployeeUpdater do
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.PartyUsers
-  alias Core.PRMRepo
 
   require Logger
 
@@ -20,6 +19,8 @@ defmodule Core.Employees.EmployeeUpdater do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
     deactivate(id, params["legal_entity_id"], "auto_employee_deactivate", headers, with_owner)
@@ -62,7 +63,7 @@ defmodule Core.Employees.EmployeeUpdater do
 
     Employee
     |> where([e], ^params)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def revoke_user_auth_data(%Employee{} = employee, headers) do

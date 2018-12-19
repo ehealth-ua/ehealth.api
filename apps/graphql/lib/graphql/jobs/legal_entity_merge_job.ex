@@ -13,7 +13,6 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
   alias Core.LegalEntities.LegalEntityUpdater
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.Log
-  alias Core.PRMRepo
   alias Ecto.Changeset
   alias Ecto.UUID
   alias TasKafka.Jobs
@@ -22,6 +21,8 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def consume(%__MODULE__{} = job) do
     related_legal_entity_id = UUID.generate()
@@ -82,7 +83,7 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
 
     Employee
     |> where(^where)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   defp get_merged_to_employees([], _to_id), do: []
@@ -100,7 +101,7 @@ defmodule GraphQL.Jobs.LegalEntityMergeJob do
     |> where([e], e.status == ^Employee.status(:approved))
     |> where([e], e.party_id in ^party_ids)
     |> where([e], fragment("?->>'speciality'", e.speciality) in ^Enum.uniq(specialities))
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   defp terminate_employees_declarations([], _), do: :ok

@@ -12,19 +12,20 @@ defmodule Core.Contracts.Validator do
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
-  alias Core.PRMRepo
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Reference
   alias Scrivener.Page
 
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
   def validate_contractor_related_legal_entity(contractor_legal_entity_id) do
     with %RelatedLegalEntity{} <-
            RelatedLegalEntity
            |> where([r], r.merged_from_id == ^contractor_legal_entity_id and r.is_active)
            |> limit(1)
-           |> PRMRepo.one() do
+           |> @read_prm_repo.one() do
       :ok
     else
       _ -> Error.dump("Contract for this legal entity must be resign with standard procedure")
@@ -68,7 +69,7 @@ defmodule Core.Contracts.Validator do
     search_params = Map.delete(search_params, :edrpou)
 
     with false <- is_nil(edrpou),
-         %LegalEntity{} = legal_entity <- PRMRepo.get_by(LegalEntity, edrpou: edrpou) do
+         %LegalEntity{} = legal_entity <- @read_prm_repo.get_by(LegalEntity, edrpou: edrpou) do
       cond do
         contractor_legal_entity_id == legal_entity.id ->
           {:ok, search_params}

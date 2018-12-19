@@ -22,7 +22,6 @@ defmodule Core.EmployeeRequests do
   alias Core.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias Core.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
   alias Core.OAuth.API, as: OAuth
-  alias Core.PRMRepo
   alias Core.Repo
   alias Core.ValidationError
   alias Core.Validators.Error
@@ -44,6 +43,8 @@ defmodule Core.EmployeeRequests do
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
   @doctor Employee.type(:doctor)
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list(params) do
     query = from(er in Request, order_by: [desc: :inserted_at])
@@ -68,7 +69,7 @@ defmodule Core.EmployeeRequests do
     legal_entities =
       LegalEntity
       |> where([le], le.id in ^legal_entity_ids)
-      |> PRMRepo.all()
+      |> @read_prm_repo.all()
       |> Enum.into(%{}, &{Map.get(&1, :id), &1})
 
     {paging, %{"legal_entities" => legal_entities}}
@@ -87,7 +88,7 @@ defmodule Core.EmployeeRequests do
         |> select([l], l.id)
         |> filter_by_legal_entity_name(params["legal_entity_name"])
         |> filter_by_legal_entity_edrpou(params["edrpou"])
-        |> PRMRepo.all()
+        |> @read_prm_repo.all()
 
       where(query, [r], fragment("?->>'legal_entity_id'", r.data) in ^legal_entity_ids)
     else
@@ -419,7 +420,7 @@ defmodule Core.EmployeeRequests do
   defp validate_data_field(changeset, _, _, nil), do: changeset
 
   defp validate_data_field(changeset, entity, key, id) do
-    case PRMRepo.get(entity, id) do
+    case @read_prm_repo.get(entity, id) do
       nil -> add_error(changeset, key, "does not exist")
       _ -> changeset
     end

@@ -7,6 +7,7 @@ defmodule Core.Application do
     children = [
       {Core.ReadRepo, []},
       {Core.Repo, []},
+      {Core.ReadPRMRepo, []},
       {Core.PRMRepo, []},
       {Core.FraudRepo, []},
       {Core.EventManagerRepo, []},

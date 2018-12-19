@@ -14,6 +14,7 @@ defmodule Core.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -25,14 +26,14 @@ defmodule Core.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.Repo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.PRMRepo)
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Core.EventManagerRepo)
+    :ok = Sandbox.checkout(Core.Repo)
+    :ok = Sandbox.checkout(Core.PRMRepo)
+    :ok = Sandbox.checkout(Core.EventManagerRepo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Core.Repo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.PRMRepo, {:shared, self()})
-      Ecto.Adapters.SQL.Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
+      Sandbox.mode(Core.Repo, {:shared, self()})
+      Sandbox.mode(Core.PRMRepo, {:shared, self()})
+      Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
     end
 
     :ok

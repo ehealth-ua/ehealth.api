@@ -1,15 +1,15 @@
 defmodule Core.Parties do
   @moduledoc false
 
-  use Core.Search, Core.PRMRepo
-
-  import Ecto.{Query, Changeset}, warn: false
-
+  use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
   alias Core.Parties.Document
   alias Core.Parties.Party
   alias Core.Parties.Phone
   alias Core.Parties.Search
   alias Core.PRMRepo
+  import Ecto.{Query, Changeset}, warn: false
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   # Party users
 
@@ -56,24 +56,24 @@ defmodule Core.Parties do
     |> where([p], p.id == ^id)
     |> join(:left, [p], u in assoc(p, :users))
     |> preload([p, u], users: u)
-    |> PRMRepo.one!()
+    |> @read_prm_repo.one!()
   end
 
   def get_by_id(id) do
-    PRMRepo.get(Party, id)
+    @read_prm_repo.get(Party, id)
   end
 
   def get_by_ids(ids) do
     Party
     |> where([e], e.id in ^ids)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_by_user_id(user_id) do
     Party
     |> join(:inner, [p], u in assoc(p, :users))
     |> where([..., u], u.user_id == ^user_id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def get_user_ids_by_tax_id(tax_id) do
@@ -81,7 +81,7 @@ defmodule Core.Parties do
     |> where([e], e.tax_id == ^tax_id)
     |> join(:inner, [p], u in assoc(p, :users))
     |> select([..., u], u.user_id)
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def get_tax_id_by_user_id(user_id) do
@@ -89,7 +89,7 @@ defmodule Core.Parties do
     |> join(:inner, [p], u in assoc(p, :users))
     |> where([..., u], u.user_id == ^user_id)
     |> select([p], p.tax_id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def create(attrs, consumer_id) do
@@ -143,5 +143,5 @@ defmodule Core.Parties do
   end
 
   defp load_references(%Ecto.Query{} = query), do: preload(query, :users)
-  defp load_references(%Party{} = party), do: PRMRepo.preload(party, :users)
+  defp load_references(%Party{} = party), do: @read_prm_repo.preload(party, :users)
 end

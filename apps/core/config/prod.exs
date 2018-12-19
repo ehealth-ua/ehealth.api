@@ -24,6 +24,19 @@ config :core, Core.Repo,
   pool_timeout: 15_000,
   loggers: [{Ecto.LoggerJSON, :log, [:info]}]
 
+config :core, Core.ReadPRMRepo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "${READ_PRM_DB_NAME}",
+  username: "${READ_PRM_DB_USER}",
+  password: "${READ_PRM_DB_PASSWORD}",
+  hostname: "${READ_PRM_DB_HOST}",
+  port: "${READ_PRM_DB_PORT}",
+  pool_size: "${READ_PRM_DB_POOL_SIZE}",
+  timeout: 15_000,
+  pool_timeout: 15_000,
+  types: Core.PRM.PostgresTypes,
+  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+
 config :core, Core.PRMRepo,
   adapter: Ecto.Adapters.Postgres,
   database: "${PRM_DB_NAME}",

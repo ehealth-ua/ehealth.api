@@ -36,6 +36,8 @@ defmodule Core.Contracts do
   @capitation CapitationContract.type()
   @reimbursement ReimbursementContract.type()
 
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
   def list(params, client_type, headers) do
     client_id = get_client_id(headers)
 
@@ -43,7 +45,7 @@ defmodule Core.Contracts do
          {:edrpou, {:ok, changes}} <- {:edrpou, validate_edrpou(changes)},
          {:ok, changes} <- validate_client_type(client_id, client_type, changes),
          %Page{entries: contracts} = paging <- search(changes),
-         contracts <- PRMRepo.preload(contracts, :contract_divisions),
+         contracts <- @read_prm_repo.preload(contracts, :contract_divisions),
          {:ok, references} <- load_contracts_references(contracts) do
       {:ok, %{paging | entries: contracts}, references}
     else
@@ -62,7 +64,7 @@ defmodule Core.Contracts do
       when not is_nil(parent_contract_id) do
     schema = get_contract_schema_relatively_contract_request(pack.schema)
 
-    with {:contract, %{__struct__: _} = contract} <- {:contract, PRMRepo.get(schema, parent_contract_id)},
+    with {:contract, %{__struct__: _} = contract} <- {:contract, @read_prm_repo.get(schema, parent_contract_id)},
          :ok <- validate_contract_status(@status_verified, contract) do
       contract = load_references(contract)
       params = get_contract_create_params(pack.contract_request)
@@ -216,7 +218,7 @@ defmodule Core.Contracts do
          user_id,
          client_id
        ) do
-    case PRMRepo.get(Employee, employee_id) do
+    case @read_prm_repo.get(Employee, employee_id) do
       nil ->
         Error.dump("Employee_id is invalid")
 
@@ -298,7 +300,7 @@ defmodule Core.Contracts do
     |> where([ce], ce.employee_id == ^employee_id)
     |> where([ce], ce.division_id == ^division_id)
     |> where([ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def decode_signed_content(
@@ -314,7 +316,7 @@ defmodule Core.Contracts do
     |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
     |> preload([c, ce, cd], contract_employees: ce, contract_divisions: cd)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def get_by_id(id, @reimbursement) do
@@ -322,7 +324,7 @@ defmodule Core.Contracts do
     |> where([c], c.id == ^id)
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
     |> preload([c, cd], contract_divisions: cd)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def fetch_by_id(id, type) when is_binary(type) do
@@ -357,9 +359,9 @@ defmodule Core.Contracts do
   def get_employees_by_id(id, params, headers) do
     client_id = get_client_id(headers)
 
-    with %LegalEntity{} = client_legal_entity <- PRMRepo.get(LegalEntity, client_id),
+    with %LegalEntity{} = client_legal_entity <- @read_prm_repo.get(LegalEntity, client_id),
          :ok <- validate_legal_entity_is_active(client_legal_entity, :client),
-         %CapitationContract{} = contract <- PRMRepo.get(CapitationContract, id),
+         %CapitationContract{} = contract <- @read_prm_repo.get(CapitationContract, id),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          %Ecto.Changeset{valid?: true, changes: changes} <- ContractEmployeeSearch.changeset(params),
          %Page{entries: contract_employees} = paging <- contract_employee_search(contract, changes) do
@@ -380,7 +382,7 @@ defmodule Core.Contracts do
     query
     |> where([ce], ce.contract_id == ^contract_id)
     |> add_is_active_query_param(is_active)
-    |> PRMRepo.paginate(Map.take(search_params, ~w(page page_size)a))
+    |> @read_prm_repo.paginate(Map.take(search_params, ~w(page page_size)a))
   end
 
   defp add_is_active_query_param(query, false) do
@@ -424,7 +426,7 @@ defmodule Core.Contracts do
     |> add_date_range_at_query(:start_date, date_from_start_date, date_to_start_date)
     |> add_date_range_at_query(:end_date, date_from_end_date, date_to_end_date)
     |> add_legal_entity_id_query(legal_entity_id)
-    |> PRMRepo.paginate(Map.take(changes, ~w(page page_size)a))
+    |> @read_prm_repo.paginate(Map.take(changes, ~w(page page_size)a))
   end
 
   defp add_date_range_at_query(query, _, nil, nil), do: query
@@ -517,11 +519,11 @@ defmodule Core.Contracts do
 
   defp load_references(%CapitationContract{} = contract) do
     contract
-    |> PRMRepo.preload(:contract_employees)
-    |> PRMRepo.preload(:contract_divisions)
+    |> @read_prm_repo.preload(:contract_employees)
+    |> @read_prm_repo.preload(:contract_divisions)
   end
 
   defp load_references(%ReimbursementContract{} = contract) do
-    PRMRepo.preload(contract, :contract_divisions)
+    @read_prm_repo.preload(contract, :contract_divisions)
   end
 end

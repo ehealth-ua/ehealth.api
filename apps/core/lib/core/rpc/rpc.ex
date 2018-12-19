@@ -4,8 +4,9 @@ defmodule Core.Rpc do
   alias Core.Employees.Employee
   alias Core.Parties
   alias Core.Parties.Party
-  alias Core.PRMRepo
   import Ecto.Query
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def employees_by_user_id_client_id(user_id, client_id) do
     with %Party{id: party_id} <- Parties.get_by_user_id(user_id) do
@@ -21,7 +22,7 @@ defmodule Core.Rpc do
     |> where([e], e.party_id == ^party_id)
     |> where([e], e.legal_entity_id == ^client_id)
     |> where([e], e.status == ^Employee.status(:approved))
-    |> PRMRepo.all()
+    |> @read_prm_repo.all()
   end
 
   def tax_id_by_employee_id(employee_id) do
@@ -29,13 +30,13 @@ defmodule Core.Rpc do
     |> select([p], p.tax_id)
     |> join(:left, [p], e in Employee, p.id == e.party_id)
     |> where([p, e], e.id == ^employee_id)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 
   def employee_by_id(employee_id) do
     Employee
     |> where([e], e.id == ^employee_id)
     |> preload([e], :party)
-    |> PRMRepo.one()
+    |> @read_prm_repo.one()
   end
 end
