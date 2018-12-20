@@ -8,6 +8,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
   import Mox
 
   alias Absinthe.Relay.Node
+  alias Ecto.UUID
 
   setup :verify_on_exit!
 
