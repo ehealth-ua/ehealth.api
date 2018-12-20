@@ -13,7 +13,7 @@ defmodule GraphQLWeb.Schema.AddressTypes do
     field(:settlement_id, non_null(:id))
     field(:street_type, :string)
     field(:street, :string)
-    field(:building, non_null(:string))
+    field(:building, :string)
     field(:apartment, :string)
     field(:zip, non_null(:string))
   end
