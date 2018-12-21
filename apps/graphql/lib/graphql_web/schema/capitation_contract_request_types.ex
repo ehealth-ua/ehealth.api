@@ -37,7 +37,13 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
           employee_type: :in,
           status: :equal,
           is_active: :equal,
-          legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal]
+          legal_entity: [
+            database_id: :equal,
+            edrpou: :equal,
+            nhs_verified: :equal,
+            nhs_reviewed: :equal,
+            type: :equal
+          ]
           # TODO: implement resolver-independent FTS
           # party: [full_name: :full_text_search]
         ],
@@ -45,7 +51,8 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
           database_id: :equal,
           edrpou: :equal,
           nhs_verified: :equal,
-          nhs_reviewed: :equal
+          nhs_reviewed: :equal,
+          type: :equal
         ]
       )
 

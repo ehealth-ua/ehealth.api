@@ -2,12 +2,12 @@ defmodule GraphQLWeb.Loaders.PRM do
   @moduledoc false
 
   import Ecto.Query, only: [where: 2, order_by: 2, limit: 2, offset: 2]
+  import GraphQL.Helpers.Filtering, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
-  alias GraphQLWeb.Resolvers.Helpers.Search
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
@@ -38,10 +38,4 @@ defmodule GraphQLWeb.Loaders.PRM do
   end
 
   def query(queryable, _), do: queryable
-
-  defp filter(query, [{:merged_from_legal_entity, filter} | tail]) do
-    filter(query, [{:merged_from, filter} | tail])
-  end
-
-  defp filter(query, filter), do: Search.filter(query, filter)
 end

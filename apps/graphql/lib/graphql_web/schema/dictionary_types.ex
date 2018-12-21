@@ -5,14 +5,19 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   alias Absinthe.Relay.Node.ParseIDs
+  alias GraphQLWeb.Middleware.Filtering
   alias GraphQLWeb.Resolvers.DictionaryResolver
 
   object :dictionary_queries do
     connection field(:dictionaries, node_type: :dictionary) do
       arg(:filter, :dictionary_filter)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        name: :like,
+        label: {:contains, [field: :labels]},
+        is_active: :equal
+      )
+
       resolve(&DictionaryResolver.list_dictionaries/2)
     end
   end

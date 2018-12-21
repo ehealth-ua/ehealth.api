@@ -48,7 +48,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
 
   input_object :division_filter do
     field(:database_id, :id)
-    field(:name, :string_like)
+    field(:name, :string)
     field(:is_active, :boolean)
   end
 

@@ -38,7 +38,13 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
           employee_type: :in,
           status: :equal,
           is_active: :equal,
-          legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal]
+          legal_entity: [
+            database_id: :equal,
+            edrpou: :equal,
+            nhs_verified: :equal,
+            nhs_reviewed: :equal,
+            type: :equal
+          ]
           # TODO: implement resolver-independent FTS
           # party: [full_name: :full_text_search]
         ],
@@ -46,7 +52,8 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
           database_id: :equal,
           edrpou: :equal,
           nhs_verified: :equal,
-          nhs_reviewed: :equal
+          nhs_reviewed: :equal,
+          type: :equal
         ],
         medical_program: [
           database_id: :equal,

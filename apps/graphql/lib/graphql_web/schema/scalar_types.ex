@@ -15,11 +15,6 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
     parse(&decode_json/1)
   end
 
-  scalar :string_like do
-    serialize(& &1)
-    parse(&parse_string_like/1)
-  end
-
   defp parse_date_interval(%Input.String{value: value}) do
     case Date.Interval.from_edtf(value) do
       {:ok, interval} -> {:ok, interval}
@@ -39,8 +34,4 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
 
   defp decode_json(%Input.Null{}), do: {:ok, nil}
   defp decode_json(_), do: :error
-
-  defp parse_string_like(%Input.String{value: value}), do: {:ok, {:like, value}}
-  defp parse_string_like(%Input.Null{}), do: {:ok, nil}
-  defp parse_string_like(_), do: :error
 end

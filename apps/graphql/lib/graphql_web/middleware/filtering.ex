@@ -21,6 +21,20 @@ defmodule GraphQLWeb.Middleware.Filtering do
 
   defp get_conditions(_, nil), do: []
 
+  defp get_conditions([{schema_field, {rule, options}} | tail], values) when is_atom(rule) and is_list(options) do
+    field = Keyword.get(options, :field, schema_field)
+    value = Map.get(values, schema_field)
+
+    get_condition(field, rule, value) ++ get_conditions(tail, values)
+  end
+
+  defp get_conditions([{schema_field, {rules, options}} | tail], values) when is_list(rules) and is_list(options) do
+    field = Keyword.get(options, :field, schema_field)
+    value = Map.get(values, schema_field)
+
+    get_condition(field, rules, value) ++ get_conditions(tail, values)
+  end
+
   defp get_conditions([{field, rules} | tail], values) do
     value = Map.get(values, field)
     get_condition(field, rules, value) ++ get_conditions(tail, values)

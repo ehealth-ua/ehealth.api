@@ -37,7 +37,8 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
           database_id: :equal,
           edrpou: :equal,
           nhs_verified: :equal,
-          nhs_reviewed: :equal
+          nhs_reviewed: :equal,
+          type: :equal
         ],
         medical_program: [
           database_id: :equal,
@@ -133,8 +134,12 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        name: :like,
+        is_active: :equal
+      )
+
       resolve(&ReimbursementContractResolver.load_contract_divisions/3)
     end
 

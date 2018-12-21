@@ -40,7 +40,13 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
         employee_type: :in,
         status: :equal,
         is_active: :equal,
-        legal_entity: [database_id: :equal, edrpou: :equal, nhs_verified: :equal, nhs_reviewed: :equal],
+        legal_entity: [
+          database_id: :equal,
+          edrpou: :equal,
+          nhs_verified: :equal,
+          nhs_reviewed: :equal,
+          type: :equal
+        ],
         party: [full_name: :full_text_search]
       )
 

@@ -37,7 +37,8 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
           database_id: :equal,
           edrpou: :equal,
           nhs_verified: :equal,
-          nhs_reviewed: :equal
+          nhs_reviewed: :equal,
+          type: :equal
         ]
       )
 
@@ -121,8 +122,12 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        name: :like,
+        is_active: :equal
+      )
+
       resolve(&CapitationContractResolver.load_contract_divisions/3)
     end
 
@@ -143,8 +148,14 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
       arg(:filter, :contractor_employee_division_filter)
       arg(:order_by, :contractor_employee_division_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        division: [
+          database_id: :equal,
+          name: :like,
+          is_active: :equal
+        ]
+      )
+
       resolve(&CapitationContractResolver.load_contract_employees/3)
     end
 

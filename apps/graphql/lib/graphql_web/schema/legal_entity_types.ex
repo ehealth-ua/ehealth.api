@@ -8,6 +8,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
 
   alias Absinthe.Relay.Node.ParseIDs
   alias GraphQLWeb.Loaders.PRM
+  alias GraphQLWeb.Middleware.Filtering
   alias GraphQLWeb.Resolvers.LegalEntityResolver
 
   object :legal_entity_queries do
@@ -18,8 +19,14 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :legal_entity_filter)
       arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_desc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        edrpou: :equal,
+        nhs_verified: :equal,
+        nhs_reviewed: :equal,
+        type: :equal
+      )
+
       resolve(&LegalEntityResolver.list_legal_entities/2)
     end
 
@@ -166,8 +173,22 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :employee_filter)
       arg(:order_by, :employee_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        employee_type: :in,
+        status: :equal,
+        is_active: :equal,
+        legal_entity: [
+          database_id: :equal,
+          edrpou: :equal,
+          nhs_verified: :equal,
+          nhs_reviewed: :equal,
+          type: :equal
+        ]
+        # TODO: implement resolver-independent FTS
+        # party: [full_name: :full_text_search]
+      )
+
       resolve(&LegalEntityResolver.load_employees/3)
     end
 
@@ -175,8 +196,12 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :division_filter)
       arg(:order_by, :division_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        database_id: :equal,
+        name: :like,
+        is_active: :equal
+      )
+
       resolve(&LegalEntityResolver.load_divisions/3)
     end
 
@@ -186,8 +211,18 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :related_legal_entity_filter)
       arg(:order_by, :related_legal_entity_order_by, default_value: :inserted_at_asc)
 
-      # TODO: Replace it with `GraphQLWeb.Middleware.Filtering`
-      middleware(GraphQLWeb.Middleware.FilterArgument)
+      middleware(Filtering,
+        is_active: :equal,
+        merged_to_legal_entity: [
+          edrpou: :equal,
+          is_active: :equal
+        ],
+        merged_from_legal_entity: {
+          [edrpou: :equal, is_active: :equal],
+          [field: :merged_from]
+        }
+      )
+
       resolve(&LegalEntityResolver.load_related_legal_entities/3)
     end
 
