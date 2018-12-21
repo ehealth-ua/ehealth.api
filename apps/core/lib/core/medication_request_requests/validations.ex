@@ -292,7 +292,7 @@ defmodule Core.MedicationRequestRequest.Validations do
       "person_id" => data["person_id"],
       "medication_id" => data["medication_id"],
       "medical_program_id" => medical_program_id,
-      "status" => [MedicationRequest.status(:active), MedicationRequest.status(:completed)]
+      "status" => Enum.join([MedicationRequest.status(:active), MedicationRequest.status(:completed)], ",")
     }
 
     case @rpc_worker.run("ops", Core.Rpc, :last_medication_request_dates, [search_params]) do
