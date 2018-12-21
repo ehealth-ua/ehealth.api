@@ -6,14 +6,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   import Core.Expectations.Man
   import Mox
 
-  alias Core.EventManagerRepo
-  alias Core.PRMRepo
-  alias Core.EmployeeRequests.EmployeeRequest, as: Request
-  alias Core.LegalEntities.LegalEntity
-  alias Core.Employees.Employee
-  alias Core.PartyUsers.PartyUser
-  alias Core.EventManager.Event
   alias Core.Contracts.CapitationContract
+  alias Core.EmployeeRequests.EmployeeRequest, as: Request
+  alias Core.Employees.Employee
+  alias Core.EventManager.Event
+  alias Core.EventManagerRepo
+  alias Core.LegalEntities.LegalEntity
+  alias Core.PartyUsers.PartyUser
+  alias Core.PRMRepo
   alias Ecto.UUID
 
   @moduletag :with_client_id
@@ -1241,6 +1241,52 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn3 = get(conn, employee_path(conn, :show, employee_id))
       resp = json_response(conn3, 200)["data"]
       refute Map.has_key?(resp["doctor"], "science_degree")
+    end
+
+    test "can approve employee request with employee_id and delete party.second_name", %{conn: conn} do
+      msp()
+      get_user(2)
+
+      expect(ReportMock, :get_declaration_count, fn _, _ ->
+        {:ok, %{"data" => []}}
+      end)
+
+      role_id = UUID.generate()
+
+      expect(MithrilMock, :get_user_roles, 3, fn user_id, _, _ ->
+        {:ok,
+         %{
+           "data" => [
+             %{
+               "role_id" => role_id,
+               "user_id" => user_id
+             }
+           ]
+         }}
+      end)
+
+      get_roles_by_name(3, role_id)
+
+      %{id: legal_entity_id} = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division)
+
+      data =
+        employee_request_data()
+        |> put_in([:party, :email], "mis_bot_1493831618@user.com")
+        |> put_in([:party, :second_name], nil)
+        |> put_in([:division_id], division_id)
+        |> put_in([:legal_entity_id], legal_entity_id)
+
+      party = insert(:prm, :party, tax_id: data.party.tax_id, birth_date: Date.from_iso8601!(data.party.birth_date))
+      assert party.second_name
+      %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
+
+      conn = put_client_id_header(conn, legal_entity_id)
+      conn1 = post(conn, employee_request_path(conn, :approve, request_id))
+      resp = json_response(conn1, 200)
+      assert %{"data" => %{"employee_id" => employee_id}} = resp
+      party = PRMRepo.get(Core.Parties.Party, party.id)
+      refute party.second_name
     end
 
     test "can approve pharmacist", %{conn: conn} do

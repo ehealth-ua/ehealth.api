@@ -226,7 +226,10 @@
           "$ref": "#/definitions/person_name"
         },
         "second_name": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "$ref": "#/definitions/person_name"
         },
         "birth_date": {
