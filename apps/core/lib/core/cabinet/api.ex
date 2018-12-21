@@ -7,8 +7,8 @@ defmodule Core.Cabinet.API do
   alias Core.Bamboo.Emails.Sender
   alias Core.Cabinet.Requests.Registration
   alias Core.Cabinet.Requests.UserSearch
-  alias Core.DeclarationRequests.API.V1.Persons
   alias Core.DeclarationRequests.API.V2.MpiSearch
+  alias Core.DeclarationRequests.API.V2.Persons
   alias Core.Guardian
   alias Core.Man.Templates.EmailVerification
   alias Core.Persons.V2.Validator, as: PersonsValidator
@@ -45,12 +45,7 @@ defmodule Core.Cabinet.API do
          :ok <- validate_first_name(content, signer),
          :ok <- validate_last_name(content, signer),
          :ok <- validate_email(content, email),
-         {:ok, search_params} <-
-           Persons.get_search_params(%{
-             "tax_id" => tax_id,
-             "birth_date" => content["birth_date"],
-             "unzr" => content["unzr"]
-           }),
+         {:ok, search_params} <- Persons.get_search_params(content),
          {:ok, mpi_response} <- MpiSearch.search(search_params),
          {:ok, %{"data" => user_data}} <- @mithril_api.search_user(%{email: email}, headers),
          mithril_user <- fetch_mithril_user(user_data),
@@ -106,7 +101,7 @@ defmodule Core.Cabinet.API do
 
   defp create_or_update_person(nil, params, headers), do: @mpi_api.create_or_update_person!(params, headers)
 
-  defp create_or_update_person(person, params, headers), do: @mpi_api.update_person(person["id"], params, headers)
+  defp create_or_update_person(person, params, headers), do: @mpi_api.update_person(person.id, params, headers)
 
   defp prepare_user_params(tax_id, person_id, email, params, content) do
     [%{"phone_number" => phone_number}] = content["authentication_methods"]

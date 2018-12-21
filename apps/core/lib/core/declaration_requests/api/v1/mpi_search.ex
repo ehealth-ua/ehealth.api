@@ -4,19 +4,20 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
   """
 
   alias Core.DeclarationRequests.API.V1.Persons
+  alias Scrivener.Page
 
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def search(%{"auth_phone_number" => _} = search_params) do
-    search_params
-    |> @mpi_api.search([])
+    "mpi_api"
+    |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params])
     |> search_result(:all)
   end
 
   def search(person) do
     with {:ok, search_params} <- Persons.get_search_params(person) do
-      search_params
-      |> @mpi_api.search([])
+      "mpi_api"
+      |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params])
       |> search_result(:one)
     else
       {:error, :ignore} -> {:ok, nil}
@@ -24,9 +25,8 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
     end
   end
 
-  defp search_result({:ok, %{"data" => data}}, :all), do: {:ok, data}
-  defp search_result({:ok, %{"data" => [person]}}, :one), do: {:ok, person}
-  defp search_result({:ok, %{"data" => _}}, :one), do: {:ok, nil}
-  defp search_result({:error, %HTTPoison.Error{reason: reason}}, _), do: {:error, reason}
+  defp search_result(%Page{entries: entries}, :all), do: {:ok, entries}
+  defp search_result(%Page{entries: [%{__struct__: Core.Person} = person]}, :one), do: {:ok, person}
+  defp search_result(%Page{entries: _}, :one), do: {:ok, nil}
   defp search_result(error, _), do: error
 end

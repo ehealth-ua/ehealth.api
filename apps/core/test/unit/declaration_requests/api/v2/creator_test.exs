@@ -3,8 +3,6 @@ defmodule Core.DeclarationRequests.API.V2.CreatorTest do
 
   use Core.ConnCase, async: true
 
-  import Mox
-
   alias Ecto.UUID
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.DeclarationRequests.API.V2.Creator
@@ -59,42 +57,131 @@ defmodule Core.DeclarationRequests.API.V2.CreatorTest do
     end
   end
 
-  describe "mpi persons search" do
-    test "few mpi persons" do
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => [%{id: 1}, %{id: 2}]
-         }}
-      end)
+  describe "mpi child search" do
+    test "tax_id - found" do
+      expect_persons_search_result([%{id: 1}, %{id: 2}])
 
       assert {:ok, %{id: 1}} =
-               Creator.mpi_search(%{"unzr" => "20160828-12345", "birth_date" => "2016-08-28", "tax_id" => "0123456789"})
+               Creator.mpi_search(%{
+                 "birth_date" => "2016-08-28",
+                 "tax_id" => "0123456789",
+                 "last_name" => "Рюрікович",
+                 "documents" => [
+                   %{
+                     "type" => "BIRTH_CERTIFICATE",
+                     "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+                   }
+                 ]
+               })
+    end
+
+    test "tax_id - not found" do
+      expect_persons_search_result([])
+
+      expect_persons_search_result([%{id: 1}, %{id: 2}])
+
+      assert {:ok, %{id: 1}} =
+               Creator.mpi_search(%{
+                 "birth_date" => "2016-08-28",
+                 "tax_id" => "0123456789",
+                 "last_name" => "Рюрікович",
+                 "documents" => [
+                   %{
+                     "type" => "BIRTH_CERTIFICATE",
+                     "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+                   }
+                 ]
+               })
+    end
+  end
+
+  describe "mpi adult search" do
+    test "tax_id - found" do
+      expect_persons_search_result([%{id: 1}, %{id: 2}])
+
+      assert {:ok, %{id: 1}} =
+               Creator.mpi_search(%{
+                 "birth_date" => "1838-11-25",
+                 "tax_id" => "0123456789",
+                 "last_name" => "Рюрікович"
+               })
+    end
+
+    test "no tax_id" do
+      expect_persons_search_result([%{id: 1}, %{id: 2}])
+
+      assert {:ok, %{id: 1}} =
+               Creator.mpi_search(%{
+                 "birth_date" => "1838-11-25",
+                 "last_name" => "Рюрікович",
+                 "documents" => [
+                   %{
+                     "type" => "BIRTH_CERTIFICATE",
+                     "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+                   },
+                   %{
+                     "type" => "PASSPORT",
+                     "number" => "18381125-01234"
+                   }
+                 ]
+               })
+    end
+  end
+
+  describe "mpi persons search" do
+    test "few mpi persons" do
+      expect_persons_search_result([%{id: 1}, %{id: 2}])
+
+      assert {:ok, %{id: 1}} =
+               Creator.mpi_search(%{
+                 "unzr" => "20160828-12345",
+                 "birth_date" => "2016-08-28",
+                 "tax_id" => "0123456789",
+                 "last_name" => "Рюрікович",
+                 "documents" => [
+                   %{
+                     "type" => "BIRTH_CERTIFICATE",
+                     "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+                   }
+                 ]
+               })
     end
 
     test "one mpi persons" do
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => [%{id: 1}]
-         }}
-      end)
+      expect_persons_search_result([%{id: 1}])
 
-      person = %{"unzr" => "20160303-12345", "birth_date" => "2016-03-03", "tax_id" => "0123456789"}
+      person = %{
+        "unzr" => "20160303-12345",
+        "birth_date" => "2016-03-03",
+        "tax_id" => "0123456789",
+        "last_name" => "Рюрікович",
+        "documents" => [
+          %{
+            "type" => "BIRTH_CERTIFICATE",
+            "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+          }
+        ]
+      }
 
       assert {:ok, %{id: 1}} = Creator.mpi_search(person)
     end
 
     test "no mpi persons" do
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => []
-         }}
-      end)
+      expect_persons_search_result([], 2)
 
       assert {:ok, nil} =
-               Creator.mpi_search(%{"unzr" => "20190101-12345", "birth_date" => "2019-01-01", "tax_id" => "1234567890"})
+               Creator.mpi_search(%{
+                 "unzr" => "20190101-12345",
+                 "birth_date" => "2019-01-01",
+                 "tax_id" => "1234567890",
+                 "last_name" => "Рюрікович",
+                 "documents" => [
+                   %{
+                     "type" => "BIRTH_CERTIFICATE",
+                     "number" => "Стеблівським РОУ МВУ в Черкаській обл. НОМЕР 2511 в 5/11"
+                   }
+                 ]
+               })
     end
   end
 

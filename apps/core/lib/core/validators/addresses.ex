@@ -41,7 +41,7 @@ defmodule Core.Validators.Addresses do
   end
 
   defp validate_addresses_values(addresses) do
-    case @rpc_worker.run("uaddresses", Uaddresses.Rpc, :validate, [addresses]) do
+    case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :validate, [addresses]) do
       :ok ->
         :ok
 

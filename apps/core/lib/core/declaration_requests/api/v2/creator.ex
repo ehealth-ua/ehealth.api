@@ -4,6 +4,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
 
   alias Core.DeclarationRequests.API.V1.Creator, as: V1Creator
   alias Core.DeclarationRequests.API.V2.MpiSearch
+  alias Core.DeclarationRequests.API.V2.Persons
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.GlobalParameters
   alias Core.Repo
@@ -80,6 +81,8 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   end
 
   def mpi_search(person) do
-    MpiSearch.search(person)
+    with {:ok, search_params} <- Persons.get_search_params(person) do
+      MpiSearch.search(search_params)
+    end
   end
 end

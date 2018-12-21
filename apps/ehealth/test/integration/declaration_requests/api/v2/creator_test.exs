@@ -3,8 +3,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   use EHealth.Web.ConnCase
 
-  import Mox
+  import Core.Expectations.RPC
   import Ecto.Changeset, only: [get_change: 2, put_change: 3]
+  import Mox
 
   alias Core.DeclarationRequests.API.V2.Creator
   alias Core.DeclarationRequests.DeclarationRequest
@@ -392,21 +393,15 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record exists" do
     test "auth method's type is set to OTP password" do
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{
-                 "type" => "OTP",
-                 "phone_number" => "+380508887700"
-               }
-             ])
-           ]
-         }}
-      end)
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [
+          %{
+            type: "OTP",
+            phone_number: "+380508887700"
+          }
+        ]
+      })
 
       declaration_request = %DeclarationRequest{
         data: %{
@@ -440,25 +435,26 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI has many existing records" do
     test "auth method's type is set to OTP password" do
-      expect(MPIMock, :search, fn params, _ ->
-        person =
-          params
-          |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-          |> Map.put("authentication_methods", [
+      expect_persons_search_result([
+        %{
+          id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+          authentication_methods: [
             %{
-              "type" => "OTP",
-              "phone_number" => "+380508887700"
+              type: "OTP",
+              phone_number: "+380508887700"
             }
-          ])
-
-        {:ok,
-         %{
-           "data" => [
-             person,
-             person
-           ]
-         }}
-      end)
+          ]
+        },
+        %{
+          id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+          authentication_methods: [
+            %{
+              type: "OTP",
+              phone_number: "+380508887700"
+            }
+          ]
+        }
+      ])
 
       declaration_request = %DeclarationRequest{
         data: %{
@@ -492,9 +488,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record does not exist" do
     test "MPI record does not exist" do
-      expect(MPIMock, :search, 2, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_persons_search_result([], 2)
 
       declaration_request = %DeclarationRequest{
         data: %{
@@ -526,9 +520,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
     end
 
     test "Gandalf makes a NA decision" do
-      expect(MPIMock, :search, 2, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_persons_search_result([], 2)
 
       System.put_env("GNDF_TABLE_ID", "not_available")
 
@@ -563,42 +555,9 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
     end
   end
 
-  describe "determine_auth_method_for_mpi/1, MPI returns an error" do
-    test "MPI returns an error" do
-      expect(MPIMock, :search, fn _, _ ->
-        {:error, %HTTPoison.Error{reason: :something}}
-      end)
-
-      declaration_request = %DeclarationRequest{
-        data: %{
-          "person" => %{
-            "first_name" => "test",
-            "last_name" => "test",
-            "birth_date" => "1990-01-01",
-            "phones" => [
-              %{
-                "number" => "+380508887701"
-              }
-            ]
-          }
-        }
-      }
-
-      changeset =
-        declaration_request
-        |> Ecto.Changeset.change()
-        |> Creator.determine_auth_method_for_mpi(DeclarationRequest.channel(:mis), nil)
-
-      assert ~s(Error during MPI interaction. Result from MPI: :something) ==
-               elem(changeset.errors[:authentication_method_current], 0)
-    end
-  end
-
   describe "determine_auth_method_for_mpi/1, MPI record does not exist (2)" do
     test "authentication_methods OTP converts to NA" do
-      expect(MPIMock, :search, 2, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_persons_search_result([], 2)
 
       declaration_request = %DeclarationRequest{
         data: %{
@@ -637,22 +596,11 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
 
   describe "determine_auth_method_for_mpi/1, MPI record with type NA" do
     test "authentication_methods NA converts to OTP" do
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("authentication_methods", [%{"type" => "NA"}])
-           ]
-         }}
-      end)
+      expect_persons_search_result(%{
+        authentication_methods: [%{type: "NA"}]
+      })
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => []
-         }}
-      end)
+      expect_persons_search_result([])
 
       declaration_request = %DeclarationRequest{
         data: %{

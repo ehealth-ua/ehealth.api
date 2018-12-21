@@ -42,12 +42,16 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(MPIMock, :search, fn params, _headers ->
-        assert Map.has_key?(params, "tax_id")
-        assert Map.has_key?(params, "birth_date")
-        assert tax_id == params["tax_id"]
+      expect_uaddresses_validate()
 
-        {:ok, %{"data" => []}}
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
@@ -144,8 +148,6 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
-
-      expect_uaddresses_validate()
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> auth_token)

@@ -318,9 +318,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "create new person and user", %{conn: conn, params: params} do
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([])
 
       expect(MPIMock, :create_or_update_person!, fn params, headers ->
         refute Map.has_key?(params, "id")
@@ -354,8 +354,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect_uaddresses_validate()
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -366,15 +364,19 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "create new user and update MPI person", %{conn: conn, params: params} do
       person_id = UUID.generate()
 
-      expect(MPIMock, :search, fn params, _headers ->
-        Enum.each(~w(tax_id birth_date status), fn key ->
-          assert Map.has_key?(params, key)
-        end)
+      expect_uaddresses_validate()
 
-        assert "3126509816" == params["tax_id"]
-        assert "active" == params["status"]
-
-        {:ok, %{"data" => [%{"id" => person_id}]}}
+      expect(RPCWorkerMock, :run, fn _,
+                                     _,
+                                     :search_persons,
+                                     [%{"tax_id" => "3126509816", "status" => "active", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [%{__struct__: Core.Person, id: person_id}],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
@@ -407,8 +409,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect_uaddresses_validate()
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -417,8 +417,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "MPI persons duplicated", %{conn: conn, params: params} do
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]}}
+      expect_uaddresses_validate()
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [%{__struct__: Core.Person, id: UUID.generate()}, %{__struct__: Core.Person, id: UUID.generate()}],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
@@ -451,8 +459,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect_uaddresses_validate()
-
       conn
       |> post(cabinet_auth_path(conn, :registration), params)
       |> json_response(201)
@@ -460,8 +466,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     @tag :pending
     test "update user and create new MPI person", %{conn: conn, params: params} do
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
+      expect_uaddresses_validate()
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
@@ -503,8 +517,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect_uaddresses_validate()
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -514,8 +526,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "update user and update MPI person", %{conn: conn, params: params} do
       person_id = UUID.generate()
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => [%{"id" => person_id}]}}
+      expect_uaddresses_validate()
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [%{__struct__: Core.Person, id: person_id}],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MPIMock, :update_person, fn ^person_id, params, headers ->
@@ -551,8 +571,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect_uaddresses_validate()
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -578,8 +596,16 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user exists with tax_id", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
+      expect_uaddresses_validate()
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        %Scrivener.Page{
+          entries: [],
+          page_number: 1,
+          page_size: 1,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
@@ -589,8 +615,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect(OTPVerificationMock, :complete, fn _, _, _ ->
         {:ok, %{"data" => []}}
       end)
-
-      expect_uaddresses_validate()
 
       assert "tax_id_exists" ==
                conn
@@ -603,9 +627,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user blocked", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([])
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890", "is_blocked" => true}]}}
@@ -614,8 +638,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect(OTPVerificationMock, :complete, fn _, _, _ ->
         {:ok, %{"data" => []}}
       end)
-
-      expect_uaddresses_validate()
 
       assert "User blocked" ==
                conn
@@ -1002,9 +1024,9 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "422 response code on MPI", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(MPIMock, :search, fn %{"tax_id" => "3126509816", "birth_date" => _}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([])
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => []}}
@@ -1039,8 +1061,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect(OTPVerificationMock, :complete, fn _, _, _ ->
         {:ok, %{"data" => []}}
       end)
-
-      expect_uaddresses_validate()
 
       assert [err] =
                conn

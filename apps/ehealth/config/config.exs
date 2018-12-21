@@ -64,6 +64,16 @@ config :ehealth,
         kubernetes_namespace: "ops",
         polling_interval: 10_000
       ]
+    ],
+    k8s_mpi: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "mpi",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "mpi",
+        polling_interval: 10_000
+      ]
     ]
   ]
 

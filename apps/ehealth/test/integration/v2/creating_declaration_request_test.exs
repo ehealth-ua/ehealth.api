@@ -258,18 +258,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -314,8 +308,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
 
-      expect_uaddresses_validate()
-
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
@@ -331,19 +323,13 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       gen_sequence_number()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => []
-         }}
-      end)
+      expect_uaddresses_validate()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => Enum.map(1..5, fn _ -> %{} end)
-         }}
-      end)
+      expect_persons_search_result([], 2)
+
+      1..5
+      |> Enum.map(fn _ -> %{} end)
+      |> expect_persons_search_result()
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
@@ -373,8 +359,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      expect_uaddresses_validate()
-
       conn =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -395,21 +379,18 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => [
-             %{
-               "authentication_methods" => [
-                 %{
-                   "type" => "OTP",
-                   "phone_number" => "+380508887700"
-                 }
-               ]
-             }
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([
+        %{
+          authentication_methods: [
+            %{
+              type: "OTP",
+              phone_number: "+380508887700"
+            }
+          ]
+        }
+      ])
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -447,8 +428,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
-      expect_uaddresses_validate()
-
       conn
       |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
       |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
@@ -464,28 +443,22 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       gen_sequence_number()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => [
-             %{
-               "authentication_methods" => [
-                 %{
-                   "type" => "OTP",
-                   "phone_number" => "+380508887701"
-                 }
-               ]
-             }
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => Enum.map(1..5, fn _ -> %{} end)
-         }}
-      end)
+      expect_persons_search_result([
+        %{
+          authentication_methods: [
+            %{
+              type: "OTP",
+              phone_number: "+380508887701"
+            }
+          ]
+        }
+      ])
+
+      1..5
+      |> Enum.map(fn _ -> %{} end)
+      |> expect_persons_search_result()
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
@@ -514,8 +487,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
-
-      expect_uaddresses_validate()
 
       conn =
         conn
@@ -580,18 +551,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       role_id = UUID.generate()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
         {:ok, %{"data" => [%{"id" => role_id}]}}
@@ -630,8 +595,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       tax_id = get_in(params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
-
-      expect_uaddresses_validate()
 
       tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -711,12 +674,9 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
     test "declaration request is created with 'OTP' verification for person with no_tax_id = true", %{conn: conn} do
       gen_sequence_number()
 
-      expect(MPIMock, :search, fn _, _ ->
-        {:ok,
-         %{
-           "data" => []
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([], 2)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
@@ -767,7 +727,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person_data)
 
       html_template("<html><body>Printout form for declaration request.</body></html>")
-      expect_uaddresses_validate()
 
       resp =
         conn
@@ -797,18 +756,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "NA"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "NA"}]
+      })
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -842,7 +795,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
-      expect_uaddresses_validate()
 
       resp =
         conn
@@ -891,6 +843,10 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       gen_sequence_number()
 
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([])
+
       expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
@@ -926,8 +882,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
-
-      expect_uaddresses_validate()
 
       person =
         declaration_request_params
@@ -1085,9 +1039,9 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
     test "declaration request is created without verification", %{conn: conn} do
       gen_sequence_number()
 
-      expect(MPIMock, :search, 2, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result([], 3)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
         {:ok, %{"data" => []}}
@@ -1124,7 +1078,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       tax_id = get_in(declaration_request_params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
-      expect_uaddresses_validate()
 
       decoded = declaration_request_params["declaration_request"]
       d1 = clone_declaration_request(decoded, "8799e3b6-34e7-4798-ba70-d897235d2b6d", "NEW")
@@ -1217,18 +1170,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -1265,8 +1212,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         "../core/test/data/v2/declaration_request.json"
         |> File.read!()
         |> Jason.decode!()
-
-      expect_uaddresses_validate()
 
       assert conn
              |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -1328,18 +1273,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -1398,8 +1337,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
             issued_by: "Збухівський РО ГО МЖД"
           }
         ])
-
-      expect_uaddresses_validate()
 
       assert conn
              |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -1472,18 +1409,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -1515,8 +1446,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
-
-      expect_uaddresses_validate()
 
       declaration_request_params =
         "../core/test/data/v2/declaration_request.json"
@@ -1562,18 +1491,12 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       gen_sequence_number()
       template()
 
-      expect(MPIMock, :search, fn params, _ ->
-        {:ok,
-         %{
-           "data" => [
-             params
-             |> Map.put("id", "b5350f79-f2ca-408f-b15d-1ae0a8cc861c")
-             |> Map.put("authentication_methods", [
-               %{"type" => "OTP", "phone_number" => "+380508887700"}
-             ])
-           ]
-         }}
-      end)
+      expect_uaddresses_validate()
+
+      expect_persons_search_result(%{
+        id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+      })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
         {:ok, %{}}
@@ -1609,8 +1532,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
       end)
-
-      expect_uaddresses_validate()
 
       age = 13
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
