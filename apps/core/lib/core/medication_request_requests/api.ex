@@ -29,6 +29,7 @@ defmodule Core.MedicationRequestRequests do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Repo
   alias Core.Utils.NumberGenerator
+  alias Core.Utils.Phone
   alias Core.ValidationError
   alias Core.Validators.Error
 
@@ -155,7 +156,8 @@ defmodule Core.MedicationRequestRequests do
            |> create_changeset(attrs, user_id, client_id)
            |> Repo.insert() do
         {:ok, inserted_entity} ->
-          {:ok, Map.merge(create_operation.data, %{medication_request_request: inserted_entity})}
+          urgent_data = prepare_urgent_data(create_operation.data.person)
+          {:ok, Map.merge(create_operation.data, %{medication_request_request: inserted_entity}), urgent_data}
 
         {:error, %Ecto.Changeset{errors: [request_number: {"has already been taken", []}]}} ->
           create(attrs, user_id, client_id)
@@ -489,4 +491,23 @@ defmodule Core.MedicationRequestRequests do
 
   defp check_intent(%{"intent" => "plan"}), do: {:error, {:conflict, "Plan can't be qualified"}}
   defp check_intent(%{"intent" => _}), do: :ok
+
+  def prepare_urgent_data(%{"authentication_methods" => authentication_methods}) do
+    filtered_authentication_method_current =
+      authentication_methods
+      |> List.first()
+      |> filter_authentication_method()
+
+    %{
+      authentication_method_current: filtered_authentication_method_current
+    }
+  end
+
+  defp filter_authentication_method(nil), do: %{}
+
+  defp filter_authentication_method(%{"phone_number" => number} = method) do
+    Map.put(method, "phone_number", Phone.hide_number(number))
+  end
+
+  defp filter_authentication_method(method), do: method
 end

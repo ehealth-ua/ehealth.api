@@ -12,6 +12,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   alias Core.PRMRepo
   alias Core.Repo
   alias Core.Rpc.Error, as: RpcError
+  alias Core.Utils.Phone
   alias Ecto.UUID
   alias EHealth.MockServer
 
@@ -54,7 +55,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request
       end
 
-    {:ok, medication_request_request} =
+    {:ok, medication_request_request, _} =
       MedicationRequestRequests.create(
         test_request,
         "7488a646-e31f-11e4-aace-600308960662",
@@ -348,7 +349,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   describe "create medication_request_request" do
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
 
       expect_ops_last_medication_request_dates(%{
         "started_at" => Date.add(Date.utc_today(), -2),
@@ -365,14 +370,22 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medical_program_id" => pm.medical_program_id
         })
 
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(201)
+
       assert %{"id" => id} =
-               conn
-               |> post(medication_request_request_path(conn, :create),
-                 medication_request_request: test_request
-               )
-               |> json_response(201)
+               resp
                |> Map.get("data")
                |> assert_show_response_schema("medication_request_request")
+
+      assert person
+             |> Map.get("authentication_methods", [])
+             |> List.first()
+             |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
 
       conn
       |> get(medication_request_request_path(conn, :show, id))
@@ -2314,4 +2327,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     })
     |> Map.merge(params)
   end
+
+  defp filter_authentication_method(nil), do: %{}
+
+  defp filter_authentication_method(%{"phone_number" => number} = method) do
+    Map.put(method, "phone_number", Phone.hide_number(number))
+  end
+
+  defp filter_authentication_method(method), do: method
 end

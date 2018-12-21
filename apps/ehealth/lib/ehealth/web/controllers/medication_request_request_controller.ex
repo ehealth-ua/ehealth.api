@@ -18,10 +18,11 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
-    with {:ok, mrr} <- API.create(params, user_id, client_id) do
+    with {:ok, mrr, urgent_data} <- API.create(params, user_id, client_id) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", medication_request_request_path(conn, :show, mrr.medication_request_request))
+      |> assign(:urgent, urgent_data)
       |> render("medication_request_request_detail.json", %{data: mrr})
     end
   end
