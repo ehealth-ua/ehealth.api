@@ -230,7 +230,7 @@
             "string",
             "null"
           ],
-          "$ref": "#/definitions/person_name"
+          "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
         },
         "birth_date": {
           "$ref": "#/definitions/date"
