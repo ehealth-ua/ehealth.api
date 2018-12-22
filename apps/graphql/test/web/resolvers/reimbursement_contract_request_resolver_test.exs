@@ -4,6 +4,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
   use GraphQLWeb.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
+  import Core.Expectations.Man, only: [template: 1]
   import Core.Expectations.Mithril, only: [nhs: 0]
   import Core.Expectations.Signature
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
@@ -517,6 +518,8 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
 
   describe "sign" do
     test "success", %{conn: conn} do
+      template(1)
+
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -562,7 +565,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         start_date: Date.add(now, 10)
       )
 
-      printout_content = "<html>Reimbursement contract printout form</html>"
+      printout_content = "<html></html>"
       content = Map.put(data, "printout_content", printout_content)
 
       expect_signed_content(content, [
@@ -596,6 +599,8 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     end
 
     test "medical program not exist", %{conn: conn} do
+      template(1)
+
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -636,7 +641,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         start_date: Date.add(now, 10)
       )
 
-      printout_content = "<html>Reimbursement contract printout form</html>"
+      printout_content = "<html></html>"
       content = Map.put(data, "printout_content", printout_content)
 
       expect_signed_content(content, [
@@ -671,6 +676,8 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
     end
 
     test "medical program not active", %{conn: conn} do
+      template(1)
+
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -713,7 +720,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         start_date: Date.add(now, 10)
       )
 
-      printout_content = "<html>Reimbursement contract printout form</html>"
+      printout_content = "<html></html>"
       content = Map.put(data, "printout_content", printout_content)
 
       expect_signed_content(content, [

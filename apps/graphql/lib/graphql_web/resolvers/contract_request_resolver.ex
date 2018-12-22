@@ -11,7 +11,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.ContractRequests.RequestPack
   alias Core.Dictionaries.Dictionary
   alias Core.LegalEntities.LegalEntity
-  alias Core.Man.Templates.ContractRequestPrintoutForm
+  alias Core.Man.Templates.CapitationContractRequestPrintoutForm
+  alias Core.Man.Templates.ReimbursementContractRequestPrintoutForm
   alias GraphQLWeb.Loaders.{IL, PRM}
 
   @status_in_process CapitationContractRequest.status(:in_process)
@@ -72,24 +73,25 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     end
   end
 
-  def get_printout_content(%ReimbursementContractRequest{printout_content: printout_content}, _, _) do
-    # TODO: Rewrite logic when reimbursement contract request form is ready
-    {:ok, printout_content}
-  end
-
-  def get_printout_content(%{status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
+  def get_printout_content(%{__struct__: _, status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
-    # TODO: causes N+1 problem with DB query and man template rendering
-    with {:ok, printout_content} <- ContractRequestPrintoutForm.render(contract_request, context.headers) do
+    form_renderer =
+      case contract_request do
+        %CapitationContractRequest{} -> CapitationContractRequestPrintoutForm
+        %ReimbursementContractRequest{} -> ReimbursementContractRequestPrintoutForm
+      end
+
+    with {:ok, printout_content} <- form_renderer.render(contract_request, context.headers) do
       {:ok, printout_content}
     else
       err -> render_error(err)
     end
   end
 
-  def get_printout_content(%CapitationContractRequest{printout_content: printout_content}, _, _),
-    do: {:ok, printout_content}
+  def get_printout_content(%{__struct__: _, printout_content: printout_content}, _, _) do
+    {:ok, printout_content}
+  end
 
   def get_attached_documents(%{id: id, status: status}, _, _) do
     with documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do

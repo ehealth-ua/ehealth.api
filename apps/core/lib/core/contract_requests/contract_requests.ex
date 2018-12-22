@@ -20,7 +20,8 @@ defmodule Core.ContractRequests do
   alias Core.EventManager
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Man.Templates.ContractRequestPrintoutForm
+  alias Core.Man.Templates.CapitationContractRequestPrintoutForm
+  alias Core.Man.Templates.ReimbursementContractRequestPrintoutForm
   alias Core.Repo
   alias Core.Utils.NumberGenerator
   alias Core.Validators.Error
@@ -394,8 +395,10 @@ defmodule Core.ContractRequests do
          :ok <- check_last_name_match(employee.party.last_name, signer["surname"]),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
+         _ <- printout_form_renderer(contract_request),
+         printout_form_renderer <- printout_form_renderer(contract_request),
          {:ok, printout_content} <-
-           ContractRequestPrintoutForm.render(
+           printout_form_renderer.render(
              %{contract_request | nhs_signed_date: Date.utc_today()},
              headers
            ),
@@ -529,13 +532,16 @@ defmodule Core.ContractRequests do
              "Incorrect status of contract_request to generate printout form"
            ),
          {:ok, printout_content} <-
-           ContractRequestPrintoutForm.render(
+           CapitationContractRequestPrintoutForm.render(
              Map.put(contract_request, :nhs_signed_date, Date.utc_today()),
              headers
            ) do
       {:ok, contract_request, printout_content}
     end
   end
+
+  defp printout_form_renderer(%CapitationContractRequest{}), do: CapitationContractRequestPrintoutForm
+  defp printout_form_renderer(%ReimbursementContractRequest{}), do: ReimbursementContractRequestPrintoutForm
 
   defp set_contract_number(params, %{parent_contract_id: parent_contract_id}) when not is_nil(parent_contract_id) do
     params

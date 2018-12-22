@@ -135,8 +135,11 @@ config :core, Core.Man.Templates.EmployeeCreatedNotification,
 config :core, Core.Man.Templates.DeclarationRequestPrintoutForm,
   id: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 4}
 
-config :core, Core.Man.Templates.ContractRequestPrintoutForm,
-  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 6}
+config :core, Core.Man.Templates.CapitationContractRequestPrintoutForm,
+  id: {:system, "CAPITATION_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 6}
+
+config :core, Core.Man.Templates.ReimbursementContractRequestPrintoutForm,
+  id: {:system, "REIMBURSEMENT_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 14}
 
 config :core, Core.Man.Templates.CredentialsRecoveryRequest,
   id: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_ID", 5}

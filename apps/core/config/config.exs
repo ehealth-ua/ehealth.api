@@ -218,11 +218,16 @@ config :core, Core.Man.Templates.DeclarationRequestPrintoutForm,
   format: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
   locale: {:system, "DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
-config :core, Core.Man.Templates.ContractRequestPrintoutForm,
-  id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
-  appendix_id: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_APPENDIX_TEMPLATE_ID"},
-  format: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
-  locale: {:system, "CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
+config :core, Core.Man.Templates.CapitationContractRequestPrintoutForm,
+  id: {:system, "CAPITATION_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID"},
+  appendix_id: {:system, "CAPITATION_CONTRACT_REQUEST_PRINTOUT_FORM_APPENDIX_TEMPLATE_ID"},
+  format: {:system, "CAPITATION_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "CAPITATION_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
+
+config :core, Core.Man.Templates.ReimbursementContractRequestPrintoutForm,
+  id: {:system, "REIMBURSEMENT_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", 14},
+  format: {:system, "REIMBURSEMENT_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_FORMAT", "text/html"},
+  locale: {:system, "REIMBURSEMENT_CONTRACT_REQUEST_PRINTOUT_FORM_TEMPLATE_LOCALE", "uk_UA"}
 
 config :core, Core.Man.Templates.EmailVerification,
   id: {:system, "EMAIL_VERIFICATION_TEMPLATE_ID"},
