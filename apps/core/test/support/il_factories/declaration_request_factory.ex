@@ -15,7 +15,7 @@ defmodule Core.ILFactories.DeclarationRequestFactory do
           |> Jason.decode!()
 
         %DeclarationRequest{
-          data: data,
+          data: put_in(data, ~w(person authentication_methods), [%{"type" => "OFFLINE"}]),
           status: "NEW",
           inserted_by: uuid,
           updated_by: uuid,

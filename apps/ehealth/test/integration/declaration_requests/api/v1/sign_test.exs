@@ -6,9 +6,9 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   import Core.DeclarationRequests.API.Sign
   import Mox
 
-  alias Ecto.UUID
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Repo
+  alias Ecto.UUID
   alias HTTPoison.Response
 
   setup :verify_on_exit!
@@ -265,6 +265,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       assert declaration_request_data["seed"] == data["seed"]
       assert "active" == data["status"]
       assert data["is_active"]
+      assert data["reason"] == "offline"
     end
 
     test "returns active status when authentication_method_current.type == NA" do

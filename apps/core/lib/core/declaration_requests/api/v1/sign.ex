@@ -213,9 +213,22 @@ defmodule Core.DeclarationRequests.API.Sign do
       "signed_at" => Timex.now(),
       "declaration_request_id" => id,
       "overlimit" => overlimit,
-      "declaration_number" => declaration_number
+      "declaration_number" => declaration_number,
+      "reason" => get_reason(data)
     })
     |> @ops_api.create_declaration_with_termination_logic(headers)
+  end
+
+  defp get_reason(data) do
+    authentication_method = hd(data["person"]["authentication_methods"])
+    no_tax_id = data["person"]["no_tax_id"]
+
+    cond do
+      authentication_method["type"] == @auth_offline && no_tax_id -> "no_tax_id"
+      authentication_method["type"] == @auth_offline -> "offline"
+      no_tax_id -> "no_tax_id"
+      true -> nil
+    end
   end
 
   defp update_casher_person_data(employee_id) do
