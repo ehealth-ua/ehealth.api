@@ -35,6 +35,10 @@ defmodule Core.MedicationRequestRequest.SignOperation do
 
   def decode_sign_content(_operation, {params, headers}), do: Validations.decode_sign_content(params, headers)
 
+  def validate_sign_content(%{valid?: false, changeset: changeset} = operation, _) do
+    {operation, {:error, changeset}}
+  end
+
   def validate_sign_content(operation, mrr) do
     {operation, Validations.validate_sign_content(mrr, operation)}
   end

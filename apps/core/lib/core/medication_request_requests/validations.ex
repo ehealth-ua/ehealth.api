@@ -349,11 +349,20 @@ defmodule Core.MedicationRequestRequest.Validations do
   end
 
   def decode_sign_content(content, headers) do
-    SignatureValidator.validate(
-      content["signed_medication_request_request"],
-      content["signed_content_encoding"],
-      headers
-    )
+    with {:ok, result} <-
+           SignatureValidator.validate(
+             content["signed_medication_request_request"],
+             content["signed_content_encoding"],
+             headers
+           ) do
+      {:ok, result}
+    else
+      {:error, {:bad_request, reason}} ->
+        {:invalid_signature, reason}
+
+      error ->
+        error
+    end
   end
 
   def validate_sign_content(mrr, %{data: %{decoded_content: decoded_content}} = operation) do

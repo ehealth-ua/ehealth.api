@@ -258,4 +258,12 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
       [validation: :invalid]
     ])
   end
+
+  defp add_changeset_error({:invalid_signature, reason}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :signed_medication_request_request,
+      reason,
+      [validation: :invalid]
+    ])
+  end
 end

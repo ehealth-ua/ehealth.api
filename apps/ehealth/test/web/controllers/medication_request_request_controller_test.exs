@@ -2121,6 +2121,70 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert json_response(conn1, 422)
     end
 
+    test "return 422 if signature is not valid", %{conn: conn} do
+      expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
+      expect_encounter_status("finished", 2)
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr =
+        mrr
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      drfo =
+        mrr
+        |> get_in(["employee", "party", "id"])
+        |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
+        |> Map.get(:tax_id)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:error, {:bad_request, "Invalid signature"}}
+      end)
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("drfo", drfo)
+        |> patch(medication_request_request_path(conn, :sign, mrr["id"]), %{
+          signed_medication_request_request: signed_mrr,
+          signed_content_encoding: "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_medication_request_request",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Invalid signature",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "when some data is invalid", %{conn: conn} do
       expect_ops_get_declarations()
       expect_ops_last_medication_request_dates(nil)
@@ -2201,10 +2265,18 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       assert %{
                "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
-               "message" => "Signed content does not match the previously created content!",
-               "type" => "request_malformed"
+                 %{
+                   "entry" => "$.context",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Entity in status \"entered-in-error\" can not be referenced",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
              } = resp["error"]
     end
 
