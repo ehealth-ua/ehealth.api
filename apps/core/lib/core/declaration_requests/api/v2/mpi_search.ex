@@ -8,14 +8,14 @@ defmodule Core.DeclarationRequests.API.V2.MpiSearch do
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def search(%{"auth_phone_number" => _} = search_params) do
-    "mpi_api"
+    "mpi"
     |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params])
     |> search_result(:all)
   end
 
   def search(person_search_params) when is_list(person_search_params) do
     Enum.reduce_while(person_search_params, {:ok, nil}, fn search_params_set, acc ->
-      case "mpi_api"
+      case "mpi"
            |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params_set])
            |> search_result(:one) do
         {:ok, nil} -> {:cont, acc}

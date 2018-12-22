@@ -9,14 +9,14 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def search(%{"auth_phone_number" => _} = search_params) do
-    "mpi_api"
+    "mpi"
     |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params])
     |> search_result(:all)
   end
 
   def search(person) do
     with {:ok, search_params} <- Persons.get_search_params(person) do
-      "mpi_api"
+      "mpi"
       |> @rpc_worker.run(Core.Rpc, :search_persons, [search_params])
       |> search_result(:one)
     else
