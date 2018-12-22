@@ -203,7 +203,11 @@
           "$ref": "#/definitions/person_name"
         },
         "second_name": {
-          "$ref": "#/definitions/person_name"
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
         },
         "position": {
           "type": "string",
