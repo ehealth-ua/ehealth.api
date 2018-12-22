@@ -16,8 +16,7 @@ defmodule Core.Persons.V2.Validator do
   )
 
   def validate(person) do
-    with :ok <- validate_person_registry_identifier(person),
-         :ok <- validate_tax_id(person),
+    with :ok <- validate_tax_id(person),
          :ok <- validate_unzr(person),
          :ok <- validate_national_id(person),
          :ok <- validate_birth_certificate_number(person),
@@ -35,21 +34,20 @@ defmodule Core.Persons.V2.Validator do
     end
   end
 
-  def validate_person_registry_identifier(%{"birth_date" => birth_date} = person) do
+  def validate_tax_id(%{"no_tax_id" => false, "tax_id" => tax_id} = person) do
+    birth_date = Map.get(person, "birth_date")
     age = Timex.diff(Timex.now(), Date.from_iso8601!(birth_date), :years)
 
-    if age > 14 and is_nil(person["tax_id"] || person["unzr"]) do
-      %ValidationError{
-        description: "Persons older that 14 years should have registry identifiers: unzr or tax_id",
-        params: ["tax_id or unzr"],
-        path: "$.person.unzr"
-      }
-    else
+    if not is_nil(tax_id) or age < 14 do
       :ok
+    else
+      %ValidationError{
+        description: "Only persons who refused the tax_id could be without tax_id",
+        params: ["tax_id"],
+        path: "$.person.tax_id"
+      }
     end
   end
-
-  def validate_tax_id(%{"no_tax_id" => false, "tax_id" => tax_id}) when not is_nil(tax_id), do: :ok
 
   def validate_tax_id(%{"no_tax_id" => true} = person) do
     if is_nil(Map.get(person, "tax_id")) do

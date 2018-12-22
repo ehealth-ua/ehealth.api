@@ -1185,8 +1185,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       birth_country: "Україна",
       authentication_methods: [
         %{
-          type: "OTP",
-          phone_number: "+380955947998"
+          "type" => "OTP",
+          "phone_number" => "+380955947998"
         }
       ],
       addresses: [

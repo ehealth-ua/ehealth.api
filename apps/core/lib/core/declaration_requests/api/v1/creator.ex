@@ -131,7 +131,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   def prepare_auth_method_current(%{"type" => @auth_offline}), do: %{"type" => @auth_offline}
   def prepare_auth_method_current(_), do: %{"type" => @auth_na}
 
-  def prepare_auth_method_current(@auth_otp, %{phone_number: phone_number}, _) do
+  def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}, _) do
     %{
       "type" => @auth_otp,
       "number" => phone_number
@@ -697,7 +697,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     new_phone_number? =
       person
       |> Map.get(:authentication_methods)
-      |> Enum.filter(fn authentication_method -> Map.get(authentication_method, :phone_number) == phone_number end)
+      |> Enum.filter(fn authentication_method -> Map.get(authentication_method, "phone_number") == phone_number end)
       |> Enum.empty?()
 
     if new_phone_number? do
@@ -756,7 +756,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
 
     authentication_method_current =
       prepare_auth_method_current(
-        authentication_method.type,
+        authentication_method["type"],
         authentication_method,
         authenticated_methods
       )

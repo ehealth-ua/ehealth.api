@@ -262,7 +262,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
@@ -385,8 +385,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         %{
           authentication_methods: [
             %{
-              type: "OTP",
-              phone_number: "+380508887700"
+              "type" => "OTP",
+              "phone_number" => "+380508887700"
             }
           ]
         }
@@ -449,8 +449,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         %{
           authentication_methods: [
             %{
-              type: "OTP",
-              phone_number: "+380508887701"
+              "type" => "OTP",
+              "phone_number" => "+380508887701"
             }
           ]
         }
@@ -555,7 +555,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
@@ -760,7 +760,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "NA"}]
+        authentication_methods: [%{"type" => "NA"}]
       })
 
       role_id = UUID.generate()
@@ -918,49 +918,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       document_types = Enum.map(resp["urgent"]["documents"], fn document -> document["type"] end)
       assert "person.no_tax_id" in document_types
       refute "person.tax_id" in document_types
-    end
-
-    test "declaration request is fail for person without tax_id unz and age > 14", %{conn: conn} do
-      age = 16
-      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
-
-      declaration_request_params =
-        "../core/test/data/v2/declaration_request.json"
-        |> File.read!()
-        |> Jason.decode!()
-        |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
-
-      person =
-        declaration_request_params
-        |> get_in(~W(declaration_request person))
-        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
-        |> Map.put("no_tax_id", true)
-        |> Map.delete("tax_id")
-
-      declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
-
-      resp =
-        conn
-        |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
-        |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: "8799e3b6-34e7-4798-ba70-d897235d2b6d"}))
-        |> post(v2_declaration_request_post_path(conn, :create), Jason.encode!(declaration_request_params))
-        |> json_response(422)
-
-      assert %{
-               "invalid" => [
-                 %{
-                   "entry" => "$.person.person.unzr",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" => "Persons older that 14 years should have registry identifiers: unzr or tax_id",
-                       "params" => ["tax_id or unzr"],
-                       "rule" => "invalid"
-                     }
-                   ]
-                 }
-               ]
-             } = resp["error"]
     end
 
     test "declaration request failed for person without tax_id but no_tax_id=false", %{conn: conn} do
@@ -1174,7 +1131,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
@@ -1277,7 +1234,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
@@ -1413,7 +1370,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->
@@ -1495,7 +1452,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
+        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
       expect(OTPVerificationMock, :initialize, fn _number, _headers ->

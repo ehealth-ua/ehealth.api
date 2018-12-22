@@ -323,20 +323,6 @@ defmodule Core.Persons.V2.ValidatorTest do
                rules
     end
 
-    test "Error on no unzr no tax_id", %{person: person} do
-      person =
-        person
-        |> Map.delete("unzr")
-
-      {:error, [{rules, _path}]} = Validator.validate(person)
-
-      assert %{
-               description: "Persons older that 14 years should have registry identifiers: unzr or tax_id",
-               params: ["tax_id or unzr"],
-               rule: :invalid
-             } == rules
-    end
-
     test "Error on invalid birth certificate number", %{person: person} do
       person = Map.put(person, "documents", [create_birth_certificate("I$-HM083557")])
 
@@ -364,14 +350,20 @@ defmodule Core.Persons.V2.ValidatorTest do
       assert :ok == Validator.validate_tax_id(person)
     end
 
-    test "no_tax_id false and tax_id does not  exists" do
-      person = %{"no_tax_id" => false}
+    test "no_tax_id false and tax_id does not exist for adults" do
+      person = %{"no_tax_id" => false, "tax_id" => nil, "birth_date" => "1990-01-01"}
 
       assert %ValidationError{
                description: "Only persons who refused the tax_id could be without tax_id",
                params: ["tax_id"],
                path: "$.person.tax_id"
              } = Validator.validate_tax_id(person)
+    end
+
+    test "no_tax_id false and tax_id does not exist for children" do
+      person = %{"no_tax_id" => false, "tax_id" => nil, "birth_date" => "2018-01-01"}
+
+      assert :ok = Validator.validate_tax_id(person)
     end
 
     test "no_tax_id true and tax_id exists" do
