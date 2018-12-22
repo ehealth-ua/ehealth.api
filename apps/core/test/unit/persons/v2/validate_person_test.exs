@@ -336,7 +336,7 @@ defmodule Core.Persons.V2.ValidatorTest do
 
   describe "validate no_tax_id" do
     test "no_tax_id true and tax_id does is nil" do
-      person = %{"no_tax_id" => true, "tax_id" => nil}
+      person = %{"no_tax_id" => true}
       assert :ok == Validator.validate_tax_id(person)
     end
 
@@ -346,12 +346,12 @@ defmodule Core.Persons.V2.ValidatorTest do
     end
 
     test "no_tax_id false and tax_id exists" do
-      person = %{"no_tax_id" => true, "tax_id" => nil}
+      person = %{"no_tax_id" => true}
       assert :ok == Validator.validate_tax_id(person)
     end
 
     test "no_tax_id false and tax_id does not exist for adults" do
-      person = %{"no_tax_id" => false, "tax_id" => nil, "birth_date" => "1990-01-01"}
+      person = %{"no_tax_id" => false, "birth_date" => "1990-01-01"}
 
       assert %ValidationError{
                description: "Only persons who refused the tax_id could be without tax_id",
@@ -361,7 +361,7 @@ defmodule Core.Persons.V2.ValidatorTest do
     end
 
     test "no_tax_id false and tax_id does not exist for children" do
-      person = %{"no_tax_id" => false, "tax_id" => nil, "birth_date" => "2018-01-01"}
+      person = %{"no_tax_id" => false, "birth_date" => "2018-01-01"}
 
       assert :ok = Validator.validate_tax_id(person)
     end

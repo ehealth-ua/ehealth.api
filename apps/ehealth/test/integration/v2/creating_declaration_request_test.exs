@@ -926,10 +926,14 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
 
+      age = 17
+      person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
+
       person =
         declaration_request_params
         |> get_in(~W(declaration_request person))
         |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("birth_date", person_birth_date)
         |> Map.put("no_tax_id", false)
         |> Map.delete("tax_id")
 

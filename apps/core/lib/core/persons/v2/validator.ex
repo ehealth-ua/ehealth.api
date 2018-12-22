@@ -34,7 +34,8 @@ defmodule Core.Persons.V2.Validator do
     end
   end
 
-  def validate_tax_id(%{"no_tax_id" => false, "tax_id" => tax_id} = person) do
+  def validate_tax_id(%{"no_tax_id" => false} = person) do
+    tax_id = Map.get(person, "tax_id")
     birth_date = Map.get(person, "birth_date")
     age = Timex.diff(Timex.now(), Date.from_iso8601!(birth_date), :years)
 
@@ -60,13 +61,6 @@ defmodule Core.Persons.V2.Validator do
       }
     end
   end
-
-  def validate_tax_id(_person),
-    do: %ValidationError{
-      description: "Only persons who refused the tax_id could be without tax_id",
-      params: ["tax_id"],
-      path: "$.person.tax_id"
-    }
 
   def validate_unzr(%{"birth_date" => _, "unzr" => nil}), do: :ok
 
