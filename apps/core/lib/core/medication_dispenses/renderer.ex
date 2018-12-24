@@ -18,32 +18,36 @@ defmodule Core.MedicationDispense.Renderer do
     division = if division, do: DivisionsRenderer.render("division.json", division), else: %{}
 
     medical_program = Map.get(references, :medical_program)
-    medical_program = if medical_program, do: MedicalProgramsRenderer.render("show.json", medical_program), else: %{}
-
     details = Map.get(medication_dispense, "details", [])
 
-    medication_dispense
-    |> Map.take(~w(
-      id
-      dispensed_at
-      dispensed_by
-      status
-      inserted_at
-      inserted_by
-      updated_at
-      updated_by
-      dispense_details
-      payment_id
-      payment_amount
-    ))
-    |> Map.merge(%{
-      "details" => render("details.json", details),
-      "medication_request" => MedicationRequestsRenderer.render("show.json", references.medication_request),
-      "party" => party,
-      "legal_entity" => legal_entity,
-      "division" => division,
-      "medical_program" => medical_program
-    })
+    response =
+      medication_dispense
+      |> Map.take(~w(
+        id
+        dispensed_at
+        dispensed_by
+        status
+        inserted_at
+        inserted_by
+        updated_at
+        updated_by
+        dispense_details
+        payment_id
+        payment_amount
+      ))
+      |> Map.merge(%{
+        "details" => render("details.json", details),
+        "medication_request" => MedicationRequestsRenderer.render("show.json", references.medication_request),
+        "party" => party,
+        "legal_entity" => legal_entity,
+        "division" => division
+      })
+
+    if medical_program do
+      Map.put(response, "medical_program", MedicalProgramsRenderer.render("show.json", medical_program))
+    else
+      response
+    end
   end
 
   def render("details.json", details) when is_list(details) do

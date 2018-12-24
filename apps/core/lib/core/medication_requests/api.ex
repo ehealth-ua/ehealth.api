@@ -26,7 +26,9 @@ defmodule Core.MedicationRequests.API do
   alias Core.PartyUsers
   alias Core.PartyUsers.PartyUser
   alias Core.Utils.NumberGenerator
+  alias Core.ValidationError
   alias Core.Validators.Content, as: ContentValidator
+  alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
 
@@ -306,13 +308,19 @@ defmodule Core.MedicationRequests.API do
           {:ok, result}
 
         _ ->
-          {:error,
-           [{%{description: "Medication request is not valid", params: [], rule: :required}, "$.medication_request_id"}]}
+          Error.dump(%ValidationError{
+            description: "Medication request is not valid",
+            path: "$.medication_request_id",
+            rule: :required
+          })
       end
     else
       _ ->
-        {:error,
-         [{%{description: "Medication request is not valid", params: [], rule: :required}, "$.medication_request_id"}]}
+        Error.dump(%ValidationError{
+          description: "Medication request is not valid",
+          path: "$.medication_request_id",
+          rule: :required
+        })
     end
   end
 

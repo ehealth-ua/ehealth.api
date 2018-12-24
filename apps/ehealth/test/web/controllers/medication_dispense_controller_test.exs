@@ -54,7 +54,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         post(
           conn,
           medication_dispense_path(conn, :create),
-          medication_dispense: new_dispense_params(%{"medication_request_id" => UUID.generate()})
+          medication_dispense: new_dispense_params(%{medication_request_id: UUID.generate()})
         )
 
       resp = json_response(conn, 422)
@@ -236,7 +236,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id
+              division_id: division_id
             })
         )
 
@@ -288,8 +288,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => UUID.generate()
+              division_id: division_id,
+              medical_program_id: UUID.generate()
             })
         )
 
@@ -357,9 +357,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: medication_id,
                   medication_qty: 10,
@@ -419,9 +419,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: medication_id,
                   medication_qty: 10,
@@ -483,8 +483,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id_request
+              division_id: division_id,
+              medical_program_id: medical_program_id_request
             })
         )
 
@@ -558,9 +558,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: UUID.generate(),
                   medication_qty: 10,
@@ -627,8 +627,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id
+              division_id: division_id,
+              medical_program_id: medical_program_id
             })
         )
 
@@ -688,9 +688,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: medication_id,
                   medication_qty: 10,
@@ -766,9 +766,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense_path(conn, :create),
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: medication_id,
                   medication_qty: 10,
@@ -843,9 +843,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           code: "1234",
           medication_dispense:
             new_dispense_params(%{
-              "division_id" => division_id,
-              "medical_program_id" => medical_program_id,
-              "dispense_details" => [
+              division_id: division_id,
+              medical_program_id: medical_program_id,
+              dispense_details: [
                 %{
                   medication_id: medication_id,
                   medication_qty: 10,
@@ -982,9 +982,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         code: "1234",
         medication_dispense:
           new_dispense_params(%{
-            "division_id" => division_id,
-            "medical_program_id" => medical_program_id,
-            "dispense_details" => [
+            division_id: division_id,
+            medical_program_id: medical_program_id,
+            dispense_details: [
               %{
                 medication_id: medication_id,
                 medication_qty: 100,
@@ -1087,9 +1087,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         code: "1234",
         medication_dispense:
           new_dispense_params(%{
-            "division_id" => division_id,
-            "medical_program_id" => medical_program_id,
-            "dispense_details" => [
+            division_id: division_id,
+            medical_program_id: medical_program_id,
+            dispense_details: [
               %{
                 medication_id: medication_id,
                 medication_qty: 10,
@@ -1099,6 +1099,105 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
               }
             ]
           })
+      }
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+      |> post(medication_dispense_path(conn, :create), create_data)
+      |> json_response(201)
+      |> assert_show_response_schema("medication_dispense")
+    end
+
+    test "success create medication dispense without program_id", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      %{id: division_id} =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity
+        )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medication_id} = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication_id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {medication_request, medication_dispense} =
+        build_resp(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            medication_id: innm_dosage_id,
+            medication_request_params: %{
+              dispense_valid_from: Date.utc_today() |> Date.add(-1),
+              dispense_valid_to: Date.utc_today() |> Date.add(1),
+              medication_qty: 10,
+              verification_code: "1234"
+            },
+            medication_dispense_params: %{
+              party_id: party.id
+            },
+            medication_dispense_details_params: %{
+              medication_id: medication_id,
+              medication_qty: 10,
+              sell_price: 18.65,
+              sell_amount: 186.5,
+              discount_amount: 50
+            }
+          },
+          true
+        )
+
+      insert(:prm, :reimbursement_contract,
+        status: ReimbursementContract.status(:verified),
+        contractor_legal_entity: legal_entity,
+        contractor_legal_entity_id: legal_entity.id,
+        medical_program_id: medical_program_id
+      )
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
+        {:ok, %{"data" => medication_dispense}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      create_data = %{
+        code: "1234",
+        medication_dispense:
+          new_dispense_params(%{
+            division_id: division_id,
+            dispense_details: [
+              %{
+                medication_id: medication_id,
+                medication_qty: 10,
+                sell_price: 18.65,
+                sell_amount: 186.5,
+                discount_amount: 50
+              }
+            ]
+          })
+          |> Map.delete(:medical_program_id)
       }
 
       conn
@@ -1148,6 +1247,52 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
             division_id: division.id
           }
         })
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok, %{"data" => [medication_dispense]}}
+      end)
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> get(medication_dispense_path(conn, :show, medication_dispense["id"]))
+      |> json_response(200)
+      |> assert_show_response_schema("medication_dispense")
+    end
+
+    test "success show by id without medical_program", %{conn: conn} do
+      expect_mpi_get_person()
+
+      legal_entity = insert(:prm, :legal_entity)
+      medication = insert(:prm, :medication)
+      party = insert(:prm, :party)
+      insert(:prm, :party_user, party: party)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      division = insert(:prm, :division, legal_entity: legal_entity)
+      insert_medication(innm_dosage_id)
+
+      {_, medication_dispense} =
+        build_resp(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division.id,
+            employee_id: employee_id,
+            medical_program_id: UUID.generate(),
+            medication_id: innm_dosage_id,
+            medication_request_params: %{
+              dispense_valid_from: Date.utc_today() |> Date.add(-1),
+              dispense_valid_to: Date.utc_today() |> Date.add(1)
+            },
+            medication_dispense_params: %{
+              party_id: party.id
+            },
+            medication_dispense_details_params: %{
+              medication_id: medication.id,
+              division_id: division.id
+            }
+          },
+          true
+        )
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok, %{"data" => [medication_dispense]}}
@@ -1213,6 +1358,73 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
             division_id: division_id
           }
         })
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> get(medication_dispense_path(conn, :index))
+      |> json_response(200)
+      |> assert_list_response_schema("medication_dispense")
+    end
+
+    test "success list medication dispenses without medical_program", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      %{id: division_id} =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity
+        )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medication_id} = insert_medication(innm_dosage_id)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {_, medication_dispense} =
+        build_resp(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            medication_id: innm_dosage_id,
+            medication_request_params: %{
+              dispense_valid_from: Date.utc_today() |> Date.add(-1),
+              dispense_valid_to: Date.utc_today() |> Date.add(1)
+            },
+            medication_dispense_params: %{
+              party_id: party.id
+            },
+            medication_dispense_details_params: %{
+              medication_id: medication_id,
+              division_id: division_id
+            }
+          },
+          true
+        )
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -2521,6 +2733,86 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert payment_id == resp["payment_id"]
     end
 
+    test "success reject medication dispense without medical_program", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      medication = insert_medication(innm_dosage_id)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication.id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      payment_id = "12345"
+
+      {_, medication_dispense} =
+        build_resp(
+          %{
+            legal_entity_id: legal_entity.id,
+            division_id: division_id,
+            employee_id: employee_id,
+            medication_id: innm_dosage_id,
+            medication_request_params: %{
+              dispense_valid_from: Date.utc_today() |> Date.add(-1),
+              dispense_valid_to: Date.utc_today() |> Date.add(1),
+              medication_qty: 10,
+              verification_code: "1234"
+            },
+            medication_dispense_params: %{
+              party_id: party.id,
+              payment_id: payment_id
+            },
+            medication_dispense_details_params: %{
+              medication_id: medication.id,
+              medication: medication,
+              division_id: division_id,
+              medication_qty: 10,
+              sell_price: 18.65,
+              sell_amount: 186.5,
+              discount_amount: 50
+            }
+          },
+          true
+        )
+
+      expect(OPSMock, :update_medication_dispense, fn _id, _params, _headers ->
+        {:ok, %{"data" => Map.put(medication_dispense, "status", "REJECTED")}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      path = medication_dispense_path(conn, :reject, medication_dispense["id"])
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> patch(path, %{"payment_id" => payment_id})
+        |> json_response(200)
+        |> assert_show_response_schema("medication_dispense")
+        |> Map.get("data")
+
+      assert "REJECTED" == resp["status"]
+      assert payment_id == resp["payment_id"]
+    end
+
     test "fail to find medication dispense", %{conn: conn} do
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -2771,7 +3063,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     innm_dosage
   end
 
-  defp build_resp(params) do
+  defp build_resp(params, exclude_medical_program \\ false) do
     general_params =
       params
       |> Enum.filter(fn {k, _} ->
@@ -2782,6 +3074,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     medication_request_params = Map.merge(general_params, Map.get(params, :medication_request_params, %{}))
     medication_request = build(:medication_request, medication_request_params)
 
+    medication_request =
+      if exclude_medical_program do
+        Map.delete(medication_request, :medical_program_id)
+      else
+        medication_request
+      end
+
     medication_dispense_params =
       %{
         medication_request_id: medication_request["id"],
@@ -2791,6 +3090,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       |> Map.merge(Map.get(params, :medication_dispense_params, %{}))
 
     medication_dispense = build(:medication_dispense, medication_dispense_params)
+
+    medication_dispense =
+      if exclude_medical_program do
+        Map.delete(medication_dispense, :medical_program_id)
+      else
+        medication_dispense
+      end
 
     medication_dispense_details_params =
       %{

@@ -96,7 +96,7 @@ defmodule Core.MedicationDispense.API do
          {:ok, party} <- get_party_by_id(medication_dispense["party_id"]),
          :ok <- validate_legal_entity_id(medication_dispense, legal_entity_id),
          division <- Divisions.get_by_id(medication_dispense["division_id"]),
-         medical_program <- MedicalPrograms.get_by_id(medication_dispense["medical_program_id"]),
+         medical_program <- get_medical_program_by_id(medication_dispense["medical_program_id"]),
          medication_request <- medication_dispense["medication_request"],
          {:ok, medication_request} <- MedicationRequests.get_references(medication_request) do
       {:ok, medication_dispense,
@@ -295,6 +295,8 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
+  defp validate_medical_program(nil, _, _), do: {:ok, nil}
+
   defp validate_medical_program(id, medication_request, legal_entity_id) do
     is_active = fn medical_program ->
       {:is_active, medical_program.is_active}
@@ -341,19 +343,8 @@ defmodule Core.MedicationDispense.API do
     |> @read_prm_repo.one()
   end
 
-  defp validate_medications(dispense_details, %{id: medical_program_id}) do
-    result =
-      dispense_details
-      |> Enum.with_index()
-      |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
-        with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
-             :ok <- validate_active_medication(medication, i),
-             {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
-             reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
-             :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i) do
-          {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
-        end
-      end)
+  defp validate_medications(dispense_details, medical_program) do
+    result = do_validate_medications(dispense_details, medical_program)
 
     errors =
       Enum.reduce(result, [], fn
@@ -376,6 +367,31 @@ defmodule Core.MedicationDispense.API do
       |> Enum.filter(&Kernel.!(is_nil(&1)))
 
     if Enum.empty?(errors), do: {:ok, details, medications}, else: {:error, errors}
+  end
+
+  defp do_validate_medications(dispense_details, nil) do
+    dispense_details
+    |> Enum.with_index()
+    |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
+      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
+           :ok <- validate_active_medication(medication, i) do
+        {:ok, Map.put(item, "reimbursement_amount", 0), medication}
+      end
+    end)
+  end
+
+  defp do_validate_medications(dispense_details, %{id: medical_program_id}) do
+    dispense_details
+    |> Enum.with_index()
+    |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
+      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
+           :ok <- validate_active_medication(medication, i),
+           {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
+           reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
+           :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i) do
+        {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
+      end
+    end)
   end
 
   defp get_active_program_medication(medication_id, medical_program_id, i) do
@@ -695,8 +711,8 @@ defmodule Core.MedicationDispense.API do
     end)
   end
 
-  defp qualify_request(medication_request, client_type, headers) do
-    program_id = medication_request["medical_program_id"]
+  defp qualify_request(%{"medical_program_id" => medical_program_id} = medication_request, client_type, headers) do
+    program_id = medical_program_id
     params = %{"programs" => [%{"id" => program_id}]}
 
     case MedicationRequests.qualify(medication_request["id"], client_type, params, headers) do
@@ -708,4 +724,9 @@ defmodule Core.MedicationDispense.API do
          "Medication request can not be dispensed. " <> "Invoke qualify medication request API to get detailed info"}
     end
   end
+
+  defp qualify_request(_, _, _), do: :ok
+
+  defp get_medical_program_by_id(nil), do: nil
+  defp get_medical_program_by_id(medical_program_id), do: MedicalPrograms.get_by_id(medical_program_id)
 end

@@ -736,7 +736,6 @@
     "ended_at",
     "medication_id",
     "medication_qty",
-    "medical_program_id",
     "intent",
     "category"
   ],

@@ -403,6 +403,59 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
     end
 
+    test "success when medical_program is absent (medical_program param is optional)", %{conn: conn} do
+      expect_ops_get_declarations()
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      expect_encounter_status("finished")
+
+      {medication_id, _} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.delete("medical_program_id")
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(201)
+
+      assert %{"id" => id} =
+               resp
+               |> Map.get("data")
+               |> assert_show_response_schema("medication_request_request")
+
+      assert person
+             |> Map.get("authentication_methods", [])
+             |> List.first()
+             |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
+
+      conn
+      |> get(medication_request_request_path(conn, :show, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medication_request_request")
+
+      medication_request_request_data =
+        MedicationRequestRequest
+        |> Repo.get!(id)
+        |> Map.get(:data)
+
+      Enum.each(@medication_request_request_data_fields -- [:medical_program_id], fn field ->
+        assert Map.has_key?(medication_request_request_data, field)
+      end)
+    end
+
     test "invalid request params", %{conn: conn} do
       resp =
         conn
@@ -875,17 +928,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                        "description" => "type mismatch. Expected Array but got Object",
                        "params" => ["array"],
                        "rule" => "cast"
-                     }
-                   ]
-                 },
-                 %{
-                   "entry" => "$.medical_program_id",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" => "required property medical_program_id was not present",
-                       "params" => [],
-                       "rule" => "required"
                      }
                    ]
                  },
@@ -2045,6 +2087,68 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id
         })
+
+      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr =
+        mrr
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      drfo =
+        mrr
+        |> get_in(["employee", "party", "id"])
+        |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
+        |> Map.get(:tax_id)
+
+      drfo_signed_content(mrr, drfo)
+      conn = Plug.Conn.put_req_header(conn, "drfo", drfo)
+
+      conn1 =
+        patch(conn, medication_request_request_path(conn, :sign, mrr["id"]), %{
+          signed_medication_request_request: signed_mrr,
+          signed_content_encoding: "base64"
+        })
+
+      assert json_response(conn1, 200)
+      assert json_response(conn1, 200)["data"]["status"] == "ACTIVE"
+    end
+
+    test "when data is valid (medical_program param is optional)", %{conn: conn} do
+      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
+      end)
+
+      expect_ops_get_declarations()
+      expect_encounter_status("finished", 2)
+
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      expect(OPSMock, :create_medication_request, fn params, _headers ->
+        medication_request = build(:medication_request, id: params.medication_request.id)
+
+        medication_request =
+          medication_request
+          |> Jason.encode!()
+          |> Jason.decode!()
+
+        {:ok, %{"data" => medication_request}}
+      end)
+
+      {medication_id, _} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "intent" => "order"
+        })
+        |> Map.delete("medical_program_id")
 
       conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
 

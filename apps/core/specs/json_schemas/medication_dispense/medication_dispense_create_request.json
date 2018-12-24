@@ -79,7 +79,6 @@
         "medication_request_id",
         "dispensed_at",
         "division_id",
-        "medical_program_id",
         "dispense_details"
       ],
       "additionalProperties": false

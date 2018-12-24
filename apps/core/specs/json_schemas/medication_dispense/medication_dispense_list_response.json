@@ -349,8 +349,7 @@
               "legal_entity",
               "division",
               "employee",
-              "medication_info",
-              "medical_program"
+              "medication_info"
             ],
             "description": "Medication request"
           },
@@ -619,7 +618,6 @@
           "dispensed_at",
           "legal_entity",
           "division",
-          "medical_program",
           "details",
           "status",
           "inserted_at",
