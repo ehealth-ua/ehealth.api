@@ -8,7 +8,10 @@ defmodule Ehealth.MixProject do
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      test_coverage: [tool: ExCoveralls]
+      test_coverage: [tool: ExCoveralls],
+      docs: [
+        filter_prefix: "Casher.Rpc"
+      ]
     ]
   end
 
@@ -21,6 +24,7 @@ defmodule Ehealth.MixProject do
     [
       {:distillery, "~> 1.5.3", runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]},
+      {:ex_doc, "~> 0.19.2", only: :dev, runtime: false},
       {:credo, "~> 1.0", only: [:dev, :test]}
     ]
   end
