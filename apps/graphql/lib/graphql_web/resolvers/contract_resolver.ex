@@ -116,8 +116,8 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     end
   end
 
-  def terminate(%{id: %{id: id, type: type}, status_reason: status_reason}, %{context: %{headers: headers}}) do
-    params = %{"status_reason" => status_reason, "type" => RequestPack.get_type_by_atom(type)}
+  def terminate(%{id: %{id: id, type: type}} = params, %{context: %{headers: headers}}) do
+    params = %{"status_reason" => params[:status_reason], "type" => RequestPack.get_type_by_atom(type)}
 
     with {:ok, contract} <- Contracts.terminate(id, params, headers) do
       {:ok, %{contract: contract}}
