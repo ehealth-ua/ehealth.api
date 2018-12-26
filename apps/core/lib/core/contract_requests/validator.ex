@@ -301,7 +301,7 @@ defmodule Core.ContractRequests.Validator do
     })
   end
 
-  def validate_contractor_owner_id(%{
+  def create_validate_contractor_owner_id(type, %{
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
@@ -319,6 +319,34 @@ defmodule Core.ContractRequests.Validator do
         })
     end
   end
+
+  def validate_contractor_owner_id(type, %{
+        "contractor_owner_id" => contractor_owner_id,
+        "contractor_legal_entity_id" => contractor_legal_entity_id
+      }) do
+    with %Employee{} = employee <- Employees.get_by_id(contractor_owner_id),
+         true <- employee.legal_entity_id == contractor_legal_entity_id,
+         true <- employee.employee_type in allowed_contractor_owner_employee_type(type),
+         true <-
+           Employees.has_contract_owner_employees(
+             employee.party_id,
+             contractor_legal_entity_id,
+             allowed_contractor_owner_employee_type(type)
+           ) do
+      :ok
+    else
+      _ ->
+        Error.dump(%ValidationError{
+          description: "Contractor owner must be active within current legal entity in contract request",
+          path: "$.contractor_owner_id"
+        })
+    end
+  end
+
+  def allowed_contractor_owner_employee_type(@capitation), do: [Employee.type(:owner), Employee.type(:admin)]
+
+  def allowed_contractor_owner_employee_type(@reimbursement),
+    do: [Employee.type(:pharmacy_owner), Employee.type(:admin)]
 
   defp validate_unique_contractor_employee_divisions(%{
          "contractor_employee_divisions" => employee_divisions

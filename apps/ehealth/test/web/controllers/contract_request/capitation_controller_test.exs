@@ -2862,6 +2862,15 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           party: party_user.party
         )
 
+      employee_admin =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:admin),
+          party: party_user.party
+        )
+
       division =
         insert(
           :prm,
@@ -2880,7 +2889,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           :il,
           :capitation_contract_request,
           status: @contract_request_status_in_process,
-          nhs_signer_id: employee_owner.id,
+          nhs_signer_id: employee_admin.id,
           nhs_legal_entity_id: legal_entity.id,
           contractor_legal_entity_id: legal_entity.id,
           contractor_owner_id: employee_owner.id,
@@ -2895,6 +2904,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           ],
           start_date: start_date
         )
+
+      employee_owner
+      |> Ecto.Changeset.change(status: Employee.status(:dismissed))
+      |> Core.PRMRepo.update()
 
       conn =
         conn

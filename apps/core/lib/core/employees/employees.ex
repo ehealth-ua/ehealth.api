@@ -67,6 +67,16 @@ defmodule Core.Employees do
     |> PRMRepo.all()
   end
 
+  def has_contract_owner_employees(party_id, legal_entity_id, types) do
+    Employee
+    |> where([e], e.is_active)
+    |> where([e], e.status == ^Employee.status(:approved))
+    |> where([e], e.party_id == ^party_id)
+    |> where([e], e.legal_entity_id == ^legal_entity_id)
+    |> where([e], e.employee_type in ^types)
+    |> @read_prm_repo.aggregate(:count, :id) > 0
+  end
+
   def get_search_query(Employee = entity, %{ids: _} = changes) do
     entity
     |> super(convert_comma_params_to_where_in_clause(changes, :ids, :id))
