@@ -140,7 +140,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_divisions(content),
          :ok <- validate_start_date(content),
          :ok <- validate_end_date(content),
-         :ok <- validate_contractor_owner_id(type, content),
+         :ok <- create_validate_contractor_owner_id(type, content),
          :ok <-
            validate_document(
              id,
