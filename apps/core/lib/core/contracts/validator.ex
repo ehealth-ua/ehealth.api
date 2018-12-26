@@ -89,7 +89,8 @@ defmodule Core.Contracts.Validator do
 
   def validate_client_type(_, "NHS", search_params), do: {:ok, search_params}
 
-  def validate_client_type(client_id, "MSP", %{contractor_legal_entity_id: id} = search_params) do
+  def validate_client_type(client_id, type, %{contractor_legal_entity_id: id} = search_params)
+      when type in ["MSP", "PHARMACY"] do
     cond do
       id == client_id -> {:ok, search_params}
       is_nil(id) -> {:ok, Map.put(search_params, :contractor_legal_entity_id, client_id)}

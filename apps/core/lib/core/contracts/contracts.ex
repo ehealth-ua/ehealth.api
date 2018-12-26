@@ -312,7 +312,7 @@ defmodule Core.Contracts do
 
   def get_by_id(id, @capitation) do
     CapitationContract
-    |> where([c], c.id == ^id)
+    |> where([c], c.id == ^id and c.type == @capitation)
     |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
     |> preload([c, ce, cd], contract_employees: ce, contract_divisions: cd)
@@ -321,7 +321,7 @@ defmodule Core.Contracts do
 
   def get_by_id(id, @reimbursement) do
     ReimbursementContract
-    |> where([c], c.id == ^id)
+    |> where([c], c.id == ^id and c.type == @reimbursement)
     |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
     |> preload([c, cd], contract_divisions: cd)
     |> @read_prm_repo.one()
@@ -335,7 +335,7 @@ defmodule Core.Contracts do
   end
 
   def get_by_id_with_client_validation(id, %{"type" => type} = params) do
-    with %{} = contract <- get_by_id(id, type),
+    with {:ok, contract} <- fetch_by_id(id, type),
          :ok <- validate_contractor_legal_entity_id(contract, params),
          {:ok, contract, references} <- load_contract_references(contract) do
       {:ok, contract, references}
