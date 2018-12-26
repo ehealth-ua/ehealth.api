@@ -456,7 +456,7 @@ defmodule Core.ContractRequests do
              "contract_request_sign_msp"
            ),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer_msp),
-         {:ok, employee} <- validate_employee(pack.contract_request.contractor_owner_id, client_id),
+         {:ok, employee} <- validate_msp_employee(pack.contract_request.contractor_owner_id, client_id),
          :ok <- check_last_name_match(employee.party.last_name, signer_msp["surname"]),
          :ok <- validate_nhs_signatures(signer_nhs, nhs_stamp, pack.contract_request),
          :ok <- validate_content(pack.contract_request, pack.decoded_content),

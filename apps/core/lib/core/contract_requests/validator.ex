@@ -774,6 +774,16 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
+  def validate_msp_employee(employee_id, client_id) do
+    with %Employee{} = employee <- Employees.get_by_id(employee_id),
+         {:client_id, true} <- {:client_id, employee.legal_entity_id == client_id} do
+      {:ok, employee}
+    else
+      {:client_id, _} -> {:error, {:"422", "Invalid legal entity id"}}
+      nil -> {:error, {:not_found, "Employee not found"}}
+    end
+  end
+
   def validate_employee_role(%Employee{} = employee, role) do
     user_ids =
       employee
