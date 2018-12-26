@@ -395,7 +395,6 @@ defmodule Core.ContractRequests do
          :ok <- check_last_name_match(employee.party.last_name, signer["surname"]),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(contract_request),
-         _ <- printout_form_renderer(contract_request),
          printout_form_renderer <- printout_form_renderer(contract_request),
          {:ok, printout_content} <-
            printout_form_renderer.render(
@@ -520,22 +519,21 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def get_printout_content(id, client_type, headers) do
+  def get_printout_content(params, client_type, headers) do
     client_id = get_client_id(headers)
+    pack = RequestPack.new(params)
 
-    with {:ok, %CapitationContractRequest{} = contract_request} <- fetch_by_id(id),
+    with {:ok, contract_request} <- fetch_by_id(pack),
          :ok <- validate_contract_request_client_access(client_type, client_id, contract_request),
          :ok <-
            validate_status(
              contract_request,
-             CapitationContractRequest.status(:pending_nhs_sign),
+             @pending_nhs_sign,
              "Incorrect status of contract_request to generate printout form"
            ),
+         printout_form_renderer <- printout_form_renderer(contract_request),
          {:ok, printout_content} <-
-           CapitationContractRequestPrintoutForm.render(
-             Map.put(contract_request, :nhs_signed_date, Date.utc_today()),
-             headers
-           ) do
+           printout_form_renderer.render(%{contract_request | nhs_signed_date: Date.utc_today()}, headers) do
       {:ok, contract_request, printout_content}
     end
   end

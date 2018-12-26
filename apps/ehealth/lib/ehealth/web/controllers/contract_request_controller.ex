@@ -106,10 +106,11 @@ defmodule EHealth.Web.ContractRequestController do
     end
   end
 
-  def printout_content(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
+  def printout_content(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, contract_request, printout_content} <- ContractRequests.get_printout_content(id, client_type, headers) do
+    with {:ok, contract_request, printout_content} <-
+           ContractRequests.get_printout_content(params, client_type, headers) do
       render(conn, "printout_content.json", contract_request: contract_request, printout_content: printout_content)
     end
   end

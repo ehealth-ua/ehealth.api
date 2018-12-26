@@ -3,6 +3,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   use EHealth.Web.ConnCase
 
+  import Core.Expectations.Man
   import Core.Expectations.Signature
   import Mox
 
@@ -26,7 +27,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   @reimbursement ReimbursementContractRequest.type()
   @path_type String.downcase(@reimbursement)
 
-  @contract_request_status_in_process ReimbursementContractRequest.status(:in_process)
+  @in_process ReimbursementContractRequest.status(:in_process)
+  @pending_nhs_sign ReimbursementContractRequest.status(:pending_nhs_sign)
 
   describe "list reimbursement contract requests" do
     test "successfully finds only reimbursement contracts", %{conn: conn} do
@@ -562,7 +564,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         insert(
           :il,
           :reimbursement_contract_request,
-          status: @contract_request_status_in_process,
+          status: @in_process,
           start_date: Date.add(Date.utc_today(), 10),
           contractor_owner_id: employee.id
         )
@@ -1750,6 +1752,48 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
                |> json_response(409)
 
       assert "Reimbursement program is not active" == error["message"]
+    end
+  end
+
+  describe "get printout_form" do
+    test "success get printout_form", %{conn: conn} do
+      nhs()
+      template()
+
+      %{id: id} = insert(:il, :reimbursement_contract_request, status: @pending_nhs_sign)
+
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_request_path(conn, :printout_content, @path_type, id))
+        |> json_response(200)
+
+      assert %{"id" => id, "printout_content" => "<html></html>"} == resp["data"]
+    end
+
+    test "fails on invalid status", %{conn: conn} do
+      client_id = UUID.generate()
+      contract_request = insert(:il, :reimbursement_contract_request, contractor_legal_entity_id: client_id)
+      pharmacy()
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> get(contract_request_path(conn, :printout_content, @path_type, contract_request.id))
+
+      assert json_response(conn, 409)
+    end
+
+    test "fails on MSP client type", %{conn: conn} do
+      contract_request = insert(:il, :reimbursement_contract_request)
+      msp()
+
+      conn =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_request_path(conn, :printout_content, @path_type, contract_request.id))
+
+      assert json_response(conn, 403)
     end
   end
 
