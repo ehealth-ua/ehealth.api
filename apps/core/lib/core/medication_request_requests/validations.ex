@@ -179,6 +179,8 @@ defmodule Core.MedicationRequestRequest.Validations do
     end)
   end
 
+  defp do_validate_codeable(nil, _, _), do: :ok
+
   defp do_validate_codeable(codeable, description, path_fun) when is_list(codeable) do
     codeable
     |> Enum.with_index()
@@ -299,8 +301,10 @@ defmodule Core.MedicationRequestRequest.Validations do
       {:ok, nil} ->
         {:ok, nil}
 
-      {:ok, medication_request_dates} ->
-        do_validate_existing_medication_requests(medication_request_dates, Date.from_iso8601!(data["created_at"]))
+      {:ok, %{"ended_at" => last_mr_ended_at} = medication_request_dates} ->
+        with :ok <- validate_started_at(Date.from_iso8601!(data["started_at"]), last_mr_ended_at) do
+          do_validate_existing_medication_requests(medication_request_dates, Date.from_iso8601!(data["created_at"]))
+        end
 
       {:error, error} ->
         Logger.error(
@@ -345,6 +349,14 @@ defmodule Core.MedicationRequestRequest.Validations do
         else
           {:invalid_existing_medication_requests, nil}
         end
+    end
+  end
+
+  def validate_started_at(started_at, last_mr_ended_at) do
+    if Date.compare(started_at, last_mr_ended_at) == :gt do
+      :ok
+    else
+      {:invalid_started_at, nil}
     end
   end
 

@@ -266,4 +266,13 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
       [validation: :invalid]
     ])
   end
+
+  defp add_changeset_error({:invalid_started_at, _}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :started_at,
+      "It can be only 1 active/ completed medication request request or " <>
+        "medication request per one innm for the same patient at the same period of time!",
+      [validation: :invalid]
+    ])
+  end
 end

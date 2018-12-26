@@ -1280,6 +1280,51 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              } = resp["error"]
     end
 
+    test "failed when started_at less than existing medication request ended_at param", %{conn: conn} do
+      expect_ops_get_declarations()
+
+      expect(MPIMock, :person, fn _, _headers ->
+        {:ok, %{"data" => string_params_for(:person)}}
+      end)
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => Date.utc_today(),
+        "ended_at" => Date.add(Date.utc_today(), 1)
+      })
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.started_at",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "It can be only 1 active/ completed medication request request or medication request per one innm for the same patient at the same period of time!",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period => mrr_standart_duration",
          %{conn: conn} do
       expect_ops_get_declarations()
@@ -1311,8 +1356,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
 
       resp =
@@ -1390,8 +1435,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
 
       assert conn
@@ -1432,8 +1477,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
 
       resp =
@@ -1511,8 +1556,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medication_id" => medication_id,
           "medical_program_id" => pm.medical_program_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
 
       assert conn
@@ -1754,8 +1799,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request(%{
           "medication_id" => medication_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
         |> Map.delete("medical_program_id")
 
@@ -1888,8 +1933,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         test_request(%{
           "medication_id" => medication_id,
           "created_at" => created_at |> Date.to_string(),
-          "started_at" => created_at |> Date.to_string(),
-          "ended_at" => created_at |> Date.add(medication_dispense_period) |> Date.to_string()
+          "started_at" => ended_at |> Date.add(1) |> Date.to_string(),
+          "ended_at" => ended_at |> Date.add(medication_dispense_period + 1) |> Date.to_string()
         })
         |> Map.delete("medical_program_id")
 
