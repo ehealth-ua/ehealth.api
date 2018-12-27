@@ -8,11 +8,13 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   import Mox
 
   alias Core.ContractRequests.ReimbursementContractRequest
+  alias Core.Contracts.ContractDivision
   alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
   alias Core.EventManagerRepo
   alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
+  alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
 
@@ -1356,7 +1358,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "contractor_owner_id" => employee_owner,
-        "nhs_signer" => nhs_signer
+        "nhs_signer" => nhs_signer,
+        "division" => %{id: division_id}
       } =
         prepare_nhs_sign_params(
           id: id,
@@ -1384,17 +1387,21 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         }
       ])
 
-      conn
-      |> put_client_id_header(client_id)
-      |> put_consumer_id_header(user_id)
-      |> put_req_header("msp_drfo", legal_entity.edrpou)
-      |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
-        "signed_content" => data |> Poison.encode!() |> Base.encode64(),
-        "signed_content_encoding" => "base64"
-      })
-      |> json_response(200)
-      |> Map.get("data")
-      |> assert_show_response_schema("contract", "reimbursement_contract")
+      resp_data =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(resp_data, "contract", "reimbursement_contract")
+
+      assert %{division_id: ^division_id} = PRMRepo.get_by(ContractDivision, contract_id: resp_data["id"])
     end
 
     test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
@@ -1926,7 +1933,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       "contract_request" => contract_request,
       "contractor_owner_id" => employee_owner,
       "nhs_signer" => nhs_signer,
-      "party_user" => party_user
+      "party_user" => party_user,
+      "division" => division
     }
   end
 

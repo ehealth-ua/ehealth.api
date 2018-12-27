@@ -46,6 +46,24 @@ defmodule Core.Contracts.ReimbursementContract do
     ]
 
   def changeset(%__MODULE__{} = contract, attrs) do
+    inserted_by = Map.get(attrs, :inserted_by)
+    updated_by = Map.get(attrs, :updated_by)
+
+    attrs =
+      case Map.get(attrs, :contractor_divisions) do
+        nil ->
+          attrs
+
+        contractor_divisions ->
+          contractor_divisions =
+            Enum.map(
+              contractor_divisions,
+              &%{"division_id" => &1, "inserted_by" => inserted_by, "updated_by" => updated_by}
+            )
+
+          Map.put(attrs, :contract_divisions, contractor_divisions)
+      end
+
     contract
     |> cast(attrs, @fields_required ++ @fields_optional)
     |> cast_assoc(:contract_divisions)
