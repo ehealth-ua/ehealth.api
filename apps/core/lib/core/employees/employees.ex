@@ -74,7 +74,7 @@ defmodule Core.Employees do
     |> where([e], e.party_id == ^party_id)
     |> where([e], e.legal_entity_id == ^legal_entity_id)
     |> where([e], e.employee_type in ^types)
-    |> @read_prm_repo.aggregate(:count, :id) > 0
+    |> PRMRepo.aggregate(:count, :id) > 0
   end
 
   def get_search_query(Employee = entity, %{ids: _} = changes) do

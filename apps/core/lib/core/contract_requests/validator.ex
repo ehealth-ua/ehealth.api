@@ -301,15 +301,17 @@ defmodule Core.ContractRequests.Validator do
     })
   end
 
-  def create_validate_contractor_owner_id(type, %{
+  def create_validate_contractor_owner_id(%{
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
+    types = [Employee.type(:owner), Employee.type(:admin), Employee.type(:pharmacy_owner)]
+
     with %Employee{} = employee <- Employees.get_by_id(contractor_owner_id),
          true <- employee.status == Employee.status(:approved),
          true <- employee.is_active,
          true <- employee.legal_entity_id == contractor_legal_entity_id,
-         true <- employee.employee_type in [Employee.type(:owner), Employee.type(:admin)] do
+         true <- employee.employee_type in types do
       :ok
     else
       _ ->
@@ -320,18 +322,20 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_contractor_owner_id(type, %{
+  def validate_contractor_owner_id(%{
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
+    types = [Employee.type(:owner), Employee.type(:admin), Employee.type(:pharmacy_owner)]
+
     with %Employee{} = employee <- Employees.get_by_id(contractor_owner_id),
          true <- employee.legal_entity_id == contractor_legal_entity_id,
-         true <- employee.employee_type in allowed_contractor_owner_employee_type(type),
+         true <- employee.employee_type in types,
          true <-
            Employees.has_contract_owner_employees(
              employee.party_id,
              contractor_legal_entity_id,
-             allowed_contractor_owner_employee_type(type)
+             types
            ) do
       :ok
     else
@@ -342,11 +346,6 @@ defmodule Core.ContractRequests.Validator do
         })
     end
   end
-
-  def allowed_contractor_owner_employee_type(@capitation), do: [Employee.type(:owner), Employee.type(:admin)]
-
-  def allowed_contractor_owner_employee_type(@reimbursement),
-    do: [Employee.type(:pharmacy_owner), Employee.type(:admin)]
 
   defp validate_unique_contractor_employee_divisions(%{
          "contractor_employee_divisions" => employee_divisions
