@@ -174,7 +174,7 @@ defmodule Core.ContractRequests do
          %CapitationContractRequest{} = contract_request <- Repo.get(CapitationContractRequest, id),
          :ok <- validate_nhs_signer_id(params, client_id),
          :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
-         :ok <- validate_start_date(contract_request),
+         :ok <- validate_start_date_year(contract_request),
          update_params <-
            params
            |> Map.put("nhs_legal_entity_id", client_id)
