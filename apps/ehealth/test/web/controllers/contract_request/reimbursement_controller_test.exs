@@ -1949,11 +1949,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   end
 
   defp contract_start_date() do
-    today = Date.utc_today()
-
-    case today.month do
-      12 -> Date.add(today, 31)
-      _ -> today
-    end
+    Date.add(Date.utc_today(), 1)
   end
 end
