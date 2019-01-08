@@ -31,7 +31,7 @@ defmodule Casher.Mixfile do
   defp deps do
     [
       {:core, in_umbrella: true},
-      {:confex, "~> 3.3.1"},
+      {:confex, "~> 3.4"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:eview, "~> 0.12"},
       {:phoenix, "~> 1.4.0", override: true},

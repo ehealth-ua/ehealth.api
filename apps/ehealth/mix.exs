@@ -44,7 +44,7 @@ defmodule EHealth.Mixfile do
   defp deps do
     [
       {:core, in_umbrella: true},
-      {:confex, "~> 3.2"},
+      {:confex, "~> 3.4"},
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},
