@@ -249,7 +249,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_divisions(contract_request),
-         :ok <- validate_start_date(contract_request),
+         :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          update_params <-
            params
@@ -279,7 +279,7 @@ defmodule Core.ContractRequests do
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(contract_request),
-         :ok <- validate_start_date(contract_request),
+         :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
@@ -405,7 +405,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_id(contract_request),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_medical_program_is_active(contract_request),
-         :ok <- validate_start_date(contract_request),
+         :ok <- validate_start_date_year(contract_request),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -460,7 +460,7 @@ defmodule Core.ContractRequests do
          :ok <- check_last_name_match(employee.party.last_name, signer_msp["surname"]),
          :ok <- validate_nhs_signatures(signer_nhs, nhs_stamp, pack.contract_request),
          :ok <- validate_content(pack.contract_request, pack.decoded_content),
-         :ok <- validate_start_date(pack.contract_request),
+         :ok <- validate_start_date_year(pack.contract_request),
          :ok <- validate_contractor_legal_entity(pack.contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(pack.contract_request),
          contract_id <- UUID.generate(),
