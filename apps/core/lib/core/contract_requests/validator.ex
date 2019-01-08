@@ -681,6 +681,30 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
+  def validate_start_date_year(%{__struct__: _} = contract_request) do
+    contract_request
+    |> Jason.encode!()
+    |> Jason.decode!()
+    |> validate_start_date_year()
+  end
+
+  def validate_start_date_year(%{"parent_contract_id" => parent_contract_id}) when not is_nil(parent_contract_id) do
+    :ok
+  end
+
+  def validate_start_date_year(%{"start_date" => start_date}) do
+    now = Date.utc_today()
+    start_date = Date.from_iso8601!(start_date)
+    year_diff = start_date.year - now.year
+
+    with {:diff, true} <- {:diff, year_diff >= 0 && year_diff <= 1} do
+      :ok
+    else
+      {:diff, false} ->
+        Error.dump(%ValidationError{description: "Start date must be within this or next year", path: "$.start_date"})
+    end
+  end
+
   def validate_end_date(%{__struct__: _} = contract_request) do
     contract_request
     |> Jason.encode!()
