@@ -184,7 +184,7 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_contract_request(pack, contract_request),
          :ok <- validate_nhs_signer_id(pack.request_params, client_id),
          :ok <- validate_status(contract_request, CapitationContractRequest.status(:in_process)),
-         :ok <- validate_start_date(contract_request),
+         :ok <- validate_start_date_year(contract_request),
          update_params <-
            Map.merge(pack.request_params, %{
              "nhs_legal_entity_id" => client_id,
