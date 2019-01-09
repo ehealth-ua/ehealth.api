@@ -79,7 +79,7 @@ defmodule GraphQLWeb.PersonResolverTest do
   setup :verify_on_exit!
 
   setup context do
-    conn = put_scope(context.conn, "person:read person:list")
+    conn = put_scope(context.conn, "person:read")
 
     {:ok, %{conn: conn}}
   end

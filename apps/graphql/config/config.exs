@@ -1,7 +1,9 @@
 use Mix.Config
 
 # General application configuration
-config :graphql, namespace: GraphQL
+config :graphql,
+  env: Mix.env(),
+  namespace: GraphQL
 
 # Configures the endpoint
 config :graphql, GraphQLWeb.Endpoint,
@@ -31,6 +33,30 @@ config :kafka_ex,
   auto_offset_reset: :earliest,
   commit_threshold: 100,
   kafka_version: "1.1.0"
+
+config :graphql,
+  topologies: [
+    k8s_ops: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "ops",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "ops",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_mpi: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "mpi",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "mpi",
+        polling_interval: 10_000
+      ]
+    ]
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

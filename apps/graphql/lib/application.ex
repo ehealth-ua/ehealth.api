@@ -12,6 +12,16 @@ defmodule GraphQL.Application do
       supervisor(GraphQLWeb.Endpoint, [])
     ]
 
+    children =
+      if Application.get_env(:graphql, :env) == :prod do
+        children ++
+          [
+            {Cluster.Supervisor, [Application.get_env(:graphql, :topologies), [name: GraphQL.ClusterSupervisor]]}
+          ]
+      else
+        children
+      end
+
     opts = [strategy: :one_for_one, name: GraphQL.Supervisor]
     Supervisor.start_link(children, opts)
   end

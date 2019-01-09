@@ -10,7 +10,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   object :person_queries do
     @desc "Get all persons"
     connection field(:persons, node_type: :person) do
-      meta(:scope, ~w(person:list))
+      meta(:scope, ~w(person:read))
       arg(:filter, non_null(:person_filter))
       arg(:order_by, :person_order_by, default_value: :inserted_at_desc)
 
