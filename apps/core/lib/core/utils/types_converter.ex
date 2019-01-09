@@ -2,6 +2,7 @@ defmodule Core.Utils.TypesConverter do
   @moduledoc """
   Helps convert types
   """
+
   def strings_to_keys(%{} = map) do
     for {key, val} <- map, into: %{}, do: {string_to_atom(key), strings_to_keys(val)}
   end
@@ -14,4 +15,6 @@ defmodule Core.Utils.TypesConverter do
 
   def string_to_integer(string) when is_binary(string), do: String.to_integer(string)
   def string_to_integer(string), do: string
+
+  def atoms_to_strings(%{} = map), do: map |> Jason.encode!() |> Jason.decode!()
 end

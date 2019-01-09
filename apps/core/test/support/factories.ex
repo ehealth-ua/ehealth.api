@@ -37,6 +37,7 @@ defmodule Core.Factories do
 
   alias Core.PRMRepo
   alias Core.Repo
+  alias Core.Utils.TypesConverter
 
   def insert(type, factory, attrs \\ []) do
     factory
@@ -48,8 +49,12 @@ defmodule Core.Factories do
     for _ <- 1..count, do: insert(type, factory, attrs)
   end
 
-  def string_params_for(factory, attrs \\ []) do
-    ExMachina.Ecto.string_params_for(__MODULE__, factory, attrs)
+  def string_params_for(factory, attrs \\ %{}) do
+    attrs = TypesConverter.strings_to_keys(attrs)
+
+    factory
+    |> build(attrs)
+    |> TypesConverter.atoms_to_strings()
   end
 
   defp repo_insert!(data, :il), do: Repo.insert!(data)

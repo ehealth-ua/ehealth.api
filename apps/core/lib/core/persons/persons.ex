@@ -16,6 +16,7 @@ defmodule Core.Persons do
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   @person_active "active"
 
@@ -78,6 +79,20 @@ defmodule Core.Persons do
          :ok <- validate_user_person(user, person),
          :ok <- check_user_person_id(user, person["id"]) do
       {:ok, person}
+    end
+  end
+
+  def get_by_id(id) do
+    with {:ok, person} <- @rpc_worker.run("mpi", Core.Rpc, :get_person_by_id, [id]) do
+      {:ok, person}
+    else
+      _ -> {:error, {:not_found, "Person not found"}}
+    end
+  end
+
+  def list(params, [{_direction, _attribute}] = order_by, {_limit, _offset} = opts) do
+    with {:ok, persons} <- @rpc_worker.run("mpi", Core.Rpc, :search_persons, [params, order_by, opts]) do
+      {:ok, persons}
     end
   end
 
