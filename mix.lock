@@ -48,7 +48,7 @@
   "jvalid": {:hex, :jvalid, "0.7.0", "c83d15b136943cac2a3e76f1db2f223e102c7e6b60695b7bcfda471dfd0fa4c3", [:mix], [{:distillery, ">= 1.3.0", [hex: :distillery, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}, {:nex_json_schema, ">= 0.8.0", [hex: :nex_json_schema, repo: "hexpm", optional: false]}], "hexpm"},
   "kafka_ex": {:hex, :kafka_ex, "0.8.3", "16946ec8c50adf8ff5b858b28cff85ed93b16785004b2be1c9959cd2d704a462", [:mix], [], "hexpm"},
   "kazan": {:hex, :kazan, "0.10.0", "15b0af019b3b91998ae4bec9cc0c7cef83a729d27bd204cfa28dd3110f416cf8", [:mix], [{:httpoison, "~> 0.10 or ~> 1.0", [hex: :httpoison, repo: "hexpm", optional: false]}, {:poison, "~> 2.0 or ~> 3.0 or ~> 4.0", [hex: :poison, repo: "hexpm", optional: false]}, {:yaml_elixir, "~> 2.0", [hex: :yaml_elixir, repo: "hexpm", optional: false]}], "hexpm"},
-  "kube_rpc": {:git, "https://github.com/edenlabllc/kube_rpc.git", "9e07f7499e10512ef27e4fce4c0cf32b4362089b", []},
+  "kube_rpc": {:git, "https://github.com/edenlabllc/kube_rpc.git", "11d7a0574d95d6e68e9dbaae4c044caecf4bad25", []},
   "libcluster": {:git, "https://github.com/AlexKovalevych/libcluster.git", "2cf855b13a4f7d221e8113c72200ae83c22ff204", [branch: "kube_namespaces"]},
   "libring": {:hex, :libring, "1.4.0", "41246ba2f3fbc76b3971f6bce83119dfec1eee17e977a48d8a9cfaaf58c2a8d6", [:mix], [], "hexpm"},
   "makeup": {:hex, :makeup, "0.6.0", "e0fd985525e8d42352782bd76253105fbab0a783ac298708ca9020636c9568af", [:mix], [{:nimble_parsec, "~> 0.5.0", [hex: :nimble_parsec, repo: "hexpm", optional: false]}], "hexpm"},
