@@ -87,11 +87,11 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
         loader
         |> Dataloader.load(source, batch_key, item_key)
         |> on_load(fn loader ->
-          with %{__struct__: @request_schema, id: id, status: _status} <-
+          with %{__struct__: @request_schema, id: id, type: type, status: _status} <-
                  Dataloader.get(loader, source, batch_key, item_key),
                contract_documents when is_list(contract_documents) <- Storage.gen_relevant_get_links(parent.id),
                contract_request_documents when is_list(contract_request_documents) <-
-                 ContractRequests.gen_relevant_get_links(id, "APPROVED") do
+                 ContractRequests.gen_relevant_get_links(id, type, "APPROVED") do
             {:ok, contract_documents ++ contract_request_documents}
           else
             nil -> {:error, "Contract request not found"}

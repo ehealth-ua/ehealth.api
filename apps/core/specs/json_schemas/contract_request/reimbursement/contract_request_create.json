@@ -115,8 +115,6 @@
     }
   },
   "required": [
-    "statute_md5",
-    "additional_document_md5",
     "contractor_owner_id",
     "contractor_base",
     "contractor_payment_details",

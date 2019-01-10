@@ -1903,6 +1903,8 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
+
       %{id: contract_request_id} = insert(:il, :reimbursement_contract_request)
       %{id: id} = insert(:prm, :reimbursement_contract, contract_request_id: contract_request_id)
 

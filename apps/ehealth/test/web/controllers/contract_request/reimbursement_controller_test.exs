@@ -83,9 +83,12 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contractor_owner_id: employee_id
         )
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
+        assert id == resource_id
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
 
       conn
       |> put_consumer_id_header()
@@ -131,9 +134,12 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contractor_owner_id: employee_id
         )
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
+        assert id == resource_id
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{resource_id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
 
       conn
       |> put_client_id_header()
@@ -158,22 +164,25 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   describe "successful creation reimbursement contract request" do
     setup %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
-      end)
-
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
       expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
-
-      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
-      end)
 
       %{conn: conn}
     end
 
     test "with contract_number", %{conn: conn} do
+      id = UUID.generate()
+
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, resource_id, _ ->
+        assert id == resource_id
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,
@@ -216,13 +225,21 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> put_client_id_header(legal_entity.id)
       |> put_consumer_id_header(user_id)
       |> put_req_header("drfo", legal_entity.edrpou)
-      |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
+      |> post(contract_request_path(conn, :create, @path_type, id), signed_content_params(params))
       |> json_response(201)
       |> Map.get("data")
       |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
     end
 
     test "without contract_number", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,
@@ -236,6 +253,42 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         division
         |> prepare_reimbursement_params(medical_program)
         |> Map.put("contractor_owner_id", owner.id)
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      conn
+      |> put_client_id_header(legal_entity.id)
+      |> put_consumer_id_header(user_id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> post(contract_request_path(conn, :create, @path_type, UUID.generate()), signed_content_params(params))
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
+    end
+
+    test "without uploaded documents", %{conn: conn} do
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      %{
+        medical_program: medical_program,
+        legal_entity: legal_entity,
+        division: division,
+        user_id: user_id,
+        owner: owner,
+        party_user: party_user
+      } = prepare_data()
+
+      params =
+        division
+        |> prepare_reimbursement_params(medical_program)
+        |> Map.put("contractor_owner_id", owner.id)
+        |> Map.drop(~w(statute_md5 additional_document_md5))
 
       expect_signed_content(params, %{
         edrpou: legal_entity.edrpou,

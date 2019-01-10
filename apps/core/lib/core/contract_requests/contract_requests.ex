@@ -110,7 +110,7 @@ defmodule Core.ContractRequests do
 
   defdelegate draft, to: Storage, as: :draft
 
-  defdelegate gen_relevant_get_links(id, status), to: Storage, as: :gen_relevant_get_links
+  defdelegate gen_relevant_get_links(id, type, status), to: Storage, as: :gen_relevant_get_links
 
   def create(headers, %{"id" => id, "type" => type} = params) do
     user_id = get_consumer_id(headers)
@@ -141,21 +141,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_start_date(content),
          :ok <- validate_end_date(content),
          :ok <- create_validate_contractor_owner_id(type, content),
-         :ok <-
-           validate_document(
-             id,
-             "media/upload_contract_request_statute.pdf",
-             content["statute_md5"],
-             headers
-           ),
-         :ok <-
-           validate_document(
-             id,
-             "media/upload_contract_request_additional_document.pdf",
-             content["additional_document_md5"],
-             headers
-           ),
-         :ok <- move_uploaded_documents(id, headers),
+         :ok <- validate_documents(pack, headers),
+         :ok <- move_uploaded_documents(pack, headers),
          _ <- terminate_pending_contracts(type, content),
          insert_params <-
            Map.merge(content, %{

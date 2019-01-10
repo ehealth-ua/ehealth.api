@@ -145,6 +145,8 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
+
       contract_request = insert(:il, :reimbursement_contract_request)
 
       id = Node.to_global_id("ReimbursementContractRequest", contract_request.id)
@@ -168,15 +170,52 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entities = get_in(resp_body, ~w(data reimbursementContractRequest attachedDocuments))
+      attached_documents = get_in(resp_body, ~w(data reimbursementContractRequest attachedDocuments))
 
-      assert nil == resp_body["errors"]
-      assert 2 == length(resp_entities)
+      refute resp_body["errors"]
+      assert 2 == length(attached_documents)
 
-      Enum.each(resp_entities, fn document ->
+      Enum.each(attached_documents, fn document ->
         assert Map.has_key?(document, "type")
         assert Map.has_key?(document, "url")
       end)
+    end
+
+    test "success without attached documents", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, fn _url -> {:error, "not found"} end)
+      expect(MediaStorageMock, :get_signed_content, fn _url -> {:ok, %{status_code: 404}} end)
+
+      contract_request = insert(:il, :reimbursement_contract_request)
+
+      id = Node.to_global_id("ReimbursementContractRequest", contract_request.id)
+
+      query = """
+        query GetContractRequestWithAttachedDocumentsQuery($id: ID!) {
+          reimbursementContractRequest(id: $id) {
+            attachedDocuments {
+              type
+              url
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+      assert [] == get_in(resp_body, ~w(data reimbursementContractRequest attachedDocuments))
     end
 
     test "building not required", %{conn: conn} do

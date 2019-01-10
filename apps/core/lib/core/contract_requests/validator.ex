@@ -41,6 +41,11 @@ defmodule Core.ContractRequests.Validator do
   @read_repo Application.get_env(:core, :repos)[:read_repo]
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
+  @upload_docs %{
+    "statute_md5" => "media/upload_contract_request_statute.pdf",
+    "additional_document_md5" => "media/upload_contract_request_additional_document.pdf"
+  }
+
   # Contract Request
 
   def validate_contract_request_id(id, id), do: :ok
@@ -639,7 +644,19 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_document(id, resource_name, md5, headers) do
+  def validate_documents(%RequestPack{} = pack, headers) do
+    Enum.reduce_while(@upload_docs, :ok, fn {key, resource_name}, _ ->
+      case validate_document(pack.type, pack.contract_request_id, resource_name, pack.decoded_content[key], headers) do
+        :ok -> {:cont, :ok}
+        err -> {:halt, err}
+      end
+    end)
+  end
+
+  defp validate_document(@reimbursement, _id, _resource, md5, _headers) when is_nil(md5), do: :ok
+  defp validate_document(_type, id, resource, md5, headers), do: validate_document(id, resource, md5, headers)
+
+  defp validate_document(id, resource_name, md5, headers) do
     with {:ok, %{"data" => %{"secret_url" => url}}} <-
            @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id, headers),
          {:ok, %HTTPoison.Response{status_code: 200, headers: resource_headers}} <-

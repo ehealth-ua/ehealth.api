@@ -30,7 +30,7 @@ defmodule EHealth.Web.ContractController do
 
       conn
       |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, status)
+        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, contract.type, status)
       })
       |> render("show.json", contract: contract, references: references)
     end
@@ -43,7 +43,7 @@ defmodule EHealth.Web.ContractController do
 
       conn
       |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, status)
+        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, contract.type, status)
       })
       |> render("show.json", contract: contract, references: references)
     end

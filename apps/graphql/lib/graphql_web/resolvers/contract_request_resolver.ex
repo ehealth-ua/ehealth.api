@@ -9,6 +9,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.Renderer
   alias Core.ContractRequests.RequestPack
+  alias Core.ContractRequests.Storage
   alias Core.Dictionaries.Dictionary
   alias Core.LegalEntities.LegalEntity
   alias Core.Man.Templates.CapitationContractRequestPrintoutForm
@@ -93,8 +94,8 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
     {:ok, printout_content}
   end
 
-  def get_attached_documents(%{id: id, status: status}, _, _) do
-    with documents when is_list(documents) <- ContractRequests.gen_relevant_get_links(id, status) do
+  def get_attached_documents(%{id: id, type: type, status: status}, _, _) do
+    with documents when is_list(documents) <- Storage.gen_relevant_get_links(id, type, status) do
       {:ok, documents}
     else
       err -> render_error(err)
