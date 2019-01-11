@@ -16,6 +16,8 @@ RUN mix do \
       deps.compile, \
       release --name="${APP_NAME}"
 
+RUN git log --pretty=format:"%H %cd %s" > commits.txt
+
 FROM alpine:3.8
 
 ARG APP_NAME
@@ -30,6 +32,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY --from=builder /app/_build/prod/rel/${APP_NAME}/releases/0.1.0/${APP_NAME}.tar.gz /app
+COPY --from=builder /app/commits.txt /app
 
 RUN tar -xzf ${APP_NAME}.tar.gz; rm ${APP_NAME}.tar.gz
 
