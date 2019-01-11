@@ -1193,14 +1193,16 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
           medical_program_id: nil,
           medication_id: innm_dosage_id,
           intent: MedicationRequest.intent(:plan)
-        })
+        }
+        |> build_resp()
+        |> Map.drop(~w(dispense_valid_from dispense_valid_to))
 
       expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
         {:ok,

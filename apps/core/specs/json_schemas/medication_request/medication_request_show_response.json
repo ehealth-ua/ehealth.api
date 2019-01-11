@@ -945,8 +945,6 @@
     "created_at",
     "started_at",
     "ended_at",
-    "dispense_valid_from",
-    "dispense_valid_to",
     "legal_entity",
     "division",
     "employee",
