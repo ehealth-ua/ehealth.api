@@ -8,7 +8,7 @@ defmodule Core.RpcTest do
 
   describe "employees_by_user_id_client_id/2" do
     test "no employees by user_id, client_id" do
-      assert [] = Rpc.employees_by_user_id_client_id(UUID.generate(), UUID.generate())
+      refute Rpc.employees_by_user_id_client_id(UUID.generate(), UUID.generate())
     end
 
     test "get employees by user_id, client_id" do
@@ -20,7 +20,7 @@ defmodule Core.RpcTest do
         |> PRMRepo.preload(:party)
 
       party_user = insert(:prm, :party_user, party: employee.party)
-      assert [_] = Rpc.employees_by_user_id_client_id(party_user.user_id, legal_entity.id)
+      assert {:ok, [_]} = Rpc.employees_by_user_id_client_id(party_user.user_id, legal_entity.id)
     end
   end
 
@@ -57,7 +57,7 @@ defmodule Core.RpcTest do
       refute Rpc.employee_by_id(UUID.generate())
     end
 
-    test "get emplyoee by id" do
+    test "get employee by id" do
       employee =
         :prm
         |> insert(:employee)

@@ -10,7 +10,7 @@ defmodule Ehealth.MixProject do
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
       docs: [
-        filter_prefix: "Casher.Rpc"
+        filter_prefix: "*.Rpc"
       ]
     ]
   end
