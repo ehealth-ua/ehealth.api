@@ -13943,31 +13943,6 @@
     "is_active": true
   },
   {
-    "name": "eHealth/allergy_intolerance_substance_codes",
-    "values": {
-      "102002": "Hemoglobin Okaloosa",
-      "120006": "Ornithine racemase",
-      "125001": "Ferrous sulfate Fe^59^",
-      "126000": "Galactosyl-N-acetylglucosaminylgalactosylglucosylceramide alpha-galactosyltransferase",
-      "130002": "Hemoglobin Hopkins-II",
-      "131003": "Dolichyl-phosphate mannosyltransferase",
-      "159002": "Ferrocyanide salt",
-      "164003": "Phosphoenolpyruvate-protein phosphotransferase",
-      "178002": "Uridine diphosphate galactose",
-      "186002": "HLA-Cw9 antigen",
-      "187006": "Cyanocobalamin Co^57^",
-      "200001": "Berberine",
-      "217008": "Blood group antigen IH",
-      "231008": "3-Hydroxyisobutyrate dehydrogenase",
-      "238002": "Heptachlor"
-    },
-    "labels": [
-      "SYSTEM",
-      "EXTERNAL"
-    ],
-    "is_active": true
-  },
-  {
     "name": "eHealth/episode_types",
     "values": {
       "PHC": "Первинна медична допомога",
