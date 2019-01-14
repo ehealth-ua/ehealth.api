@@ -138,7 +138,7 @@ defmodule Core.DeclarationRequests.API.Approve do
     |> select([dr], count(dr.id))
     |> where(
       [dr],
-      dr.status == ^status and fragment("?->'employee'->>'id'", dr.data) in ^employee_ids
+      dr.status == ^status and dr.data_employee_id in ^employee_ids
     )
     |> @read_repo.one()
   end

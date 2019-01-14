@@ -302,26 +302,33 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
 
   defp filter_authentication_method(method), do: method
 
-  def pending_declaration_requests(%{"tax_id" => tax_id}, employee_id, legal_entity_id) do
-    from(
-      p in DeclarationRequest,
-      where: p.status in [@status_new, @status_approved],
-      where: fragment("?->'person'->>'tax_id' = ?", p.data, ^tax_id),
-      where: fragment("?->'employee'->>'id' = ?", p.data, ^employee_id),
-      where: fragment("?->'legal_entity'->>'id' = ?", p.data, ^legal_entity_id)
-    )
+  def pending_declaration_requests(%{"tax_id" => tax_id}, employee_id, legal_entity_id) when not is_nil(tax_id) do
+    DeclarationRequest
+    |> where([p], p.status in [@status_new, @status_approved])
+    |> where([p], p.data_person_tax_id == ^tax_id)
+    |> where([p], p.data_employee_id == ^employee_id)
+    |> where([p], p.data_legal_entity_id == ^legal_entity_id)
   end
 
   def pending_declaration_requests(person, employee_id, legal_entity_id) do
-    person_where = %{"person" => Map.take(person, ~W(first_name last_name birth_date))}
+    first_name = Map.get(person, "first_name")
+    last_name = Map.get(person, "last_name")
 
-    from(
-      p in DeclarationRequest,
-      where: p.status in [@status_new, @status_approved],
-      where: fragment("? @> ?", p.data, ^person_where),
-      where: fragment("?->'employee'->>'id' = ?", p.data, ^employee_id),
-      where: fragment("?->'legal_entity'->>'id' = ?", p.data, ^legal_entity_id)
-    )
+    birth_date =
+      person
+      |> Map.get("birth_date")
+      |> case do
+        value when is_binary(value) -> Date.from_iso8601!(value)
+        _ -> nil
+      end
+
+    DeclarationRequest
+    |> where([p], p.status in [@status_new, @status_approved])
+    |> where([p], p.data_person_first_name == ^first_name)
+    |> where([p], p.data_person_last_name == ^last_name)
+    |> where([p], p.data_person_birth_date == ^birth_date)
+    |> where([p], p.data_employee_id == ^employee_id)
+    |> where([p], p.data_legal_entity_id == ^legal_entity_id)
   end
 
   def changeset(attrs, user_id, auxiliary_entities, headers) do
@@ -367,6 +374,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     |> put_declaration_number()
     |> unique_constraint(:declaration_number, name: :declaration_requests_declaration_number_index)
     |> put_party_email()
+    |> duplicate_data_fields()
   end
 
   defp validate_legal_entity_employee(changeset, legal_entity, employee) do
@@ -826,5 +834,39 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
         Logger.error("Can't get declaration_request sequence")
         {:error, %{"type" => "internal_error"}}
     end
+  end
+
+  defp duplicate_data_fields(changeset) do
+    data = get_field(changeset, :data)
+
+    start_date =
+      data
+      |> Map.get("start_date")
+      |> case do
+        value when is_binary(value) ->
+          value
+          |> Date.from_iso8601!()
+          |> Map.get(:year)
+
+        _ ->
+          nil
+      end
+
+    birth_date =
+      data
+      |> Map.get("birth_date")
+      |> case do
+        value when is_binary(value) -> Date.from_iso8601!(value)
+        _ -> nil
+      end
+
+    changeset
+    |> put_change(:data_legal_entity_id, get_in(data, ~w(legal_entity id)))
+    |> put_change(:data_employee_id, get_in(data, ~w(employee id)))
+    |> put_change(:data_start_date_year, start_date)
+    |> put_change(:data_person_tax_id, get_in(data, ~w(person tax_id)))
+    |> put_change(:data_person_first_name, get_in(data, ~w(person first_name)))
+    |> put_change(:data_person_last_name, get_in(data, ~w(person last_name)))
+    |> put_change(:data_person_birth_date, birth_date)
   end
 end

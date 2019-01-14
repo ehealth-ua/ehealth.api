@@ -85,7 +85,7 @@ defmodule Core.Cabinet.DeclarationRequests do
   end
 
   defp filter_by_start_year(query, %{"start_year" => start_year}) when is_binary(start_year) do
-    where(query, [r], fragment("date_part_immutable(?) = to_number(?, '9999')", r.data, ^start_year))
+    where(query, [r], r.data_start_date_year == ^start_year)
   end
 
   defp filter_by_start_year(query, _), do: query

@@ -11,46 +11,54 @@ defmodule Core.DeclarationRequests.API.V2.CreatorTest do
 
   describe "pending_declaration_requests/2" do
     test "returns pending requests" do
+      employee_id = UUID.generate()
+      legal_entity_id = UUID.generate()
+
       existing_declaration_request_data = %{
         "person" => %{
           "tax_id" => "111"
         },
         "employee" => %{
-          "id" => "222"
+          "id" => employee_id
         },
         "legal_entity" => %{
-          "id" => "333"
+          "id" => legal_entity_id
         }
       }
 
-      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
-      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
+      pending_declaration_req_1 = copy_declaration_request(existing_declaration_request_data, "NEW")
+      pending_declaration_req_2 = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
-      query = Creator.pending_declaration_requests(%{"tax_id" => "111"}, "222", "333")
+      query = Creator.pending_declaration_requests(%{"tax_id" => "111"}, employee_id, legal_entity_id)
       requests = Repo.all(query)
       assert pending_declaration_req_1 in requests
       assert pending_declaration_req_2 in requests
     end
 
     test "returns pending requests without tax_id" do
+      employee_id = UUID.generate()
+      legal_entity_id = UUID.generate()
+
       existing_declaration_request_data = %{
         "person" => %{
           "first_name" => "Василь",
           "last_name" => "Шамрило",
-          "birth_data" => "2000-12-14"
+          "birth_date" => "2000-12-14"
         },
         "employee" => %{
-          "id" => "222"
+          "id" => employee_id
         },
         "legal_entity" => %{
-          "id" => "333"
+          "id" => legal_entity_id
         }
       }
 
-      {:ok, pending_declaration_req_1} = copy_declaration_request(existing_declaration_request_data, "NEW")
-      {:ok, pending_declaration_req_2} = copy_declaration_request(existing_declaration_request_data, "APPROVED")
+      pending_declaration_req_1 = copy_declaration_request(existing_declaration_request_data, "NEW")
+      pending_declaration_req_2 = copy_declaration_request(existing_declaration_request_data, "APPROVED")
 
-      query = Creator.pending_declaration_requests(%{}, "222", "333")
+      query =
+        Creator.pending_declaration_requests(existing_declaration_request_data["person"], employee_id, legal_entity_id)
+
       declarations = Repo.all(query)
       assert pending_declaration_req_1 in declarations
       assert pending_declaration_req_2 in declarations
@@ -186,39 +194,69 @@ defmodule Core.DeclarationRequests.API.V2.CreatorTest do
   end
 
   defp copy_declaration_request(template, status) do
-    attrs = %{
-      "status" => status,
-      "data" => %{
-        "person" => %{
-          "tax_id" => get_in(template, ["person", "tax_id"])
+    attrs =
+      %{
+        "status" => status,
+        "data" => %{
+          "person" => template["person"],
+          "employee" => %{
+            "id" => get_in(template, ["employee", "id"])
+          },
+          "legal_entity" => %{
+            "id" => get_in(template, ["legal_entity", "id"])
+          }
         },
-        "employee" => %{
-          "id" => get_in(template, ["employee", "id"])
+        "authentication_method_current" => %{
+          "number" => "+380508887700",
+          "type" => "OTP"
         },
-        "legal_entity" => %{
-          "id" => get_in(template, ["legal_entity", "id"])
-        }
-      },
-      "authentication_method_current" => %{
-        "number" => "+380508887700",
-        "type" => "OTP"
-      },
-      "documents" => [],
-      "printout_content" => "Some fake content",
-      "inserted_by" => UUID.generate(),
-      "updated_by" => UUID.generate(),
-      "declaration_id" => UUID.generate(),
-      "channel" => DeclarationRequest.channel(:mis),
-      "declaration_number" => NumberGenerator.generate(1, 2)
-    }
+        "documents" => [],
+        "printout_content" => "Some fake content",
+        "inserted_by" => UUID.generate(),
+        "updated_by" => UUID.generate(),
+        "declaration_id" => UUID.generate(),
+        "channel" => DeclarationRequest.channel(:mis),
+        "declaration_number" => NumberGenerator.generate(1, 2)
+      }
+      |> prepare_params()
+      |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+      |> Enum.into(%{})
 
-    allowed =
-      attrs
-      |> Map.keys()
-      |> Enum.map(&String.to_atom(&1))
+    insert(:il, :declaration_request, attrs)
+  end
 
-    %DeclarationRequest{}
-    |> Ecto.Changeset.cast(attrs, allowed)
-    |> Repo.insert()
+  defp prepare_params(params) when is_map(params) do
+    data = Map.get(params, "data")
+
+    start_date_year =
+      data
+      |> Map.get("start_date")
+      |> case do
+        start_date when is_binary(start_date) ->
+          start_date
+          |> Date.from_iso8601!()
+          |> Map.get(:year)
+
+        _ ->
+          nil
+      end
+
+    person_birth_date =
+      data
+      |> get_in(~w(person birth_date))
+      |> case do
+        birth_date when is_binary(birth_date) -> Date.from_iso8601!(birth_date)
+        _ -> nil
+      end
+
+    Map.merge(params, %{
+      "data_legal_entity_id" => get_in(data, ~w(legal_entity id)),
+      "data_employee_id" => get_in(data, ~w(employee id)),
+      "data_start_date_year" => start_date_year,
+      "data_person_tax_id" => get_in(data, ~w(person tax_id)),
+      "data_person_first_name" => get_in(data, ~w(person first_name)),
+      "data_person_last_name" => get_in(data, ~w(person last_name)),
+      "data_person_birth_date" => person_birth_date
+    })
   end
 end

@@ -666,36 +666,40 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         insert(
           :il,
           :declaration_request,
-          data: %{
-            person: %{
-              tax_id: tax_id
+          prepare_params(%{
+            data: %{
+              person: %{
+                tax_id: tax_id
+              },
+              employee: %{
+                id: employee_id
+              },
+              legal_entity: %{
+                id: legal_entity_id
+              }
             },
-            employee: %{
-              id: employee_id
-            },
-            legal_entity: %{
-              id: legal_entity_id
-            }
-          },
-          status: "NEW"
+            status: "NEW"
+          })
         )
 
       d2 =
         insert(
           :il,
           :declaration_request,
-          data: %{
-            person: %{
-              tax_id: tax_id
+          prepare_params(%{
+            data: %{
+              person: %{
+                tax_id: tax_id
+              },
+              employee: %{
+                id: employee_id
+              },
+              legal_entity: %{
+                id: legal_entity_id
+              }
             },
-            employee: %{
-              id: employee_id
-            },
-            legal_entity: %{
-              id: legal_entity_id
-            }
-          },
-          status: "APPROVED"
+            status: "APPROVED"
+          })
         )
 
       resp =
@@ -1607,29 +1611,29 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
   end
 
   def clone_declaration_request(params, legal_entity_id, status) do
-    declaration_request_params = %{
-      data: %{
-        person: params["person"],
-        employee: %{
-          id: params["employee_id"]
+    declaration_request_params =
+      %{
+        data: %{
+          person: params["person"],
+          employee: %{
+            id: params["employee_id"]
+          },
+          legal_entity: %{
+            id: legal_entity_id
+          }
         },
-        legal_entity: %{
-          id: legal_entity_id
-        }
-      },
-      status: status,
-      authentication_method_current: %{},
-      documents: [],
-      printout_content: "something",
-      inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
-      channel: DeclarationRequest.channel(:mis),
-      declaration_number: NumberGenerator.generate(1, 2)
-    }
+        status: status,
+        authentication_method_current: %{},
+        documents: [],
+        printout_content: "something",
+        inserted_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+        updated_by: "f47f94fd-2d77-4b7e-b444-4955812c2a77",
+        channel: DeclarationRequest.channel(:mis),
+        declaration_number: NumberGenerator.generate(1, 2)
+      }
+      |> prepare_params()
 
-    %DeclarationRequest{}
-    |> Ecto.Changeset.change(declaration_request_params)
-    |> Repo.insert!()
+    insert(:il, :declaration_request, declaration_request_params)
   end
 
   defp insert_dictionaries do
@@ -1648,5 +1652,65 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     |> File.read!()
     |> Jason.decode!()
     |> Map.fetch!("declaration_request")
+  end
+
+  defp prepare_params(params) when is_map(params) do
+    data =
+      params
+      |> atomize_keys()
+      |> Map.get(:data)
+
+    start_date_year =
+      data
+      |> Map.get(:start_date)
+      |> case do
+        start_date when is_binary(start_date) ->
+          start_date
+          |> Date.from_iso8601!()
+          |> Map.get(:year)
+
+        _ ->
+          nil
+      end
+
+    person_birth_date =
+      data
+      |> get_in(~w(person birth_date)a)
+      |> case do
+        birth_date when is_binary(birth_date) -> Date.from_iso8601!(birth_date)
+        _ -> nil
+      end
+
+    Map.merge(params, %{
+      data_legal_entity_id: get_in(data, ~w(legal_entity id)a),
+      data_employee_id: get_in(data, ~w(employee id)a),
+      data_start_date_year: start_date_year,
+      data_person_tax_id: get_in(data, ~w(person tax_id)a),
+      data_person_first_name: get_in(data, ~w(person first_name)a),
+      data_person_last_name: get_in(data, ~w(person last_name)a),
+      data_person_birth_date: person_birth_date
+    })
+  end
+
+  def atomize_keys(nil), do: nil
+
+  def atomize_keys(value) when is_map(value) do
+    value
+    |> Enum.map(fn {k, v} ->
+      if is_binary(k) do
+        {String.to_atom(k), atomize_keys(v)}
+      else
+        {k, atomize_keys(v)}
+      end
+    end)
+    |> Enum.into(%{})
+  end
+
+  def atomize_keys(value) when is_list(value) do
+    Enum.map(value, &atomize_keys/1)
+  end
+
+  def atomize_keys(value) do
+    value
   end
 end

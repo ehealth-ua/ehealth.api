@@ -53,6 +53,13 @@ defmodule Core.DeclarationRequests.DeclarationRequest do
     field(:overlimit, :boolean)
     field(:channel, :string)
     field(:declaration_number, :string)
+    field(:data_legal_entity_id, UUID)
+    field(:data_employee_id, UUID)
+    field(:data_start_date_year, :integer)
+    field(:data_person_tax_id, :string)
+    field(:data_person_first_name, :string)
+    field(:data_person_last_name, :string)
+    field(:data_person_birth_date, :date)
 
     timestamps()
   end

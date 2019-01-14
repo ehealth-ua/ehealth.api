@@ -18,7 +18,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       legal_entity_id = UUID.generate()
 
       Enum.map(1..2, fn _ ->
-        params = fixture_params()
+        params = prepare_params(fixture_params())
         insert(:il, :declaration_request, params)
       end)
 
@@ -39,6 +39,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           fixture_params()
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> prepare_params()
 
         insert(
           :il,
@@ -63,12 +64,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> prepare_params()
 
-        insert(
-          :il,
-          :declaration_request,
-          params
-        )
+        insert(:il, :declaration_request, params)
       end)
 
       conn = put_client_id_header(conn, legal_entity_id)
@@ -88,6 +86,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:data, :employee, :id], employee_id)
+          |> prepare_params()
 
         insert(:il, :declaration_request, params)
       end)
@@ -107,6 +106,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         params =
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
+          |> prepare_params()
 
         insert(:il, :declaration_request, params)
       end)
@@ -128,6 +128,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           fixture_params()
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:status], status)
+          |> prepare_params()
 
         insert(:il, :declaration_request, params)
       end)
@@ -151,6 +152,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           |> put_in([:data, :legal_entity, :id], legal_entity_id)
           |> put_in([:data, :employee, :id], employee_id)
           |> put_in([:status], status)
+          |> prepare_params()
 
         insert(:il, :declaration_request, params)
       end)
@@ -195,7 +197,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           :il,
           :declaration_request,
           documents: [%{"type" => "ok", "verb" => "HEAD"}],
-          data: %{"employee" => %{"id" => employee_id}}
+          data: %{"employee" => %{"id" => employee_id}},
+          data_employee_id: employee_id
         )
 
       conn = put_client_id_header(conn, UUID.generate())
@@ -255,6 +258,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         :il,
         :declaration_request,
         data: data,
+        data_employee_id: employee_id,
         status: DeclarationRequest.status(:approved)
       )
 
@@ -351,6 +355,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           :declaration_request,
           documents: [%{"type" => "ok", "verb" => "HEAD"}],
           data: data,
+          data_employee_id: employee_id,
           mpi_id: UUID.generate()
         )
 
@@ -440,6 +445,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         :il,
         :declaration_request,
         data: data,
+        data_employee_id: employee_id,
         status: DeclarationRequest.status(:approved)
       )
 
@@ -449,6 +455,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           :declaration_request,
           documents: [%{"type" => "ok", "verb" => "HEAD"}],
           data: data,
+          data_employee_id: employee_id,
           mpi_id: UUID.generate()
         )
 
@@ -558,12 +565,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_hash"}}}
       end)
 
-      %{id: id, data: data} =
-        insert(
-          :il,
-          :declaration_request,
-          fixture_params()
-        )
+      %{id: id, data: data} = insert(:il, :declaration_request, prepare_params(fixture_params()))
 
       conn = put_client_id_header(conn, get_in(data, [:legal_entity, :id]))
       conn = get(conn, declaration_request_path(conn, :show, id))
@@ -675,6 +677,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           %{"type" => "person.DECLARATION_FORM"},
           %{"type" => "confidant_person.0.PRIMARY.RELATIONSHIP.COURT_DECISION"}
         ])
+        |> prepare_params()
 
       %{id: id, declaration_id: declaration_id} = insert(:il, :declaration_request, params)
       conn = get(conn, declaration_request_path(conn, :documents, declaration_id))
@@ -730,10 +733,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      %{id: declaration_id, declaration_number: declaration_number} =
-        insert(
-          :il,
-          :declaration_request,
+      params =
+        %{
           id: data["id"],
           status: DeclarationRequest.status(:approved),
           data: %{
@@ -750,7 +751,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           authentication_method_current: %{
             "type" => DeclarationRequest.authentication_method(:na)
           }
-        )
+        }
+        |> prepare_params()
+
+      %{id: declaration_id, declaration_number: declaration_number} = insert(:il, :declaration_request, params)
 
       signed_declaration_request =
         data
@@ -813,10 +817,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      %{id: declaration_id, declaration_number: declaration_number} =
-        insert(
-          :il,
-          :declaration_request,
+      params =
+        %{
           id: data["id"],
           status: DeclarationRequest.status(:approved),
           data: %{
@@ -833,7 +835,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           authentication_method_current: %{
             "type" => DeclarationRequest.authentication_method(:na)
           }
-        )
+        }
+        |> prepare_params()
+
+      %{id: declaration_id, declaration_number: declaration_number} = insert(:il, :declaration_request, params)
 
       signed_declaration_request =
         data
@@ -934,10 +939,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       insert(:prm, :employee, id: employee_id, legal_entity_id: legal_entity_id)
       %{user_id: user_id} = insert(:prm, :party_user, party: build(:party, tax_id: tax_id))
 
-      %{id: declaration_id, declaration_number: declaration_number} =
-        insert(
-          :il,
-          :declaration_request,
+      params =
+        %{
           id: data["id"],
           status: DeclarationRequest.status(:approved),
           data: %{
@@ -954,7 +957,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           authentication_method_current: %{
             "type" => DeclarationRequest.authentication_method(:na)
           }
-        )
+        }
+        |> prepare_params()
+
+      %{id: declaration_id, declaration_number: declaration_number} = insert(:il, :declaration_request, params)
 
       signed_declaration_request =
         data
@@ -994,6 +1000,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
           first_name: "Петро",
           last_name: "Іванов",
           second_name: "Миколайович",
+          birth_date: "1991-08-19",
           documents: [
             %{
               type: "PASSPORT",
@@ -1236,5 +1243,65 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
       },
       params
     )
+  end
+
+  defp prepare_params(params) when is_map(params) do
+    data =
+      params
+      |> atomize_keys()
+      |> Map.get(:data)
+
+    start_date_year =
+      data
+      |> Map.get(:start_date)
+      |> case do
+        start_date when is_binary(start_date) ->
+          start_date
+          |> Date.from_iso8601!()
+          |> Map.get(:year)
+
+        _ ->
+          nil
+      end
+
+    person_birth_date =
+      data
+      |> get_in(~w(person birth_date)a)
+      |> case do
+        birth_date when is_binary(birth_date) -> Date.from_iso8601!(birth_date)
+        _ -> nil
+      end
+
+    Map.merge(params, %{
+      data_legal_entity_id: get_in(data, ~w(legal_entity id)a),
+      data_employee_id: get_in(data, ~w(employee id)a),
+      data_start_date_year: start_date_year,
+      data_person_tax_id: get_in(data, ~w(person tax_id)a),
+      data_person_first_name: get_in(data, ~w(person first_name)a),
+      data_person_last_name: get_in(data, ~w(person last_name)a),
+      data_person_birth_date: person_birth_date
+    })
+  end
+
+  def atomize_keys(nil), do: nil
+
+  def atomize_keys(value) when is_map(value) do
+    value
+    |> Enum.map(fn {k, v} ->
+      if is_binary(k) do
+        {String.to_atom(k), atomize_keys(v)}
+      else
+        {k, atomize_keys(v)}
+      end
+    end)
+    |> Enum.into(%{})
+  end
+
+  def atomize_keys(value) when is_list(value) do
+    Enum.map(value, &atomize_keys/1)
+  end
+
+  def atomize_keys(value) do
+    value
   end
 end

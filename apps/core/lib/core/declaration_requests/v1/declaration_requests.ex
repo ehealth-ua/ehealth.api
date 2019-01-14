@@ -148,7 +148,7 @@ defmodule Core.DeclarationRequests do
   end
 
   def filter_by_legal_entity_id(query, %{"legal_entity_id" => legal_entity_id}) do
-    where(query, [r], fragment("?->'legal_entity'->>'id' = ?", r.data, ^legal_entity_id))
+    where(query, [r], r.data_legal_entity_id == ^legal_entity_id)
   end
 
   def filter_by_legal_entity_id(query, _), do: query
@@ -207,7 +207,7 @@ defmodule Core.DeclarationRequests do
   def validate_channel(_, _), do: :ok
 
   def filter_by_employee_id(query, %{"employee_id" => employee_id}) do
-    where(query, [r], fragment("?->'employee'->>'id' = ?", r.data, ^employee_id))
+    where(query, [r], r.data_employee_id == ^employee_id)
   end
 
   def filter_by_employee_id(query, _), do: query

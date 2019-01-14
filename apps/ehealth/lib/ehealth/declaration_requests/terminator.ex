@@ -155,6 +155,13 @@ defmodule EHealth.DeclarationRequests.Terminator do
         set: [
           status: ^status,
           data: nil,
+          data_legal_entity_id: nil,
+          data_employee_id: nil,
+          data_start_date_year: nil,
+          data_person_tax_id: nil,
+          data_person_first_name: nil,
+          data_person_last_name: nil,
+          data_person_birth_date: nil,
           authentication_method_current: nil,
           printout_content: nil,
           updated_by: ^user_id,

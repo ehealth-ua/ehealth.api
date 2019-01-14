@@ -1220,8 +1220,10 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      declaration_request_in = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
-      declaration_request_out = insert(:il, :declaration_request, data: fixture_params())
+      declaration_request_in =
+        insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
+
+      declaration_request_out = insert(:il, :declaration_request, prepare_params(%{data: fixture_params()}))
 
       conn =
         conn
@@ -1269,12 +1271,15 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         insert(
           :il,
           :declaration_request,
-          mpi_id: @person_id,
-          status: search_status,
-          data: fixture_params(%{"start_date" => "2018-03-02"})
+          prepare_params(%{
+            mpi_id: @person_id,
+            status: search_status,
+            data: fixture_params(%{"start_date" => "2018-03-02"})
+          })
         )
 
-      declaration_request_out = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+      declaration_request_out =
+        insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
 
       conn =
         conn
@@ -1315,7 +1320,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      for _ <- 1..2, do: insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+      for _ <- 1..2,
+          do: insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
 
       conn =
         conn
@@ -1411,15 +1417,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         get_person(id, 200, %{"tax_id" => "12341234"})
       end)
 
-      declaration_request_in = insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+      declaration_request_in =
+        insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
 
       declaration_request_out =
         insert(
           :il,
           :declaration_request,
-          mpi_id: @person_id,
-          status: DeclarationRequest.status(:expired),
-          data: fixture_params()
+          prepare_params(%{
+            mpi_id: @person_id,
+            status: DeclarationRequest.status(:expired),
+            data: fixture_params()
+          })
         )
 
       conn =
@@ -1467,12 +1476,14 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
       insert(
         :il,
         :declaration_request,
-        mpi_id: @person_id,
-        status: search_status,
-        data: fixture_params(%{"start_date" => "2018-03-02"})
+        prepare_params(%{
+          mpi_id: @person_id,
+          status: search_status,
+          data: fixture_params(%{"start_date" => "2018-03-02"})
+        })
       )
 
-      insert(:il, :declaration_request, mpi_id: @person_id, data: fixture_params())
+      insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
 
       conn =
         conn
@@ -1921,9 +1932,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
           "expiry_date" => "1991-08-19",
           "issued_date" => "1991-08-19"
         }
-      },
-      "declaration_id" => UUID.generate(),
-      "status" => "NEW"
+      }
     }
     |> Map.merge(params)
   end
@@ -1963,5 +1972,40 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
   defp unzr(birthdate) do
     "#{String.replace(birthdate, "-", "")}-#{Enum.random(10000..99999)}"
+  end
+
+  defp prepare_params(params) when is_map(params) do
+    data = Map.get(params, :data)
+
+    start_date_year =
+      data
+      |> Map.get("start_date")
+      |> case do
+        start_date when is_binary(start_date) ->
+          start_date
+          |> Date.from_iso8601!()
+          |> Map.get(:year)
+
+        _ ->
+          nil
+      end
+
+    person_birth_date =
+      data
+      |> get_in(~w(person birth_date))
+      |> case do
+        birth_date when is_binary(birth_date) -> Date.from_iso8601!(birth_date)
+        _ -> nil
+      end
+
+    Map.merge(params, %{
+      data_legal_entity_id: get_in(data, ~w(legal_entity id)),
+      data_employee_id: get_in(data, ~w(employee id)),
+      data_start_date_year: start_date_year,
+      data_person_tax_id: get_in(data, ~w(person tax_id)),
+      data_person_first_name: get_in(data, ~w(person first_name)),
+      data_person_last_name: get_in(data, ~w(person last_name)),
+      data_person_birth_date: person_birth_date
+    })
   end
 end
