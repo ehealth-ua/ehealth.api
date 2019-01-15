@@ -36,7 +36,7 @@ defmodule DeactivateLegalEntityConsumer.MixProject do
 
   defp aliases do
     [
-      "ecto.setup": []
+      "ecto.setup": fn _ -> Mix.shell().cmd("cd ../core && mix ecto.setup") end
     ]
   end
 end

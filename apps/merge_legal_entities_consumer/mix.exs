@@ -30,14 +30,13 @@ defmodule MergeLegalEntitiesConsumer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jobs, in_umbrella: true},
-      {:graphql, in_umbrella: true}
+      {:jobs, in_umbrella: true}
     ]
   end
 
   defp aliases do
     [
-      "ecto.setup": []
+      "ecto.setup": fn _ -> Mix.shell().cmd("cd ../core && mix ecto.setup") end
     ]
   end
 end
