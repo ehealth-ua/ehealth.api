@@ -9,5 +9,3 @@ config :graphql, GraphQLWeb.Endpoint,
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
-
-config :taskafka, :mongo, url: "mongodb://localhost:27017/taskafka_dev"

@@ -33,7 +33,7 @@ You can use official Docker container to deploy this service, it can be found on
 ### Dependencies
 
 - PostgreSQL 9.6 is used as storage back-end.
-- Elixir 1.6+
+- Elixir 1.7+
 - Erlang/OTP 20.0.4
 
 ## Configuration

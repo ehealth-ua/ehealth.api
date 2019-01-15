@@ -4,19 +4,24 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
-  alias BSON.ObjectId
-  alias Core.Utils.TypesConverter
-  alias GraphQL.Jobs
+  alias Absinthe.Relay.Node
+  alias Jobs.LegalEntityMergeJob
   alias TasKafka.Job
-  alias TasKafka.Jobs, as: TasKafkaJobs
 
   @type_merge_legal_entities Jobs.type(:merge_legal_entities)
 
   def merge_legal_entities(args, resolution) do
-    with {:ok, %Job{} = job} <- Jobs.create_merge_legal_entities_job(args, resolution.context.headers) do
-      {:ok, %{legal_entity_merge_job: job_view(job)}}
-    else
-      err -> render_error(err)
+    case LegalEntityMergeJob.create(args, resolution.context.headers) do
+      {:ok, %Job{} = job} ->
+        {:ok, %{legal_entity_merge_job: job_view(job)}}
+
+      {:job_exists, id} ->
+        id = Node.to_global_id("LegalEntityMergeJob", id)
+        err = {:error, {:conflict, "Merge Legal Entity job is already created with id #{id}"}}
+        render_error(err)
+
+      err ->
+        render_error(err)
     end
   end
 
@@ -29,13 +34,9 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
         _ -> 0
       end
 
-    opts = [limit: limit + 1, skip: offset, sort: prepare_order_by(order_by)]
-
     records =
       filter
-      |> Enum.reduce(%{}, &prepare_mongo_filter/2)
-      |> Map.put("type", @type_merge_legal_entities)
-      |> TasKafkaJobs.get_list(opts)
+      |> Jobs.list(limit, offset, order_by, @type_merge_legal_entities)
       |> job_view()
 
     opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
@@ -44,40 +45,13 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   end
 
   def get_by_id(_parent, %{id: id}, _resolution) do
-    case TasKafkaJobs.get_by_id(id) do
+    case Jobs.get_by_id(id) do
       {:ok, job} -> {:ok, job_view(job)}
       nil -> {:ok, nil}
     end
   end
 
-  defp job_view(%Job{} = job) do
-    meta = TypesConverter.strings_to_keys(job.meta)
-
-    %{
-      id: ObjectId.encode!(job._id),
-      status: Job.status_to_string(job.status),
-      merged_from_legal_entity: meta.merged_from_legal_entity,
-      merged_to_legal_entity: meta.merged_to_legal_entity,
-      result: Jason.encode!(job.result),
-      started_at: job.started_at,
-      ended_at: job.ended_at
-    }
-  end
-
+  defp job_view(%Job{} = job), do: Jobs.view(job, [:merged_to_legal_entity, :merged_from_legal_entity])
   defp job_view([]), do: []
   defp job_view(jobs) when is_list(jobs), do: Enum.map(jobs, &job_view/1)
-
-  def prepare_mongo_filter({:status, value}, acc) do
-    Map.put(acc, "status", value |> String.to_atom() |> Job.status())
-  end
-
-  def prepare_mongo_filter({key, filters}, acc) when key in [:merged_to_legal_entity, :merged_from_legal_entity] do
-    Enum.reduce(filters, acc, fn {filter, value}, acc ->
-      Map.put(acc, "meta.#{key}.#{filter}", value)
-    end)
-  end
-
-  defp prepare_order_by([]), do: nil
-  defp prepare_order_by([{:asc, field}]), do: %{Atom.to_string(field) => 1}
-  defp prepare_order_by([{:desc, field}]), do: %{Atom.to_string(field) => -1}
 end

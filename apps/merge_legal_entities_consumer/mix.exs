@@ -8,7 +8,7 @@ defmodule MergeLegalEntitiesConsumer.MixProject do
       app: :merge_legal_entities_consumer,
       description: "Merge legal entities Kafka consumer.",
       version: @version,
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -30,6 +30,7 @@ defmodule MergeLegalEntitiesConsumer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:jobs, in_umbrella: true},
       {:graphql, in_umbrella: true}
     ]
   end

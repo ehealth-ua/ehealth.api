@@ -6,7 +6,7 @@ The project is written in [Elixir language](https://elixir-lang.org/) and its be
 
 Environment requirements:
 
-- elixir 1.6+
+- elixir 1.7+
 - postgresql 9.6+
 - postgis extension
 - redis

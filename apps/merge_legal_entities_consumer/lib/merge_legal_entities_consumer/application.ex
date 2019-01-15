@@ -5,7 +5,7 @@ defmodule MergeLegalEntitiesConsumer.Application do
 
   use Application
 
-  alias GraphQL.Jobs.LegalEntityMergeJob
+  alias Jobs.LegalEntityMergeJob
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false

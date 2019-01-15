@@ -5,7 +5,7 @@
       name: "default",
       files: %{
         included: ["apps/*/lib/*"],
-        excluded: ["apps/*/lib/tasks/tasks.ex"]
+        excluded: ["apps/*/lib/tasks/tasks.ex", "apps/*/lib/kafka_tasks/kafka_tasks.ex"]
       },
       checks: [
         {Credo.Check.Design.DuplicatedCode, false},

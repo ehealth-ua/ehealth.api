@@ -11,11 +11,11 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
   alias BSON.ObjectId
   alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
-  alias TasKafka.Jobs
+  alias TasKafka.Jobs, as: TasKafkaJobs
 
   setup :verify_on_exit!
 
-  @type_merge_legal_entities GraphQL.Jobs.type(:merge_legal_entities)
+  @type_merge_legal_entities Jobs.type(:merge_legal_entities)
 
   @query """
     mutation MergeLegalEntitiesMutation($input: MergeLegalEntitiesInput!) {
@@ -73,7 +73,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
         |> post_query(@query, input_signed_content(signed_content))
         |> json_response(200)
 
-      assert %{"message" => "Merge Legal Entity job already created with id " <> id} = hd(resp["errors"])
+      assert %{"message" => "Merge Legal Entity job is already created with id " <> id} = hd(resp["errors"])
 
       query = """
         query GetLegalEntityMergeJobQuery($id: ID) {
@@ -228,10 +228,10 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
       {:ok, job_id4, _} = create_job(insert(:prm, :legal_entity), insert(:prm, :legal_entity))
       create_job(insert(:prm, :legal_entity), insert(:prm, :legal_entity))
       result = %{related_legal_entity_id: UUID.generate()}
-      Jobs.processed(job_id1, result)
-      Jobs.processed(job_id2, result)
-      Jobs.processed(job_id3, result)
-      Jobs.processed(job_id4, result)
+      TasKafkaJobs.processed(job_id1, result)
+      TasKafkaJobs.processed(job_id2, result)
+      TasKafkaJobs.processed(job_id3, result)
+      TasKafkaJobs.processed(job_id4, result)
 
       query = """
         query ListLegalEntityMergeJobsQuery(
@@ -416,7 +416,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
 
       {:ok, job_id, _} = create_job(meta)
       result = %{related_legal_entity_id: UUID.generate()}
-      Jobs.processed(job_id, result)
+      TasKafkaJobs.processed(job_id, result)
       id = Node.to_global_id("LegalEntityMergeJob", job_id)
 
       query = """
@@ -493,7 +493,7 @@ defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
   end
 
   defp create_job(meta) do
-    {:ok, job} = Jobs.create(meta, @type_merge_legal_entities)
+    {:ok, job} = TasKafkaJobs.create(meta, @type_merge_legal_entities)
     {:ok, ObjectId.encode!(job._id), job}
   end
 

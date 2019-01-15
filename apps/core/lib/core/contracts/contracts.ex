@@ -198,17 +198,26 @@ defmodule Core.Contracts do
              contract.contractor_legal_entity_id,
              contract.nhs_legal_entity_id
            ]),
-         :ok <- validate_status(contract, @status_verified),
-         {:ok, contract} <-
-           contract
-           |> changeset(%{
-             "status_reason" => params["status_reason"],
-             "status" => @status_terminated,
-             "updated_by" => user_id
-           })
-           |> PRMRepo.update(),
-         EventManager.insert_change_status(contract, contract.status, user_id) do
+         :ok <- validate_status(contract, CapitationContract.status(:verified)),
+         {:ok, contract} <- do_terminate(user_id, contract, params) do
       {:ok, contract}
+    end
+  end
+
+  def do_terminate(user_id, contract, params) do
+    update_result =
+      contract
+      |> changeset(%{
+        "status_reason" => params["status_reason"],
+        "status" => CapitationContract.status(:terminated),
+        "updated_by" => user_id,
+        "end_date" => Date.utc_today() |> Date.to_iso8601()
+      })
+      |> PRMRepo.update()
+
+    with {:ok, contract} <- update_result do
+      EventManager.insert_change_status(contract, contract.status, user_id)
+      update_result
     end
   end
 

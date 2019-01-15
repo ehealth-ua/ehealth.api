@@ -22,6 +22,9 @@ config :core,
   repos: [
     read_repo: Core.Repo,
     read_prm_repo: Core.PRMRepo
+  ],
+  kafka: [
+    producer: KafkaMock
   ]
 
 # Configures PRM API

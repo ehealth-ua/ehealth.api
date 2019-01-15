@@ -18,22 +18,6 @@ config :graphql, GraphQLWeb.Endpoint,
 # Config Jason as default Json encoder for Phoenix
 config :phoenix, :format_encoders, json: Jason
 
-config :core, GraphQL.Jobs.LegalEntityMergeJob,
-  client_type_id: {:system, "CLIENT_TYPE_MSP_LIMITED_ID"},
-  media_storage_resource_name: {:system, "MEDIA_STORAGE_MERGED_LEGAL_ENTITIES_RESOURCE_NAME", "merged_legal_entities"}
-
-config :kafka_ex,
-  brokers: "localhost:9092",
-  consumer_group: "ehealth",
-  disable_default_worker: false,
-  sync_timeout: 3000,
-  max_restarts: 10,
-  max_seconds: 60,
-  commit_interval: 5_000,
-  auto_offset_reset: :earliest,
-  commit_threshold: 100,
-  kafka_version: "1.1.0"
-
 config :graphql,
   topologies: [
     k8s_ops: [

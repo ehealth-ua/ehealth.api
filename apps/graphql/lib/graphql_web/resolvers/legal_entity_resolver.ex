@@ -10,7 +10,6 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
   alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.LegalEntityUpdater
   alias GraphQLWeb.Loaders.PRM
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -104,14 +103,6 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
 
   def nhs_comment(args, %{context: %{headers: headers}}) do
     with {:ok, legal_entity} <- LegalEntities.nhs_comment(args, headers) do
-      {:ok, %{legal_entity: legal_entity}}
-    else
-      err -> render_error(err)
-    end
-  end
-
-  def deactivate(%{id: id}, %{context: context}) do
-    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, context.headers, true) do
       {:ok, %{legal_entity: legal_entity}}
     else
       err -> render_error(err)

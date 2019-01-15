@@ -9,7 +9,7 @@ defmodule Core.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       compilers: Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -54,6 +54,7 @@ defmodule Core.MixProject do
       {:timex, "~> 3.2"},
       {:translit, "~> 0.1.0"},
       {:mox, "~> 0.3", only: :test},
+      {:kafka_ex, "~> 0.9.0"},
       {:ex_machina, "~> 2.0", only: [:dev, :test]}
     ]
   end

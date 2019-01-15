@@ -224,9 +224,7 @@ defmodule Core.Employees do
     end
   end
 
-  def update_with_ops_contract(%Employee{id: employee_id, status: old_status} = employee, params, headers) do
-    author_id = get_consumer_id(headers)
-
+  def update_with_ops_contract(%Employee{id: employee_id, status: old_status} = employee, params, author_id) do
     PRMRepo.transaction(fn ->
       with %Changeset{valid?: true} = employee_changeset <- changeset(employee, params),
            {:ok, employee} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id),

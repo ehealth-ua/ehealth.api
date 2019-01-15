@@ -56,6 +56,16 @@ release :merge_legal_entities_consumer do
   )
 end
 
+release :deactivate_legal_entity_consumer do
+  set(version: current_version(:deactivate_legal_entity_consumer))
+
+  set(
+    applications: [
+      deactivate_legal_entity_consumer: :permanent
+    ]
+  )
+end
+
 release :ehealth_scheduler do
   set(version: current_version(:ehealth_scheduler))
 

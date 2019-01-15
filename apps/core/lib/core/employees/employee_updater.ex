@@ -18,9 +18,10 @@ defmodule Core.Employees.EmployeeUpdater do
   @status_dismissed Employee.status(:dismissed)
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-  @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
+
+  @producer Application.get_env(:core, :kafka)[:producer]
 
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
     deactivate(id, params["legal_entity_id"], "auto_employee_deactivate", headers, with_owner)
@@ -31,11 +32,18 @@ defmodule Core.Employees.EmployeeUpdater do
 
     with {:ok, employee} <- Employees.fetch_by_id(employee_id),
          :ok <- check_legal_entity_id(legal_entity_id, employee),
-         :ok <- check_transition(employee, with_owner),
-         active_employees <- get_active_employees(employee),
+         :ok <- check_transition(employee, with_owner) do
+      do_deactivate(employee, reason, headers, user_id, false)
+    end
+  end
+
+  def do_deactivate(employee, reason, headers, user_id, skip_contracts_suspend?) do
+    deactivation_event = %{"employee_id" => employee.id, "actor_id" => user_id, "reason" => reason}
+
+    with active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
-         {:ok, _} <- @ops_api.terminate_employee_declarations(employee_id, user_id, reason, "", headers) do
-      set_employee_status_as_dismissed(employee, headers)
+         :ok <- @producer.publish_deactivate_declaration_event(deactivation_event) do
+      set_employee_status_as_dismissed(employee, user_id, skip_contracts_suspend?)
     end
   end
 
@@ -120,22 +128,22 @@ defmodule Core.Employees.EmployeeUpdater do
     end
   end
 
-  def set_employee_status_as_dismissed(%Employee{} = employee, headers) do
+  def set_employee_status_as_dismissed(%Employee{} = employee, user_id, skip_contracts_suspend?) do
     params =
-      headers
+      user_id
       |> get_deactivate_employee_params()
       |> put_employee_status(employee)
 
-    if employee.employee_type in [@type_owner, @type_admin] do
-      Employees.update_with_ops_contract(employee, params, headers)
+    if employee.employee_type in [@type_owner, @type_admin] and !skip_contracts_suspend? do
+      Employees.update_with_ops_contract(employee, params, user_id)
     else
-      Employees.update(employee, params, get_consumer_id(headers))
+      Employees.update(employee, params, user_id)
     end
   end
 
-  defp get_deactivate_employee_params(headers) do
+  defp get_deactivate_employee_params(user_id) do
     %{}
-    |> Map.put(:updated_by, get_consumer_id(headers))
+    |> Map.put(:updated_by, user_id)
     |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
   end
 

@@ -46,6 +46,10 @@ defmodule EHealth.Web.LegalEntityView do
     render_one(legal_entity, __MODULE__, "legal_entity.json")
   end
 
+  def render("deactivation.json", data) do
+    render_one(data, __MODULE__, "legal_entity.json")
+  end
+
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
     %{medical_service_provider: msp} = legal_entity
 

@@ -121,21 +121,6 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       middleware(ParseIDs, id: :legal_entity)
       resolve(&LegalEntityResolver.nhs_comment/2)
     end
-
-    payload field(:deactivate_legal_entity) do
-      meta(:scope, ~w(legal_entity:deactivate))
-
-      input do
-        field(:id, non_null(:id))
-      end
-
-      output do
-        field(:legal_entity, :legal_entity)
-      end
-
-      middleware(ParseIDs, id: :legal_entity)
-      resolve(&LegalEntityResolver.deactivate/2)
-    end
   end
 
   node object(:legal_entity) do

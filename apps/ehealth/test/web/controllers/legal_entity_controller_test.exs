@@ -9,8 +9,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   import Core.Expectations.Mithril
 
   alias Ecto.UUID
-  alias Core.Employees.Employee
   alias Core.PRMRepo
+  alias Core.Employees.Employee
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.Contracts.CapitationContract
@@ -620,21 +620,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       contract = PRMRepo.get(CapitationContract, contract_id)
       assert contract.is_suspended
     end
-
-    test "deactivate legal entity suspend contract", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
-
-      resp =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> patch(legal_entity_path(conn, :deactivate, legal_entity.id))
-        |> json_response(200)
-
-      assert "CLOSED" == resp["data"]["status"]
-      contract = PRMRepo.get(CapitationContract, contract_id)
-      assert contract.is_suspended
-    end
   end
 
   describe "verify legal entities" do
@@ -876,111 +861,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       conn = put_client_id_header(conn, UUID.generate())
       conn = get(conn, legal_entity_path(conn, :show, UUID.generate()))
       json_response(conn, 401)
-    end
-  end
-
-  describe "deactivate legal entity" do
-    test "deactivate employee with invalid transitions condition", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity, is_active: false)
-      conn = put_client_id_header(conn, id)
-      conn_resp = patch(conn, legal_entity_path(conn, :deactivate, id))
-      assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
-
-      %{id: id} = insert(:prm, :legal_entity, status: "CLOSED")
-      conn = put_client_id_header(conn, id)
-      conn_resp = patch(conn, legal_entity_path(conn, :deactivate, id))
-      assert json_response(conn_resp, 409)["error"]["message"] == "Legal entity is not ACTIVE and cannot be updated"
-    end
-
-    test "deactivate legal entity with valid transitions condition", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity)
-      conn = put_client_id_header(conn, id)
-      conn = patch(conn, legal_entity_path(conn, :deactivate, id))
-
-      resp = json_response(conn, 200)
-      assert "CLOSED" == resp["data"]["status"]
-      assert Map.has_key?(resp["data"], "website")
-      assert Map.has_key?(resp["data"], "archive")
-      assert Map.has_key?(resp["data"], "beneficiary")
-      assert Map.has_key?(resp["data"], "receiver_funds_code")
-    end
-
-    test "deactivate legal entity with OWNER employee", %{conn: conn} do
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
-      end)
-
-      %{id: id} = insert(:prm, :legal_entity)
-
-      employee =
-        insert(
-          :prm,
-          :employee,
-          employee_type: Employee.type(:owner),
-          legal_entity_id: id
-        )
-
-      assert employee.is_active
-
-      resp =
-        conn
-        |> put_client_id_header(id)
-        |> patch(legal_entity_path(conn, :deactivate, id))
-        |> json_response(200)
-
-      assert "CLOSED" == resp["data"]["status"]
-      employee = PRMRepo.one(Employee)
-      refute employee.is_active
-    end
-
-    test "deactivate legal entity with two employees with same party and type", %{conn: conn} do
-      expect(OPSMock, :terminate_employee_declarations, 2, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
-      end)
-
-      delete_apps_by_user_and_client()
-      delete_tokens_by_user_and_client()
-      delete_user_roles_by_user_and_role_name()
-
-      %{id: id} = insert(:prm, :legal_entity)
-
-      party = insert(:prm, :party)
-      insert(:prm, :party_user, party: party)
-
-      employee =
-        insert(
-          :prm,
-          :employee,
-          employee_type: Employee.type(:doctor),
-          party: party,
-          legal_entity_id: id
-        )
-
-      employee2 =
-        insert(
-          :prm,
-          :employee,
-          employee_type: Employee.type(:doctor),
-          party: party,
-          legal_entity_id: id
-        )
-
-      assert employee.is_active
-      assert employee2.is_active
-
-      resp =
-        conn
-        |> put_client_id_header(id)
-        |> patch(legal_entity_path(conn, :deactivate, id))
-        |> json_response(200)
-
-      assert "CLOSED" == resp["data"]["status"]
-
-      assert employee = %Employee{} = PRMRepo.get(Employee, employee.id)
-      assert "DISMISSED" == employee.status
-
-      assert employee2 = %Employee{} = PRMRepo.get(Employee, employee2.id)
-      assert "DISMISSED" == employee2.status
     end
   end
 

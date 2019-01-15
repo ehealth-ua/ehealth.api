@@ -323,8 +323,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "deactivate employee admin suspend contracts", %{conn: conn, legal_entity: legal_entity} do
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+        :ok
       end)
 
       msp()
@@ -347,8 +347,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "deactivate employee", %{conn: conn, legal_entity: legal_entity} do
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+        :ok
       end)
 
       msp()
@@ -420,8 +420,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
         {:ok, %{"data" => nil}}
       end)
 
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+        :ok
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -447,8 +447,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
         {:ok, %{"data" => nil}}
       end)
 
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+        :ok
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)

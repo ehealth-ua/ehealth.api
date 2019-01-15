@@ -4,7 +4,6 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias Core.LegalEntities, as: API
-  alias Core.LegalEntities.LegalEntityUpdater
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -53,12 +52,6 @@ defmodule EHealth.Web.LegalEntityController do
 
   def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, legal_entity} <- API.nhs_verify(%{id: id, nhs_verified: true}, get_consumer_id(req_headers)) do
-      render(conn, "show.json", legal_entity: legal_entity)
-    end
-  end
-
-  def deactivate(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, legal_entity} <- LegalEntityUpdater.deactivate(id, req_headers) do
       render(conn, "show.json", legal_entity: legal_entity)
     end
   end

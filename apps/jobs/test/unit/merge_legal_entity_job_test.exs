@@ -1,4 +1,4 @@
-defmodule GraphQL.Unit.LegalEntityMergeJobTest do
+defmodule Unit.LegalEntityMergeJobTest do
   @moduledoc false
 
   use Core.ConnCase, async: false
@@ -11,7 +11,7 @@ defmodule GraphQL.Unit.LegalEntityMergeJobTest do
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.LegalEntities
-  alias GraphQL.Jobs.LegalEntityMergeJob
+  alias Jobs.LegalEntityMergeJob
   alias TasKafka.Job
   alias TasKafka.Jobs
 
@@ -68,12 +68,16 @@ defmodule GraphQL.Unit.LegalEntityMergeJobTest do
 
       deactivate_client_tokens()
 
-      expect(OPSMock, :terminate_employee_declarations, 3, fn employee_id, user_id, reason, _description, _headers ->
+      expect(KafkaMock, :publish_deactivate_declaration_event, 3, fn %{
+                                                                       "employee_id" => employee_id,
+                                                                       "actor_id" => actor_id,
+                                                                       "reason" => reason
+                                                                     } ->
         assert employee_id in [employee_dismissed.id, employee_dismissed2.id, employee_dismissed3.id]
-        assert consumer_id == user_id
+        assert consumer_id == actor_id
         assert "auto_reorganization" == reason
 
-        {:ok, %{}}
+        :ok
       end)
 
       expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, related_id, resource_name, _headers ->
@@ -156,7 +160,7 @@ defmodule GraphQL.Unit.LegalEntityMergeJobTest do
     test "cannot terminate declaration", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
 
-      expect(OPSMock, :terminate_employee_declarations, fn _, _, _, _, _ ->
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn _ ->
         {:error, %{"data" => "Declaration does not exist"}}
       end)
 

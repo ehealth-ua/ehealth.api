@@ -334,13 +334,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_client_access(client_type, client_id, contract_request),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          true <- contract_request.status not in @forbidden_statuses_for_termination,
-         update_params <-
-           params
-           |> Map.put("status", CapitationContractRequest.status(:terminated))
-           |> Map.put("updated_by", user_id),
-         %Changeset{valid?: true} = changes <- terminate_changeset(contract_request, update_params),
-         {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         {:ok, contract_request} <- do_terminate(user_id, contract_request, params) do
       {:ok, contract_request, preload_references(contract_request)}
     else
       false ->
@@ -351,6 +345,26 @@ defmodule Core.ContractRequests do
 
       error ->
         error
+    end
+  end
+
+  def do_terminate(user_id, contract_request, params) do
+    update_params =
+      params
+      |> Map.merge(%{
+        "status" => CapitationContractRequest.status(:terminated),
+        "updated_by" => user_id,
+        "end_date" => Date.utc_today() |> Date.to_iso8601()
+      })
+
+    update_result =
+      contract_request
+      |> terminate_changeset(update_params)
+      |> Repo.update()
+
+    with {:ok, contract_request} <- update_result do
+      EventManager.insert_change_status(contract_request, contract_request.status, user_id)
+      update_result
     end
   end
 
@@ -639,7 +653,7 @@ defmodule Core.ContractRequests do
   end
 
   def terminate_changeset(%{} = contract_request, params) do
-    fields_required = ~w(status updated_by)a
+    fields_required = ~w(status updated_by end_date)a
     fields_optional = ~w(status_reason)a
 
     contract_request

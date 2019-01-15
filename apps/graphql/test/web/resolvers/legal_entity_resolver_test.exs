@@ -7,7 +7,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
   import Mox
 
   alias Absinthe.Relay.Node
-  alias Core.Contracts.CapitationContract
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
@@ -44,17 +43,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
           databaseId
           status
           nhsVerified
-        }
-      }
-    }
-  """
-
-  @deactivate_query """
-    mutation DeactivateLegalEntity($input: DeactivateLegalEntityInput!) {
-      deactivateLegalEntity(input: $input){
-        legalEntity {
-          databaseId
-          status
         }
       }
     }
@@ -784,107 +772,6 @@ defmodule GraphQLWeb.LegalEntityResolverTest do
       assert [error] = resp_body["errors"]
       assert "CONFLICT" == error["extensions"]["code"]
       refute resp_entity
-    end
-  end
-
-  describe "deactivate legal_entity" do
-    setup %{conn: conn} do
-      %{conn: put_scope(conn, "legal_entity:deactivate")}
-    end
-
-    test "success", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      legal_entity_id = legal_entity.id
-
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity_id)}}
-
-      resp_body =
-        conn
-        |> put_consumer_id()
-        |> post_query(@deactivate_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
-
-      assert %{"status" => @legal_entity_status_closed, "databaseId" => ^legal_entity_id} = resp_entity
-    end
-
-    test "invalid transaction", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, is_active: false)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity.id)}}
-
-      resp_body =
-        conn
-        |> put_consumer_id()
-        |> post_query(@deactivate_query, variables)
-        |> json_response(200)
-
-      assert %{"errors" => [error], "data" => %{"deactivateLegalEntity" => nil}} = resp_body
-      assert %{"extensions" => %{"code" => "CONFLICT"}, "message" => _} = error
-    end
-
-    test "fails on unreviewed legal_entity by nhs", %{conn: conn} do
-      %{id: id} = insert(:prm, :legal_entity, nhs_reviewed: false)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
-
-      resp_body =
-        conn
-        |> put_consumer_id()
-        |> put_client_id(id)
-        |> post_query(@deactivate_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
-
-      assert [error] = resp_body["errors"]
-      assert "CONFLICT" == error["extensions"]["code"]
-      refute resp_entity
-    end
-
-    test "suspend contract", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", legal_entity.id)}}
-
-      resp_body =
-        conn
-        |> put_consumer_id()
-        |> put_client_id(legal_entity.id)
-        |> post_query(@deactivate_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
-      contract = PRMRepo.get(CapitationContract, contract_id)
-
-      assert %{"status" => @legal_entity_status_closed} = resp_entity
-      assert true == contract.is_suspended
-    end
-
-    test "deactivate legal entity with OWNER employee", %{conn: conn} do
-      expect(OPSMock, :terminate_employee_declarations, fn _id, _user_id, "auto_employee_deactivate", "", _headers ->
-        {:ok, %{}}
-      end)
-
-      %{id: id} = legal_entity = insert(:prm, :legal_entity)
-      division = build(:division, legal_entity: legal_entity)
-
-      employee =
-        insert(:prm, :employee, employee_type: @owner, legal_entity_id: id, division: division, is_active: true)
-
-      variables = %{input: %{id: Node.to_global_id("LegalEntity", id)}}
-
-      resp_body =
-        conn
-        |> put_consumer_id()
-        |> put_client_id(id)
-        |> post_query(@deactivate_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data deactivateLegalEntity legalEntity))
-      employee = PRMRepo.get(Employee, employee.id)
-
-      assert %{"status" => @legal_entity_status_closed} = resp_entity
-      assert false == employee.is_active
     end
   end
 
