@@ -91,10 +91,12 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:documents, list_of(:person_document))
     field(:addresses, non_null(list_of(:address)))
     field(:phones, list_of(:phone))
-    # field :declarations, list_of(:declaration) do
-    #   arg(:filter, :declaration_filter)
-    #   arg(:order_by, :declaration_order_by)
-    # end
+
+    connection field(:declarations, node_type: :declaration) do
+      arg(:order_by, :declaration_order_by)
+
+      resolve(&PersonResolver.load_declarations/3)
+    end
   end
 
   enum :person_status do

@@ -15,13 +15,14 @@ defmodule GraphQLWeb.Schema do
 
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
+  alias Core.Declarations.Declaration
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Persons.Person
-  alias GraphQLWeb.Loaders.{IL, PRM}
+  alias GraphQLWeb.Loaders.{IL, OPS, PRM}
   alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
@@ -35,6 +36,7 @@ defmodule GraphQLWeb.Schema do
     ContractTypes,
     CapitationContractTypes,
     ReimbursementContractTypes,
+    DeclarationTypes,
     DictionaryTypes,
     DivisionTypes,
     EmployeeTypes,
@@ -78,6 +80,7 @@ defmodule GraphQLWeb.Schema do
       %ReimbursementContract{}, _ -> :reimbursement_contract
       %CapitationContractRequest{}, _ -> :capitation_contract_request
       %ReimbursementContractRequest{}, _ -> :reimbursement_contract_request
+      %Declaration{}, _ -> :declaration
       %Dictionary{}, _ -> :dictionary
       %Division{}, _ -> :division
       %Employee{}, _ -> :employee
@@ -95,6 +98,7 @@ defmodule GraphQLWeb.Schema do
       Dataloader.new()
       |> Dataloader.add_source(IL, IL.data())
       |> Dataloader.add_source(PRM, PRM.data())
+      |> Dataloader.add_source(OPS, OPS.data())
 
     Map.put(ctx, :loader, loader)
   end

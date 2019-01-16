@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.PersonResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQLWeb.ConnCase, async: false
 
   import Core.Factories
   import Mox
@@ -54,7 +54,13 @@ defmodule GraphQLWeb.PersonResolverTest do
           type
           number
         }
-        # declarations
+        declarations(first: 2, orderBy: STATUS_ASC) {
+          nodes{
+            id
+            databaseId
+            status
+          }
+        }
       }
     }
   """
@@ -71,12 +77,22 @@ defmodule GraphQLWeb.PersonResolverTest do
           birthDate
           gender
           status
+
+          declarations(first: 10, orderBy: NO_TAX_ID_ASC){
+            nodes{
+              id
+              databaseId
+              startDate
+              status
+            }
+          }
         }
       }
     }
   """
 
   setup :verify_on_exit!
+  setup :set_mox_global
 
   setup context do
     conn = put_scope(context.conn, "person:read")
@@ -100,9 +116,13 @@ defmodule GraphQLWeb.PersonResolverTest do
     end
 
     test "success with search params", %{conn: conn} do
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ ->
-        {:ok, build_list(50, :mpi_person)}
-      end)
+      persons = [person1 | _] = build_list(10, :mpi_person)
+
+      declaration1 = build(:ops_declaration, status: "ACTIVE", person_id: person1.id)
+      declarations = Enum.map(persons, &build(:ops_declaration, status: "ACTIVE", person_id: &1.id))
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
+      expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration1 | declarations]} end)
 
       variables = %{
         filter: %{
@@ -118,21 +138,24 @@ defmodule GraphQLWeb.PersonResolverTest do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data persons nodes))
+      [resp_entity1, resp_entity2 | _] = resp_entities
 
       refute resp_body["errors"]
       assert [] != resp_entities
+      assert 2 == length(resp_entity1["declarations"]["nodes"])
+      assert 1 == length(resp_entity2["declarations"]["nodes"])
     end
   end
 
   describe "get by id" do
     test "success", %{conn: conn} do
-      database_id = UUID.generate()
-      id = Node.to_global_id("Person", database_id)
+      person = build(:mpi_person)
+      declaration = build(:ops_declaration, status: "ACTIVE", person_id: person.id)
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ ->
-        {:ok, build(:mpi_person, id: database_id)}
-      end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
 
+      id = Node.to_global_id("Person", person.id)
       variables = %{id: id}
 
       resp_body =
@@ -144,7 +167,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       refute resp_body["errors"]
       assert id == resp_entity["id"]
-      assert database_id == resp_entity["databaseId"]
+      assert person.id == resp_entity["databaseId"]
 
       assert Enum.all?(
                ~w(firstName lastName secondName birthDate gender status birthCountry birthSettlement taxId unzr preferredWayCommunication insertedAt documents addresses phones authenticationMethods),
@@ -165,6 +188,8 @@ defmodule GraphQLWeb.PersonResolverTest do
                  &Map.has_key?(address, &1)
                )
       end)
+
+      assert 1 == length(resp_entity["declarations"]["nodes"])
 
       Enum.each(resp_entity["phones"], fn phone ->
         assert Enum.all?(~w(type number), &Map.has_key?(phone, &1))

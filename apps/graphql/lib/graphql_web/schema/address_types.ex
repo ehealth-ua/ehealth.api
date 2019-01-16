@@ -15,7 +15,7 @@ defmodule GraphQLWeb.Schema.AddressTypes do
     field(:street, :string)
     field(:building, :string)
     field(:apartment, :string)
-    field(:zip, non_null(:string))
+    field(:zip, :string)
   end
 
   enum :address_type do

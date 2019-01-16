@@ -13,10 +13,10 @@ defmodule Core.OPSFactories.DeclarationFactory do
         %{
           id: UUID.generate(),
           declaration_request_id: UUID.generate(),
-          start_date: to_string(start_date),
+          start_date: start_date,
           end_date: end_date,
           status: "active",
-          signed_at: to_string(start_date),
+          signed_at: start_date,
           created_by: UUID.generate(),
           updated_by: UUID.generate(),
           employee_id: UUID.generate(),
@@ -30,6 +30,13 @@ defmodule Core.OPSFactories.DeclarationFactory do
           reason: "",
           reason_description: ""
         }
+      end
+
+      def ops_declaration_factory do
+        build(:declaration,
+          __struct__: Core.Declarations.Declaration,
+          __meta__: %Ecto.Schema.Metadata{state: :build, source: {nil, "declarations"}}
+        )
       end
     end
   end

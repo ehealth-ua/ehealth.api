@@ -1,11 +1,13 @@
 defmodule GraphQLWeb.Resolvers.PersonResolver do
   @moduledoc false
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
+  import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
+  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.Persons
+  alias GraphQLWeb.Loaders.OPS
 
   def list_persons(%{filter: filter, order_by: order_by} = args, _resolution) do
     with {:ok, search_params} <- prepare_search_params(filter),
@@ -35,6 +37,19 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
         value -> {:ok, String.upcase(value)}
       end
     end
+  end
+
+  def load_declarations(parent, args, %{context: %{loader: loader}}) do
+    loader
+    |> Dataloader.load(OPS, {:search_declarations, :person_id, args}, parent)
+    |> on_load(fn loader ->
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+        records = Dataloader.get(loader, OPS, {:search_declarations, :person_id, args}, parent)
+        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
+
+        Connection.from_slice(Enum.take(records, limit), offset, opts)
+      end
+    end)
   end
 
   defp prepare_search_params(%{} = params) do
