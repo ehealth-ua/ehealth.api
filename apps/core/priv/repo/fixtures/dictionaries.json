@@ -14195,5 +14195,74 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "eHealth/risk_assessment_statuses",
+    "values": {
+      "preliminary": "попередня",
+      "final": "кінцева",
+      "entered_in_error": "внесена помилково"
+      
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/risk_assessment_methods",
+    "values": {
+      "deafult_risk_assessment_method": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+    {
+    "name": "eHealth/risk_assessment_codes",
+    "values": {
+      "deafult_risk_assessment_code": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+    {
+    "name": "eHealth/risk_assessment_reasons",
+    "values": {
+      "deafult_risk_assessment_reason": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+   {
+    "name": "eHealth/risk_assessment_outcomes",
+    "values": {
+      "deafult_risk_assessment_outcome": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/risk_assessment_qualitative_risks",
+    "values": {
+      "deafult_risk_assessment_qualitative_risks": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
