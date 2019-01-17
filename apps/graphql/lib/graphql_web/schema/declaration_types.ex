@@ -57,10 +57,10 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
   end
 
   enum :declaration_status do
-    value(:active, as: "ACTIVE")
-    value(:pending_verification, as: "PENDING_VERIFICATION")
-    value(:rejected, as: "REJECTED")
-    value(:terminated, as: "TERMINATED")
+    value(:active, as: "active")
+    value(:pending_verification, as: "pending_verification")
+    value(:rejected, as: "rejected")
+    value(:terminated, as: "terminated")
   end
 
   object :declaration_attached_document do

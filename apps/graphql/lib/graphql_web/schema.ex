@@ -95,7 +95,7 @@ defmodule GraphQLWeb.Schema do
 
   def context(ctx) do
     loader =
-      Dataloader.new()
+      Dataloader.new(get_policy: :return_nil_on_error)
       |> Dataloader.add_source(IL, IL.data())
       |> Dataloader.add_source(PRM, PRM.data())
       |> Dataloader.add_source(OPS, OPS.data())

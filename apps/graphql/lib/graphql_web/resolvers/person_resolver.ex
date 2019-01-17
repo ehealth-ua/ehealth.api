@@ -43,11 +43,13 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
     loader
     |> Dataloader.load(OPS, {:search_declarations, :person_id, args}, parent)
     |> on_load(fn loader ->
-      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
-        records = Dataloader.get(loader, OPS, {:search_declarations, :person_id, args}, parent)
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
+           [_ | _] = records <- Dataloader.get(loader, OPS, {:search_declarations, :person_id, args}, parent) do
         opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
         Connection.from_slice(Enum.take(records, limit), offset, opts)
+      else
+        _ -> {:ok, %{edges: []}}
       end
     end)
   end

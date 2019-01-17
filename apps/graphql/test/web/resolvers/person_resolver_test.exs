@@ -118,8 +118,8 @@ defmodule GraphQLWeb.PersonResolverTest do
     test "success with search params", %{conn: conn} do
       persons = [person1 | _] = build_list(10, :mpi_person)
 
-      declaration1 = build(:ops_declaration, status: "ACTIVE", person_id: person1.id)
-      declarations = Enum.map(persons, &build(:ops_declaration, status: "ACTIVE", person_id: &1.id))
+      declaration1 = build(:ops_declaration, person_id: person1.id)
+      declarations = Enum.map(persons, &build(:ops_declaration, person_id: &1.id))
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration1 | declarations]} end)
@@ -150,7 +150,7 @@ defmodule GraphQLWeb.PersonResolverTest do
   describe "get by id" do
     test "success", %{conn: conn} do
       person = build(:mpi_person)
-      declaration = build(:ops_declaration, status: "ACTIVE", person_id: person.id)
+      declaration = build(:ops_declaration, person_id: person.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
@@ -194,6 +194,29 @@ defmodule GraphQLWeb.PersonResolverTest do
       Enum.each(resp_entity["phones"], fn phone ->
         assert Enum.all?(~w(type number), &Map.has_key?(phone, &1))
       end)
+    end
+
+    test "success with empty declaration batch", %{conn: conn} do
+      person = build(:mpi_person)
+      declaration = build(:ops_declaration)
+
+      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
+
+      id = Node.to_global_id("Person", person.id)
+      variables = %{id: id}
+
+      resp_body =
+        conn
+        |> post_query(@person_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data person))
+
+      refute resp_body["errors"]
+      assert id == resp_entity["id"]
+      assert person.id == resp_entity["databaseId"]
+      assert 0 == length(resp_entity["declarations"]["nodes"])
     end
 
     test "not found", %{conn: conn} do
