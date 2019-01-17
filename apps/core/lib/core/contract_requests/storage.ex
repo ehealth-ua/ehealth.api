@@ -50,8 +50,8 @@ defmodule Core.ContractRequests.Storage do
              @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, id, []) do
         # crooked nail for reimbursement contracts with optional documents
         if type == @reimbursement do
-          case @media_storage_api.get_signed_content(secret_url) do
-            {:ok, %{status_code: 200}} -> [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
+          case file_uploaded?(secret_url) do
+            true -> [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
             _ -> acc
           end
         else
@@ -59,6 +59,14 @@ defmodule Core.ContractRequests.Storage do
         end
       end
     end)
+  end
+
+  # crooked nail for reimbursement contracts with optional documents
+  defp file_uploaded?(url) do
+    case @media_storage_api.get_signed_content(url) do
+      {:ok, %{status_code: 200, body: body}} -> !String.match?(body, ~r/<Error>/)
+      _ -> false
+    end
   end
 
   defp get_document_attributes_by_status(status) do

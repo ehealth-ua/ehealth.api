@@ -653,7 +653,7 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       contract_request =
         insert(:il, :reimbursement_contract_request, status: ReimbursementContractRequest.status(:signed))

@@ -146,7 +146,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       contract_request = insert(:il, :reimbursement_contract_request)
 
@@ -189,8 +189,15 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
-      expect(MediaStorageMock, :get_signed_content, fn _url -> {:error, "not found"} end)
-      expect(MediaStorageMock, :get_signed_content, fn _url -> {:ok, %{status_code: 404}} end)
+      expect(MediaStorageMock, :get_signed_content, 2, fn url ->
+        {:ok,
+         %{
+           status_code: 200,
+           body:
+             "<?xml version='1.0' encoding='UTF-8'?><Error><Code>NoSuchKey</Code><Message>" <>
+               "The specified key does not exist.</Message><Details>No such object: #{url}</Details></Error>"
+         }}
+      end)
 
       contract_request = insert(:il, :reimbursement_contract_request)
 
