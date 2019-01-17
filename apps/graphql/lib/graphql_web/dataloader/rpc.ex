@@ -57,7 +57,7 @@ defmodule GraphQLWeb.Dataloader.RPC do
         end)
 
       # TODO: remove after debug
-      if Mix.env() != :test do
+      if Application.get_env(:graphql, :env) == :prod do
         IO.puts("batch: #{inspect(batch)}")
         IO.puts("batch_key: #{inspect(batch_key)}")
       end
