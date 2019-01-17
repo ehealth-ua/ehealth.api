@@ -209,11 +209,11 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def approve(%{"id" => id, "type" => type} = params, headers) do
+  def approve(%{"id" => id} = params, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
-    params = Map.drop(params, ~w(id type))
-    request_pack = RequestPack.new(%{"id" => id, "type" => type})
+    pack = RequestPack.new(params)
+    params = pack.request_params
 
     with :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
@@ -221,7 +221,8 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_approve, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         {:ok, contract_request} <- fetch_by_id(request_pack),
+         {:ok, contract_request} <- fetch_by_id(pack),
+         pack <- RequestPack.put_contract_request(pack, contract_request),
          references <- preload_references(contract_request),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -231,7 +232,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, @in_process),
          :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_approved"),
-         :ok <- validate_contract_id(contract_request),
+         :ok <- validate_contract_id(pack),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
@@ -380,6 +381,7 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_contract_request_id(id, content["id"]),
          {:ok, contract_request} <- fetch_by_id(pack),
+         pack <- RequestPack.put_contract_request(pack, contract_request),
          :ok <- validate_client_id(client_id, contract_request.nhs_legal_entity_id, :forbidden),
          :ok <-
            SignatureValidator.check_drfo(
@@ -403,7 +405,7 @@ defmodule Core.ContractRequests do
              headers
            ),
          :ok <- validate_content(contract_request, printout_content, content),
-         :ok <- validate_contract_id(contract_request),
+         :ok <- validate_contract_id(pack),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_medical_program_is_active(contract_request),
          :ok <- validate_start_date_year(contract_request),
@@ -602,7 +604,7 @@ defmodule Core.ContractRequests do
 
   def approve_changeset(%{__struct__: _} = contract_request, params) do
     fields_required = get_approve_required_fields(contract_request)
-    fields_optional = ~w(misc)a
+    fields_optional = ~w(misc contract_number)a
 
     contract_request
     |> cast(params, fields_required ++ fields_optional)
@@ -618,7 +620,6 @@ defmodule Core.ContractRequests do
         issue_city
         status
         updated_by
-        contract_number
       )a
 
     case contract_request do

@@ -187,8 +187,9 @@ defmodule Core.ContractRequests.Validator do
 
   # Contract
 
-  def validate_contract_id(%{parent_contract_id: contract_id}) when not is_nil(contract_id) do
-    with %CapitationContract{} = contract <- Contracts.get_by_id(contract_id, @capitation),
+  def validate_contract_id(%RequestPack{contract_request: %{parent_contract_id: contract_id}} = pack)
+      when not is_nil(contract_id) do
+    with %{__struct__: _} = contract <- Contracts.get_by_id(contract_id, pack.type),
          true <- contract.status == CapitationContract.status(:verified) do
       :ok
     else

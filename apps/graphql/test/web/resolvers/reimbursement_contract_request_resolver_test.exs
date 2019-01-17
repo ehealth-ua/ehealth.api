@@ -12,6 +12,7 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Employees.Employee
+  alias Core.Contracts.CapitationContract
   alias Ecto.UUID
 
   @list_query """
@@ -483,24 +484,12 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
 
       medical_program = insert(:prm, :medical_program)
 
-      contract_request =
-        insert(
-          :il,
-          :reimbursement_contract_request,
-          status: ReimbursementContractRequest.status(:in_process),
-          nhs_signer_id: employee_owner.id,
-          nhs_legal_entity_id: legal_entity.id,
-          contractor_legal_entity_id: legal_entity.id,
-          contractor_owner_id: employee_owner.id,
-          contractor_divisions: [division.id],
-          start_date: start_date,
-          medical_program_id: medical_program.id
-        )
-
       {:ok,
        conn: conn,
-       contract_request: contract_request,
+       division: division,
        legal_entity: legal_entity,
+       employee_owner: employee_owner,
+       start_date: start_date,
        party_user: party_user,
        medical_program: medical_program}
     end
@@ -516,11 +505,27 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
 
       %{
         conn: conn,
-        contract_request: contract_request,
-        legal_entity: legal_entity,
+        division: division,
         party_user: party_user,
+        start_date: start_date,
+        legal_entity: legal_entity,
+        employee_owner: employee_owner,
         medical_program: medical_program
       } = context
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:in_process),
+          nhs_signer_id: employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date,
+          medical_program_id: medical_program.id
+        )
 
       content = %{
         "id" => contract_request.id,
@@ -552,6 +557,73 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
       resp_contract_request = get_in(resp_body, ~w(data approveContractRequest contractRequest))
 
       assert medical_program.id == resp_contract_request["medicalProgram"]["databaseId"]
+    end
+
+    test "invalid parent contract status", context do
+      expect(MithrilMock, :get_user_roles, fn _, _, _ ->
+        {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      %{
+        conn: conn,
+        division: division,
+        party_user: party_user,
+        start_date: start_date,
+        legal_entity: legal_entity,
+        employee_owner: employee_owner,
+        medical_program: medical_program
+      } = context
+
+      parent_contract = insert(:prm, :reimbursement_contract, status: CapitationContract.status(:terminated))
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:in_process),
+          nhs_signer_id: employee_owner.id,
+          nhs_legal_entity_id: legal_entity.id,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date,
+          medical_program_id: medical_program.id,
+          parent_contract_id: parent_contract.id
+        )
+
+      content = %{
+        "id" => contract_request.id,
+        "next_status" => "APPROVED",
+        "contractor_legal_entity" => %{
+          "id" => contract_request.contractor_legal_entity_id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        },
+        "text" => "something"
+      }
+
+      expect_signed_content(content, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(party_user.user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
+        |> json_response(200)
+
+      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "CONFLICT"}}, &1))
+      assert [error] = resp_body["errors"]
+      assert "Parent contract can’t be updated" == error["message"]
     end
   end
 
