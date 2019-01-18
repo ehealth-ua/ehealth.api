@@ -370,7 +370,7 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
   defp input_legal_entity_id(id) do
     %{
       input: %{
-        id: id
+        id: Node.to_global_id("LegalEntityDeactivationJob", id)
       }
     }
   end
