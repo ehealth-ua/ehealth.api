@@ -40,11 +40,13 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
   end
 
   def load_declarations(parent, args, %{context: %{loader: loader}}) do
+    batch_key = {:search_declarations, :many, :person_id, args}
+
     loader
-    |> Dataloader.load(OPS, {:search_declarations, :person_id, args}, parent)
+    |> Dataloader.load(OPS, batch_key, parent)
     |> on_load(fn loader ->
       with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
-           [_ | _] = records <- Dataloader.get(loader, OPS, {:search_declarations, :person_id, args}, parent) do
+           [_ | _] = records <- Dataloader.get(loader, OPS, batch_key, parent) do
         opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
         Connection.from_slice(Enum.take(records, limit), offset, opts)

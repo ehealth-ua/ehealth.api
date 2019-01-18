@@ -24,6 +24,7 @@ defmodule Core.Declarations.API do
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def get_person_declarations(%{} = params, headers) do
     with {:ok, person} <- Persons.get_person(headers),
@@ -286,6 +287,20 @@ defmodule Core.Declarations.API do
     case apply(module, func, [id, headers]) do
       {:ok, %{"data" => entity}} -> entity
       _ -> %{}
+    end
+  end
+
+  def get_declaration_by(params) when is_list(params) do
+    with %{} = declaration <- @rpc_worker.run("ops", Core.Rpc, :get_declaration, [params]) do
+      {:ok, declaration}
+    else
+      _ -> {:error, {:not_found, "Declaration not found"}}
+    end
+  end
+
+  def list(filter, order_by, {_limit, _offset} = cursor) when is_list(filter) and is_list(order_by) do
+    with {:ok, declarations} <- @rpc_worker.run("ops", Core.Rpc, :search_declarations, [filter, order_by, cursor]) do
+      {:ok, declarations}
     end
   end
 

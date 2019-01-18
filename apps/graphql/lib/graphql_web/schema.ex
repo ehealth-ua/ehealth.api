@@ -22,7 +22,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Persons.Person
-  alias GraphQLWeb.Loaders.{IL, OPS, PRM}
+  alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM}
   alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
@@ -58,6 +58,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:reimbursement_contract_request_queries)
     import_fields(:employee_queries)
     import_fields(:dictionary_queries)
+    import_fields(:declaration_queries)
     import_fields(:legal_entity_queries)
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:legal_entity_deactivation_job_queries)
@@ -99,6 +100,7 @@ defmodule GraphQLWeb.Schema do
       |> Dataloader.add_source(IL, IL.data())
       |> Dataloader.add_source(PRM, PRM.data())
       |> Dataloader.add_source(OPS, OPS.data())
+      |> Dataloader.add_source(MPI, MPI.data())
 
     Map.put(ctx, :loader, loader)
   end

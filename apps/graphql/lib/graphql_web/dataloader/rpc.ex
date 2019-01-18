@@ -24,40 +24,52 @@ defmodule GraphQLWeb.Dataloader.RPC do
   defimpl Dataloader.Source do
     @rpc_worker Application.get_env(:core, :rpc_worker)
 
-    def run(source) do
-      batch_hander = fn {{rpc_function, parent_attr, args}, parent_ids} ->
-        filter = args[:filter] || []
-        filter = [{parent_attr, :in, MapSet.to_list(parent_ids)} | filter]
-        order_by = Map.get(args, :order_by, [])
-
-        with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
-             {:ok, results} <-
-               @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, [filter, order_by, {offset, limit}]) do
-          Enum.group_by(results, &Map.get(&1, parent_attr))
-        end
-      end
-
-      results = Dataloader.async_safely(Dataloader, :run_tasks, [source.batches, batch_hander])
+    def run(%{batches: batches} = source) do
+      results = Dataloader.async_safely(Dataloader, :run_tasks, [batches, &handle_batch(source, &1)])
 
       %{source | batches: %{}, results: results}
     end
 
-    def load(%{results: results} = source, batch_key, %{id: parent_id}) when results == %{} do
+    defp handle_batch(%{options: options} = source, {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids}) do
+      filter = [{foreign_key, :in, MapSet.to_list(foreign_ids)}]
+      # TODO: make cursor optional on rpc methods and remove that
+      records_limit = 100
+      cursor = {0, records_limit}
+
+      with {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, [filter, [], cursor]) do
+        Enum.into(results, %{}, fn item -> {Map.get(item, foreign_key), item} end)
+      end
+    end
+
+    defp handle_batch(source, {{rpc_function, :many, foreign_key, args}, item_ids}) do
+      with {:ok, params} <- prepare_params(args, foreign_key, item_ids),
+           {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, params) do
+        Enum.group_by(results, &Map.get(&1, foreign_key))
+      end
+    end
+
+    def load(%{results: results} = source, batch_key, item) when results == %{} do
+      item_key = resolve_item_key(batch_key)
+      item_id = Map.get(item, item_key)
+
       update_in(source.batches, fn batches ->
-        Map.update(batches, batch_key, MapSet.new([parent_id]), &MapSet.put(&1, parent_id))
+        Map.update(batches, batch_key, MapSet.new([item_id]), &MapSet.put(&1, item_id))
       end)
     end
 
     def load(source, _batch_key, _item), do: source
 
-    def fetch(%{results: results}, batch_key, %{id: parent_id}) do
+    def fetch(%{results: results}, batch_key, item) do
+      item_key = resolve_item_key(batch_key)
+      item_id = Map.get(item, item_key)
+
       batch =
         Enum.find(results, fn
-          {{^batch_key, _ids}, {:ok, value}} -> value
+          {{^batch_key, _item_ids}, {:ok, value}} -> value
         end)
 
       case batch do
-        {{^batch_key, _ids}, {:ok, %{^parent_id => result}}} -> {:ok, result}
+        {{^batch_key, _item_ids}, {:ok, %{^item_id => result}}} -> {:ok, result}
         _ -> {:error, "Unable to find batch #{inspect(batch_key)}"}
       end
     end
@@ -70,6 +82,19 @@ defmodule GraphQLWeb.Dataloader.RPC do
 
     def timeout(%{options: options}) do
       options[:timeout]
+    end
+
+    defp resolve_item_key({{_, :one, item_key, _}, _}), do: item_key
+    defp resolve_item_key(_), do: :id
+
+    defp prepare_params(args, foreign_key, %{} = item_ids) do
+      filter = args[:filter] || []
+      filter = [{foreign_key, :in, MapSet.to_list(item_ids)} | filter]
+      order_by = Map.get(args, :order_by, [])
+
+      with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+        {:ok, [filter, order_by, {offset, limit}]}
+      end
     end
   end
 end

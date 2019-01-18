@@ -59,6 +59,7 @@ defmodule GraphQLWeb.PersonResolverTest do
             id
             databaseId
             status
+            signedAt
           }
         }
       }
@@ -78,7 +79,7 @@ defmodule GraphQLWeb.PersonResolverTest do
           gender
           status
 
-          declarations(first: 10, orderBy: NO_TAX_ID_ASC){
+          declarations(first: 10, orderBy: STATUS_ASC){
             nodes{
               id
               databaseId
