@@ -22,6 +22,8 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
       deactivateLegalEntity(input: $input) {
         legalEntityDeactivationJob {
           id
+          databaseId
+          legalEntityId
           status
           endedAt
         }
@@ -370,7 +372,7 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
   defp input_legal_entity_id(id) do
     %{
       input: %{
-        id: Node.to_global_id("LegalEntityDeactivationJob", id)
+        id: Node.to_global_id("LegalEntity", id)
       }
     }
   end

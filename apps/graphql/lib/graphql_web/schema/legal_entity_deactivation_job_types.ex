@@ -41,7 +41,7 @@ defmodule GraphQLWeb.Schema.LegalEntityDeactivationJobTypes do
         field(:legal_entity_deactivation_job, :legal_entity_deactivation_job)
       end
 
-      middleware(ParseIDs, id: :legal_entity_deactivation_job)
+      middleware(ParseIDs, id: :legal_entity)
       resolve(&LegalEntityDeactivationJobResolver.deactivate_legal_entity/2)
     end
   end
