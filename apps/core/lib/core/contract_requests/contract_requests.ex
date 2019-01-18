@@ -138,7 +138,7 @@ defmodule Core.ContractRequests do
          {:ok, contract_request} <- validate_contract_request_content(:create, pack, client_id),
          :ok <- validate_unique_contractor_divisions(content),
          :ok <- validate_contractor_divisions(content),
-         :ok <- validate_start_date(content),
+         :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
          :ok <- create_validate_contractor_owner_id(type, content),
          :ok <- validate_documents(pack, headers),

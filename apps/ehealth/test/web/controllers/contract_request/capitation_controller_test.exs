@@ -637,7 +637,9 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         })
         |> json_response(422)
 
-      assert_error(resp, "$.start_date", "Start date must be greater than current date")
+      # temporary it's okay for start_date in past
+      # assert_error(resp, "$.start_date", "Start date must be greater than current date")
+      assert_error(resp, "$.end_date", "end_date should be equal or greater than start_date")
     end
 
     test "start_date is too far in the future", %{conn: conn} do
