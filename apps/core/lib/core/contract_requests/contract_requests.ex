@@ -129,7 +129,7 @@ defmodule Core.ContractRequests do
          {:ok, contract_request} <- validate_contract_request_content(:create, params, client_id),
          :ok <- validate_unique_contractor_divisions(params),
          :ok <- validate_contractor_divisions(params),
-         :ok <- validate_start_date(params),
+         :ok <- validate_start_date_year(params),
          :ok <- validate_end_date(params),
          :ok <- create_validate_contractor_owner_id(params),
          :ok <-

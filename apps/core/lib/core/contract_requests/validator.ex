@@ -653,6 +653,7 @@ defmodule Core.ContractRequests.Validator do
 
   # dates
 
+  # Validate start date > now() + validate year
   def validate_start_date(%{__struct__: _} = contract_request) do
     contract_request
     |> Jason.encode!()
@@ -681,6 +682,7 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
+  # Validate start date year without start_date > now()
   def validate_start_date_year(%{__struct__: _} = contract_request) do
     contract_request
     |> Jason.encode!()

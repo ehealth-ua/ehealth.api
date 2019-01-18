@@ -620,8 +620,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       params =
         division
-        |> prepare_capitation_params(employee, "2018-03-01")
-        |> Map.put("start_date", "2018-02-01")
+        |> prepare_capitation_params(employee, to_string(Date.add(Date.utc_today(), 10)))
+        |> Map.put("start_date", to_string(Date.utc_today()))
 
       expect_signed_content(params, %{
         edrpou: legal_entity.edrpou,
@@ -637,7 +637,9 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         })
         |> json_response(422)
 
-      assert_error(resp, "$.start_date", "Start date must be greater than current date")
+      # temporary it's okay for start_date in past
+      # assert_error(resp, "$.start_date", "Start date must be greater than current date")
+      assert_error(resp, "$.end_date", "end_date should be equal or greater than start_date")
     end
 
     test "start_date is too far in the future", %{conn: conn} do
