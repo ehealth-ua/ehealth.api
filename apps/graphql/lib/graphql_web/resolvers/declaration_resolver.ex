@@ -1,10 +1,12 @@
 defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   @moduledoc false
 
+  import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.Declarations.API, as: Declarations
+  alias GraphQLWeb.Loaders.IL
 
   @status_pending "pending_verification"
 
@@ -35,5 +37,17 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     else
       err -> render_error(err)
     end
+  end
+
+  def resolve_attached_documents(parent, _args, %{context: %{loader: loader}}) do
+    loader
+    |> Dataloader.load(IL, :declaration_request, parent)
+    |> on_load(fn loader ->
+      with %{documents: [_ | _] = documents} <- Dataloader.get(loader, IL, :declaration_request, parent) do
+        {:ok, documents}
+      else
+        _ -> {:ok, []}
+      end
+    end)
   end
 end

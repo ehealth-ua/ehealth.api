@@ -33,8 +33,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       }
     }
 
-    # TODO: fix that
-    # declarationAttachedDocuments
+    declarationAttachedDocuments{
+      type
+      url
+    }
   """
 
   @declaration_pending_query """
@@ -77,22 +79,25 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   describe "pending declarations list" do
     test "success with search params", %{conn: conn} do
       persons = build_list(8, :mpi_person)
+      documents = [%{"url" => "http://link-to-documents.web", "type" => "person.no_tax_id"}]
 
       declarations =
         [
           persons,
           insert_list(8, :prm, :division),
           insert_list(8, :prm, :employee),
-          insert_list(8, :prm, :legal_entity)
+          insert_list(8, :prm, :legal_entity),
+          insert_list(8, :il, :declaration_request, documents: documents)
         ]
         |> Enum.zip()
-        |> Enum.map(fn {person, division, employee, legal_entity} ->
+        |> Enum.map(fn {person, division, employee, legal_entity, declaration_request} ->
           build(:ops_declaration,
             status: @status_pending,
             person_id: person.id,
             division_id: division.id,
             employee_id: employee.id,
-            legal_entity_id: legal_entity.id
+            legal_entity_id: legal_entity.id,
+            declaration_request_id: declaration_request.id
           )
         end)
 
@@ -115,10 +120,12 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       assert 8 == length(resp_entities)
 
       query_fields =
-        ~w(id databaseId declarationNumber startDate endDate signedAt status scope reason reasonDescription legalEntity division employee person)
+        ~w(id databaseId declarationNumber startDate endDate signedAt status scope reason reasonDescription legalEntity division employee person declarationAttachedDocuments)
 
       assert Enum.all?(query_fields, &Map.has_key?(resp_entity, &1))
       assert hd(resp_entity["person"]["addresses"])["zip"]
+
+      assert hd(resp_entity["declarationAttachedDocuments"])["url"]
     end
 
     test "success: empty results", %{conn: conn} do

@@ -85,8 +85,9 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
     field(:employee, non_null(:employee), resolve: dataloader(PRM))
     field(:person, non_null(:person), resolve: dataloader(MPI, {:search_persons, :one, :person_id, :id}))
 
-    # TODO: resolve that
-    field(:declaration_attached_documents, list_of(:declaration_attached_document))
+    field(:declaration_attached_documents, list_of(:declaration_attached_document),
+      resolve: &DeclarationResolver.resolve_attached_documents/3
+    )
   end
 
   enum :declaration_status do

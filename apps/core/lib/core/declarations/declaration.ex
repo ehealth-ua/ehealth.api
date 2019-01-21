@@ -3,6 +3,7 @@ defmodule Core.Declarations.Declaration do
 
   use Ecto.Schema
 
+  alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
@@ -18,7 +19,6 @@ defmodule Core.Declarations.Declaration do
     field(:updated_by, UUID)
     field(:is_active, :boolean, default: false)
     field(:scope, :string)
-    field(:declaration_request_id, UUID)
     field(:seed, :string)
     field(:reason, :string)
     field(:reason_description, :string)
@@ -27,8 +27,9 @@ defmodule Core.Declarations.Declaration do
 
     timestamps(type: :utc_datetime)
 
-    belongs_to(:legal_entity, LegalEntity, type: UUID)
+    belongs_to(:declaration_request, DeclarationRequest, type: UUID)
     belongs_to(:division, Division, type: UUID)
     belongs_to(:employee, Employee, type: UUID)
+    belongs_to(:legal_entity, LegalEntity, type: UUID)
   end
 end

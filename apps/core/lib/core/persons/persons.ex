@@ -90,8 +90,8 @@ defmodule Core.Persons do
     end
   end
 
-  def list(params, [{_direction, _attribute}] = order_by, {_limit, _offset} = opts) do
-    with {:ok, persons} <- @rpc_worker.run("mpi", Core.Rpc, :search_persons, [params, order_by, opts]) do
+  def list(filter, order_by \\ [], cursor \\ nil) do
+    with {:ok, persons} <- @rpc_worker.run("mpi", Core.Rpc, :search_persons, [filter, order_by, cursor]) do
       {:ok, persons}
     end
   end

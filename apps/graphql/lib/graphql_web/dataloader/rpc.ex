@@ -30,13 +30,10 @@ defmodule GraphQLWeb.Dataloader.RPC do
       %{source | batches: %{}, results: results}
     end
 
-    defp handle_batch(%{options: options} = source, {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids}) do
+    defp handle_batch(source, {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids}) do
       filter = [{foreign_key, :in, MapSet.to_list(foreign_ids)}]
-      # TODO: make cursor optional on rpc methods and remove that
-      records_limit = 100
-      cursor = {0, records_limit}
 
-      with {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, [filter, [], cursor]) do
+      with {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, [filter]) do
         Enum.into(results, %{}, fn item -> {Map.get(item, foreign_key), item} end)
       end
     end

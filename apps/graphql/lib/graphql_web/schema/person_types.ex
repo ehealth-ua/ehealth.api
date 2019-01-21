@@ -5,6 +5,8 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   alias Absinthe.Relay.Node.ParseIDs
+  alias Absinthe.Resolution
+  alias GraphQLWeb.Middleware.{Filtering, TransformInput}
   alias GraphQLWeb.Resolvers.PersonResolver
 
   object :person_queries do
@@ -13,6 +15,27 @@ defmodule GraphQLWeb.Schema.PersonTypes do
       meta(:scope, ~w(person:read))
       arg(:filter, non_null(:person_filter))
       arg(:order_by, :person_order_by, default_value: :inserted_at_desc)
+
+      middleware(&validate_persons_query_input/2)
+
+      middleware(TransformInput, %{
+        :birth_date => [:personal, :birth_date],
+        :authentication_methods => [:personal, :authentication_method, :phone_number],
+        :tax_id => [:documents, :tax_id],
+        [:documents, :number] => [:documents, :number]
+      })
+
+      middleware(&transform_persons_query_filter/2)
+
+      middleware(Filtering,
+        birth_date: :equal,
+        tax_id: :equal,
+        authentication_methods: :contains,
+        documents: [
+          type: :equal,
+          number: :equal
+        ]
+      )
 
       resolve(&PersonResolver.list_persons/2)
     end
@@ -132,5 +155,29 @@ defmodule GraphQLWeb.Schema.PersonTypes do
 
     # Has :string type on MPI
     field(:issued_at, :string)
+  end
+
+  defp validate_persons_query_input(%{arguments: %{filter: filter}} = resolution, _) do
+    if %{} in [filter[:personal], filter[:documents]] do
+      Resolution.put_result(resolution, {:ok, %{edges: []}})
+    else
+      resolution
+    end
+  end
+
+  defp transform_persons_query_filter(%{arguments: %{filter: filter} = arguments} = resolution, _params) do
+    filter =
+      case get_in(filter, [:documents, :number]) do
+        nil -> filter
+        number -> %{filter | documents: %{type: "PASSPORT", number: number}}
+      end
+
+    filter =
+      case Map.get(filter, :authentication_methods) do
+        nil -> filter
+        phone_number -> %{filter | authentication_methods: [%{"phone_number" => phone_number}]}
+      end
+
+    %{resolution | arguments: %{arguments | filter: filter}}
   end
 end
