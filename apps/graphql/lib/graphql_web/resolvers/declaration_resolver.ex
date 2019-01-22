@@ -2,10 +2,14 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.Declarations.API, as: Declarations
+  alias Core.Declarations.Declaration
+  alias Ecto.Schema.Metadata
   alias GraphQLWeb.Loaders.IL
 
   @status_pending "pending_verification"
@@ -49,5 +53,20 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
         _ -> {:ok, []}
       end
     end)
+  end
+
+  def terminate_declaration(%{id: id} = args, %{context: %{headers: headers}}) do
+    user_id = get_consumer_id(headers)
+    params = %{"reason_description" => args[:reason_description]}
+
+    with {:ok, declaration} <- Declarations.terminate(id, user_id, params, headers) do
+      declaration = struct(Declaration, strings_to_keys(declaration))
+      # :__meta__ is needed for Ecto loader
+      declaration = Map.put(declaration, :__meta__, %Metadata{state: :build, source: {nil, nil}})
+
+      {:ok, %{declaration: declaration}}
+    else
+      err -> render_error(err)
+    end
   end
 end

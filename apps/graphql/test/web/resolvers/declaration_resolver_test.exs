@@ -3,7 +3,9 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
   use GraphQLWeb.ConnCase, async: false
 
+  import Core.Expectations.Mithril, only: [nhs: 1]
   import Core.Factories
+  import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
   import Mox
 
   alias Ecto.UUID
@@ -65,13 +67,29 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     }
   """
 
+  @terminare_declaration_query """
+    mutation TerminateDeclaration($input: TerminateDeclarationInput!){
+      terminateDeclaration(input: $input){
+        declaration{
+          id
+          databaseId
+          reasonDescription
+          legalEntity{
+            id
+            databaseId
+          }
+        }
+      }
+    }
+  """
+
   @status_pending "pending_verification"
 
   setup :verify_on_exit!
   setup :set_mox_global
 
-  setup context do
-    conn = put_scope(context.conn, "declaration:read")
+  setup %{conn: conn} do
+    conn = put_scope(conn, "declaration:read declaration:terminate")
 
     {:ok, %{conn: conn}}
   end
@@ -231,6 +249,66 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
       refute get_in(resp_body, ~w(data declarationByNumber))
       assert "NOT_FOUND" == error["extensions"]["code"]
+    end
+  end
+
+  describe "terminate declaration" do
+    test "success", %{conn: conn} do
+      database_id = UUID.generate()
+      person_id = UUID.generate()
+      reason_description = "some reason"
+      consumer_id = UUID.generate()
+
+      %{id: client_id} = insert(:prm, :legal_entity)
+      person = build(:person, id: person_id)
+      declaration = build(:declaration, id: database_id, person_id: person_id, legal_entity_id: client_id)
+
+      nhs(2)
+
+      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
+        assert id == database_id
+        {:ok, %{"data" => atoms_to_strings(declaration)}}
+      end)
+
+      expect(OPSMock, :terminate_declaration, fn id, _, _ ->
+        assert id == declaration.id
+
+        {:ok, %{"data" => atoms_to_strings(declaration)}}
+      end)
+
+      expect(MPIMock, :person, fn id, _headers ->
+        assert id == person_id
+        {:ok, %{"data" => atoms_to_strings(person)}}
+      end)
+
+      expect(MithrilMock, :get_user_by_id, fn id, _ ->
+        assert id == consumer_id
+
+        {:ok,
+         %{
+           "data" => %{
+             "id" => id,
+             "email" => "mis_bot_1493831618@user.com",
+             "type" => "user",
+             "person_id" => person_id
+           }
+         }}
+      end)
+
+      variables = %{input: %{id: Node.to_global_id("Declaration", database_id), reason_description: reason_description}}
+
+      resp_body =
+        conn
+        |> put_client_id(client_id)
+        |> put_consumer_id(consumer_id)
+        |> post_query(@terminare_declaration_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data terminateDeclaration declaration))
+      assert database_id == resp_entity["databaseId"]
+      assert client_id == resp_entity["legalEntity"]["databaseId"]
+
+      refute resp_body["errors"]
     end
   end
 end

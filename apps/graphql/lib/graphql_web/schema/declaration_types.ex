@@ -41,6 +41,26 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
     end
   end
 
+  object :declaration_mutations do
+    payload field(:terminate_declaration) do
+      meta(:scope, ~w(declaration:terminate))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:reason_description, :string)
+      end
+
+      output do
+        field(:declaration, :declaration)
+      end
+
+      middleware(ParseIDs, id: :declaration)
+      resolve(&DeclarationResolver.terminate_declaration/2)
+    end
+  end
+
   input_object :pending_declaration_filter do
     field(:reason, :pending_declaration_reason)
   end

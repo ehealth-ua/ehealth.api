@@ -17,10 +17,11 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     end
   end
 
-  def terminate_declaration(conn, %{"id" => id} = params) do
-    user_id = get_consumer_id(conn.req_headers)
+  def terminate_declaration(%{req_headers: headers} = conn, %{"id" => id} = params) do
+    user_id = get_consumer_id(headers)
 
-    with {:ok, declaration} <- Declarations.terminate(id, user_id, params, conn.req_headers) do
+    with {:ok, declaration} <- Declarations.terminate(id, user_id, params, headers),
+         {:ok, declaration} <- Declarations.expand_declaration_relations(declaration, headers) do
       conn
       |> put_view(DeclarationView)
       |> render("show.json", declaration: declaration)

@@ -192,18 +192,18 @@ defmodule Core.Declarations.API do
   end
 
   def terminate(id, user_id, params, headers) do
+    terminate_params = %{
+      "reason_description" => params["reason_description"],
+      "updated_by" => user_id,
+      "reason" => "manual_person"
+    }
+
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, declaration} <- get_declaration_by_id(id, headers),
          {:status, true} <- {:status, declaration["status"] == "active"},
          {:person_id, true} <- {:person_id, user["person_id"] == get_in(declaration, ~w(person id))},
-         params <-
-           params
-           |> Map.take(["reason_description"])
-           |> Map.put("updated_by", user_id)
-           |> Map.put("reason", "manual_person"),
-         {:ok, %{"data" => declaration}} <- @ops_api.terminate_declaration(id, params, headers),
-         {:ok, declaration_data} <- expand_declaration_relations(declaration, headers) do
-      {:ok, declaration_data}
+         {:ok, %{"data" => declaration}} <- @ops_api.terminate_declaration(id, terminate_params, headers) do
+      {:ok, declaration}
     else
       {:status, false} -> {:conflict, "Declaration is not active"}
       {:person_id, false} -> {:error, :forbidden}
@@ -255,6 +255,7 @@ defmodule Core.Declarations.API do
     end
   end
 
+  # TODO: Split permission check and data loading into 2 functions
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
     with :ok <- check_declaration_access(legal_entity_id, headers) do
       person = load_relation(@mpi_api, :person, declaration["person_id"], headers)
