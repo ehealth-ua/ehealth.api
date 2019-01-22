@@ -14202,7 +14202,6 @@
       "preliminary": "попередня",
       "final": "кінцева",
       "entered_in_error": "внесена помилково"
-      
     },
     "labels": [
       "SYSTEM",
@@ -14221,7 +14220,7 @@
     ],
     "is_active": true
   },
-    {
+  {
     "name": "eHealth/risk_assessment_codes",
     "values": {
       "deafult_risk_assessment_code": "зачення за замовчуванням"
@@ -14232,7 +14231,7 @@
     ],
     "is_active": true
   },
-    {
+  {
     "name": "eHealth/risk_assessment_reasons",
     "values": {
       "deafult_risk_assessment_reason": "зачення за замовчуванням"
@@ -14243,7 +14242,7 @@
     ],
     "is_active": true
   },
-   {
+  {
     "name": "eHealth/risk_assessment_outcomes",
     "values": {
       "deafult_risk_assessment_outcome": "зачення за замовчуванням"
@@ -14258,6 +14257,52 @@
     "name": "eHealth/risk_assessment_qualitative_risks",
     "values": {
       "deafult_risk_assessment_qualitative_risks": "зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "SERVICE_REQUEST_INTENT",
+    "values": {
+      "plan": "plan",
+      "order": "order",
+      "proposal": "proposal"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/service_request_categories",
+    "values": {
+      "409063005": "Counselling"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/procedure_codes",
+    "values": {
+      "1417002": "Operation on face"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/service_request_performer_roles",
+    "values": {
+      "394583002": "Endocrinology"
     },
     "labels": [
       "SYSTEM",
