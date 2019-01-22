@@ -96,6 +96,16 @@ defmodule Core.Persons do
     end
   end
 
+  def reset_person_auth_method(id, headers) do
+    user_id = get_consumer_id(headers)
+
+    with {:ok, person} <- @rpc_worker.run("mpi", Core.Rpc, :reset_auth_method, [id, user_id]) do
+      {:ok, person}
+    else
+      _ -> {:error, {:not_found, "Person not found"}}
+    end
+  end
+
   defp check_user_person_id(user, id) do
     if user["person_id"] == id do
       :ok

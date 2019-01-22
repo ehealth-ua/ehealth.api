@@ -90,6 +90,23 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     edge(do: nil)
   end
 
+  object :person_mutations do
+    payload field(:reset_person_authentication_method) do
+      meta(:scope, ~w(person:reset_authentication_method))
+
+      input do
+        field(:person_id, non_null(:id))
+      end
+
+      output do
+        field(:person, :person)
+      end
+
+      middleware(ParseIDs, id: :person)
+      resolve(&PersonResolver.reset_authentication_method/2)
+    end
+  end
+
   node object(:person) do
     field(:database_id, non_null(:id))
     field(:first_name, non_null(:string))

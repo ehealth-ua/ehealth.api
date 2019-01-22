@@ -92,11 +92,26 @@ defmodule GraphQLWeb.PersonResolverTest do
     }
   """
 
+  @person_reset_auth_query """
+    mutation ResetPersonAuthenticationMethodMutation($input: ResetPersonAuthenticationMethodInput!) {
+      resetPersonAuthenticationMethod(input: $input) {
+        person {
+          id
+          databaseId
+          firstName
+          lastName
+          secondName
+          birthDate
+        }
+      }
+    }
+  """
+
   setup :verify_on_exit!
   setup :set_mox_global
 
   setup context do
-    conn = put_scope(context.conn, "person:read")
+    conn = put_scope(context.conn, "person:read person:reset_authentication_method")
 
     {:ok, %{conn: conn}}
   end
@@ -238,5 +253,45 @@ defmodule GraphQLWeb.PersonResolverTest do
       refute get_in(resp_body, ~w(data person))
       assert "NOT_FOUND" == error["extensions"]["code"]
     end
+  end
+
+  describe "reset authentication method to NA" do
+    test "success", %{conn: conn} do
+      person = build(:mpi_person, authentication_methods: [%{"type" => "NA"}])
+
+      expect(RPCWorkerMock, :run, fn _, _, :reset_auth_method, _ -> {:ok, person} end)
+
+      resp_body =
+        conn
+        |> post_query(@person_reset_auth_query, input_person_id(person.id))
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data resetPersonAuthenticationMethod person))
+
+      refute resp_body["errors"]
+      assert person.first_name == resp_entity["firstName"]
+    end
+
+    test "person not found", %{conn: conn} do
+      expect(RPCWorkerMock, :run, fn _, _, :reset_auth_method, _ -> nil end)
+
+      resp_body =
+        conn
+        |> post_query(@person_reset_auth_query, input_person_id(UUID.generate()))
+        |> json_response(200)
+
+      refute get_in(resp_body, ~w(data person))
+
+      assert %{"errors" => [error]} = resp_body
+      assert "NOT_FOUND" == error["extensions"]["code"]
+    end
+  end
+
+  defp input_person_id(id) do
+    %{
+      input: %{
+        person_id: Node.to_global_id("Person", id)
+      }
+    }
   end
 end

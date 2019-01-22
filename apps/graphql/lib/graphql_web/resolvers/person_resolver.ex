@@ -52,4 +52,12 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
       end
     end)
   end
+
+  def reset_authentication_method(%{person_id: id}, %{context: %{headers: headers}}) do
+    with {:ok, person} <- Persons.reset_person_auth_method(id, headers) do
+      {:ok, %{person: person}}
+    else
+      err -> render_error(err)
+    end
+  end
 end

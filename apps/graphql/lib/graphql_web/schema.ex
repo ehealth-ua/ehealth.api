@@ -73,6 +73,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:legal_entity_mutations)
     import_fields(:legal_entity_merge_job_mutations)
     import_fields(:legal_entity_deactivation_job_mutations)
+    import_fields(:person_mutations)
   end
 
   node interface do
