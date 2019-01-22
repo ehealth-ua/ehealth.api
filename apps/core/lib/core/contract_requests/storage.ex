@@ -18,12 +18,14 @@ defmodule Core.ContractRequests.Storage do
   }
 
   @statute %{
+    request_param_key: "statute_md5",
     dictionary_name: "CONTRACT_REQUEST_STATUTE",
     permanent_path: "media/contract_request_statute.pdf",
     upload_path: "media/upload_contract_request_statute.pdf"
   }
 
   @additional_document %{
+    request_param_key: "additional_document_md5",
     dictionary_name: "CONTRACT_REQUEST_ADDITIONAL_DOCUMENT",
     permanent_path: "media/contract_request_additional_document.pdf",
     upload_path: "media/upload_contract_request_additional_document.pdf"
@@ -148,7 +150,10 @@ defmodule Core.ContractRequests.Storage do
 
   def move_uploaded_documents(%RequestPack{} = pack, headers) do
     Enum.reduce_while([@statute, @additional_document], :ok, fn doc, _ ->
-      move_file(pack, doc.upload_path, doc.permanent_path, headers)
+      case md5_request_param_exist?(pack, doc.request_param_key) do
+        true -> move_file(pack, doc.upload_path, doc.permanent_path, headers)
+        false -> {:cont, :ok}
+      end
     end)
   end
 
@@ -163,6 +168,8 @@ defmodule Core.ContractRequests.Storage do
       {:cont, :ok}
     end
   end
+
+  defp md5_request_param_exist?(%{decoded_content: decoded_content}, key), do: Map.has_key?(decoded_content, key)
 
   defp get_bucket do
     Confex.fetch_env!(:core, MediaStorage)[:contract_request_bucket]

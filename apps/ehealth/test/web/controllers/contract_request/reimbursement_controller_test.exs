@@ -163,16 +163,12 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   end
 
   describe "successful creation reimbursement contract request" do
-    setup %{conn: conn} do
+    test "with contract_number", %{conn: conn} do
+      id = UUID.generate()
+
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
       expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
-
-      %{conn: conn}
-    end
-
-    test "with contract_number", %{conn: conn} do
-      id = UUID.generate()
 
       expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, resource_id, _ ->
         assert id == resource_id
@@ -232,6 +228,10 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "without contract_number", %{conn: conn} do
+      expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
+      expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+
       expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
       end)
@@ -271,10 +271,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "without uploaded documents", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
-      end)
-
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,
