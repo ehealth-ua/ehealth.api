@@ -5,7 +5,7 @@ defmodule Core.Repo.Migrations.AddDataFieldsIndexes do
 
   def change do
     execute("""
-    CREATE INDEX CONCURRENTLY IF NOT EXISTS cabinet_declaration_req_index
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS cabinet_declaration_req_data_index
     ON declaration_requests (
       mpi_id,
       status,
@@ -14,7 +14,7 @@ defmodule Core.Repo.Migrations.AddDataFieldsIndexes do
     """)
 
     execute("""
-    CREATE INDEX CONCURRENTLY IF NOT EXISTS create_declatation_req_index
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS create_declatation_req_data_index
     ON declaration_requests (
       status,
       data_employee_id,
@@ -23,7 +23,7 @@ defmodule Core.Repo.Migrations.AddDataFieldsIndexes do
     """)
 
     execute("""
-    CREATE INDEX CONCURRENTLY IF NOT EXISTS data_legal_entity_id_inserted_at_index
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS data_legal_entity_id_inserted_at_data_index
     ON declaration_requests (
       data_legal_entity_id,
       inserted_at
