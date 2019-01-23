@@ -3,13 +3,11 @@ defmodule EHealth.Mixfile do
 
   use Mix.Project
 
-  @version "8.10.0"
   def project do
     [
       app: :ehealth,
       description: "Integration Layer for projects that related to Ukrainian Health Services government institution.",
       package: package(),
-      version: @version,
       elixir: "~> 1.7",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -59,8 +57,7 @@ defmodule EHealth.Mixfile do
       {:plug_logger_json, "~> 0.5"},
       {:poison, "~> 3.1"},
       {:quantum, "~> 2.2"},
-      {:mox, "~> 0.3", only: :test},
-      {:git_ops, "~> 0.6.0", only: [:dev]}
+      {:mox, "~> 0.3", only: :test}
     ]
   end
 

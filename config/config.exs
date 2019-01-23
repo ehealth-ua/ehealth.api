@@ -9,7 +9,7 @@ use Mix.Config
 # back to each application for organization purposes.
 
 config :git_ops,
-  mix_project: EHealth.Mixfile,
+  mix_project: Ehealth.MixProject,
   changelog_file: "CHANGELOG.md",
   repository_url: "https://github.com/edenlabllc/ehealth.api",
   types: [
