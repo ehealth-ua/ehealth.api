@@ -3076,7 +3076,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     medication_request =
       if exclude_medical_program do
-        Map.delete(medication_request, :medical_program_id)
+        Map.put(medication_request, :medical_program_id, nil)
       else
         medication_request
       end
@@ -3093,7 +3093,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     medication_dispense =
       if exclude_medical_program do
-        Map.delete(medication_dispense, :medical_program_id)
+        Map.put(medication_dispense, :medical_program_id, nil)
       else
         medication_dispense
       end

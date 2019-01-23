@@ -711,7 +711,8 @@ defmodule Core.MedicationDispense.API do
     end)
   end
 
-  defp qualify_request(%{"medical_program_id" => medical_program_id} = medication_request, client_type, headers) do
+  defp qualify_request(%{"medical_program_id" => medical_program_id} = medication_request, client_type, headers)
+       when not is_nil(medical_program_id) do
     program_id = medical_program_id
     params = %{"programs" => [%{"id" => program_id}]}
 
