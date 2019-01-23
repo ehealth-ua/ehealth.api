@@ -5,7 +5,7 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
 
   @behaviour Absinthe.Middleware
 
-  import Core.API.Helpers.Connection, only: [get_client_id: 1]
+  import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_unauthenticated_error: 0]
 
   alias Absinthe.{Resolution, Type}
@@ -17,6 +17,7 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
     headers_key = Keyword.get(opts, :headers_key, :headers)
     client_id_key = Keyword.get(opts, :client_id_key, :client_id)
     client_type_key = Keyword.get(opts, :client_type_key, :client_type)
+    consumer_id_key = Keyword.get(opts, :consumer_id_key, :consumer_id)
 
     quote do
       def middleware(middleware, field, object) do
@@ -28,7 +29,8 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
               meta_key: unquote(meta_key),
               headers_key: unquote(headers_key),
               client_id_key: unquote(client_id_key),
-              client_type_key: unquote(client_type_key)
+              client_type_key: unquote(client_type_key),
+              consumer_id_key: unquote(consumer_id_key)
             ]
 
             [{unquote(__MODULE__), opts} | middleware]
@@ -49,8 +51,7 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
     required_metadata = Type.meta(resolution.definition.schema_node, meta_key)
 
     with {:ok, headers} <- Map.fetch(context, headers_key),
-         client_id <- get_client_id(headers),
-         {:ok, metadata} <- get_metadata(required_metadata, client_id, headers, opts) do
+         {:ok, metadata} <- get_metadata(required_metadata, headers, opts) do
       %{resolution | context: Map.merge(context, metadata)}
     else
       _ -> Resolution.put_result(resolution, {:error, format_unauthenticated_error()})
@@ -59,9 +60,12 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
 
   def call(resolution, _), do: resolution
 
-  defp get_metadata(required_metadata, client_id, headers, opts) do
+  defp get_metadata(required_metadata, headers, opts) do
     client_id_key = Keyword.get(opts, :client_id_key)
     client_type_key = Keyword.get(opts, :client_type_key)
+    consumer_id_key = Keyword.get(opts, :consumer_id_key)
+
+    client_id = get_client_id(headers)
 
     Enum.reduce_while(required_metadata, {:ok, %{}}, fn
       ^client_id_key, {:ok, acc} ->
@@ -73,6 +77,11 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
         else
           error -> {:halt, error}
         end
+
+      ^consumer_id_key, {:ok, acc} ->
+        consumer_id = get_consumer_id(headers)
+
+        {:cont, {:ok, Map.put(acc, consumer_id_key, consumer_id)}}
 
       _, acc ->
         {:cont, acc}

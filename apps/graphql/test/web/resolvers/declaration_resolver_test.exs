@@ -52,7 +52,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   """
 
   @declaration_by_id_query """
-    query declarationQuery($id: ID!) {
+    query GetDeclarationQuery($id: ID!) {
       declaration(id: $id) {
         #{@declaration_fields}
       }
@@ -67,14 +67,38 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     }
   """
 
+  @approve_declaration_query """
+    mutation ApproveDeclarationMutation($input: ApproveDeclarationInput!) {
+      approveDeclaration(input: $input) {
+        declaration {
+          id
+          databaseId
+          status
+        }
+      }
+    }
+  """
+
+  @reject_declaration_query """
+    mutation RejectDeclarationMutation($input: RejectDeclarationInput!) {
+      rejectDeclaration(input: $input) {
+        declaration {
+          id
+          databaseId
+          status
+        }
+      }
+    }
+  """
+
   @terminare_declaration_query """
-    mutation TerminateDeclaration($input: TerminateDeclarationInput!){
-      terminateDeclaration(input: $input){
-        declaration{
+    mutation TerminateDeclarationMutation($input: TerminateDeclarationInput!) {
+      terminateDeclaration(input: $input) {
+        declaration {
           id
           databaseId
           reasonDescription
-          legalEntity{
+          legalEntity {
             id
             databaseId
           }
@@ -89,7 +113,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   setup :set_mox_global
 
   setup %{conn: conn} do
-    conn = put_scope(conn, "declaration:read declaration:terminate")
+    conn = put_scope(conn, "declaration:read declaration:approve declaration:reject declaration:terminate")
 
     {:ok, %{conn: conn}}
   end
@@ -252,6 +276,90 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     end
   end
 
+  describe "approve declaration" do
+    test "success", %{conn: conn} do
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: "pending_verification")
+
+      nhs(2)
+
+      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
+        assert id == declaration.id
+        {:ok, %{"data" => atoms_to_strings(declaration)}}
+      end)
+
+      expect(OPSMock, :update_declaration, fn id, patch, _ ->
+        assert id == declaration.id
+        assert "active" == patch["declaration"]["status"]
+        assert consumer_id == patch["declaration"]["updated_by"]
+
+        data =
+          declaration
+          |> atoms_to_strings()
+          |> Map.merge(patch["declaration"])
+
+        {:ok, %{"data" => data}}
+      end)
+
+      variables = %{input: %{id: Node.to_global_id("Declaration", declaration.id)}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> put_consumer_id(consumer_id)
+        |> post_query(@approve_declaration_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data approveDeclaration declaration))
+
+      refute resp_body["errors"]
+      assert declaration.id == resp_entity["databaseId"]
+      assert "ACTIVE" == resp_entity["status"]
+    end
+  end
+
+  describe "reject declaration" do
+    test "success", %{conn: conn} do
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: "pending_verification")
+
+      nhs(2)
+
+      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
+        assert id == declaration.id
+        {:ok, %{"data" => atoms_to_strings(declaration)}}
+      end)
+
+      expect(OPSMock, :update_declaration, fn id, patch, _ ->
+        assert id == declaration.id
+        assert "rejected" == patch["declaration"]["status"]
+        assert consumer_id == patch["declaration"]["updated_by"]
+
+        data =
+          declaration
+          |> atoms_to_strings()
+          |> Map.merge(patch["declaration"])
+
+        {:ok, %{"data" => data}}
+      end)
+
+      variables = %{input: %{id: Node.to_global_id("Declaration", declaration.id)}}
+
+      resp_body =
+        conn
+        |> put_client_id()
+        |> put_consumer_id(consumer_id)
+        |> post_query(@reject_declaration_query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data rejectDeclaration declaration))
+
+      refute resp_body["errors"]
+      assert declaration.id == resp_entity["databaseId"]
+      assert "REJECTED" == resp_entity["status"]
+    end
+  end
+
   describe "terminate declaration" do
     test "success", %{conn: conn} do
       database_id = UUID.generate()
@@ -305,10 +413,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data terminateDeclaration declaration))
-      assert database_id == resp_entity["databaseId"]
-      assert client_id == resp_entity["legalEntity"]["databaseId"]
 
       refute resp_body["errors"]
+      assert database_id == resp_entity["databaseId"]
+      assert client_id == resp_entity["legalEntity"]["databaseId"]
     end
   end
 end

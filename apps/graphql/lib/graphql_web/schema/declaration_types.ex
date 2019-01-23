@@ -42,9 +42,43 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
   end
 
   object :declaration_mutations do
+    payload field(:approve_declaration) do
+      meta(:scope, ~w(declaration:approve))
+      meta(:client_metadata, ~w(client_type consumer_id)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:declaration, :declaration)
+      end
+
+      middleware(ParseIDs, id: :declaration)
+      resolve(&DeclarationResolver.approve_declaration/2)
+    end
+
+    payload field(:reject_declaration) do
+      meta(:scope, ~w(declaration:reject))
+      meta(:client_metadata, ~w(client_type consumer_id)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:declaration, :declaration)
+      end
+
+      middleware(ParseIDs, id: :declaration)
+      resolve(&DeclarationResolver.reject_declaration/2)
+    end
+
     payload field(:terminate_declaration) do
       meta(:scope, ~w(declaration:terminate))
-      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:client_metadata, ~w(client_type consumer_id)a)
       meta(:allowed_clients, ~w(NHS))
 
       input do

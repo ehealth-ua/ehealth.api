@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
@@ -13,6 +12,8 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   alias GraphQLWeb.Loaders.IL
 
   @status_pending "pending_verification"
+  @status_active "active"
+  @status_rejected "rejected"
 
   def list_pending_declarations(%{filter: filter, order_by: order_by} = args, _resolution) do
     filter = [{:status, :equal, @status_pending} | filter]
@@ -55,18 +56,46 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     end)
   end
 
-  def terminate_declaration(%{id: id} = args, %{context: %{headers: headers}}) do
-    user_id = get_consumer_id(headers)
-    params = %{"reason_description" => args[:reason_description]}
+  def approve_declaration(%{id: id}, %{context: %{consumer_id: consumer_id, headers: headers}}) do
+    patch = %{"status" => @status_active, "updated_by" => consumer_id}
 
-    with {:ok, declaration} <- Declarations.terminate(id, user_id, params, headers) do
-      declaration = struct(Declaration, strings_to_keys(declaration))
-      # :__meta__ is needed for Ecto loader
-      declaration = Map.put(declaration, :__meta__, %Metadata{state: :build, source: {nil, nil}})
+    update_declaration(id, patch, headers)
+  end
+
+  def reject_declaration(%{id: id}, %{context: %{consumer_id: consumer_id, headers: headers}}) do
+    patch = %{"status" => @status_rejected, "updated_by" => consumer_id}
+
+    update_declaration(id, patch, headers)
+  end
+
+  defp update_declaration(id, patch, headers) do
+    with {:ok, %{"data" => declaration}} <- Declarations.update_declaration(id, patch, headers) do
+      declaration = api_response_to_ecto_struct(Declaration, declaration)
 
       {:ok, %{declaration: declaration}}
     else
       err -> render_error(err)
     end
+  end
+
+  def terminate_declaration(
+        %{id: id} = args,
+        %{context: %{consumer_id: consumer_id, headers: headers}}
+      ) do
+    params = %{"reason_description" => args[:reason_description]}
+
+    with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers) do
+      declaration = api_response_to_ecto_struct(Declaration, declaration)
+
+      {:ok, %{declaration: declaration}}
+    else
+      err -> render_error(err)
+    end
+  end
+
+  defp api_response_to_ecto_struct(schema, response) do
+    schema
+    |> struct(strings_to_keys(response))
+    |> Map.put(:__meta__, %Metadata{state: :build, source: {nil, nil}})
   end
 end
