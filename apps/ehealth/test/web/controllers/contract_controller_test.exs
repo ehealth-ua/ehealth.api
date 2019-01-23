@@ -1522,10 +1522,10 @@ defmodule EHealth.Web.ContractControllerTest do
   end
 
   describe "get printout_form" do
-    test "success get printout_form", %{conn: conn} do
+    test "success get printout_form for capitation contract", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
       end)
 
@@ -1533,7 +1533,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
       legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
 
-      expect(MediaStorageMock, :get_signed_content, 2, fn _ ->
+      expect(MediaStorageMock, :get_signed_content, fn _ ->
         {:ok, %{body: "", status_code: 200}}
       end)
 
@@ -1564,6 +1564,53 @@ defmodule EHealth.Web.ContractControllerTest do
         conn
         |> put_client_id_header(UUID.generate())
         |> get(contract_path(conn, :printout_content, @capitation, contract_id))
+        |> json_response(200)
+
+      assert %{"id" => contract_id, "printout_content" => printout_content} == resp["data"]
+    end
+
+    test "success get printout_form for reimbursement contract", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      printout_content = "<html></html>"
+
+      legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
+
+      expect(MediaStorageMock, :get_signed_content, fn _ ->
+        {:ok, %{body: "", status_code: 200}}
+      end)
+
+      %{id: contract_request_id} =
+        contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          printout_content: printout_content
+        )
+
+      %{id: contract_id} =
+        insert(
+          :prm,
+          :reimbursement_contract,
+          status: CapitationContract.status(:verified),
+          contract_request_id: contract_request_id
+        )
+
+      content =
+        contract_request
+        |> Jason.encode!()
+        |> Jason.decode!()
+
+      edrpou_signed_content(content, legal_entity_signer.edrpou)
+
+      resp =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_path(conn, :printout_content, @reimbursement, contract_id))
         |> json_response(200)
 
       assert %{"id" => contract_id, "printout_content" => printout_content} == resp["data"]

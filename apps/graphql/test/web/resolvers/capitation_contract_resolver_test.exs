@@ -4,12 +4,13 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
   use GraphQLWeb.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
-  import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril
+  import Core.Expectations.Signature, only: [edrpou_signed_content: 2]
   import Mox
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.Utils.TypesConverter
   alias Ecto.UUID
 
   @list_query """
@@ -293,7 +294,14 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
 
     test "success for printoutContent field", %{conn: conn} do
       nhs()
-      template()
+
+      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 1, fn _ ->
+        {:ok, %{body: "", status_code: 200}}
+      end)
 
       query = """
         query GetContractQuery($id: ID!) {
@@ -313,6 +321,7 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
       nhs_signer = insert(:prm, :employee)
       external_contractor_legal_entity = insert(:prm, :legal_entity)
       external_contractor_division = insert(:prm, :division)
+      printout_content = "<html></html>"
 
       contract_request =
         insert(
@@ -321,6 +330,7 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
           nhs_signer_id: nhs_signer.id,
           contractor_legal_entity_id: client_id,
           status: CapitationContractRequest.status(:pending_nhs_sign),
+          printout_content: printout_content,
           external_contractors: [
             %{
               "legal_entity_id" => external_contractor_legal_entity.id,
@@ -334,6 +344,9 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
           ]
         )
 
+      legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
+      edrpou_signed_content(TypesConverter.atoms_to_strings(contract_request), legal_entity_signer.edrpou)
+
       contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
       variables = %{id: Node.to_global_id("CapitationContract", contract.id)}
 
@@ -346,7 +359,7 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
       resp_entity = get_in(resp_body, ~w(data capitationContract))
 
       refute resp_body["errors"]
-      assert "<html></html>" == resp_entity["printoutContent"]
+      assert printout_content == resp_entity["printoutContent"]
     end
 
     test "return nothing for incorrect MSP client", %{conn: conn} = context do

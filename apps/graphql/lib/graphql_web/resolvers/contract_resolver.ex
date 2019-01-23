@@ -5,7 +5,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
   alias Core.ContractRequests.RequestPack
   alias Core.Contracts
-  alias GraphQLWeb.Resolvers.ContractRequestResolver
 
   defmacro __using__(opts) do
     quote do
@@ -106,11 +105,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     end
   end
 
-  def get_printout_content(%{type: type, contract_request_id: contract_request_id}, args, resolution) do
-    provider = RequestPack.get_provider_by_type(type)
-
-    with {:ok, contract_request} <- provider.fetch_by_id(contract_request_id) do
-      ContractRequestResolver.get_printout_content(contract_request, args, resolution)
+  def get_printout_content(%{__struct__: _} = contract, _args, %{context: context}) do
+    with {:ok, printout_form} <- Contracts.get_printout_content(contract, context.client_type, context.headers) do
+      {:ok, printout_form}
     else
       err -> render_error(err)
     end

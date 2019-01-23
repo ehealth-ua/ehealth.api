@@ -5,11 +5,12 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
   import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
   import Core.Expectations.Mithril
-  import Core.Expectations.Man, only: [template: 1]
+  import Core.Expectations.Signature, only: [edrpou_signed_content: 2]
   import Mox
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ReimbursementContractRequest
+  alias Core.Utils.TypesConverter
   alias Ecto.UUID
 
   @list_query """
@@ -47,8 +48,6 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
       }
     }
   """
-
-  @pending_nhs_sign ReimbursementContractRequest.status(:pending_nhs_sign)
 
   setup :verify_on_exit!
 
@@ -464,10 +463,21 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
     test "success for printoutContent field", %{conn: conn} do
       nhs()
 
+      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 1, fn _ ->
+        {:ok, %{body: "", status_code: 200}}
+      end)
+
       printout_content = "<html>Some printout content is here</html>"
       contract_request = insert(:il, :reimbursement_contract_request, printout_content: printout_content)
       contract = insert(:prm, :reimbursement_contract, contract_request_id: contract_request.id)
       variables = %{id: Node.to_global_id("ReimbursementContract", contract.id)}
+
+      legal_entity_signer = insert(:prm, :legal_entity, edrpou: "10002000")
+      edrpou_signed_content(TypesConverter.atoms_to_strings(contract_request), legal_entity_signer.edrpou)
 
       resp_body =
         conn
@@ -479,26 +489,6 @@ defmodule GraphQLWeb.ReimbursementContractResolverTest do
 
       refute resp_body["errors"]
       assert printout_content == resp_entity["printoutContent"]
-    end
-
-    test "success for printoutContent field by nhs_pending status", %{conn: conn} do
-      nhs()
-      template(1)
-
-      contract_request = insert(:il, :reimbursement_contract_request, status: @pending_nhs_sign)
-      contract = insert(:prm, :reimbursement_contract, contract_request_id: contract_request.id)
-      variables = %{id: Node.to_global_id("ReimbursementContract", contract.id)}
-
-      resp_body =
-        conn
-        |> put_client_id()
-        |> post_query(@printout_content_query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
-
-      refute resp_body["errors"]
-      assert "<html></html>" == resp_entity["printoutContent"]
     end
 
     test "fails on reimbursementContract not found resolving printoutContent", %{conn: conn} do

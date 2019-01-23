@@ -7,7 +7,6 @@ defmodule Core.Contracts do
   import Ecto.Changeset
   import Ecto.Query
 
-  alias Core.CapitationContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.RequestPack
@@ -351,17 +350,16 @@ defmodule Core.Contracts do
     end
   end
 
-  def get_printout_content(id, client_type, headers) do
+  def get_printout_content(%{type: type, contract_request_id: contract_request_id}, client_type, headers) do
     client_id = get_client_id(headers)
+    provider = RequestPack.get_provider_by_type(type)
 
-    with %CapitationContract{contract_request_id: contract_request_id} = contract <- get_by_id(id, @capitation),
-         {:ok, %CapitationContractRequest{} = contract_request} <-
-           CapitationContractRequests.fetch_by_id(contract_request_id),
+    with {:ok, contract_request} <- provider.fetch_by_id(contract_request_id),
          :ok <-
            ContractRequestsValidator.validate_contract_request_client_access(client_type, client_id, contract_request),
          {:ok, %{"printout_content" => printout_content}} <-
            Storage.decode_and_validate_signed_content(contract_request, headers) do
-      {:ok, contract, printout_content}
+      {:ok, printout_content}
     end
   end
 
