@@ -5,6 +5,19 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [0.3.0](https://github.com/edenlabllc/ehealth.api/compare/0.2.0...0.3.0) (2019-1-23)
+
+
+
+
+### Features:
+
+* add CHANGELOG.md
+
+### Bug Fixes:
+
+* version tag
+
 ## [0.1.0](https://github.com/edenlabllc/ehealth.api/compare/0.1.0...0.1.0) (2019-1-23)
 
 
