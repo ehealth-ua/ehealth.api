@@ -113,9 +113,8 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   setup :set_mox_global
 
   setup %{conn: conn} do
-    conn = put_scope(conn, "declaration:read declaration:approve declaration:reject declaration:terminate")
-
-    {:ok, %{conn: conn}}
+    scopes = "declaration:read declaration_documents:read declaration:approve declaration:reject declaration:terminate"
+    {:ok, %{conn: put_scope(conn, scopes)}}
   end
 
   describe "pending declarations list" do

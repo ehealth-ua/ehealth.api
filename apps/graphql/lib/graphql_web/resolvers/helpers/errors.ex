@@ -31,6 +31,12 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     {:error, format_not_found_error("Not found")}
   end
 
+  def render_error({:error, %{"error" => %{"type" => "request_malformed"}} = error}) do
+    Log.error("Got mailformed request #{inspect(error)}")
+
+    {:error, format_bad_request("Malformed request")}
+  end
+
   def render_error({:error, %{"error" => %{"invalid" => errors}}}) do
     {:error, format_unprocessable_entity_error(hd(errors))}
   end
