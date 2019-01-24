@@ -84,7 +84,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
       ) do
     params = %{"reason_description" => args[:reason_description]}
 
-    with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers) do
+    with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers, false) do
       declaration = api_response_to_ecto_struct(Declaration, declaration)
 
       {:ok, %{declaration: declaration}}
