@@ -6,6 +6,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
+  alias Core.DeclarationRequests.API.Documents, as: DeclarationRequestDocuments
   alias Core.Declarations.API, as: Declarations
   alias Core.Declarations.Declaration
   alias Ecto.Schema.Metadata
@@ -48,7 +49,8 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     loader
     |> Dataloader.load(IL, :declaration_request, parent)
     |> on_load(fn loader ->
-      with %{documents: [_ | _] = documents} <- Dataloader.get(loader, IL, :declaration_request, parent) do
+      with %{} = declaration_request <- Dataloader.get(loader, IL, :declaration_request, parent),
+           {:ok, documents} <- DeclarationRequestDocuments.generate_links(declaration_request) do
         {:ok, documents}
       else
         _ -> {:ok, []}

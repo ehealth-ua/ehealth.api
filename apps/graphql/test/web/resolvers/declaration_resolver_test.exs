@@ -34,11 +34,6 @@ defmodule GraphQLWeb.DeclarationResolverTest do
         zip
       }
     }
-
-    declarationAttachedDocuments{
-      type
-      url
-    }
   """
 
   @declaration_pending_query """
@@ -46,6 +41,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       pendingDeclarations(first: 10, filter: $filter, orderBy: $orderBy){
         nodes{
           #{@declaration_fields}
+          declarationAttachedDocuments {
+            type
+            url
+          }
         }
       }
     }
@@ -63,6 +62,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     query DeclarationByNumberQuery($declarationNumber: String!) {
       declarationByNumber(declarationNumber: $declarationNumber) {
         #{@declaration_fields}
+        declarationAttachedDocuments {
+          type
+          url
+        }
       }
     }
   """
@@ -145,6 +148,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, declarations} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
 
+      expect(MediaStorageMock, :create_signed_url, 8, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://example.com/signed_url_test"}}}
+      end)
+
       variables = %{
         filter: %{reason: "NO_TAX_ID"},
         orderBy: "STATUS_ASC"
@@ -165,8 +172,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
       assert Enum.all?(query_fields, &Map.has_key?(resp_entity, &1))
       assert hd(resp_entity["person"]["addresses"])["zip"]
-
-      assert hd(resp_entity["declarationAttachedDocuments"])["url"]
+      assert [%{"url" => _, "type" => _}] = resp_entity["declarationAttachedDocuments"]
     end
 
     test "success: empty results", %{conn: conn} do
@@ -187,6 +193,8 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
   describe "get by id and number" do
     setup %{conn: conn} do
+      documents = [%{"url" => "http://link-to-documents.web", "type" => "person.no_tax_id"}]
+      declaration_request = insert(:il, :declaration_request, documents: documents)
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       legal_entity = insert(:prm, :legal_entity)
@@ -197,7 +205,8 @@ defmodule GraphQLWeb.DeclarationResolverTest do
           division_id: division.id,
           employee_id: employee.id,
           legal_entity_id: legal_entity.id,
-          person_id: person.id
+          person_id: person.id,
+          declaration_request_id: declaration_request.id
         )
 
       %{conn: conn, declaration: declaration, person: person}
@@ -228,6 +237,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> declaration end)
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, [person]} end)
 
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://example.com/signed_url_test"}}}
+      end)
+
       id = Node.to_global_id("Declaration", declaration_id)
       variables = %{declarationNumber: declaration_number}
 
@@ -242,6 +255,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       assert id == resp_entity["id"]
       assert declaration_id == resp_entity["databaseId"]
       assert declaration_number == resp_entity["declarationNumber"]
+      assert [%{"url" => _, "type" => _}] = resp_entity["declarationAttachedDocuments"]
     end
 
     test "not found by id", %{conn: conn} do
