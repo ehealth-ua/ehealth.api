@@ -81,7 +81,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     |> Map.put("external_contractors", prepare_external_contractors(data, references, dictionaries))
   end
 
-  defp format_price(data, field) do
+  def format_price(data, field) do
     case Map.get(data, field) do
       value when is_integer(value) -> Map.put(data, field, :erlang.float_to_binary(value / 1, decimals: 2))
       value when is_float(value) -> Map.put(data, field, :erlang.float_to_binary(value, decimals: 2))
@@ -89,7 +89,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     end
   end
 
-  defp format_date(data, field) when is_list(field) do
+  def format_date(data, field) when is_list(field) do
     case get_in(data, field) do
       nil ->
         data
@@ -104,12 +104,12 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     end
   end
 
-  defp prepare_employee(employee) do
+  def prepare_employee(employee) do
     party = Map.get(employee, :party) || %{}
     %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
   end
 
-  defp prepare_contractor_legal_entity(data, references, dictionaries) do
+  def prepare_contractor_legal_entity(data, references, dictionaries) do
     contractor_legal_entity = Map.get(references.legal_entity, Map.get(data, "contractor_legal_entity_id")) || %{}
 
     address =
