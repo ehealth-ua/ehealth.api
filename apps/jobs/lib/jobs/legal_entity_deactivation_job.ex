@@ -92,10 +92,11 @@ defmodule Jobs.LegalEntityDeactivationJob do
          :ok <- check_transition(legal_entity),
          :ok <- LegalEntities.check_nhs_reviewed(legal_entity, true) do
       job_data = get_legal_entity_deactivation_event_data(legal_entity, user_id)
+      meta = %{deactivated_legal_entity: Map.take(legal_entity, ~w(id name edrpou)a)}
 
       __MODULE__
       |> struct(job_data)
-      |> produce(%{legal_entity_id: legal_entity.id}, type: @legal_entity_deactivation_type)
+      |> produce(meta, type: @legal_entity_deactivation_type)
     end
   end
 

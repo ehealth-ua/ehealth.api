@@ -23,11 +23,8 @@ defmodule Jobs do
     Map.put(acc, "status", status)
   end
 
-  def prepare_mongo_filter({:legal_entity_id, value}, acc) do
-    Map.put(acc, "meta.legal_entity_id", value)
-  end
-
-  def prepare_mongo_filter({key, filters}, acc) when key in [:merged_to_legal_entity, :merged_from_legal_entity] do
+  def prepare_mongo_filter({key, filters}, acc)
+      when key in [:merged_to_legal_entity, :merged_from_legal_entity, :deactivated_legal_entity] do
     Enum.reduce(filters, acc, fn {filter, value}, acc ->
       Map.put(acc, "meta.#{key}.#{filter}", value)
     end)

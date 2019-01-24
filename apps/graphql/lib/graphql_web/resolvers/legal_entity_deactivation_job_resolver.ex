@@ -51,7 +51,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityDeactivationJobResolver do
     end
   end
 
-  defp job_view(%Job{} = job), do: Jobs.view(job, [:legal_entity_id])
+  defp job_view(%Job{} = job), do: Jobs.view(job, [:deactivated_legal_entity])
   defp job_view([]), do: []
   defp job_view(jobs) when is_list(jobs), do: Enum.map(jobs, &job_view/1)
 end
