@@ -210,9 +210,9 @@ defmodule Core.Declarations.API do
     end
   end
 
-  defp do_check_user_access(true, _, _), do: :ok
-  defp do_check_user_access(false, %{"person_id" => id}, %{"person" => %{"id" => id}}), do: :ok
-  defp do_check_user_access(false, _, _), do: {:error, :forbidden}
+  defp do_check_user_access(false, _, _), do: :ok
+  defp do_check_user_access(true, %{"person_id" => id}, %{"person" => %{"id" => id}}), do: :ok
+  defp do_check_user_access(true, _, _), do: {:error, :forbidden}
 
   def terminate_declarations(attrs, headers) do
     user_id = get_consumer_id(headers)
