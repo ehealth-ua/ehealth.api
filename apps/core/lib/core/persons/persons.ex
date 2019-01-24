@@ -102,7 +102,8 @@ defmodule Core.Persons do
     with {:ok, person} <- @rpc_worker.run("mpi", Core.Rpc, :reset_auth_method, [id, user_id]) do
       {:ok, person}
     else
-      _ -> {:error, {:not_found, "Person not found"}}
+      nil -> {:error, {:not_found, "Person not found"}}
+      err -> err
     end
   end
 

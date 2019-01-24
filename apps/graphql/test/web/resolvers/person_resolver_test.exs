@@ -111,7 +111,7 @@ defmodule GraphQLWeb.PersonResolverTest do
   setup :set_mox_global
 
   setup context do
-    conn = put_scope(context.conn, "person:read person:reset_authentication_method")
+    conn = put_scope(context.conn, "person:read")
 
     {:ok, %{conn: conn}}
   end
@@ -263,6 +263,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       resp_body =
         conn
+        |> put_scope("person:reset_authentication_method")
         |> post_query(@person_reset_auth_query, input_person_id(person.id))
         |> json_response(200)
 
@@ -277,6 +278,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       resp_body =
         conn
+        |> put_scope("person:reset_authentication_method")
         |> post_query(@person_reset_auth_query, input_person_id(UUID.generate()))
         |> json_response(200)
 
@@ -284,6 +286,36 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       assert %{"errors" => [error]} = resp_body
       assert "NOT_FOUND" == error["extensions"]["code"]
+    end
+
+    test "person inactive", %{conn: conn} do
+      expect(RPCWorkerMock, :run, fn _, _, :reset_auth_method, _ ->
+        {:error, {:conflict, "Invalid status MPI for this action"}}
+      end)
+
+      resp_body =
+        conn
+        |> put_scope("person:reset_authentication_method")
+        |> post_query(@person_reset_auth_query, input_person_id(UUID.generate()))
+        |> json_response(200)
+
+      refute get_in(resp_body, ~w(data person))
+
+      assert %{"errors" => [error]} = resp_body
+      assert "CONFLICT" == error["extensions"]["code"]
+    end
+
+    test "scope not allowed", %{conn: conn} do
+      resp_body =
+        conn
+        |> put_scope("person:read")
+        |> post_query(@person_reset_auth_query, input_person_id(UUID.generate()))
+        |> json_response(200)
+
+      refute get_in(resp_body, ~w(data person))
+
+      assert %{"errors" => [error]} = resp_body
+      assert "FORBIDDEN" == error["extensions"]["code"]
     end
   end
 
