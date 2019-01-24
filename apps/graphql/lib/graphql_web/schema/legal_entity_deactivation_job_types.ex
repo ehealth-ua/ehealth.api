@@ -48,7 +48,11 @@ defmodule GraphQLWeb.Schema.LegalEntityDeactivationJobTypes do
 
   input_object :legal_entity_deactivation_job_filter do
     field(:status, :legal_entity_deactivation_job_status)
-    field(:legal_entity_id, :string)
+    field(:deactivated_legal_entity, :deactivated_legal_entity_filter)
+  end
+
+  input_object :deactivated_legal_entity_filter do
+    field(:edrpou, :string)
   end
 
   enum :legal_entity_deactivation_job_order_by do
@@ -72,7 +76,7 @@ defmodule GraphQLWeb.Schema.LegalEntityDeactivationJobTypes do
     field(:started_at, non_null(:datetime))
     field(:ended_at, :datetime)
     field(:result, :string)
-    field(:legal_entity_id, non_null(:string))
+    field(:deactivated_legal_entity, non_null(:mergee_legal_entity_metadata))
   end
 
   enum :legal_entity_deactivation_job_status do

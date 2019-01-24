@@ -23,7 +23,6 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
         legalEntityDeactivationJob {
           id
           databaseId
-          legalEntityId
           status
           endedAt
         }
@@ -148,15 +147,15 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
     test "filter by status and legal_entity_id", %{conn: conn} do
       legal_entity1 = insert(:prm, :legal_entity)
       legal_entity2 = insert(:prm, :legal_entity)
-      {:ok, job_id1, _} = create_job(legal_entity1.id)
+      {:ok, job_id1, _} = create_job(legal_entity1)
       TasKafkaJobs.processed(job_id1, :done)
-      {:ok, job_id2, _} = create_job(legal_entity1.id)
+      {:ok, job_id2, _} = create_job(legal_entity1)
       TasKafkaJobs.processed(job_id2, :done)
-      {:ok, job_id3, _} = create_job(legal_entity1.id)
+      {:ok, job_id3, _} = create_job(legal_entity1)
       TasKafkaJobs.processed(job_id3, :done)
-      {:ok, job_id4, _} = create_job(legal_entity1.id)
+      {:ok, job_id4, _} = create_job(legal_entity1)
       TasKafkaJobs.failed(job_id4, :error)
-      {:ok, job_id5, _} = create_job(legal_entity2.id)
+      {:ok, job_id5, _} = create_job(legal_entity2)
       TasKafkaJobs.processed(job_id5, :done)
 
       query = """
@@ -179,7 +178,11 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
               startedAt
               endedAt
               result
-              legal_entity_id
+              deactivatedLegalEntity {
+                id
+                name
+                edrpou
+              }
             }
           }
         }
@@ -189,7 +192,9 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
         first: 2,
         filter: %{
           status: "PROCESSED",
-          legal_entity_id: legal_entity1.id
+          deactivated_legal_entity: %{
+            edrpou: legal_entity1.edrpou
+          }
         },
         order_by: "STARTED_AT_DESC",
         after: nil
@@ -229,7 +234,9 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
         first: 3,
         filter: %{
           status: "PROCESSED",
-          legal_entity_id: legal_entity1.id
+          deactivated_legal_entity: %{
+            edrpou: legal_entity1.edrpou
+          }
         },
         order_by: "STARTED_AT_ASC",
         after: resp["pageInfo"]["endCursor"]
@@ -248,13 +255,13 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
 
     test "order_by", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      {:ok, job_id1, _} = create_job(legal_entity.id)
+      {:ok, job_id1, _} = create_job(legal_entity)
       TasKafkaJobs.processed(job_id1, :done)
-      {:ok, job_id2, _} = create_job(legal_entity.id)
+      {:ok, job_id2, _} = create_job(legal_entity)
       TasKafkaJobs.processed(job_id2, :done)
-      {:ok, job_id3, _} = create_job(legal_entity.id)
+      {:ok, job_id3, _} = create_job(legal_entity)
       TasKafkaJobs.processed(job_id3, :done)
-      {:ok, job_id4, _} = create_job(legal_entity.id)
+      {:ok, job_id4, _} = create_job(legal_entity)
       TasKafkaJobs.processed(job_id4, :done)
 
       query = """
@@ -275,7 +282,9 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
       variables = %{
         first: 10,
         filter: %{
-          legal_entity_id: legal_entity.id
+          deactivated_legal_entity: %{
+            edrpou: legal_entity.edrpou
+          }
         },
         order_by: "STARTED_AT_DESC"
       }
@@ -291,7 +300,9 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
       variables = %{
         first: 10,
         filter: %{
-          legal_entity_id: legal_entity.id
+          deactivated_legal_entity: %{
+            edrpou: legal_entity.edrpou
+          }
         },
         order_by: "STARTED_AT_ASC"
       }
@@ -313,7 +324,7 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
 
     test "success", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      {:ok, job_id, _} = create_job(legal_entity.id)
+      {:ok, job_id, _} = create_job(legal_entity)
       TasKafkaJobs.processed(job_id, :done)
       id = Node.to_global_id("LegalEntityDeactivationJob", job_id)
 
@@ -326,7 +337,11 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
             startedAt
             endedAt
             result
-            legal_entity_id
+            deactivatedLegalEntity{
+              id
+              name
+              edrpou
+            }
           }
         }
       """
@@ -339,7 +354,7 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
         |> json_response(200)
         |> get_in(~w(data legalEntityDeactivationJob))
 
-      assert legal_entity.id == resp["legal_entity_id"]
+      assert legal_entity.edrpou == resp["deactivatedLegalEntity"]["edrpou"]
       assert "PROCESSED" == resp["status"]
       assert Jason.encode!(:done) == resp["result"]
     end
@@ -364,8 +379,9 @@ defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
     end
   end
 
-  defp create_job(legal_entity_id) do
-    {:ok, job} = TasKafkaJobs.create(%{"legal_entity_id" => legal_entity_id}, @legal_entity_deactivation_type)
+  defp create_job(legal_entity) do
+    meta = %{deactivated_legal_entity: Map.take(legal_entity, ~w(id name edrpou)a)}
+    {:ok, job} = TasKafkaJobs.create(meta, @legal_entity_deactivation_type)
     {:ok, ObjectId.encode!(job._id), job}
   end
 
