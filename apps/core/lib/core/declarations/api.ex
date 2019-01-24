@@ -191,7 +191,7 @@ defmodule Core.Declarations.API do
     end
   end
 
-  def terminate(id, user_id, params, headers) do
+  def terminate(id, user_id, params, headers, check_user_access? \\ true) do
     terminate_params = %{
       "reason_description" => params["reason_description"],
       "updated_by" => user_id,
@@ -201,15 +201,18 @@ defmodule Core.Declarations.API do
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, declaration} <- get_declaration_by_id(id, headers),
          {:status, true} <- {:status, declaration["status"] == "active"},
-         {:person_id, true} <- {:person_id, user["person_id"] == get_in(declaration, ~w(person id))},
+         :ok <- do_check_user_access(check_user_access?, user, declaration),
          {:ok, %{"data" => declaration}} <- @ops_api.terminate_declaration(id, terminate_params, headers) do
       {:ok, declaration}
     else
       {:status, false} -> {:conflict, "Declaration is not active"}
-      {:person_id, false} -> {:error, :forbidden}
       error -> error
     end
   end
+
+  defp do_check_user_access(true, _, _), do: :ok
+  defp do_check_user_access(false, %{"person_id" => id}, %{"person" => %{"id" => id}}), do: :ok
+  defp do_check_user_access(false, _, _), do: {:error, :forbidden}
 
   def terminate_declarations(attrs, headers) do
     user_id = get_consumer_id(headers)
