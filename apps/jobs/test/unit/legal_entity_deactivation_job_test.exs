@@ -6,8 +6,10 @@ defmodule Unit.LegalEntityDeactivationJobTest do
   alias Core.ContractRequests
   alias Core.ContractRequests.RequestPack
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Core.Employees
   alias Core.Employees.Employee
   alias Jobs.LegalEntityDeactivationJob
@@ -17,6 +19,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
   setup :verify_on_exit!
 
   @capitation CapitationContractRequest.type()
+  @reimbursement ReimbursementContractRequest.type()
 
   describe "consume legal entity deactivation event" do
     test "deactivates legal entity" do
@@ -71,7 +74,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
       assert actor_id == employee.updated_by
     end
 
-    test "deactivates contract" do
+    test "deactivates capitation contract" do
       actor_id = Ecto.UUID.generate()
       contract = insert(:prm, :capitation_contract)
 
@@ -94,7 +97,30 @@ defmodule Unit.LegalEntityDeactivationJobTest do
       assert actor_id == contract.updated_by
     end
 
-    test "deactivates contract request" do
+    test "deactivates reimbursement contract" do
+      actor_id = Ecto.UUID.generate()
+      contract = insert(:prm, :reimbursement_contract)
+
+      assert ReimbursementContract.status(:verified) == contract.status
+      refute actor_id == contract.updated_by
+
+      contract_record = %{
+        schema: "contract",
+        record: contract
+      }
+
+      assert :ok ==
+               LegalEntityDeactivationJob.consume(%LegalEntityDeactivationJob{
+                 actor_id: actor_id,
+                 records: [contract_record]
+               })
+
+      contract = Contracts.get_by_id(contract.id, @reimbursement)
+      assert ReimbursementContract.status(:terminated) == contract.status
+      assert actor_id == contract.updated_by
+    end
+
+    test "deactivates capitation contract request" do
       actor_id = Ecto.UUID.generate()
       contract_request = insert(:il, :capitation_contract_request)
 
@@ -121,6 +147,36 @@ defmodule Unit.LegalEntityDeactivationJobTest do
         |> ContractRequests.get_by_id!()
 
       assert CapitationContractRequest.status(:terminated) == contract_request.status
+      assert actor_id == contract_request.updated_by
+    end
+
+    test "deactivates reimbursement contract request" do
+      actor_id = Ecto.UUID.generate()
+      contract_request = insert(:il, :reimbursement_contract_request)
+
+      assert ReimbursementContractRequest.status(:new) == contract_request.status
+      refute actor_id == contract_request.updated_by
+
+      contract_request_record = %{
+        schema: "contract_request",
+        record: contract_request
+      }
+
+      assert :ok ==
+               LegalEntityDeactivationJob.consume(%LegalEntityDeactivationJob{
+                 actor_id: actor_id,
+                 records: [contract_request_record]
+               })
+
+      contract_request =
+        contract_request
+        |> Map.take([:id, :type])
+        |> Jason.encode!()
+        |> Jason.decode!()
+        |> RequestPack.new()
+        |> ContractRequests.get_by_id!()
+
+      assert ReimbursementContractRequest.status(:terminated) == contract_request.status
       assert actor_id == contract_request.updated_by
     end
 

@@ -7,8 +7,10 @@ defmodule Jobs.LegalEntityDeactivationJob do
   import Ecto.Query
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
+  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
   alias Core.Employees.EmployeeUpdater
   alias Core.LegalEntities
@@ -137,8 +139,16 @@ defmodule Jobs.LegalEntityDeactivationJob do
   end
 
   defp get_contract_requests_to_deactivate(legal_entity_id) do
+    Enum.concat([
+      get_capitation_contract_requests_to_deactivate(legal_entity_id),
+      get_reimbursement_contract_requests_to_deactivate(legal_entity_id)
+    ])
+  end
+
+  defp get_capitation_contract_requests_to_deactivate(legal_entity_id) do
     CapitationContractRequest
     |> select([cr], %{schema: "contract_request", record: cr})
+    |> where([cr], cr.type == ^CapitationContractRequest.type())
     |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
     |> where(
       [cr],
@@ -153,11 +163,47 @@ defmodule Jobs.LegalEntityDeactivationJob do
     |> Repo.all()
   end
 
+  defp get_reimbursement_contract_requests_to_deactivate(legal_entity_id) do
+    ReimbursementContractRequest
+    |> select([cr], %{schema: "contract_request", record: cr})
+    |> where([cr], cr.type == ^ReimbursementContractRequest.type())
+    |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
+    |> where(
+      [cr],
+      cr.status in ^[
+        ReimbursementContractRequest.status(:new),
+        ReimbursementContractRequest.status(:in_process),
+        ReimbursementContractRequest.status(:approved),
+        ReimbursementContractRequest.status(:pending_nhs_sign),
+        ReimbursementContractRequest.status(:nhs_signed)
+      ]
+    )
+    |> Repo.all()
+  end
+
   defp get_contracts_to_deactivate(legal_entity_id) do
+    Enum.concat([
+      get_capitation_contracts_to_deactivate(legal_entity_id),
+      get_reimbursement_contracts_to_deactivate(legal_entity_id)
+    ])
+  end
+
+  defp get_capitation_contracts_to_deactivate(legal_entity_id) do
     CapitationContract
     |> select([c], %{schema: "contract", record: c})
+    |> where([c], c.type == ^CapitationContract.type())
     |> where([c], c.contractor_legal_entity_id == ^legal_entity_id)
     |> where([c], c.status == ^CapitationContract.status(:verified))
+    |> where([c], c.is_active)
+    |> PRMRepo.all()
+  end
+
+  defp get_reimbursement_contracts_to_deactivate(legal_entity_id) do
+    ReimbursementContract
+    |> select([c], %{schema: "contract", record: c})
+    |> where([c], c.type == ^ReimbursementContract.type())
+    |> where([c], c.contractor_legal_entity_id == ^legal_entity_id)
+    |> where([c], c.status == ^ReimbursementContract.status(:verified))
     |> where([c], c.is_active)
     |> PRMRepo.all()
   end
