@@ -755,25 +755,39 @@ defmodule Core.ContractRequests.Validator do
   end
 
   def validate_end_date(%{"start_date" => start_date, "end_date" => end_date}) do
-    start_date = Date.from_iso8601!(start_date)
-    end_date = Date.from_iso8601!(end_date)
-    days_in_year = if Date.leap_year?(start_date) or Date.leap_year?(end_date), do: 366, else: 365
+    with {:ok, start_date} <- parse_date(start_date, "start_date"),
+         {:ok, end_date} <- parse_date(end_date, "end_date") do
+      days_in_year = if Date.leap_year?(start_date) or Date.leap_year?(end_date), do: 366, else: 365
 
-    cond do
-      Date.diff(end_date, start_date) > days_in_year ->
+      cond do
+        Date.diff(end_date, start_date) > days_in_year ->
+          Error.dump(%ValidationError{
+            description: "The year of start_date and and date must be equal",
+            path: "$.end_date"
+          })
+
+        Date.compare(start_date, end_date) == :gt ->
+          Error.dump(%ValidationError{
+            description: "end_date should be equal or greater than start_date",
+            path: "$.end_date"
+          })
+
+        true ->
+          :ok
+      end
+    end
+  end
+
+  defp parse_date(date, type) do
+    case Date.from_iso8601(date) do
+      {:ok, _} = parsed_date ->
+        parsed_date
+
+      _ ->
         Error.dump(%ValidationError{
-          description: "The year of start_date and and date must be equal",
-          path: "$.end_date"
+          description: "Invalid date format",
+          path: "$.#{type}"
         })
-
-      Date.compare(start_date, end_date) == :gt ->
-        Error.dump(%ValidationError{
-          description: "end_date should be equal or greater than start_date",
-          path: "$.end_date"
-        })
-
-      true ->
-        :ok
     end
   end
 
