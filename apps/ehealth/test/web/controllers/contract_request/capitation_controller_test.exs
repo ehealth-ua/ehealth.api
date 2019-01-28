@@ -735,6 +735,55 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert_error(resp, "$.end_date", "The year of start_date and and date must be equal")
     end
 
+    test "invalid end_date format", %{conn: conn} do
+      msp()
+
+      %{
+        legal_entity: legal_entity,
+        division: division,
+        employee: employee,
+        party_user: party_user
+      } = prepare_data()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+      end)
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      start_date = contract_start_date()
+
+      params =
+        division
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> Map.put("start_date", Date.to_iso8601(start_date))
+        |> Map.put("end_date", "2019-02-31")
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert_error(resp, "$.end_date", "Invalid date format")
+    end
+
     test "contract request overlaps w/ active contract dates (earlier)", %{conn: conn} do
       msp()
 
