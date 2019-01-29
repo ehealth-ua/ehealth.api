@@ -97,7 +97,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
               street_type: "вулиця",
               street: "Ніжинська",
               settlement_type: "місто",
-              settlement_id: "43432432",
+              settlement_id: "f2d556b4-86d5-4afe-87b8-3908ad947106",
               settlement: "Київ",
               region: "Бердичівський",
               country: "UA",
