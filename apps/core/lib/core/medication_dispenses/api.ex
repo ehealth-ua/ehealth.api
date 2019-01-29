@@ -203,7 +203,9 @@ defmodule Core.MedicationDispense.API do
     with {:ok, medication_dispense, references} <- get_by_id(params, headers),
          :ok <- validate_status_transition(medication_dispense, "REJECTED"),
          {:ok, %{"data" => medication_dispense}} <-
-           @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers) do
+           @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
+         {:ok, details} <- load_dispense_medications(medication_dispense),
+         medication_dispense <- Map.put(medication_dispense, "details", details) do
       {:ok, medication_dispense, references}
     end
   end
