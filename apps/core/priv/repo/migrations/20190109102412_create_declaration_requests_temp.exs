@@ -1,4 +1,4 @@
-defmodule Core.Repo.Migrations.CopyToDeclarationRequestDataColumns do
+defmodule Core.Repo.Migrations.CreateDeclarationRequestTempObjects do
   use Ecto.Migration
 
   if Code.ensure_loaded?(Core.DeclarationRequests.DeclarationRequestTemp) do
