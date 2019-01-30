@@ -3,9 +3,11 @@ defmodule Ehealth.MixProject do
 
   use Mix.Project
 
+  @version "8.11.0"
   def project do
     [
       apps_path: "apps",
+      version: @version,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
@@ -25,7 +27,8 @@ defmodule Ehealth.MixProject do
       {:distillery, "~> 1.5.3", runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]},
       {:ex_doc, "~> 0.19.2", only: :dev, runtime: false},
-      {:credo, "~> 1.0", only: [:dev, :test]}
+      {:credo, "~> 1.0", only: [:dev, :test]},
+      {:git_ops, "~> 0.6.0", only: [:dev]}
     ]
   end
 end
