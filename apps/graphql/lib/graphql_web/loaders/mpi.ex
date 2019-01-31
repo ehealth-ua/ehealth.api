@@ -3,5 +3,5 @@ defmodule GraphQLWeb.Loaders.MPI do
 
   alias GraphQLWeb.Dataloader.RPC, as: DataloaderRPC
 
-  def data, do: DataloaderRPC.new("mpi")
+  def data, do: DataloaderRPC.new("mpi", Core.Rpc)
 end

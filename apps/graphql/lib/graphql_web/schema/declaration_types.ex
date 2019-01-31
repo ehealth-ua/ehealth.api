@@ -131,7 +131,7 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
     field(:declaration_number, non_null(:string))
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))
-    field(:signed_at, non_null(:naive_datetime))
+    field(:signed_at, non_null(:datetime))
     field(:status, non_null(:declaration_status))
     field(:scope, non_null(:string))
     field(:reason, :string)

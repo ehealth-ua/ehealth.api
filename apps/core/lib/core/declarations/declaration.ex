@@ -19,10 +19,8 @@ defmodule Core.Declarations.Declaration do
     field(:updated_by, UUID)
     field(:is_active, :boolean, default: false)
     field(:scope, :string)
-    field(:seed, :string)
     field(:reason, :string)
     field(:reason_description, :string)
-    field(:overlimit, :boolean, default: false)
     field(:declaration_number, :string)
 
     timestamps(type: :utc_datetime)

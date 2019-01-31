@@ -295,7 +295,7 @@ defmodule Core.Declarations.API do
   end
 
   def get_declaration_by(params) when is_list(params) do
-    with %{} = declaration <- @rpc_worker.run("ops", Core.Rpc, :get_declaration, [params]) do
+    with {:ok, declaration} <- @rpc_worker.run("ops", OPS.Rpc, :get_declaration, [params]) do
       {:ok, declaration}
     else
       _ -> {:error, {:not_found, "Declaration not found"}}
@@ -303,7 +303,7 @@ defmodule Core.Declarations.API do
   end
 
   def list(filter, order_by, {_limit, _offset} = cursor) when is_list(filter) and is_list(order_by) do
-    with {:ok, declarations} <- @rpc_worker.run("ops", Core.Rpc, :search_declarations, [filter, order_by, cursor]) do
+    with {:ok, declarations} <- @rpc_worker.run("ops", OPS.Rpc, :search_declarations, [filter, order_by, cursor]) do
       {:ok, declarations}
     end
   end

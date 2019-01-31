@@ -3,5 +3,5 @@ defmodule GraphQLWeb.Loaders.OPS do
 
   alias GraphQLWeb.Dataloader.RPC, as: DataloaderRPC
 
-  def data, do: DataloaderRPC.new("ops")
+  def data, do: DataloaderRPC.new("ops", OPS.Rpc)
 end

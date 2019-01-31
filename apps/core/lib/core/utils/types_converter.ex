@@ -3,6 +3,8 @@ defmodule Core.Utils.TypesConverter do
   Helps convert types
   """
 
+  def strings_to_keys(%{__struct__: struct} = val) when struct in [Date, DateTime], do: val
+
   def strings_to_keys(%{} = map) do
     for {key, val} <- map, into: %{}, do: {string_to_atom(key), strings_to_keys(val)}
   end
