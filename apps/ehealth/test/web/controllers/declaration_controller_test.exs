@@ -2,8 +2,17 @@ defmodule EHealth.Web.DeclarationControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import Mox
+
+  alias Ecto.Changeset
+  alias Core.Declarations.Declaration
   alias Ecto.UUID
+
+  @status_active "active"
+  @status_pending "pending_verification"
+  @status_rejected "rejected"
 
   setup :verify_on_exit!
 
@@ -414,58 +423,55 @@ defmodule EHealth.Web.DeclarationControllerTest do
   end
 
   describe "approve/2 - Happy case" do
-    test "it transitions declaration to approved status" do
+    test "it transitions declaration to active status" do
       nhs()
-      {declaration, declaration_id} = get_declaration(%{}, 200)
-      user_id = UUID.generate()
+      legal_entity = insert(:prm, :legal_entity)
+      insert(:prm, :legal_entity)
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: @status_pending, legal_entity_id: legal_entity.id)
 
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
+        assert id == declaration.id
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
-        {:ok,
-         %{
-           "meta" => %{"code" => 200},
-           "data" => Map.merge(elem(declaration, 1)["data"], %{"status" => "approved", "updated_by" => user_id})
-         }}
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [id, patch] ->
+        assert id == declaration.id
+        assert @status_active == patch["status"]
+        assert consumer_id == patch["updated_by"]
+
+        {:ok, Map.merge(declaration, strings_to_keys(patch))}
       end)
 
-      response =
-        build_conn()
-        |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+      assert response =
+               build_conn()
+               |> put_consumer_id_header(consumer_id)
+               |> put_client_id_header(legal_entity.id)
+               |> patch("/api/declarations/#{declaration.id}/actions/approve")
+               |> json_response(200)
 
-      response = json_response(response, 200)
-
-      assert "approved" = response["data"]["status"]
+      assert @status_active == response["data"]["status"]
     end
   end
 
   describe "approve/2 - not owner of declaration" do
     test "a 403 error is returned" do
       msp()
-      {declaration, declaration_id} = get_declaration(%{}, 200)
 
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
-      end)
+      %{id: declaration_id} = declaration = build(:declaration, status: @status_pending)
 
-      response =
-        build_conn()
-        |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: ^declaration_id]] -> {:ok, declaration} end)
 
-      assert json_response(response, 403)
+      assert build_conn()
+             |> put_client_id_header(UUID.generate())
+             |> patch("/api/declarations/#{declaration_id}/actions/approve")
+             |> json_response(403)
     end
   end
 
   describe "approve/2 - declaration was inactive" do
     test "a 404 error is returned (as if declaration never existed)" do
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        {:error, :not_found}
-      end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> nil end)
 
       response =
         build_conn()
@@ -479,22 +485,29 @@ defmodule EHealth.Web.DeclarationControllerTest do
   describe "approve/2 - could not transition status" do
     test "a 409 error is returned" do
       nhs()
-      {declaration, declaration_id} = get_declaration(%{}, 200)
-      user_id = UUID.generate()
 
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: @status_active)
+
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
+        assert id == declaration.id
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
-        {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => "some_eview_message"}}}
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [_, _] ->
+        changeset =
+          %Declaration{}
+          |> Changeset.cast(%{status: @status_pending, updated_by: UUID.generate()}, ~w(status updated_by)a)
+          |> Changeset.add_error(:status, "Incorrect status transition.")
+
+        {:error, changeset}
       end)
 
       response =
         build_conn()
-        |> put_req_header("x-consumer-id", user_id)
+        |> put_consumer_id_header(consumer_id)
         |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/approve")
+        |> patch("/api/declarations/#{declaration.id}/actions/approve")
 
       assert json_response(response, 409)
     end
@@ -505,108 +518,85 @@ defmodule EHealth.Web.DeclarationControllerTest do
       msp()
 
       legal_entity = insert(:prm, :legal_entity)
-      division = insert(:prm, :division)
       insert(:prm, :legal_entity)
-      person_id = UUID.generate()
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: @status_pending, legal_entity_id: legal_entity.id)
 
-      %{id: employee_id} =
-        insert(
-          :prm,
-          :employee,
-          legal_entity: legal_entity,
-          division: division
-        )
-
-      {declaration, declaration_id} =
-        get_declaration(
-          %{
-            id: person_id,
-            legal_entity_id: legal_entity.id,
-            division_id: division.id,
-            employee_id: employee_id,
-            person_id: person_id
-          },
-          200
-        )
-
-      user_id = UUID.generate()
-
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
+        assert id == declaration.id
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
-        {:ok,
-         %{
-           "meta" => %{"code" => 200},
-           "data" => Map.merge(elem(declaration, 1)["data"], %{"status" => "rejected", "updated_by" => user_id})
-         }}
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [id, patch] ->
+        assert id == declaration.id
+        assert @status_rejected == patch["status"]
+        assert consumer_id == patch["updated_by"]
+
+        {:ok, Map.merge(declaration, strings_to_keys(patch))}
       end)
 
-      response =
-        build_conn()
-        |> put_req_header("x-consumer-id", user_id)
-        |> put_client_id_header(legal_entity.id)
-        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+      assert response =
+               build_conn()
+               |> put_consumer_id_header(consumer_id)
+               |> put_client_id_header(legal_entity.id)
+               |> patch("/api/declarations/#{declaration.id}/actions/reject")
+               |> json_response(200)
 
-      response = json_response(response, 200)
-
-      assert "rejected" = response["data"]["status"]
+      assert @status_rejected = response["data"]["status"]
     end
   end
 
   describe "reject/2 - not owner of declaration" do
     test "a 403 error is returned" do
       msp()
-      {declaration, declaration_id} = get_declaration(%{}, 200)
+      declaration = build(:declaration, status: @status_pending)
 
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
-      end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
 
-      response =
-        build_conn()
-        |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/reject")
-
-      assert json_response(response, 403)
+      assert build_conn()
+             |> put_client_id_header(UUID.generate())
+             |> patch("/api/declarations/#{declaration.id}/actions/reject")
+             |> json_response(403)
     end
   end
 
   describe "reject/2 - declaration was inactive" do
     test "a 404 error is returned (as if declaration never existed)" do
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        {:error, :not_found}
-      end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> nil end)
 
-      response =
-        build_conn()
-        |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{UUID.generate()}/actions/reject")
-
-      assert json_response(response, 404)
+      assert build_conn()
+             |> put_client_id_header(UUID.generate())
+             |> patch("/api/declarations/#{UUID.generate()}/actions/reject")
+             |> json_response(404)
     end
   end
 
   describe "reject/2 - could not transition status" do
     test "a 409 error is returned" do
       nhs()
-      {declaration, declaration_id} = get_declaration(%{}, 200)
-      user_id = UUID.generate()
 
-      expect(OPSMock, :get_declaration_by_id, fn _params, _headers ->
-        declaration
+      consumer_id = UUID.generate()
+      declaration = build(:declaration, status: @status_active)
+
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
+        assert id == declaration.id
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn _id, _params, _headers ->
-        {:error, %{"meta" => %{"code" => 422}, "error" => %{"message" => "some_eview_message"}}}
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [_, _] ->
+        changeset =
+          %Declaration{}
+          |> Changeset.cast(%{status: @status_pending, updated_by: UUID.generate()}, ~w(status updated_by)a)
+          |> Changeset.add_error(:status, "Incorrect status transition.")
+
+        {:error, changeset}
       end)
 
       response =
         build_conn()
-        |> put_req_header("x-consumer-id", user_id)
+        |> put_consumer_id_header(consumer_id)
         |> put_client_id_header(UUID.generate())
-        |> patch("/api/declarations/#{declaration_id}/actions/reject")
+        |> patch("/api/declarations/#{declaration.id}/actions/reject")
 
       assert json_response(response, 409)
     end

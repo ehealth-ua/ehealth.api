@@ -71,10 +71,8 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   end
 
   defp update_declaration(id, patch, headers) do
-    with {:ok, %{"data" => declaration}} <- Declarations.update_declaration(id, patch, headers) do
-      declaration = response_to_ecto_struct(Declaration, declaration)
-
-      {:ok, %{declaration: declaration}}
+    with {:ok, declaration} <- Declarations.update_declaration(id, patch, headers) do
+      {:ok, %{declaration: response_to_ecto_struct(Declaration, declaration)}}
     else
       err -> render_error(err)
     end
@@ -87,9 +85,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     params = %{"reason_description" => args[:reason_description]}
 
     with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers, false) do
-      declaration = response_to_ecto_struct(Declaration, declaration)
-
-      {:ok, %{declaration: declaration}}
+      {:ok, %{declaration: response_to_ecto_struct(Declaration, declaration)}}
     else
       err -> render_error(err)
     end
