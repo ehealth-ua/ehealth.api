@@ -5,7 +5,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
   import Core.Expectations.Mithril, only: [nhs: 1]
   import Core.Factories
-  import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import Mox
 
   alias Ecto.UUID
@@ -110,7 +110,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     }
   """
 
+  @status_active "active"
+  @status_rejected "rejected"
   @status_pending "pending_verification"
+  @status_terminated "terminated"
 
   setup :verify_on_exit!
   setup :set_mox_global
@@ -292,26 +295,21 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   describe "approve declaration" do
     test "success", %{conn: conn} do
       consumer_id = UUID.generate()
-      declaration = build(:declaration, status: "pending_verification")
+      declaration = build(:declaration, status: @status_pending)
 
       nhs(2)
 
-      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
         assert id == declaration.id
-        {:ok, %{"data" => atoms_to_strings(declaration)}}
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn id, patch, _ ->
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [id, patch] ->
         assert id == declaration.id
-        assert "active" == patch["declaration"]["status"]
-        assert consumer_id == patch["declaration"]["updated_by"]
+        assert @status_active == patch["status"]
+        assert consumer_id == patch["updated_by"]
 
-        data =
-          declaration
-          |> atoms_to_strings()
-          |> Map.merge(patch["declaration"])
-
-        {:ok, %{"data" => data}}
+        {:ok, Map.merge(declaration, strings_to_keys(patch))}
       end)
 
       variables = %{input: %{id: Node.to_global_id("Declaration", declaration.id)}}
@@ -334,26 +332,21 @@ defmodule GraphQLWeb.DeclarationResolverTest do
   describe "reject declaration" do
     test "success", %{conn: conn} do
       consumer_id = UUID.generate()
-      declaration = build(:declaration, status: "pending_verification")
+      declaration = build(:declaration, status: @status_pending)
 
       nhs(2)
 
-      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, [[id: id]] ->
         assert id == declaration.id
-        {:ok, %{"data" => atoms_to_strings(declaration)}}
+        {:ok, declaration}
       end)
 
-      expect(OPSMock, :update_declaration, fn id, patch, _ ->
+      expect(RPCWorkerMock, :run, fn _, _, :update_declaration, [id, patch] ->
         assert id == declaration.id
-        assert "rejected" == patch["declaration"]["status"]
-        assert consumer_id == patch["declaration"]["updated_by"]
+        assert @status_rejected == patch["status"]
+        assert consumer_id == patch["updated_by"]
 
-        data =
-          declaration
-          |> atoms_to_strings()
-          |> Map.merge(patch["declaration"])
-
-        {:ok, %{"data" => data}}
+        {:ok, Map.merge(declaration, strings_to_keys(patch))}
       end)
 
       variables = %{input: %{id: Node.to_global_id("Declaration", declaration.id)}}
@@ -381,26 +374,10 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       consumer_id = UUID.generate()
 
       %{id: client_id} = insert(:prm, :legal_entity)
-      person = build(:person, id: person_id)
+      person = build(:mpi_person, id: person_id)
       declaration = build(:declaration, id: database_id, person_id: person_id, legal_entity_id: client_id)
 
       nhs(2)
-
-      expect(OPSMock, :get_declaration_by_id, fn id, _headers ->
-        assert id == database_id
-        {:ok, %{"data" => atoms_to_strings(declaration)}}
-      end)
-
-      expect(OPSMock, :terminate_declaration, fn id, _, _ ->
-        assert id == declaration.id
-
-        {:ok, %{"data" => atoms_to_strings(declaration)}}
-      end)
-
-      expect(MPIMock, :person, fn id, _headers ->
-        assert id == person_id
-        {:ok, %{"data" => atoms_to_strings(person)}}
-      end)
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         assert id == consumer_id
@@ -414,6 +391,14 @@ defmodule GraphQLWeb.DeclarationResolverTest do
              "person_id" => person_id
            }
          }}
+      end)
+
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+
+      expect(RPCWorkerMock, :run, fn _, _, :terminate_declaration, [id, _] ->
+        assert id == declaration.id
+        {:ok, %{declaration | status: @status_terminated}}
       end)
 
       variables = %{input: %{id: Node.to_global_id("Declaration", database_id), reason_description: reason_description}}

@@ -1,10 +1,11 @@
 defmodule Core.Declarations.API do
   @moduledoc false
 
-  import Ecto.Changeset
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Core.Context, only: [get_context_params: 2]
-  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
+  import Core.Validators.Common, only: [validate_equal: 3]
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1, atoms_to_strings: 1]
+  import Ecto.Changeset
 
   alias Core.API.MediaStorage
   alias Core.Divisions
@@ -183,11 +184,21 @@ defmodule Core.Declarations.API do
          do: {:ok, declaration_data}
   end
 
-  def update_declaration(id, attrs, headers) do
-    with {:ok, %{"data" => declaration}} <- @ops_api.get_declaration_by_id(id, headers),
-         :ok <- check_declaration_access(declaration["legal_entity_id"], headers),
-         :ok <- active?(declaration) do
-      @ops_api.update_declaration(declaration["id"], %{"declaration" => attrs}, headers)
+  def update_declaration(id, params, headers) do
+    with {:ok, declaration} <- get_declaration_by(id: id),
+         :ok <- check_declaration_access(declaration.legal_entity_id, headers),
+         :ok <- validate_equal(declaration.is_active, true, {:error, {:not_found, "Declaration not found"}}),
+         {:ok, declaration} <- @rpc_worker.run("ops", OPS.Rpc, :update_declaration, [id, params]) do
+      {:ok, declaration}
+    else
+      # Preserve rest answer from OPS
+      {:error, %Ecto.Changeset{}} ->
+        {:error,
+         {:conflict,
+          "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors."}}
+
+      err ->
+        err
     end
   end
 
@@ -199,19 +210,18 @@ defmodule Core.Declarations.API do
     }
 
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
-         {:ok, declaration} <- get_declaration_by_id(id, headers),
-         {:status, true} <- {:status, declaration["status"] == "active"},
-         :ok <- do_check_user_access(check_user_access?, user, declaration),
-         {:ok, %{"data" => declaration}} <- @ops_api.terminate_declaration(id, terminate_params, headers) do
+         {:ok, declaration} <- get_declaration_by(id: id),
+         :ok <- check_declaration_access(declaration.legal_entity_id, headers),
+         {:ok, person} <- Persons.get_by_id(declaration.person_id),
+         :ok <- validate_equal(declaration.status, "active", {:error, {:conflict, "Declaration is not active"}}),
+         :ok <- do_check_user_access(check_user_access?, user, person),
+         {:ok, declaration} <- @rpc_worker.run("ops", OPS.Rpc, :terminate_declaration, [id, terminate_params]) do
       {:ok, declaration}
-    else
-      {:status, false} -> {:conflict, "Declaration is not active"}
-      error -> error
     end
   end
 
   defp do_check_user_access(false, _, _), do: :ok
-  defp do_check_user_access(true, %{"person_id" => id}, %{"person" => %{"id" => id}}), do: :ok
+  defp do_check_user_access(true, %{"person_id" => id}, %{id: id}), do: :ok
   defp do_check_user_access(true, _, _), do: {:error, :forbidden}
 
   def terminate_declarations(attrs, headers) do
@@ -271,6 +281,18 @@ defmodule Core.Declarations.API do
     end
   end
 
+  def load_declaration_relations(%{legal_entity_id: legal_entity_id} = declaration, headers) do
+    declaration = atoms_to_strings(declaration)
+
+    person = load_relation(@mpi_api, :person, declaration["person_id"], headers)
+    legal_entity = LegalEntities.get_by_id(legal_entity_id)
+    division = Divisions.get_by_id(declaration["division_id"])
+    employee = Employees.get_by_id(declaration["employee_id"])
+    declaration_data = merge_related_data(declaration, person, legal_entity, division, employee)
+
+    {:ok, declaration_data}
+  end
+
   defp check_declaration_access(legal_entity_id, headers) do
     case @mithril_api.get_client_type_name(get_client_id(headers), headers) do
       {:ok, nil} ->
@@ -313,7 +335,4 @@ defmodule Core.Declarations.API do
   end
 
   def legal_entity_allowed?(_, _), do: :ok
-
-  defp active?(%{"is_active" => true}), do: :ok
-  defp active?(%{"is_active" => false}), do: {:error, :not_found}
 end
