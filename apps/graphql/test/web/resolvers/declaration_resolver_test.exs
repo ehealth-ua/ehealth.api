@@ -135,7 +135,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
         ]
         |> Enum.zip()
         |> Enum.map(fn {person, division, employee, legal_entity, declaration_request} ->
-          build(:ops_declaration,
+          build(:declaration,
             status: @status_pending,
             person_id: person.id,
             division_id: division.id,
@@ -201,7 +201,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       person = build(:mpi_person)
 
       declaration =
-        build(:ops_declaration,
+        build(:declaration,
           division_id: division.id,
           employee_id: employee.id,
           legal_entity_id: legal_entity.id,
@@ -213,7 +213,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     end
 
     test "success by id", %{conn: conn, declaration: declaration, person: person} do
-      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> declaration end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, [person]} end)
 
       id = Node.to_global_id("Declaration", declaration.id)
@@ -234,7 +234,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
     test "success by declaration number", %{conn: conn, declaration: declaration, person: person} do
       %{id: declaration_id, declaration_number: declaration_number} = declaration
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> declaration end)
+      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, [person]} end)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->

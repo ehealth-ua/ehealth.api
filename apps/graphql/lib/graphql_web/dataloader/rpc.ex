@@ -7,14 +7,16 @@ defmodule GraphQLWeb.Dataloader.RPC do
 
   defstruct [
     :rpc_name,
+    :rpc_module,
     batches: %{},
     results: %{},
     options: []
   ]
 
-  def new(rpc_name, opts \\ []) when is_binary(rpc_name) do
+  def new(rpc_name, rpc_module, opts \\ []) when is_binary(rpc_name) and is_atom(rpc_module) do
     %__MODULE__{
       rpc_name: rpc_name,
+      rpc_module: rpc_module,
       options: [
         timeout: opts[:timeout] || 30_000
       ]
@@ -33,14 +35,14 @@ defmodule GraphQLWeb.Dataloader.RPC do
     defp handle_batch(source, {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids}) do
       filter = [{foreign_key, :in, MapSet.to_list(foreign_ids)}]
 
-      with {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, [filter]) do
+      with {:ok, results} <- @rpc_worker.run(source.rpc_name, source.rpc_module, rpc_function, [filter]) do
         Enum.into(results, %{}, fn item -> {Map.get(item, foreign_key), item} end)
       end
     end
 
     defp handle_batch(source, {{rpc_function, :many, foreign_key, args}, item_ids}) do
       with {:ok, params} <- prepare_params(args, foreign_key, item_ids),
-           {:ok, results} <- @rpc_worker.run(source.rpc_name, Core.Rpc, rpc_function, params) do
+           {:ok, results} <- @rpc_worker.run(source.rpc_name, source.rpc_module, rpc_function, params) do
         Enum.group_by(results, &Map.get(&1, foreign_key))
       end
     end

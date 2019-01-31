@@ -297,7 +297,7 @@ defmodule Core.MedicationRequestRequest.Validations do
       "status" => Enum.join([MedicationRequest.status(:active), MedicationRequest.status(:completed)], ",")
     }
 
-    case @rpc_worker.run("ops", Core.Rpc, :last_medication_request_dates, [search_params]) do
+    case @rpc_worker.run("ops", OPS.Rpc, :last_medication_request_dates, [search_params]) do
       {:ok, nil} ->
         {:ok, nil}
 
@@ -308,7 +308,7 @@ defmodule Core.MedicationRequestRequest.Validations do
 
       {:error, error} ->
         Logger.error(
-          "RPC fail: Core.Rpc.last_medication_request_dates: #{inspect(search_params)} with error #{inspect(error)}"
+          "RPC fail: OPS.Rpc.last_medication_request_dates: #{inspect(search_params)} with error #{inspect(error)}"
         )
 
         raise(RpcError, message: "Cannot fetch persons medication requests")

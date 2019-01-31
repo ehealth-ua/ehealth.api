@@ -2,8 +2,10 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias Absinthe.Relay.Connection
+  alias Ecto.Schema.Metadata
   alias GraphQLWeb.Loaders.PRM
 
   @type dataloader_tuple :: {:middleware, Absinthe.Middleware.Dataloader, term}
@@ -82,6 +84,13 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
         Connection.from_slice(Enum.take(records, limit), offset, opts)
       end
     end)
+  end
+
+  def response_to_ecto_struct(schema, response) do
+    # TODO: remove `strings_to_keys` when declarations api uses RPC
+    schema
+    |> struct(strings_to_keys(response))
+    |> Map.put(:__meta__, %Metadata{state: :build, source: {nil, nil}})
   end
 
   defp apply_key_function(fun, parent, args, res) when is_function(fun, 3), do: fun.(parent, args, res)

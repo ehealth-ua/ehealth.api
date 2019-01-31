@@ -134,8 +134,8 @@ defmodule GraphQLWeb.PersonResolverTest do
     test "success with search params", %{conn: conn} do
       persons = [person1 | _] = build_list(10, :mpi_person)
 
-      declaration1 = build(:ops_declaration, person_id: person1.id)
-      declarations = Enum.map(persons, &build(:ops_declaration, person_id: &1.id))
+      declaration1 = build(:declaration, person_id: person1.id)
+      declarations = Enum.map(persons, &build(:declaration, person_id: &1.id))
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration1 | declarations]} end)
@@ -166,7 +166,7 @@ defmodule GraphQLWeb.PersonResolverTest do
   describe "get by id" do
     test "success", %{conn: conn} do
       person = build(:mpi_person)
-      declaration = build(:ops_declaration, person_id: person.id)
+      declaration = build(:declaration, person_id: person.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
@@ -214,7 +214,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
     test "success with empty declaration batch", %{conn: conn} do
       person = build(:mpi_person)
-      declaration = build(:ops_declaration)
+      declaration = build(:declaration)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)

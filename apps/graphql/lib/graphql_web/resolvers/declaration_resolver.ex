@@ -2,14 +2,13 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [response_to_ecto_struct: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.DeclarationRequests.API.Documents, as: DeclarationRequestDocuments
   alias Core.Declarations.API, as: Declarations
   alias Core.Declarations.Declaration
-  alias Ecto.Schema.Metadata
   alias GraphQLWeb.Loaders.IL
 
   @status_pending "pending_verification"
@@ -22,6 +21,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
          {:ok, declarations} <- Declarations.list(filter, order_by, {offset, limit + 1}) do
       opts = [has_previous_page: offset > 0, has_next_page: length(declarations) > limit]
+      declarations = Enum.map(declarations, &response_to_ecto_struct(Declaration, &1))
 
       Connection.from_slice(Enum.take(declarations, limit), offset, opts)
     else
@@ -39,7 +39,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
 
   defp do_get_declaration(params) when is_list(params) do
     with {:ok, declaration} <- Declarations.get_declaration_by(params) do
-      {:ok, declaration}
+      {:ok, response_to_ecto_struct(Declaration, declaration)}
     else
       err -> render_error(err)
     end
@@ -72,7 +72,7 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
 
   defp update_declaration(id, patch, headers) do
     with {:ok, %{"data" => declaration}} <- Declarations.update_declaration(id, patch, headers) do
-      declaration = api_response_to_ecto_struct(Declaration, declaration)
+      declaration = response_to_ecto_struct(Declaration, declaration)
 
       {:ok, %{declaration: declaration}}
     else
@@ -87,17 +87,11 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
     params = %{"reason_description" => args[:reason_description]}
 
     with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers, false) do
-      declaration = api_response_to_ecto_struct(Declaration, declaration)
+      declaration = response_to_ecto_struct(Declaration, declaration)
 
       {:ok, %{declaration: declaration}}
     else
       err -> render_error(err)
     end
-  end
-
-  defp api_response_to_ecto_struct(schema, response) do
-    schema
-    |> struct(strings_to_keys(response))
-    |> Map.put(:__meta__, %Metadata{state: :build, source: {nil, nil}})
   end
 end

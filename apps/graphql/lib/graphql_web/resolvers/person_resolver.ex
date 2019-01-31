@@ -3,8 +3,10 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [response_to_ecto_struct: 2]
 
   alias Absinthe.Relay.Connection
+  alias Core.Declarations.Declaration
   alias Core.Persons
   alias GraphQLWeb.Loaders.OPS
 
@@ -43,10 +45,11 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
     |> Dataloader.load(OPS, batch_key, parent)
     |> on_load(fn loader ->
       with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
-           [_ | _] = records <- Dataloader.get(loader, OPS, batch_key, parent) do
-        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
+           [_ | _] = declarations <- Dataloader.get(loader, OPS, batch_key, parent) do
+        opts = [has_previous_page: offset > 0, has_next_page: length(declarations) > limit]
+        declarations = Enum.map(declarations, &response_to_ecto_struct(Declaration, &1))
 
-        Connection.from_slice(Enum.take(records, limit), offset, opts)
+        Connection.from_slice(Enum.take(declarations, limit), offset, opts)
       else
         _ -> {:ok, %{edges: []}}
       end
