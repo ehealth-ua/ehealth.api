@@ -38,7 +38,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
       insert(:prm, :division, legal_entity: legal_entity)
-      person = build(:mpi_person, id: @person_id)
+      person = build(:person, id: @person_id)
       declaration = build(:declaration, id: id, person_id: @person_id)
 
       cabinet(2)

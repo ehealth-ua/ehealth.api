@@ -132,7 +132,7 @@ defmodule GraphQLWeb.PersonResolverTest do
     end
 
     test "success with search params", %{conn: conn} do
-      persons = [person1 | _] = build_list(10, :mpi_person)
+      persons = [person1 | _] = build_list(10, :person)
 
       declaration1 = build(:declaration, person_id: person1.id)
       declarations = Enum.map(persons, &build(:declaration, person_id: &1.id))
@@ -165,7 +165,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
   describe "get by id" do
     test "success", %{conn: conn} do
-      person = build(:mpi_person)
+      person = build(:person)
       declaration = build(:declaration, person_id: person.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
@@ -213,7 +213,7 @@ defmodule GraphQLWeb.PersonResolverTest do
     end
 
     test "success with empty declaration batch", %{conn: conn} do
-      person = build(:mpi_person)
+      person = build(:person)
       declaration = build(:declaration)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
@@ -257,7 +257,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
   describe "reset authentication method to NA" do
     test "success", %{conn: conn} do
-      person = build(:mpi_person, authentication_methods: [%{"type" => "NA"}])
+      person = build(:person, authentication_methods: [%{"type" => "NA"}])
 
       expect(RPCWorkerMock, :run, fn _, _, :reset_auth_method, _ -> {:ok, person} end)
 

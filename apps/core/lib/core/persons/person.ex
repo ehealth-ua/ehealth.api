@@ -4,7 +4,7 @@ defmodule Core.Persons.Person do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "persons" do
+  embedded_schema do
     field(:version, :string, default: "default")
     field(:first_name, :string)
     field(:last_name, :string)
@@ -33,6 +33,7 @@ defmodule Core.Persons.Person do
     field(:updated_by, :string, default: "default")
     field(:authentication_methods, {:array, :map})
     field(:merged_ids, {:array, :string})
+    field(:no_tax_id, :boolean, default: false)
 
     timestamps(type: :utc_datetime)
   end

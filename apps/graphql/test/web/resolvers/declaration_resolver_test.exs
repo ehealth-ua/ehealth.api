@@ -125,7 +125,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
 
   describe "pending declarations list" do
     test "success with search params", %{conn: conn} do
-      persons = build_list(8, :mpi_person)
+      persons = build_list(8, :person)
       documents = [%{"url" => "http://link-to-documents.web", "type" => "person.no_tax_id"}]
 
       declarations =
@@ -201,7 +201,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       division = insert(:prm, :division)
       employee = insert(:prm, :employee)
       legal_entity = insert(:prm, :legal_entity)
-      person = build(:mpi_person)
+      person = build(:person)
 
       declaration =
         build(:declaration,
@@ -374,7 +374,7 @@ defmodule GraphQLWeb.DeclarationResolverTest do
       consumer_id = UUID.generate()
 
       %{id: client_id} = insert(:prm, :legal_entity)
-      person = build(:mpi_person, id: person_id)
+      person = build(:person, id: person_id)
       declaration = build(:declaration, id: database_id, person_id: person_id, legal_entity_id: client_id)
 
       nhs(2)

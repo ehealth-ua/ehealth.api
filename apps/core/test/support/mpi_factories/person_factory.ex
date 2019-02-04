@@ -27,8 +27,8 @@ defmodule Core.MPIFactories.PersonFactory do
           death_date: ~D[2117-11-09],
           preferred_way_communication: "email",
           emergency_contact: %{},
-          documents: [],
-          addresses: [],
+          documents: build_list(2, :person_document, person_id: id),
+          addresses: build_list(1, :person_address, person_id: id),
           phones: [],
           authentication_methods: [%{"type" => "OTP", "phone_number" => random_phone_number()}],
           merged_ids: [],
@@ -44,25 +44,12 @@ defmodule Core.MPIFactories.PersonFactory do
         }
       end
 
-      def mpi_person_factory do
-        person_id = UUID.generate()
-
-        build(:person,
-          __struct__: Core.Person,
-          id: person_id,
-          documents: build_list(1, :mpi_person_document, person_id: person_id),
-          phones: build_list(2, :mpi_person_phone, person_id: person_id),
-          addresses: build_list(2, :mpi_person_address, person_id: person_id)
-        )
-      end
-
-      def mpi_person_document_factory do
+      def person_document_factory do
         now = DateTime.utc_now()
 
         %{
-          __struct__: Core.PersonDocument,
-          expiration_date: nil,
           id: UUID.generate(),
+          expiration_date: nil,
           issued_at: "2013-08-19",
           issued_by: "1234",
           number: "АА120518",
@@ -73,9 +60,8 @@ defmodule Core.MPIFactories.PersonFactory do
         }
       end
 
-      def mpi_person_address_factory do
+      def person_address_factory do
         %{
-          __struct__: Core.PersonAddress,
           id: UUID.generate(),
           apartment: to_string(Enum.random(1..500)),
           area: "ЗАПОРІЗЬКА",
@@ -95,11 +81,10 @@ defmodule Core.MPIFactories.PersonFactory do
         }
       end
 
-      def mpi_person_phone_factory do
+      def person_phone_factory do
         now = DateTime.utc_now()
 
         %{
-          __struct__: Core.PersonPhone,
           id: UUID.generate(),
           number: random_phone_number(),
           person_id: UUID.generate(),

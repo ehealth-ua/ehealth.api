@@ -83,7 +83,7 @@ defmodule Core.Persons do
   end
 
   def get_by_id(id) do
-    with {:ok, person} <- @rpc_worker.run("mpi", Core.Rpc, :get_person_by_id, [id]) do
+    with {:ok, person} <- @rpc_worker.run("mpi", MPI.Rpc, :get_person_by_id, [id]) do
       {:ok, person}
     else
       _ -> {:error, {:not_found, "Person not found"}}
@@ -91,7 +91,7 @@ defmodule Core.Persons do
   end
 
   def list(filter, order_by \\ [], cursor \\ nil) do
-    with {:ok, persons} <- @rpc_worker.run("mpi", Core.Rpc, :search_persons, [filter, order_by, cursor]) do
+    with {:ok, persons} <- @rpc_worker.run("mpi", MPI.Rpc, :search_persons, [filter, order_by, cursor]) do
       {:ok, persons}
     end
   end
@@ -99,7 +99,7 @@ defmodule Core.Persons do
   def reset_person_auth_method(id, headers) do
     user_id = get_consumer_id(headers)
 
-    with {:ok, person} <- @rpc_worker.run("mpi", Core.Rpc, :reset_auth_method, [id, user_id]) do
+    with {:ok, person} <- @rpc_worker.run("mpi", MPI.Rpc, :reset_auth_method, [id, user_id]) do
       {:ok, person}
     else
       nil -> {:error, {:not_found, "Person not found"}}
