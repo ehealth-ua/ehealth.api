@@ -35,7 +35,7 @@ defmodule Core.MedicationRequests.Renderer do
       |> Enum.reject(fn {_, v} -> is_nil(v) end)
       |> Enum.into(%{})
       |> Map.merge(%{
-        "legal_entity" => LegalEntitiesRenderer.render("show_reimbursement.json", legal_entity),
+        "legal_entity" => LegalEntitiesRenderer.render("show_reimbursement_details.json", legal_entity),
         "employee" => render("employee.json", medication_request["employee"]),
         "division" => render("division.json", medication_request["division"]),
         "medication_info" => render("medication_info.json", medication_request),

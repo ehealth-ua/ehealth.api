@@ -666,6 +666,72 @@
             "ACTIVE",
             "CLOSED"
           ]
+        },
+        "licenses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "license_number": {
+                "type": "string"
+              },
+              "issued_by": {
+                "type": "string"
+              },
+              "issued_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "expiry_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "active_from_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "what_licensed": {
+                "type": "string"
+              },
+              "order_no": {
+                "type": "string",
+                "description": "номер наказу"
+              }
+            },
+            "required": [
+              "issued_by",
+              "issued_date",
+              "active_from_date",
+              "order_no"
+            ]
+          },
+          "minItems": 1
+        },
+        "accreditation": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "Dictionary: ACCREDITATION_CATEGORY"
+            },
+            "issued_date": {
+              "type": "string"
+            },
+            "expiry_date": {
+              "type": "string"
+            },
+            "order_no": {
+              "type": "string",
+              "description": "номер наказу МОЗ"
+            },
+            "order_date": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "category",
+            "order_no"
+          ]
         }
       },
       "required": [
@@ -675,7 +741,8 @@
         "public_name",
         "type",
         "edrpou",
-        "status"
+        "status",
+        "licenses"
       ]
     },
     "division": {
