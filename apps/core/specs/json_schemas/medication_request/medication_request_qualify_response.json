@@ -54,6 +54,12 @@
             },
             "reimbursement_amount": {
               "type": "number"
+            },
+            "package_qty": {
+              "type": "number"
+            },
+            "package_min_qty": {
+              "type": "number"
             }
           },
           "required": [
@@ -62,7 +68,8 @@
             "form",
             "manufacturer",
             "reimbursement_amount"
-          ]
+          ],
+          "additionalProperties": false
         }
       }
     },
