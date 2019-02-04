@@ -12040,7 +12040,8 @@
       "allergy_intolerance": "Allergy intolerance",
       "employee": "Employee",
       "legal_entity": "Legal entity",
-      "service_request": "Service request(Referral)"
+      "service_request": "Service request(Referral)",
+      "patient": "Patient"
     },
     "labels": [
       "SYSTEM",
@@ -14675,6 +14676,28 @@
     "name": "eHealth/SNOMED/service_request_performer_roles",
     "values": {
       "394583002": "Endocrinology"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/service_request_recall_reasons",
+    "values": {
+      "default": "Зачення за замовчуванням"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/service_request_cancel_reasons",
+    "values": {
+      "default": "Зачення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
