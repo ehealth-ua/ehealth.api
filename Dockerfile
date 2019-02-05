@@ -18,7 +18,7 @@ RUN mix do \
 
 RUN git log --pretty=format:"%H %cd %s" > commits.txt
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 ARG APP_NAME
 
