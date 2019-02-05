@@ -25,7 +25,7 @@
     },
     "person_name": {
       "type": "string",
-      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\-]+(\\s(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\-]+)*$",
       "minLength": 1,
       "maxLength": 255
     },
@@ -41,7 +41,7 @@
     },
     "no_tax_id": {
       "type": "boolean",
-      "description":  "Status person refused tax_id"
+      "description": "Status person refused tax_id"
     },
     "gender": {
       "type": "string",
