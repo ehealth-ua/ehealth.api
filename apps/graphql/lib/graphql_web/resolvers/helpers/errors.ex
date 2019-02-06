@@ -17,6 +17,7 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
   def render_error({:error, :forbidden}), do: {:error, format_forbidden_error()}
   def render_error({:error, {:forbidden, reason}}), do: {:error, format_forbidden_error(reason)}
 
+  def render_error({:error, :internal_server_error}), do: {:error, format_internal_server_error()}
   def render_error({:error, {:internal_server_error, reason}}), do: {:error, format_internal_server_error(reason)}
 
   def render_error({:error, [_ | _] = errors}), do: {:error, format_unprocessable_entity_error(errors)}
@@ -147,6 +148,13 @@ defmodule GraphQLWeb.Resolvers.Helpers.Errors do
     %{
       message: message,
       extensions: %{code: "CONFLICT"}
+    }
+  end
+
+  def format_internal_server_error do
+    %{
+      message: "Internal error",
+      extensions: %{code: "INTERNAL_SERVER_ERROR"}
     }
   end
 

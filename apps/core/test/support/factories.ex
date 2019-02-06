@@ -31,6 +31,7 @@ defmodule Core.Factories do
 
   # MPI
   use Core.MPIFactories.PersonFactory
+  use Core.MPIFactories.ManualMergeFactory
 
   # Other factories
   use Core.Factories.AddressFactory

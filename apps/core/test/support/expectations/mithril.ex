@@ -126,4 +126,10 @@ defmodule Core.Expectations.Mithril do
       {:ok, %{"data" => [%{"id" => id}]}}
     end)
   end
+
+  def search_user_roles(role_name, n \\ 1) do
+    expect(MithrilMock, :search_user_roles, n, fn _, _ ->
+      {:ok, %{"data" => [%{"role_name" => role_name}]}}
+    end)
+  end
 end

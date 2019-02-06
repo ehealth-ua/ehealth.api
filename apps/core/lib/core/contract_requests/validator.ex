@@ -2,8 +2,8 @@ defmodule Core.ContractRequests.Validator do
   @moduledoc false
 
   import Core.API.Helpers.Connection, only: [get_header: 2]
+  import Core.Users.Validator, only: [user_has_role: 2]
 
-  alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.ContractRequests.RequestPack
@@ -852,7 +852,7 @@ defmodule Core.ContractRequests.Validator do
 
     with true <- user_ids != "",
          {:ok, %{"data" => user_data}} <- @mithril_api.search_user_roles(%{user_ids: user_ids}, []),
-         :ok <- ContractRequests.user_has_role(user_data, role) do
+         :ok <- user_has_role(user_data, role) do
       :ok
     else
       _ ->

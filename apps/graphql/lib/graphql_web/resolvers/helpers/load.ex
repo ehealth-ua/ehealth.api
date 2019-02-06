@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
 
   alias Absinthe.Relay.Connection
   alias Ecto.Schema.Metadata
@@ -87,9 +86,8 @@ defmodule GraphQLWeb.Resolvers.Helpers.Load do
   end
 
   def response_to_ecto_struct(schema, response) do
-    # TODO: remove `strings_to_keys` when declarations api uses RPC
     schema
-    |> struct(strings_to_keys(response))
+    |> struct(response)
     |> Map.put(:__meta__, %Metadata{state: :build, source: {nil, nil}})
   end
 

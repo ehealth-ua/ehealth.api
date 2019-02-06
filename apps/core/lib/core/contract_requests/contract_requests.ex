@@ -4,6 +4,7 @@ defmodule Core.ContractRequests do
   use Core.Search, Application.get_env(:core, :repos)[:read_repo]
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import Core.Users.Validator, only: [user_has_role: 2]
   import Ecto.Changeset
   import Ecto.Query
   import Core.ContractRequests.Storage
@@ -758,13 +759,6 @@ defmodule Core.ContractRequests do
   end
 
   defp where_medical_program(query, _, _), do: query
-
-  def user_has_role(data, role, reason \\ "FORBIDDEN") do
-    case Enum.find(data, &(Map.get(&1, "role_name") == role)) do
-      nil -> {:error, {:forbidden, reason}}
-      _ -> :ok
-    end
-  end
 
   defp get_contract_request_sequence do
     case SQL.query(Repo, "SELECT nextval('contract_request');", []) do

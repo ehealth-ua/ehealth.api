@@ -20,6 +20,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
+  alias Core.ManualMerge.ManualMergeRequest
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Persons.Person
   alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM}
@@ -44,6 +45,7 @@ defmodule GraphQLWeb.Schema do
     LegalEntityMergeJobTypes,
     LegalEntityDeactivationJobTypes,
     MedicalProgramTypes,
+    MergeRequestTypes,
     PartyTypes,
     PersonTypes,
     PhoneTypes,
@@ -63,6 +65,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:legal_entity_deactivation_job_queries)
     import_fields(:medical_program_queries)
+    import_fields(:merge_request_queries)
     import_fields(:person_queries)
   end
 
@@ -90,6 +93,7 @@ defmodule GraphQLWeb.Schema do
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
       %MedicalProgram{}, _ -> :medical_program
+      %ManualMergeRequest{}, _ -> :merge_request
       %Person{}, _ -> :person
       %Job{}, _ -> :legal_entity_merge_job
       _, _ -> nil
