@@ -11,7 +11,7 @@ defmodule Core.MPIFactories.ManualMergeFactory do
         %{
           id: UUID.generate(),
           status: "NEW",
-          comment: "comment",
+          comment: nil,
           assignee_id: UUID.generate(),
           manual_merge_candidate_id: UUID.generate(),
           manual_merge_candidate: nil,

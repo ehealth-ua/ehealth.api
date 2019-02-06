@@ -74,6 +74,18 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
     }
   """
 
+  @update_merge_request_query """
+    mutation UpdateMergeRequestMutation($input: UpdateMergeRequestInput!) {
+      updateMergeRequest(input: $input){
+        mergeRequest {
+          databaseId
+          status
+          comment
+        }
+      }
+    }
+  """
+
   setup :verify_on_exit!
 
   describe "list pending MergeRequests" do
@@ -202,6 +214,132 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       assert Map.has_key?(resp_body["data"], "mergeRequest")
       refute get_in(resp_body, ~w(data mergeRequest))
+    end
+  end
+
+  describe "update merge request" do
+    setup %{conn: conn} do
+      consumer_id = UUID.generate()
+      merge_request = build(:manual_merge_request, assignee_id: consumer_id)
+
+      conn =
+        conn
+        |> put_consumer_id(consumer_id)
+        |> put_scope("merge_request:write")
+
+      {:ok, conn: conn, merge_request: merge_request}
+    end
+
+    test "invalid user role", %{conn: conn, merge_request: merge_request} do
+      nhs(1)
+      search_user_roles("NHS")
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MergeRequest", merge_request.id),
+          status: "MERGE"
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(@update_merge_request_query, variables)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data updateMergeRequest mergeRequest))
+      assert "FORBIDDEN" == error["extensions"]["code"]
+      assert "User doesn't have required role" == error["message"]
+    end
+
+    test "invalid scope", %{conn: conn, merge_request: merge_request} do
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MergeRequest", merge_request.id),
+          status: "MERGE"
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("merge_request:read")
+        |> post_query(@update_merge_request_query, variables)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data updateMergeRequest mergeRequest))
+      assert "FORBIDDEN" == error["extensions"]["code"]
+      assert %{"missingAllowances" => ["merge_request:write"]} == error["extensions"]["exception"]
+    end
+
+    test "success without comment", %{conn: conn, merge_request: merge_request} do
+      %{id: id, assignee_id: assignee_id} = merge_request
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :process_manual_merge_request, args ->
+        [^id, status, ^assignee_id, nil] = args
+        {:ok, Map.put(merge_request, :status, status)}
+      end)
+
+      status = "MERGE"
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MergeRequest", merge_request.id),
+          status: status
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(@update_merge_request_query, variables)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+
+      resp_entity = get_in(resp_body, ~w(data updateMergeRequest mergeRequest))
+
+      assert merge_request.id == resp_entity["databaseId"]
+      assert status == resp_entity["status"]
+      refute resp_entity["comment"]
+    end
+
+    test "success with comment", %{conn: conn, merge_request: merge_request} do
+      %{id: id, assignee_id: assignee_id} = merge_request
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :process_manual_merge_request, args ->
+        [^id, status, ^assignee_id, comment] = args
+        {:ok, Map.merge(merge_request, %{status: status, comment: comment})}
+      end)
+
+      comment = "real duplicate"
+      status = "MERGE"
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MergeRequest", merge_request.id),
+          status: status,
+          comment: comment
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(@update_merge_request_query, variables)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+
+      resp_entity = get_in(resp_body, ~w(data updateMergeRequest mergeRequest))
+
+      assert merge_request.id == resp_entity["databaseId"]
+      assert status == resp_entity["status"]
+      assert comment == resp_entity["comment"]
     end
   end
 end

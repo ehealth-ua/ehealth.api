@@ -58,6 +58,28 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
     edge(do: nil)
   end
 
+  object :merge_request_mutations do
+    payload field(:update_merge_request) do
+      meta(:scope, ~w(merge_request:write))
+      meta(:client_metadata, ~w(client_id client_type consumer_id)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:status, non_null(:string))
+        field(:comment, :string)
+      end
+
+      output do
+        field(:merge_request, :merge_request)
+      end
+
+      middleware(CheckUserRole, role: "NHS REVIEWER")
+      middleware(ParseIDs, id: :merge_request)
+      resolve(&MergeRequestResolver.update_merge_request/2)
+    end
+  end
+
   node object(:merge_request) do
     field(:database_id, non_null(:id))
     field(:status, non_null(:merge_request_status))
