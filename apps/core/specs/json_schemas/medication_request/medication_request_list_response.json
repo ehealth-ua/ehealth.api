@@ -863,13 +863,7 @@
               "id": {
                 "type": "string"
               },
-              "first_name": {
-                "type": "string"
-              },
-              "last_name": {
-                "type": "string"
-              },
-              "second_name": {
+              "short_name": {
                 "type": "string"
               },
               "age": {
@@ -879,8 +873,7 @@
             },
             "required": [
               "id",
-              "first_name",
-              "last_name",
+              "short_name",
               "age"
             ],
             "additionalProperties": false

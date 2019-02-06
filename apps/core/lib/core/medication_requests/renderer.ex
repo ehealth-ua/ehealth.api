@@ -6,12 +6,11 @@ defmodule Core.MedicationRequests.Renderer do
   alias Core.Employees.Employee
   alias Core.LegalEntities.Renderer, as: LegalEntitiesRenderer
   alias Core.MedicalPrograms.MedicalProgram
-  alias Core.MedicationRequestRequest.Renderer, as: MedicationRequestRequestRenderer
+  alias Core.Persons.Renderer, as: PersonsRenderer
 
   def render("show.json", medication_request) do
     legal_entity = medication_request["legal_entity"]
     created_at = Timex.parse!(medication_request["created_at"], "{YYYY}-{0M}-{D}")
-    person = MedicationRequestRequestRenderer.render_person(medication_request["person"], created_at)
 
     response =
       medication_request
@@ -39,7 +38,7 @@ defmodule Core.MedicationRequests.Renderer do
         "employee" => render("employee.json", medication_request["employee"]),
         "division" => render("division.json", medication_request["division"]),
         "medication_info" => render("medication_info.json", medication_request),
-        "person" => person
+        "person" => render_person(medication_request["person"], created_at)
       })
 
     if Map.get(medication_request, "medical_program") do
@@ -98,6 +97,35 @@ defmodule Core.MedicationRequests.Renderer do
       "medication_name" => medication.name,
       "dosage" => ingredient.dosage
     })
+  end
+
+  def render_person(%{"birth_date" => birth_date} = person, mrr_created_at) do
+    response = PersonsRenderer.render("show.json", person)
+    %{"id" => response["id"], "age" => age(birth_date, mrr_created_at), "short_name" => initials(response)}
+  end
+
+  defp age(birth_date, current_date) do
+    Timex.diff(current_date, Timex.parse!(birth_date, "{YYYY}-{0M}-{D}"), :years)
+  end
+
+  defp initials(%{"first_name" => first_name, "last_name" => last_name, "second_name" => second_name}) do
+    last_name <> get_initials(first_name) <> get_initials(second_name)
+  end
+
+  defp get_initials(nil), do: ""
+  defp get_initials(""), do: get_initials(nil)
+
+  defp get_initials(name_part) do
+    initials =
+      name_part
+      |> String.replace("-", " ")
+      |> String.split(" ")
+      |> Enum.filter(fn part -> String.length(part) > 0 end)
+      |> Enum.map(&String.upcase/1)
+      |> Enum.map(fn part -> String.first(part) <> "." end)
+      |> Enum.join("-")
+
+    if String.length(initials) > 0, do: " " <> initials, else: ""
   end
 
   defp to_coordinates(%Geo.Point{coordinates: {lng, lat}}) do

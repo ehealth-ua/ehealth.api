@@ -326,7 +326,16 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       msp()
 
       expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+        {:ok,
+         %{
+           "data" =>
+             string_params_for(:person,
+               id: id,
+               first_name: "Шах    Хож-Ахмед",
+               last_name: "Аль-Бекиров",
+               second_name: "Саид- заурович"
+             )
+         }}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -366,11 +375,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      conn
-      |> get(medication_request_path(conn, :show, medication_request["id"]))
-      |> json_response(200)
-      |> Map.get("data")
-      |> assert_show_response_schema("medication_request")
+      resp =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert_show_response_schema(resp, "medication_request")
+      assert "Аль-Бекиров Ш.-Х.-А. С.-З." == get_in(resp, ~w(person short_name))
     end
 
     test "failed when medical program is invalid", %{conn: conn} do
