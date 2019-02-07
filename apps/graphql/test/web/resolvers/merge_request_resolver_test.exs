@@ -7,7 +7,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
   import Core.Factories
   import Mox
 
-  alias Ecto.UUID
+  alias Ecto.{Changeset, UUID}
   alias Absinthe.Relay.Node
 
   @person_fields """
@@ -74,9 +74,24 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
     }
   """
 
+  @assign_merge_candidate_query """
+    mutation AssignMergeCandidateMutation {
+      assignMergeCandidate {
+        mergeRequest {
+          databaseId
+          status
+          manualMergeCandidate {
+            databaseId
+          }
+        }
+      }
+    }
+
+  """
+
   @update_merge_request_query """
     mutation UpdateMergeRequestMutation($input: UpdateMergeRequestInput!) {
-      updateMergeRequest(input: $input){
+      updateMergeRequest(input: $input) {
         mergeRequest {
           databaseId
           status
@@ -214,6 +229,156 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       assert Map.has_key?(resp_body["data"], "mergeRequest")
       refute get_in(resp_body, ~w(data mergeRequest))
+    end
+  end
+
+  describe "assign merge candidate" do
+    setup %{conn: conn} do
+      consumer_id = UUID.generate()
+
+      conn =
+        conn
+        |> put_consumer_id(consumer_id)
+        |> put_scope("merge_candidate:assign")
+
+      {:ok, consumer_id: consumer_id, conn: conn}
+    end
+
+    test "invalid user role", %{conn: conn} do
+      nhs(1)
+      search_user_roles("NHS")
+
+      resp_body =
+        conn
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      assert "FORBIDDEN" == error["extensions"]["code"]
+      assert "User doesn't have required role" == error["message"]
+    end
+
+    test "invalid scope", %{conn: conn} do
+      resp_body =
+        conn
+        |> put_scope("merge_request:read")
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      assert "FORBIDDEN" == error["extensions"]["code"]
+      assert %{"missingAllowances" => ["merge_candidate:assign"]} == error["extensions"]["exception"]
+    end
+
+    test "success", %{conn: conn, consumer_id: consumer_id} do
+      merge_candidate = build(:manual_merge_candidate)
+      merge_request = build(:manual_merge_request, status: "NEW")
+
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :assign_manual_merge_candidate, [actor_id] ->
+        assert ^consumer_id = actor_id
+
+        merge_candidate = Map.put(merge_candidate, :assignee_id, actor_id)
+        merge_request = Map.merge(merge_request, %{assignee_id: actor_id, manual_merge_candidate: merge_candidate})
+
+        {:ok, merge_request}
+      end)
+
+      resp_body =
+        conn
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+
+      resp_entity = get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      assert merge_request.id == resp_entity["databaseId"]
+      assert "NEW" == resp_entity["status"]
+      assert merge_candidate.id == resp_entity["manualMergeCandidate"]["databaseId"]
+    end
+
+    test "fail when merge candidate not found", %{conn: conn, consumer_id: consumer_id} do
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :assign_manual_merge_candidate, _ ->
+        {:error, {:not_found, "Eligible manual merge candidate not found"}}
+      end)
+
+      resp_body =
+        conn
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      assert "NOT_FOUND" == error["extensions"]["code"]
+      assert "Eligible manual merge candidate not found" == error["message"]
+    end
+
+    test "fail when new request already assigned", %{conn: conn, consumer_id: consumer_id} do
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :assign_manual_merge_candidate, _ ->
+        {:error,
+         %Changeset{
+           types: %{assignee_id: UUID},
+           errors: [assignee_id: {"new request is already present", []}],
+           valid?: false
+         }}
+      end)
+
+      resp_body =
+        conn
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
+      assert "UNPROCESSABLE_ENTITY" = error["extensions"]["code"]
+      assert [%{"$.assignee_id" => %{"description" => "new request is already present"}}] = error["errors"]
+    end
+
+    test "fail when postponed requests limit exceeded", %{conn: conn, consumer_id: consumer_id} do
+      nhs(1)
+      search_user_roles("NHS REVIEWER")
+
+      expect(RPCWorkerMock, :run, fn _, _, :assign_manual_merge_candidate, _ ->
+        {:error,
+         %Changeset{
+           types: %{assignee_id: UUID},
+           errors: [assignee_id: {"postponed requests limit exceeded", []}],
+           valid?: false
+         }}
+      end)
+
+      resp_body =
+        conn
+        |> post_query(@assign_merge_candidate_query)
+        |> json_response(200)
+
+      %{"errors" => [error]} = resp_body
+
+      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+
+      # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
+      assert "UNPROCESSABLE_ENTITY" = error["extensions"]["code"]
+      assert [%{"$.assignee_id" => %{"description" => "postponed requests limit exceeded"}}] = error["errors"]
     end
   end
 

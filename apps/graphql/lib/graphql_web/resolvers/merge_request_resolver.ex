@@ -37,6 +37,14 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
     end
   end
 
+  def assign_merge_candidate(_, %{context: %{consumer_id: consumer_id}}) do
+    with {:ok, merge_request} <- @rpc_worker.run("mpi", MPI.Rpc, :assign_manual_merge_candidate, [consumer_id]) do
+      {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
+    else
+      err -> render_error(err)
+    end
+  end
+
   def update_merge_request(%{id: id, status: status} = args, %{context: %{consumer_id: consumer_id}}) do
     args = [id, status, consumer_id, Map.get(args, :comment, nil)]
 
