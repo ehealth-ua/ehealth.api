@@ -371,7 +371,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
                                      :search_persons,
                                      [%{"tax_id" => "3126509816", "status" => "active", "birth_date" => _}] ->
         %Scrivener.Page{
-          entries: [%{__struct__: Core.Person, id: person_id}],
+          entries: [%{id: person_id}],
           page_number: 1,
           page_size: 1,
           total_entries: 1,
@@ -421,7 +421,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
         %Scrivener.Page{
-          entries: [%{__struct__: Core.Person, id: UUID.generate()}, %{__struct__: Core.Person, id: UUID.generate()}],
+          entries: [%{id: UUID.generate()}, %{id: UUID.generate()}],
           page_number: 1,
           page_size: 1,
           total_entries: 1,
@@ -530,7 +530,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
         %Scrivener.Page{
-          entries: [%{__struct__: Core.Person, id: person_id}],
+          entries: [%{id: person_id}],
           page_number: 1,
           page_size: 1,
           total_entries: 1,

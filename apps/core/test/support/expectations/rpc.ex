@@ -50,7 +50,7 @@ defmodule Core.Expectations.RPC do
       %Scrivener.Page{
         entries:
           Enum.map(records, fn record ->
-            Map.merge(record, %{__struct__: Core.Person, id: record[:id] || Ecto.UUID.generate()})
+            Map.merge(record, %{id: record[:id] || Ecto.UUID.generate()})
           end),
         page_number: 1,
         page_size: Enum.count(records),
@@ -67,7 +67,7 @@ defmodule Core.Expectations.RPC do
           search_params
           |> convert_string_keys_to_atoms
           |> Map.merge(params)
-          |> Map.merge(%{__struct__: Core.Person, id: params[:id] || Ecto.UUID.generate()})
+          |> Map.merge(%{id: params[:id] || Ecto.UUID.generate()})
         ],
         page_number: 1,
         page_size: 1,

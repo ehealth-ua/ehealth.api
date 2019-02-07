@@ -26,7 +26,7 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
   end
 
   defp search_result(%Page{entries: entries}, :all), do: {:ok, entries}
-  defp search_result(%Page{entries: [%{__struct__: Core.Person} = person]}, :one), do: {:ok, person}
+  defp search_result(%Page{entries: [%{} = person]}, :one), do: {:ok, person}
   defp search_result(%Page{entries: _}, :one), do: {:ok, nil}
   defp search_result(error, _), do: error
 end
