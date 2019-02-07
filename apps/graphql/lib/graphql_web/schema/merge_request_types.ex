@@ -53,8 +53,7 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
       end)
     end
 
-    # TODO: Add resolving logic
-    field(:can_assign_new, non_null(:boolean), resolve: fn _, _ -> {:ok, true} end)
+    field(:can_assign_new, non_null(:boolean), resolve: &MergeRequestResolver.resolve_can_assign_new/2)
     edge(do: nil)
   end
 

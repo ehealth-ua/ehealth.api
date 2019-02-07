@@ -122,6 +122,8 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
         {:ok, manual_merge_requests}
       end)
 
+      expect(RPCWorkerMock, :run, fn _, _, :can_assign_new_manual_merge_request, _ -> {:ok, false} end)
+
       variables = %{orderBy: "STATUS_ASC"}
 
       resp_body =
@@ -136,6 +138,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       refute resp_body["errors"]
       assert 2 == length(resp_entities)
+      refute get_in(resp_body, ~w(data mergeRequests canAssignNew))
     end
 
     test "success: empty results", %{conn: conn} do
@@ -143,6 +146,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
       search_user_roles("NHS REVIEWER")
 
       expect(RPCWorkerMock, :run, fn _, _, :search_manual_merge_requests, _ -> {:ok, []} end)
+      expect(RPCWorkerMock, :run, fn _, _, :can_assign_new_manual_merge_request, _ -> {:ok, true} end)
       variables = %{}
 
       resp_body =
@@ -157,6 +161,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       refute resp_body["errors"]
       assert [] == resp_entities
+      assert get_in(resp_body, ~w(data mergeRequests canAssignNew))
     end
 
     test "forbidden on invalid role", %{conn: conn} do
