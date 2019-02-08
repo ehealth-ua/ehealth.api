@@ -32,6 +32,13 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   @in_process ReimbursementContractRequest.status(:in_process)
   @pending_nhs_sign ReimbursementContractRequest.status(:pending_nhs_sign)
 
+  @allowed_statuses_for_termination [
+    ReimbursementContractRequest.status(:new),
+    ReimbursementContractRequest.status(:approved),
+    ReimbursementContractRequest.status(:pending_nhs_sign),
+    ReimbursementContractRequest.status(:nhs_signed)
+  ]
+
   describe "list reimbursement contract requests" do
     test "successfully finds only reimbursement contracts", %{conn: conn} do
       nhs()
@@ -1854,6 +1861,49 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         |> get(contract_request_path(conn, :printout_content, @path_type, contract_request.id))
 
       assert json_response(conn, 403)
+    end
+  end
+
+  describe "terminate contract_request" do
+    test "success contract_request terminating", %{conn: conn} do
+      pharmacy(4)
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:pharmacy_owner),
+          party: party_user.party
+        )
+
+      for status <- @allowed_statuses_for_termination do
+        contract_request =
+          insert(
+            :il,
+            :reimbursement_contract_request,
+            status: status,
+            nhs_signer_id: employee_owner.id,
+            contractor_legal_entity_id: legal_entity.id,
+            contractor_owner_id: employee_owner.id
+          )
+
+        resp =
+          conn
+          |> put_client_id_header(legal_entity.id)
+          |> put_consumer_id_header(user_id)
+          |> patch(contract_request_path(conn, :terminate, @path_type, contract_request.id), %{
+            "status_reason" => "Неправильний період контракту"
+          })
+          |> json_response(200)
+          |> Map.get("data")
+          |> assert_show_response_schema("contract_request/reimbursement", "contract_request")
+
+        assert resp["status"] == ReimbursementContractRequest.status(:terminated)
+      end
     end
   end
 

@@ -4,7 +4,6 @@ defmodule EHealth.Web.ContractRequestController do
   use EHealth.Web, :controller
 
   alias Core.ContractRequests
-  alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.RequestPack
   alias EHealth.Web.ContractView
 
@@ -74,8 +73,8 @@ defmodule EHealth.Web.ContractRequestController do
   def terminate(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, %CapitationContractRequest{} = contract_request, references} <-
-           ContractRequests.terminate(headers, client_type, drop_type(params)) do
+    with {:ok, %{__struct__: _} = contract_request, references} <-
+           ContractRequests.terminate(headers, client_type, params) do
       render(conn, "show.json", contract_request: contract_request, references: references)
     end
   end

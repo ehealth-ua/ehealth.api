@@ -328,11 +328,12 @@ defmodule Core.ContractRequests do
     end
   end
 
-  def terminate(headers, client_type, %{"id" => id} = params) do
+  def terminate(headers, client_type, params) do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
+    pack = RequestPack.new(params)
 
-    with {:ok, %CapitationContractRequest{} = contract_request} <- fetch_by_id(id),
+    with {:ok, %{__struct__: _} = contract_request} <- fetch_by_id(pack),
          :ok <- validate_contract_request_client_access(client_type, client_id, contract_request),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          true <- contract_request.status not in @forbidden_statuses_for_termination,
