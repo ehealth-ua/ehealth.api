@@ -264,7 +264,8 @@
           "minItems": 1
         },
         "about_myself": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 2000
         },
         "working_experience": {
           "type": "integer",
