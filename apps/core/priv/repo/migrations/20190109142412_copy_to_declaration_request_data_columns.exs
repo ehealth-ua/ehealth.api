@@ -98,7 +98,7 @@ defmodule Core.Repo.Migrations.CopyToDeclarationRequestDataColumns do
                     ]
                   ]
                 )
-                |> Repo.update_all([])
+                |> Repo.update_all([], timeout: :infinity)
 
                 DeclarationRequestTemp
                 |> Repo.get!(1)
