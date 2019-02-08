@@ -8,7 +8,7 @@ defmodule GraphQL.Mixfile do
       app: :graphql,
       description: "GraphQL panel for Ukrainian Health Services government institution.",
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.8.1",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",

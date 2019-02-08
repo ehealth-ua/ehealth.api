@@ -33,7 +33,7 @@ You can use official Docker container to deploy this service, it can be found on
 ### Dependencies
 
 - PostgreSQL 9.6 is used as storage back-end.
-- Elixir 1.7+
+- Elixir 1.8+
 - Erlang/OTP 20.0.4
 
 ## Configuration
@@ -48,4 +48,3 @@ To contribute to eHealth please see [CONTRIBUTING](docs/CONTRIBUTING.md)
 See [LICENSE.md](LICENSE.md).
 
 ## Legal-WIP
-

@@ -16,7 +16,7 @@ addons:
       - postgresql-9.6-postgis-2.3
       - docker-ce
 elixir:
-  - 1.7.4
+  - 1.8.1
 otp_release:
   - 21.2.5
 notifications:

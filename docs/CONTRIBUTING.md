@@ -6,7 +6,7 @@ The project is written in [Elixir language](https://elixir-lang.org/) and its be
 
 Environment requirements:
 
-- elixir 1.7+
+- elixir 1.8+
 - postgresql 9.6+
 - postgis extension
 - redis
@@ -71,7 +71,7 @@ If one of them fail, travis build will fail too and PR can't be merged.
 
 ## How to set up system from scratch
 - WIP
-- 
+-
 ## Hot fix
 
 To create a hotfix, you need to create a branch from the `master`, apply a hotfix and create a PR back to master.
