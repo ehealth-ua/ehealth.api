@@ -57,6 +57,7 @@ release :merge_legal_entities_consumer do
 end
 
 release :deactivate_legal_entity_consumer do
+  set(pre_start_hook: "bin/hooks/pre-start-deactivate-legal-entity-consumer.sh")
   set(version: current_version(:deactivate_legal_entity_consumer))
 
   set(

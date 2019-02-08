@@ -9,8 +9,15 @@ defmodule Core.KafkaTasks do
     @topics [
       %{
         topic: "deactivate_legal_entity_event",
-        num_partitions: 4,
-        replication_factor: 1,
+        num_partitions: 1,
+        replication_factor: 3,
+        replica_assignment: [],
+        config_entries: []
+      },
+      %{
+        topic: "merge_legal_entities",
+        num_partitions: 1,
+        replication_factor: 3,
         replica_assignment: [],
         config_entries: []
       }
