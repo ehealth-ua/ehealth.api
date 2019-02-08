@@ -32,6 +32,7 @@ defmodule GraphQLWeb.PersonResolverTest do
           number
           issuedBy
           issuedAt
+          expirationDate
         }
         authenticationMethods {
           type
@@ -90,12 +91,14 @@ defmodule GraphQLWeb.PersonResolverTest do
             number
             issuedBy
             issuedAt
+            expirationDate
           }
           relationshipDocuments {
             type
             number
             issuedBy
             issuedAt
+            expirationDate
           }
           phones {
             type
@@ -232,7 +235,7 @@ defmodule GraphQLWeb.PersonResolverTest do
              )
 
       Enum.each(resp_entity["documents"], fn document ->
-        assert Enum.all?(~w(type number issuedBy issuedAt), &Map.has_key?(document, &1))
+        assert Enum.all?(~w(type number issuedBy issuedAt expirationDate), &Map.has_key?(document, &1))
       end)
 
       Enum.each(resp_entity["authenticationMethods"], fn authentication_method ->
@@ -265,11 +268,11 @@ defmodule GraphQLWeb.PersonResolverTest do
                )
 
         Enum.each(confidant_person["documents"], fn phone ->
-          assert Enum.all?(~w(type number issuedBy issuedAt), &Map.has_key?(phone, &1))
+          assert Enum.all?(~w(type number issuedBy issuedAt expirationDate), &Map.has_key?(phone, &1))
         end)
 
         Enum.each(confidant_person["relationshipDocuments"], fn phone ->
-          assert Enum.all?(~w(type number issuedBy issuedAt), &Map.has_key?(phone, &1))
+          assert Enum.all?(~w(type number issuedBy issuedAt expirationDate), &Map.has_key?(phone, &1))
         end)
 
         Enum.each(confidant_person["phones"], fn phone ->

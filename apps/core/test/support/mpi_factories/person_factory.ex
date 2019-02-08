@@ -49,7 +49,7 @@ defmodule Core.MPIFactories.PersonFactory do
 
         %{
           id: UUID.generate(),
-          expiration_date: nil,
+          expiration_date: "2013-08-19",
           issued_at: "2013-08-19",
           issued_by: "1234",
           number: "АА120518",

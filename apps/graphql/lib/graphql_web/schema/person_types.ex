@@ -174,8 +174,9 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:number, :string)
     field(:issued_by, :string)
 
-    # Has :string type on MPI
+    # TODO: These fields should return :date type
     field(:issued_at, :string)
+    field(:expiration_date, :string)
   end
 
   object :emergency_contact do
