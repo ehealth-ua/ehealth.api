@@ -13,8 +13,10 @@ defmodule Core.Registers.API do
   alias Core.Registers.SearchRegisterEntries
   alias Core.Registers.SearchRegisters
   alias Core.Repo
+  alias Core.Validators.DeathDate
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
+  alias Ecto.UUID
 
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
@@ -141,7 +143,7 @@ defmodule Core.Registers.API do
   def batch_create_register_entries(register, %{"file" => base64file}, reason_desc, author_id) do
     with {:ok, parsed_csv} <- parse_csv(base64file),
          {:ok, headers} <- fetch_headers(parsed_csv),
-         true <- valid_csv_headers?(headers),
+         :ok <- validate_csv_headers(headers),
          {:ok, allowed_types} <- get_allowed_types(register) do
       try do
         parent = self()
@@ -149,7 +151,7 @@ defmodule Core.Registers.API do
         Task.async(fn ->
           processed_data =
             parsed_csv
-            |> Enum.with_index()
+            |> Enum.with_index(1)
             |> Enum.reduce([], fn {row, index}, acc ->
               if rem(index, 100) == 0 do
                 update_register(register, prepare_register_update_data(acc, @status_new))
@@ -193,7 +195,7 @@ defmodule Core.Registers.API do
 
   defp get_allowed_types(%Register{entity_type: "patient"}) do
     case Dictionaries.get_dictionary("REGISTER_DOCUMENTS") do
-      %Dictionary{values: values} -> {:ok, values |> Map.get("PATIENT") |> Map.keys()}
+      %Dictionary{values: %{"PATIENT" => document_types}} -> {:ok, Map.keys(document_types) ++ ["MPI_ID"]}
       _ -> Error.dump("Type not allowed")
     end
   end
@@ -212,12 +214,14 @@ defmodule Core.Registers.API do
     end
   end
 
-  defp valid_csv_headers?(%{"type" => _, "number" => _}) do
-    true
-  end
+  defp validate_csv_headers(headers) do
+    values = headers |> Map.keys() |> Enum.map(&String.downcase/1) |> MapSet.new()
 
-  defp valid_csv_headers?(_) do
-    Error.dump("Invalid CSV headers")
+    cond do
+      values == MapSet.new(["type", "number"]) -> :ok
+      values == MapSet.new(["type", "number", "death_date"]) -> :ok
+      true -> Error.dump("Invalid CSV headers")
+    end
   end
 
   defp process_register_entry(
@@ -228,7 +232,9 @@ defmodule Core.Registers.API do
          author_id
        ) do
     with :ok <- validate_csv_type(entry_data, allowed_types),
-         :ok <- validate_csv_number(entry_data) do
+         :ok <- validate_csv_number(entry_data),
+         :ok <- validate_csv_death_date(entry_data),
+         :ok <- validate_csv_mpi_id(entry_data) do
       mpi_response = search_person(entry_data)
 
       entry_data
@@ -282,11 +288,30 @@ defmodule Core.Registers.API do
 
   defp validate_csv_number(_), do: {:error, "Invalid number - expected non empty string on line "}
 
-  defp search_person(%{"type" => type} = entry_data) do
-    entry_data
-    |> Map.put("type", String.downcase(type))
-    |> Map.take(~w(type number))
-    |> @mpi_api.search([])
+  defp validate_csv_death_date(%{"death_date" => death_date}) when byte_size(death_date) > 0 do
+    case DeathDate.validate(death_date) do
+      :ok -> :ok
+      :error -> {:error, "Invalid death_date on line "}
+    end
+  end
+
+  defp validate_csv_death_date(_), do: :ok
+
+  def validate_csv_mpi_id(%{"type" => "MPI_ID", "number" => number}) do
+    case UUID.cast(number) do
+      {:ok, _} -> :ok
+      :error -> {:error, "Invalid number - MPI_ID is not UUID on line "}
+    end
+  end
+
+  def validate_csv_mpi_id(_), do: :ok
+
+  defp search_person(%{"type" => "MPI_ID", "number" => person_id} = _entry_data) do
+    @mpi_api.search(%{"id" => person_id}, [])
+  end
+
+  defp search_person(%{"type" => type, "number" => number} = _entry_data) do
+    @mpi_api.search(%{"type" => String.downcase(type), "number" => number}, [])
   end
 
   defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
@@ -397,12 +422,18 @@ defmodule Core.Registers.API do
   defp maybe_terminate_person_declaration(entry_data, _type, _reason_desc), do: entry_data
 
   defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data, author_id) do
-    @mpi_api.update_person(person_id, %{status: "INACTIVE"}, "x-consumer-id": author_id)
+    update_data = put_death_date(%{"status" => "INACTIVE"}, entry_data["death_date"])
+
+    @mpi_api.update_person(person_id, update_data, "x-consumer-id": author_id)
     # don't care about MPI response
     entry_data
   end
 
   defp maybe_deactivate_person(entry_data, _author_id), do: entry_data
+
+  defp put_death_date(params, ""), do: params
+  defp put_death_date(params, nil), do: params
+  defp put_death_date(params, value), do: Map.put(params, "death_date", value)
 
   defp prepare_register_update_data(processed_entries, status \\ @status_processed) do
     acc = %{

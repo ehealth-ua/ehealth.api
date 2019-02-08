@@ -163,13 +163,7 @@ defmodule EHealth.Web.RegisterControllerTest do
         {:ok, %{"data" => %{}}}
       end)
 
-      %{values: values} = insert(:il, :dictionary_register_documents)
-
-      dict_values =
-        values
-        |> Map.get("PATIENT")
-        |> Map.keys()
-        |> Enum.join(", ")
+      document_types = prepare_document_types()
 
       attrs = %{
         file: get_csv_file("diverse"),
@@ -195,7 +189,7 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       errors = [
         "Row has length 4 - expected length 2 on line 4",
-        "Invalid type - expected one of #{dict_values} on line 6",
+        "Invalid type - expected one of #{document_types} on line 6",
         "Row has length 1 - expected length 2 on line 7",
         "Invalid number - expected non empty string on line 8",
         "Row has length 1 - expected length 2 on line 10"
@@ -211,7 +205,8 @@ defmodule EHealth.Web.RegisterControllerTest do
                           processed: 4,
                           total: 11
                         }
-                      }}
+                      }},
+                     200
     end
 
     test "entity_type not passed", %{conn: conn} do
@@ -310,13 +305,7 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "invalid CSV body", %{conn: conn} do
-      %{values: values} = insert(:il, :dictionary_register_documents)
-
-      dict_values =
-        values
-        |> Map.get("PATIENT")
-        |> Map.keys()
-        |> Enum.join(", ")
+      document_types = prepare_document_types()
 
       attrs = %{
         file: get_csv_file("invalid_body"),
@@ -340,7 +329,10 @@ defmodule EHealth.Web.RegisterControllerTest do
 
       errors = [
         "Invalid number - expected non empty string on line 2",
-        "Invalid type - expected one of #{dict_values} on line 3"
+        "Invalid type - expected one of #{document_types} on line 3",
+        "Invalid number - MPI_ID is not UUID on line 4",
+        "Invalid death_date on line 5",
+        "Invalid death_date on line 6"
       ]
 
       assert "NEW" = data["status"]
@@ -350,12 +342,13 @@ defmodule EHealth.Web.RegisterControllerTest do
                         errors: ^errors,
                         status: @status_processed,
                         qty: %Qty{
-                          errors: 2,
+                          errors: 5,
                           not_found: 0,
                           processed: 0,
-                          total: 2
+                          total: 5
                         }
-                      }}
+                      }},
+                     200
     end
 
     test "invalid CSV type field because of empty dictionary values by DOCUMENT_TYPE", %{conn: conn} do
@@ -371,6 +364,84 @@ defmodule EHealth.Web.RegisterControllerTest do
                |> post(register_path(conn, :create), attrs)
                |> json_response(422)
                |> get_in(~w(error message))
+    end
+
+    test "success with MPI_ID and death_date PROCESSED", %{conn: conn} do
+      person_with_death_date_id = "e9b9c5e2-3263-4574-bc9f-19bd089a7777"
+
+      expect(MPIMock, :search, 3, fn
+        %{"type" => "MPI_ID", "number" => id}, _ ->
+          {:ok, MockServer.wrap_response_with_paging([string_params_for(:person, id: id)])}
+
+        _, _ ->
+          {:ok, MockServer.wrap_response_with_paging([string_params_for(:person)])}
+      end)
+
+      expect(MPIMock, :update_person, 3, fn
+        ^person_with_death_date_id, params, _ ->
+          assert Map.has_key?(params, "death_date")
+          {:ok, MockServer.wrap_object_response()}
+
+        _, _, _ ->
+          {:ok, MockServer.wrap_object_response()}
+      end)
+
+      expect(OPSMock, :terminate_person_declarations, 3, fn _person_id, _, _, _, _ ->
+        {:ok, %{"data" => %{}}}
+      end)
+
+      insert(:il, :dictionary_register_documents)
+      insert(:il, :dictionary_register_type)
+
+      request_data = %{
+        file: get_csv_file("valid_mpi_id_and_death_date"),
+        file_name: "persons",
+        type: "DEATH_REGISTRATION",
+        entity_type: "patient"
+      }
+
+      data =
+        conn
+        |> post(register_path(conn, :create), request_data)
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert %{
+               "errors" => 0,
+               "not_found" => 0,
+               "processed" => 0,
+               "total" => 0
+             } == data["qty"]
+
+      assert "NEW" = data["status"]
+
+      assert_receive {:ok,
+                      %Register{
+                        status: @status_processed,
+                        qty: %Qty{
+                          errors: 0,
+                          not_found: 0,
+                          processed: 3,
+                          total: 3
+                        }
+                      }}
+
+      # check register_entry
+      register_entries =
+        conn
+        |> get(register_entry_path(conn, :index), register_id: data["id"])
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 3 = length(register_entries)
+
+      Enum.each(register_entries, fn entry ->
+        assert data["id"] == entry["register_id"]
+        assert data["inserted_by"] == entry["updated_by"]
+        assert data["updated_by"] == entry["inserted_by"]
+        assert Map.has_key?(entry, "document_type")
+        assert Map.has_key?(entry, "document_number")
+      end)
     end
   end
 
@@ -666,5 +737,15 @@ defmodule EHealth.Web.RegisterControllerTest do
     "../core/test/data/register/#{name}.csv"
     |> File.read!()
     |> Base.encode64()
+  end
+
+  defp prepare_document_types do
+    %{values: values} = insert(:il, :dictionary_register_documents)
+
+    values
+    |> Map.get("PATIENT")
+    |> Map.keys()
+    |> Enum.concat(["MPI_ID"])
+    |> Enum.join(", ")
   end
 end

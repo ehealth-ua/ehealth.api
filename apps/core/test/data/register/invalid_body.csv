@@ -1,3 +1,6 @@
-type,number
-TAX_ID,
-invalid_type,ED345
+type,number,death_date
+TAX_ID,,
+invalid_type,ED345,
+MPI_ID,e9b9c5e2-3263-4574-bc9f,
+MPI_ID,e9b9c5e2-3263-4574-bc9f-19bd089a7777,1715-10-10
+MPI_ID,e9b9c5e2-3263-4574-bc9f-19bd089a7777, 
