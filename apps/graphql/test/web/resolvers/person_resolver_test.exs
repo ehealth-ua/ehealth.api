@@ -18,6 +18,7 @@ defmodule GraphQLWeb.PersonResolverTest do
         lastName
         secondName
         birthDate
+        email
         gender
         status
         birthCountry
@@ -60,6 +61,45 @@ defmodule GraphQLWeb.PersonResolverTest do
             databaseId
             status
             signedAt
+          }
+        }
+        emergencyContact {
+          firstName
+          lastName
+          secondName
+          phones {
+            type
+            number
+          }
+        }
+        confidantPersons {
+          relationType
+          firstName
+          lastName
+          secondName
+          birthDate
+          birthCountry
+          birthSettlement
+          gender
+          unzr
+          taxId
+          email
+          preferredWayCommunication
+          documents {
+            type
+            number
+            issuedBy
+            issuedAt
+          }
+          relationshipDocuments {
+            type
+            number
+            issuedBy
+            issuedAt
+          }
+          phones {
+            type
+            number
           }
         }
       }
@@ -165,7 +205,8 @@ defmodule GraphQLWeb.PersonResolverTest do
 
   describe "get by id" do
     test "success", %{conn: conn} do
-      person = build(:person)
+      person = build(:person, confidant_person: build_list(1, :confidant_person))
+
       declaration = build(:declaration, person_id: person.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
@@ -186,7 +227,7 @@ defmodule GraphQLWeb.PersonResolverTest do
       assert person.id == resp_entity["databaseId"]
 
       assert Enum.all?(
-               ~w(firstName lastName secondName birthDate gender status birthCountry birthSettlement taxId unzr preferredWayCommunication insertedAt documents addresses phones authenticationMethods),
+               ~w(firstName lastName secondName birthDate gender status birthCountry birthSettlement taxId unzr preferredWayCommunication insertedAt documents addresses phones authenticationMethods emergencyContact confidantPersons),
                &Map.has_key?(resp_entity, &1)
              )
 
@@ -209,6 +250,31 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       Enum.each(resp_entity["phones"], fn phone ->
         assert Enum.all?(~w(type number), &Map.has_key?(phone, &1))
+      end)
+
+      assert Enum.all?(~w(firstName lastName secondName phones), &Map.has_key?(resp_entity["emergencyContact"], &1))
+
+      Enum.each(resp_entity["emergencyContact"]["phones"], fn phone ->
+        assert Enum.all?(~w(type number), &Map.has_key?(phone, &1))
+      end)
+
+      Enum.each(resp_entity["confidantPersons"], fn confidant_person ->
+        assert Enum.all?(
+                 ~w(relationType firstName lastName secondName birthDate birthCountry birthSettlement gender unzr taxId email preferredWayCommunication documents relationshipDocuments phones),
+                 &Map.has_key?(confidant_person, &1)
+               )
+
+        Enum.each(confidant_person["documents"], fn phone ->
+          assert Enum.all?(~w(type number issuedBy issuedAt), &Map.has_key?(phone, &1))
+        end)
+
+        Enum.each(confidant_person["relationshipDocuments"], fn phone ->
+          assert Enum.all?(~w(type number issuedBy issuedAt), &Map.has_key?(phone, &1))
+        end)
+
+        Enum.each(confidant_person["phones"], fn phone ->
+          assert Enum.all?(~w(type number), &Map.has_key?(phone, &1))
+        end)
       end)
     end
 

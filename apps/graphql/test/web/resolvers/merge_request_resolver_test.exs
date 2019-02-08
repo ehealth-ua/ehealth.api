@@ -311,7 +311,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
       assert merge_candidate.id == resp_entity["manualMergeCandidate"]["databaseId"]
     end
 
-    test "fail when merge candidate not found", %{conn: conn, consumer_id: consumer_id} do
+    test "fail when merge candidate not found", %{conn: conn} do
       nhs(1)
       search_user_roles("NHS REVIEWER")
 
@@ -332,7 +332,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
       assert "Eligible manual merge candidate not found" == error["message"]
     end
 
-    test "fail when new request already assigned", %{conn: conn, consumer_id: consumer_id} do
+    test "fail when new request already assigned", %{conn: conn} do
       nhs(1)
       search_user_roles("NHS REVIEWER")
 
@@ -359,7 +359,7 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
       assert [%{"$.assignee_id" => %{"description" => "new request is already present"}}] = error["errors"]
     end
 
-    test "fail when postponed requests limit exceeded", %{conn: conn, consumer_id: consumer_id} do
+    test "fail when postponed requests limit exceeded", %{conn: conn} do
       nhs(1)
       search_user_roles("NHS REVIEWER")
 

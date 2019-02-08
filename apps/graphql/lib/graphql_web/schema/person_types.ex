@@ -113,6 +113,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:last_name, non_null(:string))
     field(:second_name, :string)
     field(:birth_date, non_null(:date))
+    field(:email, :string)
     field(:gender, non_null(:person_gender), resolve: PersonResolver.resolve_upcased(:gender))
     field(:status, non_null(:person_status), resolve: PersonResolver.resolve_upcased(:status))
     field(:birth_country, non_null(:string))
@@ -131,6 +132,9 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:documents, list_of(:person_document))
     field(:addresses, non_null(list_of(:address)))
     field(:phones, list_of(:phone))
+
+    field(:emergency_contact, non_null(:emergency_contact))
+    field(:confidant_persons, list_of(:confidant_person), resolve: fn _, res -> {:ok, res.source.confidant_person} end)
 
     connection field(:declarations, node_type: :declaration) do
       arg(:order_by, :declaration_order_by)
@@ -172,6 +176,45 @@ defmodule GraphQLWeb.Schema.PersonTypes do
 
     # Has :string type on MPI
     field(:issued_at, :string)
+  end
+
+  object :emergency_contact do
+    field(:first_name, non_null(:string))
+    field(:last_name, non_null(:string))
+    field(:second_name, :string)
+    field(:phones, non_null(list_of(:phone)))
+  end
+
+  object :confidant_person do
+    field(:relation_type, non_null(:confidant_person_relation_type))
+    field(:first_name, non_null(:string))
+    field(:last_name, non_null(:string))
+    field(:second_name, :string)
+    # TODO: This field should return :date type
+    field(:birth_date, :string)
+    field(:birth_country, non_null(:string))
+    field(:birth_settlement, non_null(:string))
+    field(:gender, non_null(:person_gender))
+    field(:unzr, :string)
+    field(:tax_id, :string)
+    field(:email, :string)
+
+    field(:preferred_way_communication, :person_preferred_way_communication,
+      resolve: PersonResolver.resolve_upcased(:person_preferred_way_communication)
+    )
+
+    field(:documents, non_null(list_of(:person_document)), resolve: fn _, res -> {:ok, res.source.documents_person} end)
+
+    field(:relationship_documents, non_null(list_of(:person_document)),
+      resolve: fn _, res -> {:ok, res.source.documents_relationship} end
+    )
+
+    field(:phones, list_of(:phone))
+  end
+
+  enum :confidant_person_relation_type do
+    value(:primary, as: "PRIMARY")
+    value(:secondary, as: "SECONDARY")
   end
 
   defp validate_persons_query_input(%{arguments: %{filter: filter}} = resolution, _) do

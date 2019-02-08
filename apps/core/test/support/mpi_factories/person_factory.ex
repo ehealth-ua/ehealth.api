@@ -22,11 +22,11 @@ defmodule Core.MPIFactories.PersonFactory do
           tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
           no_tax_id: false,
           invalid_tax_id: false,
-          birth_country: random_bith_country(),
+          birth_country: random_birth_country(),
           birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),
           death_date: ~D[2117-11-09],
           preferred_way_communication: "email",
-          emergency_contact: %{},
+          emergency_contact: build(:emergency_contact),
           documents: build_list(2, :person_document, person_id: id),
           addresses: build_list(1, :person_address, person_id: id),
           phones: [],
@@ -94,6 +94,49 @@ defmodule Core.MPIFactories.PersonFactory do
         }
       end
 
+      def emergency_contact_factory do
+        %{
+          first_name: random_first_name(),
+          last_name: random_last_name(),
+          second_name: random_second_name(),
+          phones: build_list(1, :embedded_phone)
+        }
+      end
+
+      def confidant_person_factory do
+        %{
+          relation_type: Enum.random(["PRIMARY", "SECONDARY"]),
+          first_name: random_first_name(),
+          last_name: random_last_name(),
+          second_name: random_second_name(),
+          birth_date: "1996-12-12",
+          birth_country: random_birth_country(),
+          birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),
+          gender: Enum.random(["MALE", "FEMALE"]),
+          tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
+          secret: "secret-1",
+          phones: build_list(1, :embedded_phone),
+          documents_person: build_list(2, :embedded_document),
+          documents_relationship: build_list(2, :embedded_document)
+        }
+      end
+
+      def embedded_document_factory do
+        %{
+          type: "PASSPORT",
+          number: "АА120518",
+          issued_at: "2013-08-19",
+          issued_by: "1234"
+        }
+      end
+
+      def embedded_phone_factory do
+        %{
+          type: "MOBILE",
+          number: random_phone_number()
+        }
+      end
+
       def random_first_name, do: Enum.random(~w(Андрій Богда Василь Ганна Дмитро Катерина Людмила Марина Назар Петро))
 
       def random_second_name,
@@ -101,8 +144,8 @@ defmodule Core.MPIFactories.PersonFactory do
 
       def random_last_name, do: Enum.random(~w(Андрійченко Богданов Василенко Дмитренко Шевченко Стодоля Стародубна))
 
-      def random_bith_country,
-        do: Enum.random(~w(Україна Польша Румунія Італія Португалія Іспанія Франція Великобританія США Японія))
+      def random_birth_country,
+        do: Enum.random(~w(Україна Польща Румунія Італія Португалія Іспанія Франція Великобританія США Японія))
 
       def random_phone_number, do: "+38097#{Enum.random(1_000_000..9_999_999)}"
     end
