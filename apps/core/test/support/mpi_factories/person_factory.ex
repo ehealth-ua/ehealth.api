@@ -96,28 +96,28 @@ defmodule Core.MPIFactories.PersonFactory do
 
       def emergency_contact_factory do
         %{
-          first_name: random_first_name(),
-          last_name: random_last_name(),
-          second_name: random_second_name(),
-          phones: build_list(1, :embedded_phone)
+          "first_name" => random_first_name(),
+          "last_name" => random_last_name(),
+          "second_name" => random_second_name(),
+          "phones" => build_list(1, :embedded_phone)
         }
       end
 
       def confidant_person_factory do
         %{
-          relation_type: Enum.random(["PRIMARY", "SECONDARY"]),
-          first_name: random_first_name(),
-          last_name: random_last_name(),
-          second_name: random_second_name(),
-          birth_date: "1996-12-12",
-          birth_country: random_birth_country(),
-          birth_settlement: sequence(:birth_settlement, &"birth_settlement-#{&1}"),
-          gender: Enum.random(["MALE", "FEMALE"]),
-          tax_id: sequence(:tax_id, &"tax_id-#{&1}"),
-          secret: "secret-1",
-          phones: build_list(1, :embedded_phone),
-          documents_person: build_list(2, :embedded_document),
-          documents_relationship: build_list(2, :embedded_document)
+          "relation_type" => Enum.random(["PRIMARY", "SECONDARY"]),
+          "first_name" => random_first_name(),
+          "last_name" => random_last_name(),
+          "second_name" => random_second_name(),
+          "birth_date" => "1996-12-12",
+          "birth_country" => random_birth_country(),
+          "birth_settlement" => sequence(:birth_settlement, &"birth_settlement-#{&1}"),
+          "gender" => Enum.random(["MALE", "FEMALE"]),
+          "tax_id" => sequence(:tax_id, &"tax_id-#{&1}"),
+          "secret" => "secret-1",
+          "phones" => build_list(1, :embedded_phone),
+          "documents_person" => build_list(2, :embedded_document),
+          "documents_relationship" => build_list(2, :embedded_document)
         }
       end
 

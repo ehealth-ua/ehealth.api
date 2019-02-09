@@ -201,13 +201,15 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:email, :string)
 
     field(:preferred_way_communication, :person_preferred_way_communication,
-      resolve: PersonResolver.resolve_upcased(:person_preferred_way_communication)
+      resolve: PersonResolver.resolve_upcased("person_preferred_way_communication")
     )
 
-    field(:documents, non_null(list_of(:person_document)), resolve: fn _, res -> {:ok, res.source.documents_person} end)
+    field(:documents, non_null(list_of(:person_document)),
+      resolve: fn _, res -> {:ok, res.source["documents_person"]} end
+    )
 
     field(:relationship_documents, non_null(list_of(:person_document)),
-      resolve: fn _, res -> {:ok, res.source.documents_relationship} end
+      resolve: fn _, res -> {:ok, res.source["documents_relationship"]} end
     )
 
     field(:phones, list_of(:phone))

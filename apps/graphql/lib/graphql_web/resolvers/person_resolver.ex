@@ -31,7 +31,7 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
     end
   end
 
-  def resolve_upcased(attr) when is_atom(attr) do
+  def resolve_upcased(attr) do
     fn _, %{source: source} ->
       case Map.get(source, attr) do
         nil -> {:ok, nil}
