@@ -714,7 +714,10 @@
           "description": "Dictionary DIVISION_TYPE"
         },
         "external_id": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "location": {
           "type": [
