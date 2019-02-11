@@ -13,10 +13,10 @@ defmodule GraphQLWeb.Middleware.CheckUserRole do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
-  def call(%{state: :unresolved, context: %{client_id: client_id}} = resolution, options) do
+  def call(%{state: :unresolved, context: %{client_id: client_id, consumer_id: user_id}} = resolution, options) do
     role = Keyword.fetch!(options, :role)
     error_message = Keyword.get(options, :message, "User doesn't have required role")
-    search_params = %{client_id: client_id}
+    search_params = %{client_id: client_id, user_id: user_id}
 
     with {:ok, roles} <- get_user_roles(search_params),
          :ok <- user_has_role(roles, role, error_message) do
@@ -28,7 +28,7 @@ defmodule GraphQLWeb.Middleware.CheckUserRole do
   end
 
   def call(%{state: :unresolved}, _) do
-    raise "client_id was not provided for #{__MODULE__}"
+    raise "`client_id` or `consumer_id` was not provided for #{__MODULE__}"
   end
 
   def call(resolution, _), do: resolution

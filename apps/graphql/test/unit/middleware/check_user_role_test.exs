@@ -23,7 +23,6 @@ defmodule GraphQL.Unit.CheckUserRoleTest do
 
     query do
       field :resource_field, list_of(:resource) do
-        middleware(&put_client_id/2)
         middleware(CheckUserRole, role: "ADMIN")
 
         resolve(fn _, _ -> {:ok, []} end)
@@ -34,14 +33,12 @@ defmodule GraphQL.Unit.CheckUserRoleTest do
       field(:database_id, :id)
     end
 
-    def put_client_id(%{context: context} = resolution, _) do
-      %{resolution | context: Map.put(context, :client_id, UUID.generate())}
-    end
+    def context(_), do: %{client_id: UUID.generate(), consumer_id: UUID.generate()}
   end
 
   describe "check user role middleware" do
     test "allowed" do
-      expect(MithrilMock, :search_user_roles, fn _, _ ->
+      expect(MithrilMock, :search_user_roles, fn %{client_id: _, user_id: _}, _ ->
         {:ok, %{"data" => [%{"role_name" => "ADMIN"}]}}
       end)
 
