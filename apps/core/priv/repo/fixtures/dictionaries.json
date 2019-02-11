@@ -14704,5 +14704,29 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "CONFIDANT_PERSON_TYPE",
+    "values": {
+      "PRIMARY": "Законний представник пацієнта головний",
+      "SECONDARY": "Законний представник пацієнта другорядний"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "TAX_ID",
+    "values": {
+      "TAX_ID": "ІПН",
+      "NO_TAX_ID": "Відмова від ІПН"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
