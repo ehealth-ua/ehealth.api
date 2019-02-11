@@ -63,7 +63,7 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
   end
 
   input_object :capitation_contract_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:contractor_legal_entity, :legal_entity_filter)
     field(:contract_number, :string)
     field(:status, :contract_status)
@@ -99,7 +99,7 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
   node object(:capitation_contract) do
     interface(:contract)
 
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:contract_number, :string)
     field(:parent_contract_id, :id)
     field(:parent_contract, :contract, resolve: dataloader(PRM))
@@ -189,7 +189,7 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
   end
 
   node object(:contract_employee_division) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:staff_units, non_null(:float))
     field(:declaration_limit, non_null(:integer))
     field(:employee, non_null(:employee), resolve: dataloader(PRM))

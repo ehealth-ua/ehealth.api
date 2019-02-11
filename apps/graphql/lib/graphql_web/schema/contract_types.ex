@@ -54,7 +54,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
 
   interface :contract do
     field(:id, non_null(:id))
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:contract_number, :string)
     field(:parent_contract, :contract)
     field(:id_form, non_null(:string))

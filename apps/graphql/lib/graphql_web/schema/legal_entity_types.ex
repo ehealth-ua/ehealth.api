@@ -42,7 +42,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
   end
 
   input_object :legal_entity_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:type, :legal_entity_type)
     field(:edrpou, :string)
     field(:nhs_verified, :boolean)
@@ -124,7 +124,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
   end
 
   node object(:legal_entity) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
     field(:email, non_null(:string))
     field(:kveds, non_null(list_of(:string)))

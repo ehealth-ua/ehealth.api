@@ -74,7 +74,7 @@ defmodule GraphQLWeb.Schema.LegalEntityMergeJobTypes do
   end
 
   node object(:legal_entity_merge_job) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:object_id))
     field(:status, non_null(:legal_entity_merge_job_status))
     field(:started_at, non_null(:datetime))
     field(:ended_at, :datetime)

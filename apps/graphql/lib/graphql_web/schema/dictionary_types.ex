@@ -53,7 +53,7 @@ defmodule GraphQLWeb.Schema.DictionaryTypes do
   end
 
   node object(:dictionary) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:name, :string)
     field(:is_active, non_null(:boolean))
     field(:labels, list_of(:string))

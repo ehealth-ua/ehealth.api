@@ -71,7 +71,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   end
 
   input_object :employee_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:employee_type, list_of(:employee_type))
     field(:status, :employee_status)
     field(:is_active, :boolean)
@@ -99,7 +99,7 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
   end
 
   node object(:employee) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:position, non_null(:string))
     field(:start_date, non_null(:string))
     field(:end_date, :string)

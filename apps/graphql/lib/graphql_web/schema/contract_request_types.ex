@@ -121,7 +121,7 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
 
   interface :contract_request do
     field(:id, non_null(:id))
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:contract_number, :string)
     field(:assignee, :employee)
     field(:id_form, non_null(:string))

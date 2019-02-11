@@ -83,7 +83,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
   end
 
   input_object :reimbursement_contract_request_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:contract_number, :string)
     field(:status, :contract_request_status)
     field(:start_date, :date_interval)
@@ -117,7 +117,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
   node object(:reimbursement_contract_request) do
     interface(:contract_request)
 
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:contract_number, :string)
     field(:parent_contract, :reimbursement_contract, resolve: load_by_parent(PRM, ReimbursementContract))
     field(:previous_request, :reimbursement_contract_request, resolve: dataloader(IL))

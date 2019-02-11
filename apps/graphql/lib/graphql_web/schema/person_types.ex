@@ -108,7 +108,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   end
 
   node object(:person) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:first_name, non_null(:string))
     field(:last_name, non_null(:string))
     field(:second_name, :string)

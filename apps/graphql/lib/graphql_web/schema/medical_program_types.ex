@@ -36,7 +36,7 @@ defmodule GraphQLWeb.Schema.MedicalProgramTypes do
   end
 
   input_object :medical_program_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:name, :string)
     field(:is_active, :boolean)
   end
@@ -57,7 +57,7 @@ defmodule GraphQLWeb.Schema.MedicalProgramTypes do
   end
 
   node object(:medical_program) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
     field(:is_active, non_null(:boolean))
     # TODO: Timestamp fields should return :datetime type

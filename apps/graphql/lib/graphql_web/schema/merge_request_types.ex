@@ -93,7 +93,7 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
   end
 
   node object(:merge_request) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:status, non_null(:merge_request_status))
     field(:comment, :string)
     field(:inserted_at, non_null(:datetime))
@@ -110,7 +110,7 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
   end
 
   node object(:manual_merge_candidate) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:merge_candidate, non_null(:merge_candidate))
     field(:status, :manual_merge_candidate_status)
     field(:inserted_at, non_null(:datetime))
@@ -118,7 +118,7 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
   end
 
   node object(:merge_candidate) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:person, non_null(:person))
     field(:master_person, non_null(:person))
   end

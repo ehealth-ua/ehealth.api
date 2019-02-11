@@ -127,7 +127,7 @@ defmodule GraphQLWeb.Schema.DeclarationTypes do
   end
 
   node object(:declaration) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:declaration_number, non_null(:string))
     field(:start_date, non_null(:date))
     field(:end_date, non_null(:date))

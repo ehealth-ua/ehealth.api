@@ -29,7 +29,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   end
 
   node object(:division) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
     field(:email, non_null(:string))
     field(:mountain_group, non_null(:boolean))
@@ -46,7 +46,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   end
 
   input_object :division_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:name, :string)
     field(:is_active, :boolean)
   end

@@ -68,7 +68,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
   end
 
   input_object :reimbursement_contract_filter do
-    field(:database_id, :id)
+    field(:database_id, :uuid)
     field(:contractor_legal_entity, :legal_entity_filter)
     field(:contract_number, :string)
     field(:medical_program, :medical_program_filter)
@@ -107,7 +107,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
   node object(:reimbursement_contract) do
     interface(:contract)
 
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:contract_number, :string)
     field(:parent_contract_id, :id)
     field(:parent_contract, :contract, resolve: dataloader(PRM))

@@ -19,7 +19,7 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
   end
 
   node object(:related_legal_entity) do
-    field(:database_id, non_null(:id))
+    field(:database_id, non_null(:uuid))
     field(:reason, :string)
     field(:is_active, non_null(:boolean))
 
