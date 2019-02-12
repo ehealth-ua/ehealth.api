@@ -12052,17 +12052,17 @@
   {
     "name": "eHealth/ucum/units",
     "values": {
-      "%": "percent",
-      "mm[Hg]": "millimeter of mercury",
-      "Cel": "degree Celsius",
-      "degF": "degree Fahrenheit",
-      "{Breaths}/min": "Breaths / minute",
-      "/min": "per minute",
-      "{Beats}/min" : "Beats / minute",
-      "kg": "kilogram",
-      "cm": "centimeter",
-      "kg/m2": "kilogram / (meter^2)",
-      "mmol/L": "millimole per liter"
+      "%": "відсоток",
+      "mm[Hg]": "міліметр ртутного стовпчика",
+      "Cel": "градус Цельсія",
+      "degF": "градус Фаренгейта",
+      "{Breaths}/min": "вдих за хвилину",
+      "/min": "за хвилину",
+      "{Beats}/min" : "удар за хвилину",
+      "kg": "кілограм",
+      "cm": "сантиметр",
+      "kg/m2": "кілограм на метр квадратний",
+      "mmol/L": "мілімоль на літр"
     },
     "labels": [
       "SYSTEM",
@@ -12288,7 +12288,9 @@
   },
   {
     "name": "eHealth/vaccination_dose_statuses",
-    "values": {},
+    "values": {
+      "default_vaccination_dose_status": "значення за замовчуванням"
+    },
     "labels": [
       "SYSTEM",
       "EXTERNAL"
@@ -12296,13 +12298,9 @@
     "is_active": true
   },
   {
-    "name": "eHealth/vaccination_dose_statuse_reasons",
+    "name": "eHealth/vaccination_dose_status_reasons",
     "values": {
-      "advstorage": "Adverse storage condition",
-      "coldchbrk": "Cold chain break",
-      "explot": "Expired lot",
-      "outsidesched": "Administered outside recommended schedule",
-      "prodrecall": "Product recall"
+      "default_vaccination_dose_status_reason": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -12313,9 +12311,9 @@
   {
     "name": "eHealth/allergy_intolerance_clinical_statuses",
     "values": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "resolved": "Resolved"
+      "active": "Активна",
+      "inactive": "Неактивна",
+      "resolved": "Вилікувана"
     },
     "labels": [
       "SYSTEM",
@@ -12326,10 +12324,10 @@
   {
     "name": "eHealth/allergy_intolerance_verification_statuses",
     "values": {
-      "unconfirmed": "Unconfirmed",
-      "confirmed": "Confirmed",
-      "refuted": "Refuted",
-      "entered_in_error": "Entered In Error"
+      "unconfirmed": "Непідтверджена",
+      "confirmed": "Підтверджена",
+      "refuted": "Спростована",
+      "entered_in_error": "Внесена помилково"
     },
     "labels": [
       "SYSTEM",
@@ -14572,7 +14570,7 @@
   {
     "name": "eHealth/risk_assessment_methods",
     "values": {
-      "deafult_risk_assessment_method": "зачення за замовчуванням"
+      "default_risk_assessment_method": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14583,7 +14581,7 @@
   {
     "name": "eHealth/risk_assessment_codes",
     "values": {
-      "deafult_risk_assessment_code": "зачення за замовчуванням"
+      "default_risk_assessment_code": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14594,7 +14592,7 @@
   {
     "name": "eHealth/risk_assessment_reasons",
     "values": {
-      "deafult_risk_assessment_reason": "зачення за замовчуванням"
+      "default_risk_assessment_reason": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14605,7 +14603,7 @@
   {
     "name": "eHealth/risk_assessment_outcomes",
     "values": {
-      "deafult_risk_assessment_outcome": "зачення за замовчуванням"
+      "default_risk_assessment_outcome": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14616,7 +14614,7 @@
   {
     "name": "eHealth/risk_assessment_qualitative_risks",
     "values": {
-      "deafult_risk_assessment_qualitative_risks": "зачення за замовчуванням"
+      "default_risk_assessment_qualitative_risks": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14673,7 +14671,7 @@
   {
     "name": "eHealth/service_request_recall_reasons",
     "values": {
-      "default": "Зачення за замовчуванням"
+      "default": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
@@ -14684,7 +14682,7 @@
   {
     "name": "eHealth/service_request_cancel_reasons",
     "values": {
-      "default": "Зачення за замовчуванням"
+      "default": "значення за замовчуванням"
     },
     "labels": [
       "SYSTEM",
