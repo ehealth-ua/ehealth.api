@@ -352,20 +352,12 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       refute get_in(resp_body, ~w(data assignMergeCandidate))
 
-      # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
       assert [
                %{
                  "path" => ["assignMergeCandidate"],
+                 "message" => "new request is already present",
                  "extensions" => %{
-                   "code" => "UNPROCESSABLE_ENTITY",
-                   "exception" => %{
-                     "inputErrors" => [
-                       %{
-                         "message" => "new request is already present",
-                         "path" => ["assigneeId"]
-                       }
-                     ]
-                   }
+                   "code" => "CONFLICT"
                  }
                }
              ] = resp_body["errors"]
@@ -391,20 +383,12 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
 
       refute get_in(resp_body, ~w(data assignMergeCandidate))
 
-      # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
       assert [
                %{
                  "path" => ["assignMergeCandidate"],
+                 "message" => "postponed requests limit exceeded",
                  "extensions" => %{
-                   "code" => "UNPROCESSABLE_ENTITY",
-                   "exception" => %{
-                     "inputErrors" => [
-                       %{
-                         "message" => "postponed requests limit exceeded",
-                         "path" => ["assigneeId"]
-                       }
-                     ]
-                   }
+                   "code" => "CONFLICT"
                  }
                }
              ] = resp_body["errors"]

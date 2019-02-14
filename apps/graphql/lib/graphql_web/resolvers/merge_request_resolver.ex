@@ -5,6 +5,7 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
 
   alias Absinthe.Relay.Connection
   alias Core.ManualMerge.ManualMergeRequest
+  alias Ecto.Changeset
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
@@ -43,6 +44,9 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
   def assign_merge_candidate(_, %{context: %{consumer_id: consumer_id}}) do
     with {:ok, merge_request} <- @rpc_worker.run("mpi", MPI.Rpc, :assign_manual_merge_candidate, [consumer_id]) do
       {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
+    else
+      {:error, %Changeset{} = changeset} -> {:error, {:conflict, changeset_to_message(changeset)}}
+      error -> error
     end
   end
 
@@ -56,5 +60,13 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
 
   defp get_filter_conditions(consumer_id, filter \\ []) do
     [{:assignee_id, :equal, consumer_id}, {:status, :in, [@status_new, @status_postpone]} | filter]
+  end
+
+  defp changeset_to_message(changeset) do
+    changeset
+    |> Changeset.traverse_errors(fn {message, _} -> message end)
+    |> Map.values()
+    |> List.flatten()
+    |> hd()
   end
 end
