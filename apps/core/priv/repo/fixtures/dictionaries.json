@@ -12058,7 +12058,7 @@
       "degF": "градус Фаренгейта",
       "{Breaths}/min": "вдих за хвилину",
       "/min": "за хвилину",
-      "{Beats}/min" : "удар за хвилину",
+      "{Beats}/min": "удар за хвилину",
       "kg": "кілограм",
       "cm": "сантиметр",
       "kg/m2": "кілограм на метр квадратний",
@@ -14707,6 +14707,17 @@
     "values": {
       "TAX_ID": "ІПН",
       "NO_TAX_ID": "Відмова від ІПН"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "SERVICE_REQUEST_PRIORITY",
+    "values": {
+      "default": "default"
     },
     "labels": [
       "SYSTEM",
