@@ -84,12 +84,7 @@ defmodule EHealth.Web.EmailsControllerTest do
         |> Enum.reduce([], fn error, acc ->
           assert %{
                    "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "params" => [],
-                       "rule" => "required"
-                     }
-                   ]
+                   "rules" => [%{"rule" => "required"}]
                  } = error
 
           [error["entry"] | acc]
@@ -112,11 +107,10 @@ defmodule EHealth.Web.EmailsControllerTest do
                "rules" => [
                  %{
                    "description" => "required property from was not present",
-                   "params" => [],
                    "rule" => "required"
                  }
                ]
-             } == err
+             } = err
     end
 
     test "param from and param to are identical", %{conn: conn} do

@@ -1,8 +1,6 @@
 defmodule GraphQLWeb.Resolvers.ContractResolver do
   @moduledoc false
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
-
   alias Core.ContractRequests.RequestPack
   alias Core.Contracts
 
@@ -108,8 +106,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   def get_printout_content(%{__struct__: _} = contract, _args, %{context: context}) do
     with {:ok, printout_form} <- Contracts.get_printout_content(contract, context.client_type, context.headers) do
       {:ok, printout_form}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -118,8 +114,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
     with {:ok, contract} <- Contracts.terminate(id, params, headers) do
       {:ok, %{contract: contract}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -128,8 +122,6 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
 
     with {:ok, contract, _} <- Contracts.prolongate(id, params, headers) do
       {:ok, %{contract: contract}}
-    else
-      err -> render_error(err)
     end
   end
 end

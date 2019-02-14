@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.DictionaryResolver do
   @moduledoc false
 
   import GraphQL.Helpers.Filtering, only: [filter: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Relay.Connection
   alias Core.Dictionaries
@@ -20,8 +19,6 @@ defmodule GraphQLWeb.Resolvers.DictionaryResolver do
     with {:ok, dictionary} <- Dictionaries.fetch_by_id(id),
          {:ok, dictionary} <- Dictionaries.update_dictionary(dictionary, args) do
       {:ok, %{dictionary: dictionary}}
-    else
-      err -> render_error(err)
     end
   end
 end

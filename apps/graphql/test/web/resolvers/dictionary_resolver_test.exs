@@ -114,8 +114,23 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_entity
-      assert [error] = resp_body["errors"]
-      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+
+      assert [
+               %{
+                 "path" => ["updateDictionary"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "has an invalid entry",
+                         "path" => ["labels"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "fails to update on duplicated labels", %{conn: conn} do
@@ -129,9 +144,23 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_entity
-      assert [error] = resp_body["errors"]
-      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
-      assert Map.has_key?(hd(error["errors"]), "$.labels")
+
+      assert [
+               %{
+                 "path" => ["updateDictionary"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Labels are duplicated",
+                         "path" => ["labels"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "fails to rename dictionary", %{conn: conn} do
@@ -145,9 +174,23 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_entity
-      assert [error] = resp_body["errors"]
-      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
-      assert Map.has_key?(hd(error["errors"]), "$.name")
+
+      assert [
+               %{
+                 "path" => ["updateDictionary"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Name can't be changed",
+                         "path" => ["name"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "fails to update deactivated dictionary", %{conn: conn} do
@@ -161,9 +204,24 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_entity
-      assert [error] = resp_body["errors"]
-      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
-      assert Map.has_key?(hd(error["errors"]), "$.is_active")
+
+      assert [
+               %{
+                 "path" => ["updateDictionary"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Deactivated dictionary is not allowed to be updated",
+                         "options" => %{},
+                         "path" => ["isActive"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "fails to update on empty values", %{conn: conn} do
@@ -177,8 +235,24 @@ defmodule GraphQLWeb.DictionaryResolverTest do
       {resp_body, resp_entity} = call_update_dictionary(conn, dictionary_params)
 
       refute resp_entity
-      assert [error] = resp_body["errors"]
-      assert "UNPROCESSABLE_ENTITY" == error["extensions"]["code"]
+
+      assert [
+               %{
+                 "path" => ["updateDictionary"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Values should not be empty",
+                         "options" => %{},
+                         "path" => ["values"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
   end
 

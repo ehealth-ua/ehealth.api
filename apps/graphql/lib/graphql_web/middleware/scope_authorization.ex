@@ -5,8 +5,6 @@ defmodule GraphQLWeb.Middleware.ScopeAuthorization do
 
   @behaviour Absinthe.Middleware
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_forbidden_error: 1]
-
   alias Absinthe.{Resolution, Type}
 
   defmacro __using__(opts \\ []) do
@@ -44,7 +42,7 @@ defmodule GraphQLWeb.Middleware.ScopeAuthorization do
     if Enum.empty?(missing_allowances) do
       resolution
     else
-      Resolution.put_result(resolution, {:error, format_forbidden_error(%{missingAllowances: missing_allowances})})
+      Resolution.put_result(resolution, {:error, {:forbidden, %{missing_allowances: missing_allowances}}})
     end
   end
 

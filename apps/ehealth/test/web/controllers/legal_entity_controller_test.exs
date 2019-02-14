@@ -53,7 +53,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                    "rules" => [
                      %{
                        "description" => "string does not match pattern \"^[0-9]{8,10}|[0-9]{9,10}$\"",
-                       "params" => ["^[0-9]{8,10}|[0-9]{9,10}$"],
                        "rule" => "format"
                      }
                    ]
@@ -359,7 +358,6 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                    "rules" => [
                      %{
                        "description" => "string does not match pattern \"^[0-9]{8,10}|[0-9]{9,10}$\"",
-                       "params" => ["^[0-9]{8,10}|[0-9]{9,10}$"],
                        "rule" => "format"
                      }
                    ]

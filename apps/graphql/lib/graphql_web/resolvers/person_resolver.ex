@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
   import GraphQLWeb.Resolvers.Helpers.Load, only: [response_to_ecto_struct: 2]
 
   alias Absinthe.Relay.Connection
@@ -18,16 +17,12 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
       persons = Enum.map(persons, &response_to_ecto_struct(Person, &1))
 
       Connection.from_slice(Enum.take(persons, limit), offset, opts)
-    else
-      err -> render_error(err)
     end
   end
 
   def get_person_by_id(_parent, %{id: id}, _resolution) do
     with {:ok, person} <- Persons.get_by_id(id) do
       {:ok, response_to_ecto_struct(Person, person)}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -61,8 +56,6 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
   def reset_authentication_method(%{person_id: id}, %{context: %{headers: headers}}) do
     with {:ok, person} <- Persons.reset_person_auth_method(id, headers) do
       {:ok, %{person: response_to_ecto_struct(Person, person)}}
-    else
-      err -> render_error(err)
     end
   end
 end

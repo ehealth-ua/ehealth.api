@@ -1163,7 +1163,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       |> json_response(422)
       |> assert_error(
         "$.contract_number",
-        "string does not match pattern \"^\\\\d{4}-[\\\\dAEHKMPTX]{4}-[\\\\dAEHKMPTX]{4}$\"",
+        "string does not match pattern \"^\\d{4}-[\\dAEHKMPTX]{4}-[\\dAEHKMPTX]{4}$\"",
         "format"
       )
     end

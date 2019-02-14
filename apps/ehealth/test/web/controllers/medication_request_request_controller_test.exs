@@ -649,7 +649,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property intent was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -925,8 +924,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected Array but got Object",
-                       "params" => ["array"],
+                       "description" => "type mismatch. Expected array but got object",
                        "rule" => "cast"
                      }
                    ]
@@ -937,7 +935,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property category was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -979,8 +976,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected Array but got Object",
-                       "params" => ["array"],
+                       "description" => "type mismatch. Expected array but got object",
                        "rule" => "cast"
                      }
                    ]
@@ -991,7 +987,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property category was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1035,7 +1030,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "value is not allowed in enum",
-                       "params" => ["encounter"],
+                       "params" => %{"values" => ["encounter"]},
                        "rule" => "inclusion"
                      }
                    ]

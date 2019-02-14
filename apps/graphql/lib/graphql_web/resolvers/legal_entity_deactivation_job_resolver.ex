@@ -1,8 +1,6 @@
 defmodule GraphQLWeb.Resolvers.LegalEntityDeactivationJobResolver do
   @moduledoc false
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
-
   alias Absinthe.Relay.Connection
   alias Absinthe.Relay.Node
   alias Jobs.LegalEntityDeactivationJob
@@ -17,11 +15,10 @@ defmodule GraphQLWeb.Resolvers.LegalEntityDeactivationJobResolver do
 
       {:job_exists, id} ->
         id = Node.to_global_id("LegalEntityDeactivationJob", id)
-        err = {:error, {:conflict, "Legal Entity deactivation job is already created with id #{id}"}}
-        render_error(err)
+        {:error, {:conflict, "Legal Entity deactivation job is already created with id #{id}"}}
 
       err ->
-        render_error(err)
+        err
     end
   end
 

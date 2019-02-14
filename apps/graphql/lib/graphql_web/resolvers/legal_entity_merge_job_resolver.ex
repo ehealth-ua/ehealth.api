@@ -1,8 +1,6 @@
 defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
   @moduledoc false
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
-
   alias Absinthe.Relay.Connection
   alias Absinthe.Relay.Node
   alias Jobs.LegalEntityMergeJob
@@ -17,11 +15,10 @@ defmodule GraphQLWeb.Resolvers.LegalEntityMergeJobResolver do
 
       {:job_exists, id} ->
         id = Node.to_global_id("LegalEntityMergeJob", id)
-        err = {:error, {:conflict, "Merge Legal Entity job is already created with id #{id}"}}
-        render_error(err)
+        {:error, {:conflict, "Merge Legal Entity job is already created with id #{id}"}}
 
       err ->
-        render_error(err)
+        err
     end
   end
 

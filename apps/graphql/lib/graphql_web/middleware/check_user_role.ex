@@ -6,7 +6,6 @@ defmodule GraphQLWeb.Middleware.CheckUserRole do
   @behaviour Absinthe.Middleware
 
   import Core.Users.Validator, only: [user_has_role: 3]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Absinthe.Resolution
   alias Core.Log
@@ -23,7 +22,7 @@ defmodule GraphQLWeb.Middleware.CheckUserRole do
       resolution
     else
       error ->
-        Resolution.put_result(resolution, render_error(error))
+        Resolution.put_result(resolution, error)
     end
   end
 

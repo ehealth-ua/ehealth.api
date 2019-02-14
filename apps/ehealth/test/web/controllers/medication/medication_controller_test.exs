@@ -314,7 +314,6 @@ defmodule EHealth.Web.MedicationControllerTest do
                      %{
                        "description" =>
                          "string does not match pattern \"^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$\"",
-                       "params" => ["^[abcdghjlmnprsvABCDGHJLMNPRSV]{1}[0-9]{2}[a-zA-Z]{2}[0-9]{2}$"],
                        "rule" => "format"
                      }
                    ]

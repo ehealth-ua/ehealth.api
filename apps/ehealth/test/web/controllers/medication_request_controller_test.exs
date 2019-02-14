@@ -1589,7 +1589,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property signed_medication_reject was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1600,7 +1599,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property signed_content_encoding was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1717,8 +1715,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected String but got Integer",
-                       "params" => ["string"],
+                       "description" => "type mismatch. Expected string but got integer",
                        "rule" => "cast"
                      }
                    ]
@@ -1729,7 +1726,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "schema does not allow additional properties",
-                       "params" => %{"test" => "test"},
                        "rule" => "schema"
                      }
                    ]
@@ -1740,7 +1736,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property id was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]

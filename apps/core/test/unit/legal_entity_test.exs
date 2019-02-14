@@ -50,7 +50,7 @@ defmodule Core.Unit.LegalEntityTest do
               [
                 {%{
                    description: "value is not allowed in enum",
-                   params: ["base64"],
+                   params: %{values: ["base64"]},
                    rule: :inclusion
                  }, "$.signed_content_encoding"}
               ]} =

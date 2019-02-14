@@ -1,4 +1,4 @@
-defmodule GraphQL.Unit.TransformInputTest do
+defmodule GraphQL.Unit.Middleware.TransformInputTest do
   @moduledoc false
 
   use ExUnit.Case, async: true

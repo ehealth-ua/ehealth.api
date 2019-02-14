@@ -50,8 +50,6 @@ defmodule EHealth.Mixfile do
       {:eview, "~> 0.15"},
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.1"},
-      {:jvalid, "~> 0.7"},
-      {:nex_json_schema, ">= 0.8.0"},
       {:phoenix, "~> 1.4.0-rc.3", override: true},
       {:phoenix_ecto, "~> 3.2"},
       {:plug_cowboy, "~> 2.0"},

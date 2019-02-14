@@ -519,10 +519,27 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
         |> post_query(@update_query, variables)
         |> json_response(200)
 
-      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+      refute get_in(resp_body, ~w(data updateContractRequest))
 
-      assert [error] = resp_body["errors"]
-      assert "expected the value to be >= 0" == hd(error["errors"])["$.nhs_contract_price"]["description"]
+      assert [
+               %{
+                 "path" => ["updateContractRequest"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "expected the value to be >= {greaterThanOrEqualTo}",
+                         "options" => %{
+                           "greaterThanOrEqualTo" => 0
+                         },
+                         "path" => ["nhsContractPrice"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "Start date must be greater than create date", %{
@@ -547,8 +564,8 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
       variables = %{
         input: %{
           id: id,
-          nhs_signer_id: nhs_signer_id,
-          nhs_contract_price: 100
+          nhsSignerId: nhs_signer_id,
+          nhsContractPrice: 100
         }
       }
 
@@ -558,10 +575,24 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
         |> post_query(@update_query, variables)
         |> json_response(200)
 
-      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+      refute get_in(resp_body, ~w(data updateContractRequest))
 
-      assert [error] = resp_body["errors"]
-      assert "Start date must be within this or next year" == hd(error["errors"])["$.start_date"]["description"]
+      assert [
+               %{
+                 "path" => ["updateContractRequest"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Start date must be within this or next year",
+                         "path" => ["startDate"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "contract request not found", %{conn: conn, nhs_signer_id: nhs_signer_id, legal_entity: legal_entity} do
@@ -758,14 +789,12 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
       refute resp_body["data"]["approveContractRequest"]
 
       assert match?(
-               %{"message" => "Validation error", "extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}},
+               %{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}},
                hd(resp_body["errors"])
              )
     end
 
     test "invalid HTTP error", context do
-      import ExUnit.CaptureLog
-
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:error, {:errconn, "Bad Gateway"}}
       end)
@@ -788,23 +817,21 @@ defmodule GraphQLWeb.CapidationContractRequestResolverTest do
         "text" => "something"
       }
 
-      assert capture_log(fn ->
-               resp_body =
-                 conn
-                 |> put_client_id(legal_entity.id)
-                 |> put_consumer_id(party_user.user_id)
-                 |> put_req_header("drfo", legal_entity.edrpou)
-                 |> put_scope("contract_request:update")
-                 |> post_query(@approve_query, input_signed_content(contract_request.id, content))
-                 |> json_response(200)
+      resp_body =
+        conn
+        |> put_client_id(legal_entity.id)
+        |> put_consumer_id(party_user.user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> put_scope("contract_request:update")
+        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
+        |> json_response(200)
 
-               refute resp_body["data"]["approveContractRequest"]
+      refute resp_body["data"]["approveContractRequest"]
 
-               assert match?(
-                        %{"message" => "Undefined error", "extensions" => %{"code" => "BAD_REQUEST"}},
-                        hd(resp_body["errors"])
-                      )
-             end) =~ "Got undefined error"
+      assert match?(
+               %{"message" => "Something went wrong", "extensions" => %{"code" => "INTERNAL_SERVER_ERROR"}},
+               hd(resp_body["errors"])
+             )
     end
   end
 

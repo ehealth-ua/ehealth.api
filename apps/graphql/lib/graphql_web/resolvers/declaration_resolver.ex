@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
   import GraphQLWeb.Resolvers.Helpers.Load, only: [response_to_ecto_struct: 2]
 
   alias Absinthe.Relay.Connection
@@ -24,8 +23,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
       declarations = Enum.map(declarations, &response_to_ecto_struct(Declaration, &1))
 
       Connection.from_slice(Enum.take(declarations, limit), offset, opts)
-    else
-      err -> render_error(err)
     end
   end
 
@@ -40,8 +37,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   defp do_get_declaration(params) when is_list(params) do
     with {:ok, declaration} <- Declarations.get_declaration_by(params) do
       {:ok, response_to_ecto_struct(Declaration, declaration)}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -73,8 +68,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
   defp update_declaration(id, patch, headers) do
     with {:ok, declaration} <- Declarations.update_declaration(id, patch, headers) do
       {:ok, %{declaration: response_to_ecto_struct(Declaration, declaration)}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -86,8 +79,6 @@ defmodule GraphQLWeb.Resolvers.DeclarationResolver do
 
     with {:ok, declaration} <- Declarations.terminate(id, consumer_id, params, headers, false) do
       {:ok, %{declaration: response_to_ecto_struct(Declaration, declaration)}}
-    else
-      err -> render_error(err)
     end
   end
 end

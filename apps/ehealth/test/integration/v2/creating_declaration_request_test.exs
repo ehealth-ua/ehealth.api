@@ -1628,7 +1628,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
                  "rules" => [
                    %{
                      "description" => "string does not match pattern \"^[0-9]{8}-[0-9]{5}$\"",
-                     "params" => ["^[0-9]{8}-[0-9]{5}$"],
                      "rule" => "format"
                    }
                  ]
@@ -1803,7 +1802,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
                      "rules" => [
                        %{
                          "description" => "value is not allowed in enum",
-                         "params" => ["2FA", "OTP"],
+                         "params" => %{"values" => ["2FA", "OTP"]},
                          "rule" => "inclusion"
                        }
                      ]
@@ -1841,7 +1840,6 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
                      "rules" => [
                        %{
                          "description" => "expected exactly one of the schemata to match, but none of them did",
-                         "params" => [],
                          "rule" => "schemata"
                        }
                      ]
@@ -1887,7 +1885,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
                      "rules" => [
                        %{
                          "description" => "value is not allowed in enum",
-                         "params" => ["COURT_DECISION"],
+                         "params" => %{"values" => ["COURT_DECISION"]},
                          "rule" => "inclusion"
                        }
                      ]
@@ -1926,7 +1924,7 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
                      "rules" => [
                        %{
                          "description" => "value is not allowed in enum",
-                         "params" => ["FEMALE", "MALE"],
+                         "params" => %{"values" => ["FEMALE", "MALE"]},
                          "rule" => "inclusion"
                        }
                      ]
@@ -1955,41 +1953,24 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       assert %{"error" => %{"invalid" => errors}} = json_response(conn, 422)
 
-      assert %{
-               "entry" => "$.declaration_request.person.first_name",
-               "entry_type" => "json_data_property",
-               "rules" => [
-                 %{
-                   "description" => "expected value to have a maximum length of 255 but was 258",
-                   "params" => %{"max" => 255},
-                   "rule" => "length"
-                 }
-               ]
-             } in errors
+      Enum.each(errors, fn error ->
+        assert %{
+                 "entry" => entry,
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "expected value to have a maximum length of 255 but was 258",
+                     "rule" => "length"
+                   }
+                 ]
+               } = error
 
-      assert %{
-               "entry" => "$.declaration_request.person.last_name",
-               "entry_type" => "json_data_property",
-               "rules" => [
-                 %{
-                   "description" => "expected value to have a maximum length of 255 but was 258",
-                   "params" => %{"max" => 255},
-                   "rule" => "length"
-                 }
+        assert entry in [
+                 "$.declaration_request.person.first_name",
+                 "$.declaration_request.person.last_name",
+                 "$.declaration_request.person.second_name"
                ]
-             } in errors
-
-      assert %{
-               "entry" => "$.declaration_request.person.second_name",
-               "entry_type" => "json_data_property",
-               "rules" => [
-                 %{
-                   "description" => "expected value to have a maximum length of 255 but was 258",
-                   "params" => %{"max" => 255},
-                   "rule" => "length"
-                 }
-               ]
-             } in errors
+      end)
     end
   end
 

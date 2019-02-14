@@ -1,7 +1,6 @@
 defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
   @moduledoc false
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
   import GraphQLWeb.Resolvers.Helpers.Load, only: [response_to_ecto_struct: 2]
 
   alias Absinthe.Relay.Connection
@@ -22,8 +21,6 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
       merge_requests = Enum.map(merge_requests, &response_to_ecto_struct(ManualMergeRequest, &1))
 
       Connection.from_slice(Enum.take(merge_requests, limit), offset, opts)
-    else
-      err -> render_error(err)
     end
   end
 
@@ -40,16 +37,12 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
   def resolve_can_assign_new(_, %{context: %{consumer_id: consumer_id}}) do
     with {:ok, result} <- @rpc_worker.run("mpi", MPI.Rpc, :can_assign_new_manual_merge_request, [consumer_id]) do
       {:ok, result}
-    else
-      err -> render_error(err)
     end
   end
 
   def assign_merge_candidate(_, %{context: %{consumer_id: consumer_id}}) do
     with {:ok, merge_request} <- @rpc_worker.run("mpi", MPI.Rpc, :assign_manual_merge_candidate, [consumer_id]) do
       {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -58,8 +51,6 @@ defmodule GraphQLWeb.Resolvers.MergeRequestResolver do
 
     with {:ok, merge_request} <- @rpc_worker.run("mpi", MPI.Rpc, :process_manual_merge_request, args) do
       {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
-    else
-      err -> render_error(err)
     end
   end
 

@@ -6,7 +6,6 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
   @behaviour Absinthe.Middleware
 
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_unauthenticated_error: 0]
 
   alias Absinthe.{Resolution, Type}
 
@@ -54,7 +53,7 @@ defmodule GraphQLWeb.Middleware.ClientMetadata do
          {:ok, metadata} <- get_metadata(required_metadata, headers, opts) do
       %{resolution | context: Map.merge(context, metadata)}
     else
-      _ -> Resolution.put_result(resolution, {:error, format_unauthenticated_error()})
+      _ -> Resolution.put_result(resolution, {:error, :unauthenticated})
     end
   end
 

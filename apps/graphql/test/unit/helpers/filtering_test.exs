@@ -1,4 +1,4 @@
-defmodule GraphQL.Unit.FilteringHelperTest do
+defmodule GraphQL.Unit.Helpers.FilteringTest do
   @moduledoc false
 
   use Core.ConnCase, async: false

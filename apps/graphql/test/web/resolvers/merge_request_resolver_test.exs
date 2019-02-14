@@ -350,13 +350,25 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
         |> post_query(@assign_merge_candidate_query)
         |> json_response(200)
 
-      %{"errors" => [error]} = resp_body
-
-      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+      refute get_in(resp_body, ~w(data assignMergeCandidate))
 
       # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
-      assert "UNPROCESSABLE_ENTITY" = error["extensions"]["code"]
-      assert [%{"$.assignee_id" => %{"description" => "new request is already present"}}] = error["errors"]
+      assert [
+               %{
+                 "path" => ["assignMergeCandidate"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "new request is already present",
+                         "path" => ["assigneeId"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "fail when postponed requests limit exceeded", %{conn: conn} do
@@ -377,13 +389,25 @@ defmodule GraphQLWeb.MergeRequestResolverTest do
         |> post_query(@assign_merge_candidate_query)
         |> json_response(200)
 
-      %{"errors" => [error]} = resp_body
-
-      refute get_in(resp_body, ~w(data assignMergeCandidate mergeRequest))
+      refute get_in(resp_body, ~w(data assignMergeCandidate))
 
       # TODO: We should return CONFLICT code instead UNPROCESSABLE_ENTITY
-      assert "UNPROCESSABLE_ENTITY" = error["extensions"]["code"]
-      assert [%{"$.assignee_id" => %{"description" => "postponed requests limit exceeded"}}] = error["errors"]
+      assert [
+               %{
+                 "path" => ["assignMergeCandidate"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "postponed requests limit exceeded",
+                         "path" => ["assigneeId"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
   end
 

@@ -1754,7 +1754,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property signed_medication_dispense was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1765,7 +1764,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property signed_content_encoding was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1886,7 +1884,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property payment_id was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1897,7 +1894,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "rules" => [
                      %{
                        "description" => "required property payment_amount was not present",
-                       "params" => [],
                        "rule" => "required"
                      }
                    ]
@@ -1923,8 +1919,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected Number but got String",
-                       "params" => ["number"],
+                       "description" => "type mismatch. Expected number but got string",
                        "rule" => "cast"
                      }
                    ]
@@ -1934,8 +1929,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected String but got Integer",
-                       "params" => ["string"],
+                       "description" => "type mismatch. Expected string but got integer",
                        "rule" => "cast"
                      }
                    ]

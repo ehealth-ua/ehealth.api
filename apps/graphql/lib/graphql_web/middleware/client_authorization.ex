@@ -5,8 +5,6 @@ defmodule GraphQLWeb.Middleware.ClientAuthorization do
 
   @behaviour Absinthe.Middleware
 
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [format_forbidden_error: 0]
-
   alias Absinthe.{Resolution, Type}
 
   defmacro __using__(opts \\ []) do
@@ -38,7 +36,7 @@ defmodule GraphQLWeb.Middleware.ClientAuthorization do
     if current_client in allowed_clients do
       resolution
     else
-      Resolution.put_result(resolution, {:error, format_forbidden_error()})
+      Resolution.put_result(resolution, {:error, :forbidden})
     end
   end
 

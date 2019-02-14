@@ -626,7 +626,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
                      "rules" => [
                        %{
                          "description" => "expected \"2017-W08-7\" to be an existing date",
-                         "params" => [],
                          "rule" => "date"
                        }
                      ]
@@ -662,7 +661,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
                      "rules" => [
                        %{
                          "description" => "expected \"2017-02-29\" to be an existing date",
-                         "params" => [],
                          "rule" => "date"
                        }
                      ]

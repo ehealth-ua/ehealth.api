@@ -47,6 +47,7 @@ defmodule Core.MixProject do
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.0"},
       {:jvalid, "~> 0.7"},
+      {:nex_json_schema, git: "https://github.com/Nebo15/nex_json_schema.git", override: true},
       {:phoenix_ecto, "~> 3.2"},
       {:plug, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},

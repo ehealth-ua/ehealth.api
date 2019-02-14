@@ -1,4 +1,4 @@
-defmodule GraphQL.Unit.FilteringMiddlewareTest do
+defmodule GraphQL.Unit.Middleware.FilteringTest do
   @moduledoc false
 
   use ExUnit.Case, async: true

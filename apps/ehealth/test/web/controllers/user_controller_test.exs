@@ -94,7 +94,6 @@ defmodule EHealth.Web.UserControllerTest do
                  "rules" => [
                    %{
                      "description" => "required property client_id was not present",
-                     "params" => [],
                      "rule" => "required"
                    }
                  ]
@@ -105,7 +104,6 @@ defmodule EHealth.Web.UserControllerTest do
                  "rules" => [
                    %{
                      "description" => "required property redirect_uri was not present",
-                     "params" => [],
                      "rule" => "required"
                    }
                  ]

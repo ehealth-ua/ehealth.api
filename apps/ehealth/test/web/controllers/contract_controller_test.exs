@@ -567,12 +567,11 @@ defmodule EHealth.Web.ContractControllerTest do
                  "rules" => [
                    %{
                      "description" => "required property end_date was not present",
-                     "params" => [],
                      "rule" => "required"
                    }
                  ]
                }
-             ] == resp["error"]["invalid"]
+             ] = resp["error"]["invalid"]
     end
 
     test "contract not found", %{conn: conn, legal_entity: legal_entity} do

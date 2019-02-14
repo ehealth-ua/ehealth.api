@@ -1,4 +1,4 @@
-defmodule GraphQL.Unit.CheckUserRoleTest do
+defmodule GraphQL.Unit.Middleware.CheckUserRoleTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
@@ -6,7 +6,7 @@ defmodule GraphQL.Unit.CheckUserRoleTest do
   import Mox
 
   alias Ecto.UUID
-  alias GraphQLWeb.Middleware.CheckUserRole
+  alias GraphQLWeb.Middleware.{CheckUserRole, FormatErrors}
 
   @query """
     query ResourceQuery {
@@ -20,6 +20,7 @@ defmodule GraphQL.Unit.CheckUserRoleTest do
     @moduledoc false
 
     use Absinthe.Schema
+    use FormatErrors
 
     query do
       field :resource_field, list_of(:resource) do

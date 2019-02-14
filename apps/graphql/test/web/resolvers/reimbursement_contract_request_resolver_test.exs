@@ -339,25 +339,38 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
       variables = %{
         input: %{
           id: id,
-          nhs_signer_id: nhs_signer_id,
-          nhs_signer_base: "на підставі наказу",
-          nhs_contract_price: 150_000,
-          nhs_payment_method: "BACKWARD",
+          nhsSignerId: nhs_signer_id,
+          nhsSignerBase: "на підставі наказу",
+          nhsContractPrice: 150_000,
+          nhsPaymentMethod: "BACKWARD",
           miscellaneous: "Всяке дозволене"
         }
       }
 
-      errors =
+      resp_body =
         conn
         |> put_client_id(legal_entity.id)
         |> post_query(@update_query, variables)
         |> json_response(200)
-        |> Map.get("errors")
 
-      assert Enum.any?(errors, &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+      refute get_in(resp_body, ~w(data updateContractRequest))
 
-      assert [error] = errors
-      assert "schema does not allow additional properties" == hd(error["errors"])["$.nhs_contract_price"]["description"]
+      assert [
+               %{
+                 "path" => ["updateContractRequest"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "schema does not allow additional properties",
+                         "path" => ["nhsContractPrice"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "cannot update reimbursement contract request when global id for capitation", %{
@@ -785,12 +798,25 @@ defmodule GraphQLWeb.ReimbursementContractRequestResolverTest do
         |> post_query(@sign_query, input_signed_content(id, content))
         |> json_response(200)
 
-      assert Enum.any?(resp_body["errors"], &match?(%{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}}, &1))
+      refute get_in(resp_body, ~w(data signContractRequest))
 
-      assert [error] = resp_body["errors"]
-
-      assert "Reimbursement program with such id does not exist" ==
-               hd(error["errors"])["$.medical_program_id"]["description"]
+      assert [
+               %{
+                 "path" => ["signContractRequest"],
+                 "extensions" => %{
+                   "code" => "UNPROCESSABLE_ENTITY",
+                   "exception" => %{
+                     "inputErrors" => [
+                       %{
+                         "message" => "Reimbursement program with such id does not exist",
+                         "options" => %{"rule" => "invalid"},
+                         "path" => ["medicalProgramId"]
+                       }
+                     ]
+                   }
+                 }
+               }
+             ] = resp_body["errors"]
     end
 
     test "medical program not active", %{conn: conn} do

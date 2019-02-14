@@ -2,7 +2,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   @moduledoc false
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
-  import GraphQLWeb.Resolvers.Helpers.Errors, only: [render_error: 1]
 
   alias Core.ContractRequests
   alias Core.ContractRequests.CapitationContractRequest
@@ -85,8 +84,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, printout_content} <- form_renderer.render(contract_request, context.headers) do
       {:ok, printout_content}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -97,8 +94,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   def get_attached_documents(%{id: id, type: type, status: status}, _, _) do
     with documents when is_list(documents) <- Storage.gen_relevant_get_links(id, type, status) do
       {:ok, documents}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -145,8 +140,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
         |> Map.put(:printout_content, printout_content)
 
       {:ok, to_sign_content}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -157,8 +150,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, contract_request, references} <- ContractRequests.update(resolution.context.headers, params) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -167,8 +158,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, contract_request, _} <- ContractRequests.update_assignee(params, headers) do
       {:ok, %{contract_request: contract_request}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -177,8 +166,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, contract_request, references} <- ContractRequests.approve(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -187,8 +174,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, contract_request, _references} <- ContractRequests.sign_nhs(headers, params) do
       {:ok, %{contract_request: contract_request}}
-    else
-      err -> render_error(err)
     end
   end
 
@@ -197,8 +182,6 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
 
     with {:ok, contract_request, references} <- ContractRequests.decline(params, headers) do
       {:ok, %{contract_request: Map.merge(contract_request, references)}}
-    else
-      err -> render_error(err)
     end
   end
 

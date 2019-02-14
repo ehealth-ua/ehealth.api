@@ -6,6 +6,7 @@ defmodule GraphQLWeb.Schema do
 
   use GraphQLWeb.Middleware.{
     MapGet,
+    FormatErrors,
     DatabaseIDs,
     OrderByArgument,
     ClientAuthorization,
