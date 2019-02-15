@@ -4,6 +4,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  alias Absinthe.Relay.Connection
   alias Absinthe.Relay.Node.ParseIDs
   alias Absinthe.Resolution
   alias GraphQLWeb.Middleware.{Filtering, TransformInput}
@@ -222,7 +223,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
 
   defp validate_persons_query_input(%{arguments: %{filter: filter}} = resolution, _) do
     if %{} in [filter[:personal], filter[:documents]] do
-      Resolution.put_result(resolution, {:ok, %{edges: []}})
+      Resolution.put_result(resolution, Connection.from_slice([], 0))
     else
       resolution
     end

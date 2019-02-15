@@ -48,7 +48,7 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
 
         Connection.from_slice(Enum.take(declarations, limit), offset, opts)
       else
-        _ -> {:ok, %{edges: []}}
+        _ -> Connection.from_slice([], 0)
       end
     end)
   end
