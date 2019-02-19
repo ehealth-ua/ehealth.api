@@ -30,7 +30,7 @@ defmodule GraphQLWeb.Middleware.TransformInput do
   defp put_value(_, nil, acc), do: acc
 
   defp put_value(key_path, value, acc) when is_list(key_path) do
-    Map.merge(acc, put_in(%{}, Enum.map(key_path, &Access.key(&1, %{})), value))
+    DeepMerge.deep_merge(acc, put_in(%{}, Enum.map(key_path, &Access.key(&1, %{})), value))
   end
 
   defp put_value(key, value, acc), do: Map.put(acc, key, value)

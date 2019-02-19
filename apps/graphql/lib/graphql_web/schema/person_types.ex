@@ -22,16 +22,19 @@ defmodule GraphQLWeb.Schema.PersonTypes do
       middleware(TransformInput, %{
         :birth_date => [:personal, :birth_date],
         :authentication_methods => [:personal, :authentication_method, :phone_number],
-        :tax_id => [:documents, :tax_id],
-        [:documents, :number] => [:documents, :number]
+        :tax_id => [:identity, :tax_id],
+        :unzr => [:identity, :unzr],
+        [:documents, :number] => [:identity, :document, :number],
+        [:documents, :type] => [:identity, :document, :type]
       })
 
       middleware(&transform_persons_query_filter/2)
 
       middleware(Filtering,
         birth_date: :equal,
-        tax_id: :equal,
         authentication_methods: :contains,
+        tax_id: :equal,
+        unzr: :equal,
         documents: [
           type: :equal,
           number: :equal
@@ -53,7 +56,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
 
   input_object :person_filter do
     field(:personal, non_null(:person_personal_filter))
-    field(:documents, non_null(:person_documents_filter))
+    field(:identity, non_null(:person_identity_filter))
   end
 
   input_object :person_personal_filter do
@@ -65,9 +68,26 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     field(:phone_number, :string)
   end
 
-  input_object :person_documents_filter do
+  input_object :person_identity_filter do
     field(:tax_id, :string)
-    field(:number, :string)
+    field(:unzr, :string)
+    field(:document, :person_document_filter)
+  end
+
+  input_object :person_document_filter do
+    field(:type, non_null(:person_document_type))
+    field(:number, non_null(:string))
+  end
+
+  enum :person_document_type do
+    value(:birth_certificate, as: "BIRTH_CERTIFICATE")
+    value(:complementary_protection_certificate, as: "COMPLEMENTARY_PROTECTION_CERTIFICATE")
+    value(:national_id, as: "NATIONAL_ID")
+    value(:passport, as: "PASSPORT")
+    value(:permanent_residence_permit, as: "PERMANENT_RESIDENCE_PERMIT")
+    value(:refugee_certificate, as: "REFUGEE_CERTIFICATE")
+    value(:temporary_certificate, as: "TEMPORARY_CERTIFICATE")
+    value(:temporary_passport, as: "TEMPORARY_PASSPORT")
   end
 
   enum :person_order_by do
@@ -222,7 +242,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   end
 
   defp validate_persons_query_input(%{arguments: %{filter: filter}} = resolution, _) do
-    if %{} in [filter[:personal], filter[:documents]] do
+    if %{} in [filter[:personal], filter[:identity]] do
       Resolution.put_result(resolution, Connection.from_slice([], 0))
     else
       resolution
@@ -230,12 +250,6 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   end
 
   defp transform_persons_query_filter(%{arguments: %{filter: filter} = arguments} = resolution, _params) do
-    filter =
-      case get_in(filter, [:documents, :number]) do
-        nil -> filter
-        number -> %{filter | documents: %{type: "PASSPORT", number: number}}
-      end
-
     filter =
       case Map.get(filter, :authentication_methods) do
         nil -> filter

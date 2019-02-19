@@ -28,6 +28,7 @@ defmodule GraphQL.Unit.Middleware.TransformInputTest do
           :manager_id => [:manager, :database_id],
           :organization_id => [:manager, :organization, :database_id],
           [:supervisor, :name] => [:manager, :first_name],
+          [:supervisor, :last_name] => [:manager, :last_name],
           :non_exist => [:something]
         })
 
@@ -46,6 +47,7 @@ defmodule GraphQL.Unit.Middleware.TransformInputTest do
     input_object :manager_filter do
       field(:database_id, :id)
       field(:first_name, :string)
+      field(:last_name, :string)
       field(:organization, :organization_filter)
     end
 
@@ -74,6 +76,7 @@ defmodule GraphQL.Unit.Middleware.TransformInputTest do
           "manager" => %{
             "databaseId" => manager_id,
             "firstName" => "John",
+            "lastName" => "Doe",
             "organization" => %{
               "databaseId" => orgranization_id
             }
@@ -88,7 +91,7 @@ defmodule GraphQL.Unit.Middleware.TransformInputTest do
           user_id: user_id,
           manager_id: manager_id,
           organization_id: organization_id,
-          supervisor: %{name: "John"}
+          supervisor: %{name: "John", last_name: "Doe"}
         }
       })
     end

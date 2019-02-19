@@ -36,6 +36,7 @@ defmodule Core.MixProject do
       {:cipher, "~> 1.3"},
       {:confex, "~> 3.4"},
       {:csv, "~> 2.1"},
+      {:deep_merge, "~> 0.1.1"},
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},

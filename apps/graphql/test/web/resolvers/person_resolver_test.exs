@@ -161,7 +161,7 @@ defmodule GraphQLWeb.PersonResolverTest do
 
   describe "list" do
     test "success responds empty with empty params", %{conn: conn} do
-      variables = %{filter: %{personal: %{}, documents: %{}}}
+      variables = %{filter: %{personal: %{}, identity: %{}}}
 
       resp_body =
         conn
@@ -180,13 +180,19 @@ defmodule GraphQLWeb.PersonResolverTest do
       declaration1 = build(:declaration, person_id: person1.id)
       declarations = Enum.map(persons, &build(:declaration, person_id: &1.id))
 
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [filter, _, _] ->
+        assert {:is_active, :equal, true} in filter
+        assert {:status, :equal, "active"} in filter
+
+        {:ok, persons}
+      end)
+
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration1 | declarations]} end)
 
       variables = %{
         filter: %{
           personal: %{authentication_method: %{phone_number: "+380971234567"}, birth_date: "1990-10-10"},
-          documents: %{tax_id: "123456", number: "123456"}
+          identity: %{tax_id: "123456", unzr: "123456", document: %{type: "PASSPORT", number: "AA123123"}}
         },
         order_by: "TAX_ID_ASC"
       }
