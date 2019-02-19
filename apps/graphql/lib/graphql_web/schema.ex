@@ -24,7 +24,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.ManualMerge.ManualMergeRequest
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Persons.Person
-  alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM}
+  alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM, Uaddresses}
   alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
@@ -32,9 +32,11 @@ defmodule GraphQLWeb.Schema do
   import_types(GraphQLWeb.Schema.{
     ScalarTypes,
     AddressTypes,
+    PhoneTypes,
+    SignedContentTypes,
+    ContractRequestTypes,
     CapitationContractRequestTypes,
     ReimbursementContractRequestTypes,
-    ContractRequestTypes,
     ContractTypes,
     CapitationContractTypes,
     ReimbursementContractTypes,
@@ -43,15 +45,16 @@ defmodule GraphQLWeb.Schema do
     DivisionTypes,
     EmployeeTypes,
     LegalEntityTypes,
+    RelatedLegalEntityTypes,
     LegalEntityMergeJobTypes,
     LegalEntityDeactivationJobTypes,
     MedicalProgramTypes,
     MergeRequestTypes,
     PartyTypes,
     PersonTypes,
-    PhoneTypes,
-    RelatedLegalEntityTypes,
-    SignedContentTypes
+    RegionTypes,
+    DistrictTypes,
+    SettlementTypes
   })
 
   query do
@@ -68,6 +71,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:medical_program_queries)
     import_fields(:merge_request_queries)
     import_fields(:person_queries)
+    import_fields(:settlement_queries)
   end
 
   mutation do
@@ -109,6 +113,7 @@ defmodule GraphQLWeb.Schema do
       |> Dataloader.add_source(PRM, PRM.data())
       |> Dataloader.add_source(OPS, OPS.data())
       |> Dataloader.add_source(MPI, MPI.data())
+      |> Dataloader.add_source(Uaddresses, Uaddresses.data())
 
     Map.put(ctx, :loader, loader)
   end

@@ -33,6 +33,11 @@ defmodule Core.Factories do
   use Core.MPIFactories.PersonFactory
   use Core.MPIFactories.ManualMergeFactory
 
+  # Uaddresses
+  use Core.UaddressesFactories.RegionFactory
+  use Core.UaddressesFactories.DistrictFactory
+  use Core.UaddressesFactories.SettlementFactory
+
   # Other factories
   use Core.Factories.AddressFactory
 

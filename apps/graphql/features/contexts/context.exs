@@ -3,7 +3,8 @@ defmodule GraphQL.Features.Context do
   use Phoenix.ConnTest
 
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
-  import Core.Factories, only: [insert: 3, insert_list: 3]
+  import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
+  import Mox, only: [expect: 3, expect: 4]
 
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo, EventManagerRepo}
@@ -12,6 +13,7 @@ defmodule GraphQL.Features.Context do
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Parties.Party
+  alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
   alias Mox
@@ -31,6 +33,7 @@ defmodule GraphQL.Features.Context do
     :ok = Sandbox.checkout(EventManagerRepo)
 
     Mox.Server.verify_on_exit(self())
+    Mox.Server.set_mode(self(), :global)
 
     %{conn: ConnTest.build_conn()}
   end)
@@ -121,6 +124,17 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^there are (?<count>\d+) settlements exist$/,
+    fn state, %{count: count} ->
+      count = Jason.decode!(count)
+      settlements = build_list(count, :settlement)
+      state = Map.put(state, :settlements, settlements)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following capitation contract requests exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
@@ -188,6 +202,51 @@ defmodule GraphQL.Features.Context do
         attrs = prepare_attrs(Party, row)
         insert(:prm, :party, attrs)
       end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following regions exist:$/,
+    fn state, %{table_data: table_data} ->
+      regions =
+        for row <- table_data do
+          attrs = prepare_attrs(Region, row)
+          build(:region, attrs)
+        end
+
+      state = Map.put(state, :regions, regions)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following districts exist:$/,
+    fn state, %{table_data: table_data} ->
+      districts =
+        for row <- table_data do
+          attrs = prepare_attrs(District, row)
+          build(:district, attrs)
+        end
+
+      state = Map.put(state, :districts, districts)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following settlements exist:$/,
+    fn state, %{table_data: table_data} ->
+      settlements =
+        for row <- table_data do
+          attrs = prepare_attrs(Settlement, row)
+          build(:settlement, attrs)
+        end
+
+      state = Map.put(state, :settlements, settlements)
 
       {:ok, state}
     end
@@ -356,6 +415,80 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) settlements$/,
+    fn %{settlements: settlements, conn: conn}, %{count: count} ->
+      expect(RPCWorkerMock, :run, fn
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, settlements}
+      end)
+
+      query = """
+        query ListSettlements($first: Int!) {
+          settlements(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data settlements nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the first (?<count>\d+) settlements$/,
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, count: count} ->
+      expect(RPCWorkerMock, :run, fn
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, state[:settlements]}
+      end)
+
+      expect(RPCWorkerMock, :run, length(state[:settlements]), fn
+        _, Uaddresses.Rpc, :search_regions, _ ->
+          {:ok, state[:regions]}
+
+        _, Uaddresses.Rpc, :search_districts, _ ->
+          {:ok, state[:districts]}
+
+        _, Uaddresses.Rpc, :search_settlements, _ ->
+          {:ok, state[:settlements]}
+      end)
+
+      query = """
+        query ListSettlements($first: Int!) {
+          settlements(first: $first) {
+            nodes {
+              #{field} {
+                #{nested_field}
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data settlements nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
@@ -484,6 +617,42 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{settlements: settlements, conn: conn}, %{count: count, field: field, value: value} ->
+      expect(RPCWorkerMock, :run, fn
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, tl(settlements)}
+      end)
+
+      query = """
+        query ListSettlementsWithFilter(
+          $first: Int!
+          $filter: SettlementFilter!
+        ) {
+          settlements(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data settlements nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
@@ -581,7 +750,14 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, nested_association_field: nested_association_field, field: field, value: value} ->
+    fn %{conn: conn},
+       %{
+         count: count,
+         association_field: association_field,
+         nested_association_field: nested_association_field,
+         field: field,
+         value: value
+       } ->
       query = """
         query ListCapitationContractRequestsWithAssocFilter(
           $first: Int!
@@ -613,7 +789,14 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, nested_association_field: nested_association_field, field: field, value: value} ->
+    fn %{conn: conn},
+       %{
+         count: count,
+         association_field: association_field,
+         nested_association_field: nested_association_field,
+         field: field,
+         value: value
+       } ->
       query = """
         query ListReimbursementContractRequestsWithAssocFilter(
           $first: Int!
@@ -766,6 +949,42 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) settlements sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{settlements: settlements, conn: conn}, %{count: count, field: field, direction: direction} ->
+      expect(RPCWorkerMock, :run, fn
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, Enum.reverse(settlements)}
+      end)
+
+      query = """
+        query ListSettlementsWithOrderBy(
+          $first: Int!
+          $order_by: SettlementOrderBy!
+        ) {
+          settlements(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -1101,6 +1320,8 @@ defmodule GraphQL.Features.Context do
     post(conn, @graphql_path, %{query: query, variables: variables})
   end
 
+  def prepare_attrs(queryable \\ nil, attrs)
+
   def prepare_attrs(queryable, attrs) when is_map(attrs) do
     prepare_attrs(queryable, Map.to_list(attrs))
   end
@@ -1127,6 +1348,8 @@ defmodule GraphQL.Features.Context do
   end
 
   defp prepare_field(key), do: Macro.underscore(key)
+
+  defp prepare_value(nil, _, value), do: {:ok, value}
 
   defp prepare_value(queryable, field, value) do
     case queryable.__schema__(:type, field) do
