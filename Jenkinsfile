@@ -38,7 +38,7 @@ spec:
     - containerPort: 5432
     tty: true
   - name: mongo
-    image: bitnami/mongodb:4.1.7-debian-9-r7
+    image: mvertes/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
