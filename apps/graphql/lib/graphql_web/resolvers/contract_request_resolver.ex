@@ -26,8 +26,10 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       import Ecto.Query, only: [where: 3, select: 3, order_by: 2]
 
       alias Absinthe.Relay.Connection
-      alias Core.{PRMRepo, Repo}
       alias GraphQL.Helpers.Filtering
+
+      @read_repo Application.get_env(:core, :repos)[:read_repo]
+      @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
       @schema unquote(opts[:schema])
       @related_schemas @schema.related_schemas()
@@ -47,7 +49,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
         |> where([c], c.type == ^@schema.type())
         |> filter(filter)
         |> order_by(^order_by)
-        |> Connection.from_query(&Repo.all/1, args)
+        |> Connection.from_query(&@read_repo.all/1, args)
       end
 
       defp filter(query, []), do: query
@@ -58,7 +60,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
           |> @schema.related_schema()
           |> Filtering.filter(conditions)
           |> select([r], r.id)
-          |> PRMRepo.all()
+          |> @read_prm_repo.all()
 
         filter(query, [{:"#{field}_id", :in, ids} | tail])
       end
