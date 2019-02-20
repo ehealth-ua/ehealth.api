@@ -166,6 +166,8 @@ defmodule Core.ContractRequests.Storage do
            @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
+    else
+      _ -> {:halt, {:error, {:conflict, "Failed to move uploaded documents"}}}
     end
   end
 

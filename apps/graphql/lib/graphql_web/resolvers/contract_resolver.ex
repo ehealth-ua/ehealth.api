@@ -106,6 +106,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
   def get_printout_content(%{__struct__: _} = contract, _args, %{context: context}) do
     with {:ok, printout_form} <- Contracts.get_printout_content(contract, context.client_type, context.headers) do
       {:ok, printout_form}
+    else
+      {:error, {:conflict, _}} -> {:ok, nil}
+      err -> err
     end
   end
 

@@ -292,6 +292,51 @@ defmodule GraphQLWeb.CapitationContractResolverTest do
       assert global_contract_id == resp_entity["id"]
     end
 
+    test "error on media storage fetch printoutContent field", %{conn: conn} do
+      nhs()
+
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, fn _ ->
+        {:error, {:conflict, "Failed to get signed_content"}}
+      end)
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:pending_nhs_sign)
+        )
+
+      contract = insert(:prm, :capitation_contract, contract_request_id: contract_request.id)
+
+      query = """
+        query GetContractQuery($id: ID!) {
+          capitationContract(id: $id) {
+            id
+            databaseId
+            status
+            printoutContent
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("CapitationContract", contract.id)}
+
+      resp_body =
+        conn
+        |> put_client_id(contract.contractor_legal_entity_id)
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data capitationContract))
+
+      refute resp_entity["printoutContent"]
+      assert resp_entity["status"]
+    end
+
     test "success for printoutContent field", %{conn: conn} do
       nhs()
 

@@ -74,7 +74,7 @@ defmodule Core.Declarations.API do
          merged_declaration_data = merge_related_data(declaration_data, person_data, legal_entity, division, employee),
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:person_id, true} <- {:person_id, user["person_id"] == declaration_data["person_id"]},
-         data = put_signed_content(merged_declaration_data, headers) do
+         {:ok, data} <- put_signed_content(merged_declaration_data, headers) do
       {:ok, data}
     else
       {:person_id, false} -> {:error, :forbidden}
@@ -174,7 +174,7 @@ defmodule Core.Declarations.API do
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(secret_url),
          {:ok, %{"data" => %{"content" => content}}} <-
            @signature_api.decode_and_validate(Base.encode64(signed_content), "base64", headers) do
-      Map.put(declaration_data, "content", Map.get(content, "content"))
+      {:ok, Map.put(declaration_data, "content", content["content"])}
     end
   end
 

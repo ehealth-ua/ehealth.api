@@ -70,10 +70,23 @@ defmodule Core.API.MediaStorage do
   end
 
   def check_gcs_response(%HTTPoison.Response{body: body}) do
+    Logger.error("Failed to store signed_content, details: #{inspect(body)}")
     {:error, body}
   end
 
-  def get_signed_content(secret_url), do: HTTPoison.get(secret_url)
+  def get_signed_content(secret_url) do
+    case HTTPoison.get(secret_url) do
+      {:ok, %{status_code: 200}} = result ->
+        result
+
+      {:ok, %{body: body}} ->
+        Logger.error("Failed to get signed_content, details: #{inspect(body)}")
+        {:error, {:conflict, "Failed to get signed_content"}}
+
+      err ->
+        err
+    end
+  end
 
   def save_file(id, content, bucket, resource_name, headers \\ []) do
     with {:ok, %{"data" => %{"secret_url" => url}}} <- create_signed_url("PUT", bucket, resource_name, id, headers) do
