@@ -45,8 +45,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
         )
       end)
 
-      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
-        get_persons(ids)
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+        get_rpc_persons(ids)
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -147,8 +150,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
         )
       end)
 
-      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
-        get_persons(ids)
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+        get_rpc_persons(ids)
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -183,8 +189,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
         )
       end)
 
-      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
-        get_persons(ids)
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+        get_rpc_persons(ids)
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -227,8 +236,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
         )
       end)
 
-      expect(MPIMock, :search, fn %{ids: ids}, _headers ->
-        get_persons(ids)
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+        get_rpc_persons(ids)
       end)
 
       %{id: legal_entity_id} = legal_entity
@@ -746,6 +758,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
       end)
 
     {:ok, %{"data" => persons}}
+  end
+
+  defp get_rpc_persons(params) when is_binary(params) do
+    {:ok, persons} = get_persons(params)
+    {:ok, persons["data"]}
   end
 
   defp get_person(id) do

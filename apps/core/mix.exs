@@ -44,7 +44,7 @@ defmodule Core.MixProject do
       {:libcluster, "~> 3.0", git: "https://github.com/AlexKovalevych/libcluster.git", branch: "kube_namespaces"},
       {:ecto_logger_json, git: "https://github.com/edenlabllc/ecto_logger_json.git", branch: "query_params"},
       {:geo, "~> 1.4"},
-      {:guardian, "~> 1.1"},
+      {:guardian, "~> 1.2.1"},
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.0"},
       {:jvalid, "~> 0.7"},

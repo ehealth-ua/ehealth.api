@@ -49,7 +49,7 @@ defmodule Core.Unit.ValidatorTest do
 
   test "JSON schema birth_date in future" do
     date =
-      :seconds
+      :second
       |> :os.system_time()
       |> Kernel.+(3600 * 24 * 180)
       |> DateTime.from_unix!()

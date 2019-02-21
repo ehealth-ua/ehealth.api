@@ -51,9 +51,8 @@ defmodule Core.Declarations.API do
          divisions <- Divisions.get_by_ids(related_ids["division_ids"]),
          employees <- Employees.get_by_ids(related_ids["employee_ids"]),
          legal_entities <- LegalEntities.get_by_ids(related_ids["legal_entity_ids"]),
-         {:ok, persons} <-
-           preload_persons(Enum.join(related_ids["person_ids"], ","), Map.get(params, "page_size"), headers),
-         relations <- build_indexes(divisions, employees, legal_entities, persons["data"]),
+         {:ok, persons} <- preload_persons(Enum.join(related_ids["person_ids"], ",")),
+         relations <- build_indexes(divisions, employees, legal_entities, persons),
          declarations <- merge_related_data(declarations_data, relations) do
       {:ok,
        %{
@@ -98,9 +97,10 @@ defmodule Core.Declarations.API do
     |> Enum.into(%{})
   end
 
-  defp preload_persons("", _, _), do: {:ok, %{"data" => []}}
-  defp preload_persons(ids, nil, headers), do: @mpi_api.search(%{ids: ids}, headers)
-  defp preload_persons(ids, page_size, headers), do: @mpi_api.search(%{ids: ids, page_size: page_size}, headers)
+  defp preload_persons(""), do: {:ok, []}
+
+  defp preload_persons(ids),
+    do: Persons.search_persons(%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a)
 
   defp put_related_id(list, id) do
     case Enum.member?(list, id) do
