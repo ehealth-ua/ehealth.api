@@ -66,7 +66,7 @@ defmodule GraphQLWeb.Schema.DivisionTypes do
   end
 
   enum :division_type do
-    value(:clinit, as: @type_clinic)
+    value(:clinic, as: @type_clinic)
     value(:ambulant_clinic, as: @type_ambulant_clinic)
     value(:fap, as: @type_fap)
     value(:drugstore, as: @type_drugstore)
