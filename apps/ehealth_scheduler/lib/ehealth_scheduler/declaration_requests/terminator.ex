@@ -1,7 +1,7 @@
-defmodule EHealth.DeclarationRequests.Terminator do
+defmodule EHealthScheduler.DeclarationRequests.Terminator do
   @moduledoc false
 
-  use Confex, otp_app: :ehealth
+  use Confex, otp_app: :ehealth_scheduler
   use GenServer
 
   import Ecto.Query
@@ -46,7 +46,9 @@ defmodule EHealth.DeclarationRequests.Terminator do
 
       %{term: term, normalized_unit: normalized_unit, user_id: user_id, limit: limit}
     else
-      Logger.error(fn -> "Autoterminate declaration requests is not working, parameters invalid!" end)
+      Logger.error(fn ->
+        "Autoterminate declaration requests is not working, parameters invalid!"
+      end)
     end
   end
 

@@ -55,7 +55,6 @@ defmodule EHealth.Mixfile do
       {:plug_cowboy, "~> 2.0"},
       {:plug_logger_json, "~> 0.5"},
       {:poison, "~> 3.1"},
-      {:quantum, "~> 2.2"},
       {:mox, "~> 0.3", only: :test}
     ]
   end

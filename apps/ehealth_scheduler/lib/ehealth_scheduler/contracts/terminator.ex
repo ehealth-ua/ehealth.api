@@ -1,7 +1,7 @@
-defmodule EHealth.Contracts.Terminator do
+defmodule EHealthScheduler.Contracts.Terminator do
   @moduledoc false
 
-  use Confex, otp_app: :ehealth
+  use Confex, otp_app: :ehealth_scheduler
   use GenServer
 
   import Ecto.Query

@@ -6,7 +6,6 @@ defmodule EHealth do
   use Application
 
   alias Confex.Resolver
-  alias EHealth.Scheduler
   alias EHealth.Web.Endpoint
 
   def start(_type, _args) do
@@ -15,17 +14,7 @@ defmodule EHealth do
 
     # Define workers and child supervisors to be supervised
     children = [
-      {EHealth.Web.Endpoint, []},
-      %{
-        id: :declaration_request_terminator,
-        start: {EHealth.DeclarationRequests.Terminator, :start_link, [:declaration_request_terminator]}
-      },
-      %{
-        id: :declaration_request_cleaner,
-        start: {EHealth.DeclarationRequests.Terminator, :start_link, [:declaration_request_cleaner]}
-      },
-      {EHealth.Contracts.Terminator, []},
-      {EHealth.Scheduler, []}
+      {EHealth.Web.Endpoint, []}
     ]
 
     children =
@@ -39,9 +28,7 @@ defmodule EHealth do
       end
 
     opts = [strategy: :one_for_one, name: EHealth.Supervisor]
-    result = Supervisor.start_link(children, opts)
-    Scheduler.create_jobs()
-    result
+    Supervisor.start_link(children, opts)
   end
 
   # Tell Phoenix to update the endpoint configuration

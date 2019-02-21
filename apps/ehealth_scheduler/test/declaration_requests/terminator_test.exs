@@ -1,10 +1,10 @@
-defmodule EHealth.DeclarationRequests.TerminatorTest do
+defmodule EHealthScheduler.DeclarationRequests.TerminatorTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase, async: false
+  use Core.ConnCase, async: false
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Repo
-  import EHealth.DeclarationRequests.Terminator
+  import EHealthScheduler.DeclarationRequests.Terminator
 
   test "terminate outdated declaration_requests" do
     insert(:il, :declaration_request)

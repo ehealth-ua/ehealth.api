@@ -1,10 +1,10 @@
-defmodule EHealth.Contracts.TerminatorTest do
+defmodule EHealthScheduler.Contracts.TerminatorTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase, async: false
+  use Core.ConnCase, async: false
   alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
-  import EHealth.Contracts.Terminator
+  import EHealthScheduler.Contracts.Terminator
 
   test "terminate outdated declaration_requests" do
     tomorrow = Date.add(Date.utc_today(), 1)

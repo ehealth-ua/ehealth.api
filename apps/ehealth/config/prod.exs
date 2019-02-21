@@ -30,15 +30,6 @@ config :ehealth, EHealth.Web.Endpoint,
 # Do not log passwords, card data and tokens
 config :phoenix, :filter_parameters, ["password", "secret", "token", "password_confirmation", "card", "pan", "cvv"]
 
-config :ehealth, EHealth.Scheduler,
-  jobs: [
-    medication_request_request_autotermination: [
-      schedule: "* * * * *",
-      task: {Core.MedicationRequestRequests, :autoterminate, []},
-      run_strategy: Quantum.RunStrategy.Local
-    ]
-  ]
-
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key

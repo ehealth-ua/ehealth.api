@@ -21,18 +21,6 @@ config :ehealth, EHealth.Web.Endpoint,
     accepts: ~w(json)
   ]
 
-config :ehealth, EHealth.Scheduler,
-  declaration_request_autotermination:
-    {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
-  employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"},
-  contract_autotermination: {:system, :string, "CONTRACT_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
-
-config :ehealth, EHealth.DeclarationRequests.Terminator,
-  termination_batch_size: {:system, :integer, "DECLARATION_REQUEST_AUTOTERMINATION_BATCH", 10}
-
-config :ehealth, EHealth.Contracts.Terminator,
-  termination_batch_size: {:system, :integer, "CONTRACT_AUTOTERMINATION_BATCH", 10}
-
 config :ehealth,
   topologies: [
     k8s_me: [
