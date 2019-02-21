@@ -97,6 +97,8 @@ defmodule GraphQLWeb.Schema.PersonTypes do
     value(:inserted_at_desc)
     value(:tax_id_asc)
     value(:tax_id_desc)
+    value(:unzr_asc)
+    value(:unzr_desc)
   end
 
   connection node_type: :person do
