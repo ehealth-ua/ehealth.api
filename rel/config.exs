@@ -15,7 +15,7 @@ environment :default do
 end
 
 release :ehealth do
-  set(pre_start_hook: "bin/hooks/pre-start-ehealth.sh")
+  set(pre_start_hooks: "bin/hooks/ehealth/")
   set(version: current_version(:ehealth))
 
   set(
@@ -23,6 +23,8 @@ release :ehealth do
       ehealth: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end
 
 release :casher do
@@ -33,10 +35,12 @@ release :casher do
       casher: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end
 
 release :graphql do
-  set(pre_start_hook: "bin/hooks/pre-start-graphql.sh")
+  set(pre_start_hooks: "bin/hooks/graphql/")
   set(version: current_version(:graphql))
 
   set(
@@ -44,6 +48,8 @@ release :graphql do
       graphql: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end
 
 release :merge_legal_entities_consumer do
@@ -54,10 +60,11 @@ release :merge_legal_entities_consumer do
       merge_legal_entities_consumer: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end
 
 release :deactivate_legal_entity_consumer do
-  set(pre_start_hook: "bin/hooks/pre-start-deactivate-legal-entity-consumer.sh")
   set(version: current_version(:deactivate_legal_entity_consumer))
 
   set(
@@ -65,6 +72,8 @@ release :deactivate_legal_entity_consumer do
       deactivate_legal_entity_consumer: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end
 
 release :ehealth_scheduler do
@@ -75,4 +84,6 @@ release :ehealth_scheduler do
       ehealth_scheduler: :permanent
     ]
   )
+
+  set(config_providers: [ConfexConfigProvider])
 end

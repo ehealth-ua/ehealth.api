@@ -75,4 +75,8 @@ config :core, Core.EventManagerRepo,
   pool_timeout: 15_000,
   loggers: [{Ecto.LoggerJSON, :log, [:info]}]
 
-config :kafka_ex, brokers: "${KAFKA_BROKERS_HOST}"
+config :kaffe,
+  producer: [
+    endpoints: {:system, :string, "KAFKA_BROKERS"},
+    topics: ["deactivate_declaration_events", "merge_legal_entities"]
+  ]

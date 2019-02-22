@@ -46,6 +46,7 @@ defmodule GraphQL.Mixfile do
   defp deps do
     [
       {:core, in_umbrella: true},
+      {:confex_config_provider, "~> 0.1.0"},
       {:jobs, in_umbrella: true},
       {:absinthe, "~> 1.4"},
       {:absinthe_plug, "~> 1.4"},

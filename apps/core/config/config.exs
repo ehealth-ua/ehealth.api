@@ -336,16 +336,10 @@ config :cipher,
 
 config :core, Core.Rpc.Worker, max_attempts: {:system, :integer, "RPC_MAX_ATTEMPTS", 3}
 
-config :kafka_ex,
-  brokers: "localhost:9092",
-  consumer_group: "ehealth",
-  disable_default_worker: false,
-  sync_timeout: 3000,
-  max_restarts: 10,
-  max_seconds: 60,
-  commit_interval: 5_000,
-  auto_offset_reset: :earliest,
-  commit_threshold: 100,
-  kafka_version: "1.1.0"
+config :kaffe,
+  producer: [
+    endpoints: [localhost: 9092],
+    topics: ["deactivate_declaration_events", "merge_legal_entities"]
+  ]
 
 import_config "#{Mix.env()}.exs"

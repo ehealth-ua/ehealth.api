@@ -45,6 +45,7 @@ defmodule EHealth.Mixfile do
     [
       {:core, in_umbrella: true},
       {:confex, "~> 3.4"},
+      {:confex_config_provider, "~> 0.1.0"},
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},

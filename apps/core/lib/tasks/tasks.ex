@@ -61,7 +61,7 @@ defmodule Core.ReleaseTasks do
 
   defp load_app do
     start_applications([:logger, :postgrex, :ecto])
-    :ok = Application.load(:core)
+    Application.load(:core)
   end
 
   defp start_applications(apps) do

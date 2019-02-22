@@ -36,6 +36,7 @@ defmodule EHealthScheduler.MixProject do
   defp deps do
     [
       {:quantum, "~> 2.3"},
+      {:confex_config_provider, "~> 0.1.0"},
       {:core, in_umbrella: true}
     ]
   end

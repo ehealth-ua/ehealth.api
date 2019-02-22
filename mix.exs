@@ -24,7 +24,7 @@ defmodule Ehealth.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:distillery, "~> 1.5.3", runtime: false},
+      {:distillery, "~> 2.0", runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]},
       {:ex_doc, "~> 0.19.2", only: :dev, runtime: false},
       {:credo, "~> 1.0", only: [:dev, :test]},

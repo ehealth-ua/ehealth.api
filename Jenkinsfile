@@ -172,7 +172,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -270,7 +270,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -368,7 +368,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -466,7 +466,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -564,7 +564,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -662,7 +662,7 @@ spec:
               sh 'mix deps.get'
               sh 'sed -i "s|REDIS_URI=redis://travis:6379|REDIS_URI=redis://redis-master.redis.svc.cluster.local:6379|g" .env'
               sh 'sed -i "s|MONGO_DB_URL=mongodb://travis:27017/taskafka|MONGO_DB_URL=mongodb://me-db-mongodb-replicaset.me-db.svc.cluster.local:27017/taskafka?replicaSet=rs0&readPreference=primary|g" .env'
-              sh 'sed -i "s/KAFKA_BROKERS_HOST=travis/KAFKA_BROKERS_HOST=kafka.kafka.svc.cluster.local/g" .env'
+              sh 'sed -i "s/KAFKA_BROKERS=travis/KAFKA_BROKERS=kafka.kafka.svc.cluster.local/g" .env'
               sh 'sed -i "s/travis/${POD_IP}/g" .env'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
               withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -725,7 +725,7 @@ spec:
       }
     }
   }
-  post { 
+  post {
     success {
       slackSend (color: 'good', message: "SUCCESSFUL: Job - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>) success in ${currentBuild.durationString}")
     }

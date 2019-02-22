@@ -8,7 +8,7 @@ defmodule Core.PRMRepo.Migrations.TerminateEmployeeDeclarationsFix do
   alias Core.PRMRepo
 
   def change do
-    Application.ensure_all_started(:kafka_ex)
+    Application.ensure_all_started(:kaffe)
 
     from(
       e in Employee,

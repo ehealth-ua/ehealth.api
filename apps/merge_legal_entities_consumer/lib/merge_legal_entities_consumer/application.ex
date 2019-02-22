@@ -5,22 +5,15 @@ defmodule MergeLegalEntitiesConsumer.Application do
 
   use Application
 
-  alias Jobs.LegalEntityMergeJob
-
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
-
-    topic_names = ~w(merge_legal_entities)
-    consumer_group_name = "merge_legal_entities_group"
-
-    consumer_group_opts = [
-      heartbeat_interval: 1_000,
-      commit_interval: 1_000
-    ]
-
     children = [
-      supervisor(KafkaEx.ConsumerGroup, [LegalEntityMergeJob, consumer_group_name, topic_names, consumer_group_opts])
+      %{
+        id: Kaffe.Consumer,
+        start: {Kaffe.Consumer, :start_link, []}
+      }
     ]
+
+    Application.put_env(:kaffe, :consumer, Application.get_env(:merge_legal_entities_consumer, :kaffe_consumer))
 
     opts = [strategy: :one_for_one, name: MergeLegalEntitiesConsumer.Supervisor]
     Supervisor.start_link(children, opts)
