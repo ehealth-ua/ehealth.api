@@ -66,10 +66,10 @@ defmodule Core.DeclarationRequests.API.V2.Persons do
           {:ok, [birth_certificate_number_params]}
         end
 
-      age > 14 && tax_id && birth_date ->
+      age >= 14 && tax_id && birth_date ->
         {:ok, [birth_date_tax_id_params]}
 
-      age > 14 ->
+      age >= 14 ->
         {:ok, [adult_document_search_params(person_data)]}
     end
   end
