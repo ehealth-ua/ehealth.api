@@ -44,7 +44,8 @@ defmodule Core.Medications do
     :package_qty,
     :package_min_qty,
     :certificate,
-    :certificate_expired_at
+    :certificate_expired_at,
+    :daily_dosage
   ]
   @fields_innm_dosage_optional [:is_active]
 

@@ -13,7 +13,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     container: container("Pill"),
     manufacturer: build(:manufacturer),
     package_min_qty: 21,
-    package_qty: 42
+    package_qty: 42,
+    daily_dosage: 0.5
   }
   @invalid_attrs %{
     certificate: nil,
@@ -26,7 +27,8 @@ defmodule EHealth.Web.MedicationControllerTest do
     name: nil,
     package_min_qty: nil,
     package_qty: nil,
-    type: nil
+    type: nil,
+    daily_dosage: 0
   }
 
   describe "get drugs" do

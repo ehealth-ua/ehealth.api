@@ -15,6 +15,7 @@ defmodule EHealth.Web.MedicationView do
     :package_qty,
     :package_min_qty,
     :is_active,
+    :daily_dosage,
     :inserted_by,
     :updated_by,
     :inserted_at,

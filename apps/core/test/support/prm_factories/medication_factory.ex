@@ -64,6 +64,7 @@ defmodule Core.PRMFactories.MedicationFactory do
           certificate_expired_at: ~D[2012-04-17],
           is_active: true,
           code_atc: [sequence("C08CA0")],
+          daily_dosage: 0.5,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate()
         }

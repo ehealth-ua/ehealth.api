@@ -20,6 +20,7 @@ defmodule Core.Medications.Medication do
     field(:package_qty, :integer)
     field(:package_min_qty, :integer)
     field(:is_active, :boolean, default: true)
+    field(:daily_dosage, :float)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
 

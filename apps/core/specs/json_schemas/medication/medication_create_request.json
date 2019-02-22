@@ -133,6 +133,12 @@
     "certificate_expired_at": {
       "$ref": "#/definitions/date",
       "description": "certificate expire date"
+    },
+    "daily_dosage": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Daily dosage"
     }
   },
   "required": [
