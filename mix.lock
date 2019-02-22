@@ -50,7 +50,6 @@
   "jose": {:hex, :jose, "1.9.0", "4167c5f6d06ffaebffd15cdb8da61a108445ef5e85ab8f5a7ad926fdf3ada154", [:mix, :rebar3], [{:base64url, "~> 0.0.1", [hex: :base64url, repo: "hexpm", optional: false]}], "hexpm"},
   "jvalid": {:hex, :jvalid, "0.7.0", "c83d15b136943cac2a3e76f1db2f223e102c7e6b60695b7bcfda471dfd0fa4c3", [:mix], [{:distillery, ">= 1.3.0", [hex: :distillery, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}, {:nex_json_schema, ">= 0.8.0", [hex: :nex_json_schema, repo: "hexpm", optional: false]}], "hexpm"},
   "kaffe": {:git, "https://github.com/AlexKovalevych/kaffe.git", "1af1524d8a31ef154de2c1311a35d77ab6082d14", [branch: "string_endpoints_sasl"]},
-  "kafka_ex": {:hex, :kafka_ex, "0.9.0", "d653b38f2584627965c71a118d9be69bf6bd3174d5f3dca29e071c928af2f53a", [:mix], [], "hexpm"},
   "kafka_protocol": {:hex, :kafka_protocol, "1.1.2", "96d09c4287377795ae2c488aceae2dc6872b94edba8309a27ace933d9ae32333", [:rebar, :rebar3], [{:snappyer, "1.2.1", [hex: :snappyer, repo: "hexpm", optional: false]}], "hexpm"},
   "kube_rpc": {:git, "https://github.com/edenlabllc/kube_rpc.git", "11d7a0574d95d6e68e9dbaae4c044caecf4bad25", []},
   "libcluster": {:git, "https://github.com/AlexKovalevych/libcluster.git", "2cf855b13a4f7d221e8113c72200ae83c22ff204", [branch: "kube_namespaces"]},
