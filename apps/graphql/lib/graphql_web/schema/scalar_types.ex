@@ -11,7 +11,7 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
     parse(&do_parse(:uuid, &1))
   end
 
-  scalar :object_id, name: "MongoDB ObjectId" do
+  scalar :object_id do
     serialize(& &1)
     parse(&do_parse(:object_id, &1))
   end
