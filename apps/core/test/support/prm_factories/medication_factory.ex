@@ -20,6 +20,10 @@ defmodule Core.PRMFactories.MedicationFactory do
           reimbursement: build(:reimbursement),
           medication_request_allowed: true,
           is_active: true,
+          wholesale_price: random_price(1, 50),
+          consumer_price: random_price(51, 200),
+          reimbursement_daily_dosage: random_price(1, 3),
+          estimated_payment_amount: random_price(1, 50),
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
           medication_id: med_id,
@@ -131,6 +135,8 @@ defmodule Core.PRMFactories.MedicationFactory do
           denumerator_value: 1
         }
       end
+
+      defp random_price(from, to), do: Enum.random(from..to) * 1.0
     end
   end
 end

@@ -32,6 +32,30 @@
         "type"
       ],
       "additionalProperties": false
+    },
+    "wholesale_price": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Wholesale price"
+    },
+    "consumer_price": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Consumer price"
+    },
+    "reimbursement_daily_dosage": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Daily dosage reimbursement"
+    },
+    "estimated_payment_amount": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Estimated payment amount"
     }
   },
   "required": [

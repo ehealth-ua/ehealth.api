@@ -89,7 +89,11 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       params = %{
         reimbursement: build(:reimbursement),
         medication_id: med_id,
-        medical_program_id: insert(:prm, :medical_program).id
+        medical_program_id: insert(:prm, :medical_program).id,
+        wholesale_price: 10.0,
+        consumer_price: 20.0,
+        reimbursement_daily_dosage: 0.5,
+        estimated_payment_amount: 4.0
       }
 
       conn = post(conn, program_medication_path(conn, :create), params)
@@ -173,7 +177,9 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
   end
 
   describe "update program_medication" do
-    setup [:create_program_medication]
+    setup %{conn: conn} do
+      %{conn: conn, program_medication: insert(:prm, :program_medication)}
+    end
 
     test "data is valid", %{conn: conn, program_medication: %ProgramMedication{id: id} = program_medication} do
       conn = put(conn, program_medication_path(conn, :update, program_medication), medication_request_allowed: false)
@@ -209,14 +215,5 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       [error] = json_response(conn, 422)["error"]["invalid"]
       assert "$.medication_request_allowed" == error["entry"]
     end
-  end
-
-  defp create_program_medication(_) do
-    program_medication = fixture(:program_medication)
-    {:ok, program_medication: program_medication}
-  end
-
-  def fixture(:program_medication) do
-    insert(:prm, :program_medication)
   end
 end

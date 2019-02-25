@@ -50,7 +50,14 @@ defmodule Core.Medications do
   @fields_innm_dosage_optional [:is_active]
 
   @fields_program_medication_required [:reimbursement, :medication_id, :medical_program_id, :inserted_by, :updated_by]
-  @fields_program_medication_optional [:medication_request_allowed, :is_active]
+  @fields_program_medication_optional [
+    :medication_request_allowed,
+    :is_active,
+    :wholesale_price,
+    :consumer_price,
+    :reimbursement_daily_dosage,
+    :estimated_payment_amount
+  ]
 
   # List
 
@@ -497,13 +504,13 @@ defmodule Core.Medications do
     |> validate_required(@fields_innm_required)
   end
 
-  def changeset(%ProgramMedication{} = innm, attrs) do
+  def changeset(%ProgramMedication{} = program_medication, attrs) do
     opts = [
       name: :program_medications_medication_id_medical_program_id_index,
       message: "Medication brand is already a participant of the program"
     ]
 
-    innm
+    program_medication
     |> cast(attrs, @fields_program_medication_required ++ @fields_program_medication_optional)
     |> validate_required(@fields_program_medication_required)
     |> foreign_key_constraint(:medication_id)

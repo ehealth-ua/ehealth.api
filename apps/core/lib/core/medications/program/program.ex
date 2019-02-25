@@ -10,6 +10,10 @@ defmodule Core.Medications.Program do
     field(:reimbursement, :map)
     field(:medication_request_allowed, :boolean, default: true)
     field(:is_active, :boolean, default: true)
+    field(:wholesale_price, :float)
+    field(:consumer_price, :float)
+    field(:reimbursement_daily_dosage, :float)
+    field(:estimated_payment_amount, :float)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
 
