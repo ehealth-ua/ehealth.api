@@ -6,6 +6,12 @@ defmodule GraphQLWeb.Schema.IngredientTypes do
   interface :ingredient do
     field(:dosage, non_null(:dosage))
     field(:is_primary, non_null(:boolean))
+
+    resolve_type(fn
+      %{innm_dosage: _}, _ -> :medication_ingredient
+      %{innm: _}, _ -> :innm_dosage_ingredient
+      _, _ -> nil
+    end)
   end
 
   object :dosage do

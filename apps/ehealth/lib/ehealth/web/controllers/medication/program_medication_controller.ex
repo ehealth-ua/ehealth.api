@@ -16,7 +16,11 @@ defmodule EHealth.Web.ProgramMedicationController do
   end
 
   def create(conn, params) do
-    with {:ok, %ProgramMedication{} = program} <- Medications.create_program_medication(params, conn.req_headers) do
+    consumer_id = get_consumer_id(conn.req_headers)
+
+    with {:ok, %ProgramMedication{} = program} <- Medications.create_program_medication(params, consumer_id) do
+      program = Medications.preload_references(program)
+
       conn
       |> put_status(:created)
       |> put_resp_header("location", program_medication_path(conn, :show, program))

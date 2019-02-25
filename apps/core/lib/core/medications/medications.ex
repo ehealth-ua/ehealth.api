@@ -608,18 +608,11 @@ defmodule Core.Medications do
     |> @read_prm_repo.one()
   end
 
-  def create_program_medication(attrs, headers) do
-    case JsonSchema.validate(:program_medication, attrs) do
-      :ok ->
-        consumer_id = get_consumer_id(headers)
-
-        %ProgramMedication{}
-        |> changeset(put_consumer_id(attrs, headers))
-        |> PRMRepo.insert_and_log(consumer_id)
-        |> preload_references()
-
-      err ->
-        err
+  def create_program_medication(%{} = params, consumer_id) when is_binary(consumer_id) do
+    with :ok <- JsonSchema.validate(:program_medication, params) do
+      %ProgramMedication{}
+      |> changeset(Map.merge(params, %{"inserted_by" => consumer_id, "updated_by" => consumer_id}))
+      |> PRMRepo.insert_and_log(consumer_id)
     end
   end
 
@@ -638,23 +631,23 @@ defmodule Core.Medications do
     end
   end
 
-  defp preload_references({:ok, entity}) do
+  def preload_references({:ok, entity}) do
     {:ok, preload_references(entity)}
   end
 
-  defp preload_references(%ProgramMedication{} = program) do
+  def preload_references(%ProgramMedication{} = program) do
     @read_prm_repo.preload(program, medication: [ingredients: [innm_dosage: []]], medical_program: [])
   end
 
-  defp preload_references(%Medication{} = medication) do
+  def preload_references(%Medication{} = medication) do
     @read_prm_repo.preload(medication, ingredients: [innm_dosage: []])
   end
 
-  defp preload_references(%INNMDosage{} = innm_dosage) do
+  def preload_references(%INNMDosage{} = innm_dosage) do
     @read_prm_repo.preload(innm_dosage, ingredients: [innm: []])
   end
 
-  defp preload_references(entity) do
+  def preload_references(entity) do
     entity
   end
 

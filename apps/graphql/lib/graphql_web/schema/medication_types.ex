@@ -34,7 +34,7 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     field(:package_qty, :string)
     field(:package_min_qty, :string)
     field(:certificate, :string)
-    field(:certificate_expired_at, :date_time)
+    field(:certificate_expired_at, :datetime)
     field(:ingredients, non_null(list_of(:medication_ingredient)))
     field(:is_active, non_null(:boolean))
     field(:type, :medication_type)

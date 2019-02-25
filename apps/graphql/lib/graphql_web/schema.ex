@@ -23,6 +23,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.ManualMerge.ManualMergeRequest
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
   alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM, Uaddresses}
   alias TasKafka.Job
@@ -54,7 +55,12 @@ defmodule GraphQLWeb.Schema do
     PersonTypes,
     RegionTypes,
     DistrictTypes,
-    SettlementTypes
+    SettlementTypes,
+    INNMDosageTypes,
+    INNMTypes,
+    IngredientTypes,
+    MedicationTypes,
+    ProgramMedicationTypes
   })
 
   query do
@@ -84,6 +90,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:legal_entity_deactivation_job_mutations)
     import_fields(:merge_request_mutations)
     import_fields(:person_mutations)
+    import_fields(:program_medication_mutations)
   end
 
   node interface do
@@ -99,6 +106,7 @@ defmodule GraphQLWeb.Schema do
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
       %MedicalProgram{}, _ -> :medical_program
+      %ProgramMedication{}, _ -> :program_medication
       %ManualMergeRequest{}, _ -> :merge_request
       %Person{}, _ -> :person
       %Job{}, _ -> :legal_entity_merge_job
