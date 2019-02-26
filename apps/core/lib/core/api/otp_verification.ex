@@ -7,7 +7,13 @@ defmodule Core.API.OTPVerification do
 
   use Core.API.Helpers.MicroserviceBase
 
-  def initialize(number, headers \\ []) do
+  def initialize(params, headers \\ [])
+
+  def initialize(params, headers) when is_map(params) do
+    post!("/verifications", Jason.encode!(params), headers)
+  end
+
+  def initialize(number, headers) do
     post!("/verifications", Jason.encode!(%{phone_number: number}), headers)
   end
 
@@ -19,7 +25,7 @@ defmodule Core.API.OTPVerification do
     patch!("/verifications/#{number}/actions/complete", Jason.encode!(params), headers)
   end
 
-  def send_sms(phone_number, body, type, headers \\ []) do
-    post!("/sms/send", Jason.encode!(%{phone_number: phone_number, body: body, type: type}), headers)
+  def send_sms(params, headers \\ []) do
+    post!("/sms/send", Jason.encode!(params), headers)
   end
 end

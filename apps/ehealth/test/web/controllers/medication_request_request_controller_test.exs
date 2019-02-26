@@ -2095,7 +2095,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "sign medication request request" do
     test "when data is valid", %{conn: conn} do
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
@@ -2157,7 +2157,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when data is valid (medical_program param is optional)", %{conn: conn} do
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 

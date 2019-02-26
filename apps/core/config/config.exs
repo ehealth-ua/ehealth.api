@@ -40,7 +40,8 @@ config :core,
   ],
   kafka: [
     producer: Core.Kafka.Producer
-  ]
+  ],
+  sms_provider: {:system, :string, "SMS_PROVIDER", "mouth_sms2ip"}
 
 # Configures Legal Entities token permission
 config :core, Core.Context,

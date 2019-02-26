@@ -1011,7 +1011,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
@@ -1127,7 +1127,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
@@ -1246,7 +1246,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
@@ -1894,7 +1894,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OTPVerificationMock, :send_sms, fn phone_number, body, type, _ ->
+      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 

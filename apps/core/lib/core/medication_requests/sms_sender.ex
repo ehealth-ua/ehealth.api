@@ -7,7 +7,16 @@ defmodule Core.MedicationRequests.SMSSender do
     otp = Enum.find(person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)
 
     if otp do
-      {:ok, _} = @otp_verification_api.send_sms(otp["phone_number"], template_fun.(mrr), "medication_request", [])
+      {:ok, _} =
+        @otp_verification_api.send_sms(
+          %{
+            phone_number: otp["phone_number"],
+            body: template_fun.(mrr),
+            type: "medication_request",
+            provider: Confex.fetch_env!(:core, :sms_provider)
+          },
+          []
+        )
     end
   end
 
