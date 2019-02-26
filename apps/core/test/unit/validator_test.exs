@@ -134,7 +134,7 @@ defmodule Core.Unit.ValidatorTest do
   end
 
   test "validate kveds with empty dictionary" do
-    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["12.11"])
+    assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["86.10"])
   end
 
   defp get_employee_request do

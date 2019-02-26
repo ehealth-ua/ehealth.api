@@ -251,8 +251,10 @@ config :core, Core.Man.Templates.CredentialsRecoveryRequest,
   locale: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
 config :core, :legal_entity_employee_types,
-  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN"]},
-  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST", "HR"]}
+  msp: {:system, :list, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN"]},
+  msp_pharmacy:
+    {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "PHARMACIST"]},
+  pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST", "HR"]}
 
 config :core, :legal_entity_division_types,
   msp: {:system, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},

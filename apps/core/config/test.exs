@@ -173,8 +173,8 @@ config :core, Core.Bamboo.Emails.Sender, mailer: Core.Bamboo.TestMailer
 config :core, Core.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 
 config :core, :legal_entity_employee_types,
-  msp: {:system, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
-  pharmacy: {:system, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
+  msp: {:system, :list, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
+  pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
 
 # Configures Cabinet
 config :core, Core.Cabinet.API,

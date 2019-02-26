@@ -17,6 +17,7 @@ defmodule Core.LegalEntities.LegalEntity do
   @type_msp "MSP"
   @type_nhs "NHS"
   @type_pharmacy "PHARMACY"
+  @type_msp_pharmacy "MSP_PHARMACY"
 
   @mis_verified_verified "VERIFIED"
   @mis_verified_not_verified "NOT_VERIFIED"
@@ -25,6 +26,7 @@ defmodule Core.LegalEntities.LegalEntity do
   def type(:msp), do: @type_msp
   def type(:nhs), do: @type_nhs
   def type(:pharmacy), do: @type_pharmacy
+  def type(:msp_pharmacy), do: @type_msp_pharmacy
 
   def mis_verified(:verified), do: @mis_verified_verified
   def mis_verified(:not_verified), do: @mis_verified_not_verified

@@ -75,6 +75,10 @@ defmodule EHealthWeb.Router do
     patch("/credentials_recovery_requests/:id/actions/reset_password", UserController, :reset_password)
 
     # Legal Entities
+    scope "/v2" do
+      put("/legal_entities", V2.LegalEntityController, :create_or_update, as: :v2_legal_entity)
+    end
+
     put("/legal_entities", LegalEntityController, :create_or_update)
 
     get("/dictionaries", DictionaryController, :index)

@@ -1,0 +1,395 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4}(?!\\d{2}\\b))((-)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6]))))$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "person_name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+    },
+    "gender": {
+      "type": "string",
+      "description": "Dictionary: GENDER"
+    },
+    "phone": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: PHONE_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^\\+38[0-9]{10}$"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number"
+      ],
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Dictionary: ADDRESS_TYPE"
+        },
+        "country": {
+          "type": "string"
+        },
+        "area": {
+          "$ref": "#/definitions/name"
+        },
+        "region": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement": {
+          "$ref": "#/definitions/name"
+        },
+        "settlement_type": {
+          "type": "string",
+          "description": "settlement type Dictionary: SETTLEMENT_TYPE"
+        },
+        "settlement_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "street_type": {
+          "type": "string",
+          "description": "street type Dictionary: STREET_TYPE"
+        },
+        "street": {
+          "$ref": "#/definitions/name"
+        },
+        "building": {
+          "type": "string",
+          "pattern": "^[1-9]((?![ЫЪЭЁыъэё])()([А-ЯҐЇІЄа-яґїіє \\/\\'\\-0-9])){0,20}$"
+        },
+        "apartment": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        }
+      },
+      "required": [
+        "type",
+        "country",
+        "area",
+        "settlement",
+        "settlement_type",
+        "settlement_id"
+      ],
+      "additionalProperties": false
+    },
+    "archive": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "$ref": "#/definitions/date"
+        },
+        "place": {
+          "$ref": "#/definitions/name"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "#/definitions/name"
+    },
+    "short_name": {
+      "$ref": "#/definitions/name"
+    },
+    "public_name": {
+      "$ref": "#/definitions/name"
+    },
+    "owner_property_type": {
+      "type": "string",
+      "description": "Dictionary: OWNER_PROPERTY_TYPE"
+    },
+    "legal_form": {
+      "type": "string",
+      "description": "Dictionary: LEGAL_FORM"
+    },
+    "edrpou": {
+      "type": "string",
+      "pattern": "^[0-9]{8,10}|[0-9]{9,10}$"
+    },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/address"
+      },
+      "minItems": 1
+    },
+    "phones": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/phone"
+      },
+      "minItems": 1
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "website": {
+      "type": "string",
+      "pattern": "^(http://|https://)?([a-z0-9][a-z0-9\\-]*\\.)+[a-z0-9][a-z0-9\\-]*$"
+    },
+    "receiver_funds_code": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "beneficiary": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+    },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "$ref": "#/definitions/person_name"
+        },
+        "last_name": {
+          "$ref": "#/definitions/person_name"
+        },
+        "second_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[А-ЯҐЇІЄа-яґїіє\\'\\- ]+$"
+        },
+        "position": {
+          "type": "string",
+          "description": "Dictionary: POSITION"
+        },
+        "tax_id": {
+          "type": "string",
+          "pattern": "^([0-9]{9,10}|[А-ЯЁЇIЄҐ]{2}\\d{6})$"
+        },
+        "birth_date": {
+          "$ref": "#/definitions/date"
+        },
+        "gender": {
+          "$ref": "#/definitions/gender"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/document"
+          },
+          "minItems": 1
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/phone"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "first_name",
+        "last_name",
+        "position",
+        "tax_id",
+        "birth_date",
+        "gender",
+        "documents",
+        "email"
+      ]
+    },
+    "medical_service_provider": {
+      "type": "object",
+      "properties": {
+        "licenses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Dictionary: LICENSE_TYPE"
+              },
+              "kveds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Dictionary: KVEDS_ALLOWED_MSP or KVEDS_ALLOWED_PHARMACY"
+                },
+                "minItems": 1
+              },
+              "license_number": {
+                "$ref": "#/definitions/name"
+              },
+              "issued_by": {
+                "$ref": "#/definitions/name"
+              },
+              "issued_date": {
+                "$ref": "#/definitions/date"
+              },
+              "expiry_date": {
+                "$ref": "#/definitions/date"
+              },
+              "active_from_date": {
+                "$ref": "#/definitions/date"
+              },
+              "what_licensed": {
+                "$ref": "#/definitions/name"
+              },
+              "order_no": {
+                "$ref": "#/definitions/name",
+                "description": "номер наказу"
+              }
+            },
+            "required": [
+              "issued_by",
+              "issued_date",
+              "active_from_date",
+              "order_no"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "accreditation": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "Dictionary: ACCREDITATION_CATEGORY"
+            },
+            "issued_date": {
+              "$ref": "#/definitions/date"
+            },
+            "expiry_date": {
+              "$ref": "#/definitions/date"
+            },
+            "order_no": {
+              "$ref": "#/definitions/name",
+              "description": "номер наказу МОЗ"
+            },
+            "order_date": {
+              "$ref": "#/definitions/date"
+            }
+          },
+          "required": [
+            "category",
+            "order_no"
+          ]
+        }
+      },
+      "required": [
+        "licenses"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "CLOSED"
+      ]
+    },
+    "archive": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/archive"
+      }
+    },
+    "mis_verified": {
+      "type": "string",
+      "enum": [
+        "VERIFIED",
+        "NOT_VERIFIED"
+      ]
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "redirect_uri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^(https)://.+"
+        }
+      },
+      "required": [
+        "redirect_uri"
+      ]
+    },
+    "public_offer": {
+      "type": "object",
+      "properties": {
+        "consent": {
+          "type": "boolean",
+          "enum": [
+            true
+          ]
+        },
+        "consent_text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "consent",
+        "consent_text"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "owner_property_type",
+    "legal_form",
+    "edrpou",
+    "addresses",
+    "phones",
+    "email",
+    "owner",
+    "medical_service_provider",
+    "security",
+    "public_offer"
+  ],
+  "additionalProperties": false
+}

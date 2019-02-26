@@ -1,0 +1,107 @@
+{
+  "name": "Клініка Борис",
+  "short_name": "Борис",
+  "public_name": "Борис",
+  "owner_property_type": "STATE",
+  "legal_form": "ПІДПРИЄМЕЦЬ",
+  "edrpou": "37367387",
+  "addresses": [
+    {
+      "type": "REGISTRATION",
+      "country": "UA",
+      "area": "Житомирська",
+      "region": "Бердичівський",
+      "settlement": "Київ",
+      "settlement_type": "CITY",
+      "settlement_id": "f2d556b4-86d5-4afe-87b8-3908ad947106",
+      "street": "вул. Ніжинська",
+      "street_type": "STREET",
+      "building": "15-В",
+      "apartment": "23",
+      "zip": "02090"
+    }
+  ],
+  "phones": [
+    {
+      "type": "MOBILE",
+      "number": "+380503410870"
+    }
+  ],
+  "email": "email@example.com",
+  "owner": {
+    "first_name": "Петро",
+    "last_name": "Іванов",
+    "second_name": "Миколайович",
+    "position": "P1",
+    "tax_id": "3067305998",
+    "no_tax_id": false,
+    "birth_date": "1991-08-19",
+    "gender": "MALE",
+    "email": "email@example.com",
+    "documents": [
+      {
+        "type": "PASSPORT",
+        "number": "120518"
+      }
+    ],
+    "phones": [
+      {
+        "type": "MOBILE",
+        "number": "+380503410870"
+      }
+    ]
+  },
+  "medical_service_provider": {
+    "licenses": [
+      {
+        "type": "MSP",
+        "kveds": [
+          "86.10"
+        ],
+        "license_number": "fd123443",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "1991-08-19",
+        "expiry_date": "1991-08-19",
+        "active_from_date": "1991-08-19",
+        "order_no": "fd123443",
+        "what_licensed": "збут наркотичних засобів"
+      },
+      {
+        "type": "PHARMACY",
+        "kveds": [
+          "47.73"
+        ],
+        "license_number": "fd123445",
+        "issued_by": "Кваліфікацйна комісія",
+        "issued_date": "1991-08-19",
+        "expiry_date": "1991-08-19",
+        "active_from_date": "1991-08-19",
+        "order_no": "fd123443",
+        "what_licensed": "виготовлення наркотичних засобів"
+      }
+    ],
+    "accreditation": {
+      "category": "ДРУГА",
+      "issued_date": "1991-08-19",
+      "expiry_date": "1991-08-19",
+      "order_no": "fd123443",
+      "order_date": "1991-08-19"
+    }
+  },
+  "security": {
+    "redirect_uri": "https://example.com/redirect_uri"
+  },
+  "public_offer": {
+    "consent": true,
+    "consent_text": "Consent text"
+  },
+  "archive": [
+    {
+      "date": "2012-12-29",
+      "place": "Житомир вул. Малярів, буд. 211, корп. 2, оф. 1"
+    }
+  ],
+  "receiver_funds_code": "01855",
+  "website": "https://boris.example.com",
+  "beneficiary": "Лев Томас"
+}

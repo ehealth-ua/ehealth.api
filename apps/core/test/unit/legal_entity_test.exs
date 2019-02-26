@@ -216,7 +216,7 @@ defmodule Core.Unit.LegalEntityTest do
         Map.merge(get_legal_entity_data(), %{
           "short_name" => "edenlab",
           "email" => "changed@example.com",
-          "kveds" => ["12.21"]
+          "kveds" => ["86.21"]
         })
 
       expect_uaddresses_validate()
@@ -254,7 +254,7 @@ defmodule Core.Unit.LegalEntityTest do
         Map.merge(get_legal_entity_data(), %{
           "short_name" => "edenlab",
           "email" => "changed@example.com",
-          "kveds" => ["12.21"]
+          "kveds" => ["86.10"]
         })
 
       expect_uaddresses_validate()
@@ -299,7 +299,7 @@ defmodule Core.Unit.LegalEntityTest do
           "edrpou" => "37367387",
           "short_name" => "edenlab",
           "email" => "changed@example.com",
-          "kveds" => ["12.21"]
+          "kveds" => ["86.10"]
         })
 
       expect(MithrilMock, :get_client_type_by_name, fn _, _ ->

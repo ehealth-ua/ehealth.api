@@ -178,6 +178,20 @@ defmodule EHealth.Web.FallbackController do
     call(conn, {:conflict, reason})
   end
 
+  def call(conn, {:error, {:not_implemented, message}}) when is_binary(message) do
+    conn
+    |> put_status(:not_implemented)
+    |> put_view(Error)
+    |> render(:"501", %{message: message})
+  end
+
+  def call(conn, {:error, {:not_implemented, _}}) do
+    conn
+    |> put_status(:not_implemented)
+    |> put_view(Error)
+    |> render(:"501")
+  end
+
   def call(conn, {:conflict, reason}) when is_binary(reason) do
     call(conn, {:conflict, %{message: reason}})
   end

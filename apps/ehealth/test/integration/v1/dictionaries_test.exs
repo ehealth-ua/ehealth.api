@@ -27,7 +27,18 @@ defmodule EHealth.Integration.DictionariesTest do
       "21.20": "Виробництво фармацевтичних препаратів і матеріалів",
       "38.31": "Демонтаж (розбирання) машин і устатковання",
       "56.21": "Постачання готових страв для подій",
-      "82.11": "Надання комбінованих офісних адміністративних послуг"
+      "82.11": "Надання комбінованих офісних адміністративних послуг",
+      "86.10": "Діяльність лікарняних закладів",
+      "86.21": "Загальна медична практика"
+    },
+    "labels" => ["SYSTEM", "EXTERNAL"],
+    "is_active" => true
+  }
+
+  @kveds_allowed %{
+    "name" => "KVEDS_ALLOWED",
+    "values" => %{
+      "21.20": "Виробництво фармацевтичних препаратів і матеріалів"
     },
     "labels" => ["SYSTEM", "EXTERNAL"],
     "is_active" => true
@@ -60,15 +71,6 @@ defmodule EHealth.Integration.DictionariesTest do
       "PhD" => "PhD"
     },
     "labels" => ["SYSTEM"],
-    "is_active" => true
-  }
-
-  @kveds_allowed %{
-    "name" => "KVEDS_ALLOWED",
-    "values" => %{
-      "21.20": "Виробництво фармацевтичних препаратів і матеріалів"
-    },
-    "labels" => ["SYSTEM", "EXTERNAL"],
     "is_active" => true
   }
 
@@ -172,19 +174,21 @@ defmodule EHealth.Integration.DictionariesTest do
       patch(conn, dictionary_path(conn, :update, "KVEDS"), @kveds)
       patch(conn, dictionary_path(conn, :update, "KVEDS_ALLOWED"), @kveds_allowed)
 
-      insert(:il, :dictionary, name: "KVEDS_ALLOWED_MSP", values: %{"21.20" => ""})
-      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["21.20"])
-      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["82.11", "21.20"])
+      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["86.10"])
+      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["86.10", "86.21"])
 
       # missed required
-      assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["82.11"])
+      assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["02.11"])
       # not valid
       assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["21.20", "99.11"])
     end
 
     test "validate allowed kveds", %{conn: conn} do
-      patch(conn, dictionary_path(conn, :update, "KVEDS"), @kveds)
-      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["82.11"])
+      conn
+      |> patch(dictionary_path(conn, :update, "KVEDS"), @kveds)
+      |> json_response(200)
+
+      assert %Ecto.Changeset{valid?: true} = KVEDs.validate(["86.21"])
     end
 
     test "validate not allowed kveds", %{conn: conn} do

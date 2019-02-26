@@ -307,23 +307,23 @@ defmodule Core.LegalEntities do
     end
   end
 
-  defp check_status(%LegalEntity{status: @status_closed}) do
+  def check_status(%LegalEntity{status: @status_closed}) do
     {:error, {:conflict, "LegalEntity can't be updated"}}
   end
 
-  defp check_status(_), do: :ok
+  def check_status(_), do: :ok
 
-  defp store_signed_content(id, input, headers) do
+  def store_signed_content(id, input, headers) do
     input
     |> Map.fetch!("signed_legal_entity_request")
     |> MediaStorage.store_signed_content(:legal_entity_bucket, id, "signed_content", headers)
   end
 
-  defp put_legal_entity_to_prm(
-         %LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity,
-         attrs,
-         headers
-       ) do
+  def put_legal_entity_to_prm(
+        %LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity,
+        attrs,
+        headers
+      ) do
     # Creates new Legal Entity in PRM
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
@@ -342,11 +342,11 @@ defmodule Core.LegalEntities do
     create(legal_entity, creation_data, consumer_id)
   end
 
-  defp put_legal_entity_to_prm(
-         %LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity,
-         attrs,
-         headers
-       ) do
+  def put_legal_entity_to_prm(
+        %LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity,
+        attrs,
+        headers
+      ) do
     # Updates Legal Entity
     consumer_id = get_consumer_id(headers)
     # filter immutable data
@@ -365,7 +365,7 @@ defmodule Core.LegalEntities do
     |> update_with_ops_contract(headers)
   end
 
-  defp prepare_security_data(client, client_connection) do
+  def prepare_security_data(client, client_connection) do
     security = %{
       "client_id" => Map.get(client, "id"),
       "client_secret" => Map.get(client_connection, "secret"),
@@ -375,11 +375,11 @@ defmodule Core.LegalEntities do
     {:ok, security}
   end
 
-  defp put_mis_verified_state(%{"edrpou" => edrpou, "type" => type} = request_params) do
+  def put_mis_verified_state(%{"edrpou" => edrpou, "type" => type} = request_params) do
     Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou, type))
   end
 
-  defp create_employee_request(%LegalEntity{id: id, type: type}, request_params) do
+  def create_employee_request(%LegalEntity{id: id, type: type}, request_params) do
     # Create Employee request
     # Specification: https://edenlab.atlassian.net/wiki/display/EH/IL.Create+employee+request
     party = Map.fetch!(request_params, "owner")
@@ -422,7 +422,7 @@ defmodule Core.LegalEntities do
   def check_nhs_reviewed(%LegalEntity{nhs_reviewed: true}, _), do: :ok
   def check_nhs_reviewed(_, _), do: {:error, {:conflict, "Legal entity should be reviewed first"}}
 
-  defp prepare_employee_request_data(legal_entity_id, party) do
+  def prepare_employee_request_data(legal_entity_id, party) do
     request = %{
       "legal_entity_id" => legal_entity_id,
       "position" => Map.fetch!(party, "position"),
@@ -434,7 +434,7 @@ defmodule Core.LegalEntities do
     %{"employee_request" => request}
   end
 
-  defp get_client_type_id(type, headers) do
+  def get_client_type_id(type, headers) do
     case @mithril_api.get_client_type_by_name(type, headers) do
       {:ok, %{"data" => [client_type]}} -> {:ok, Map.get(client_type, "id")}
       _ -> {:error, {:bad_request, "No client type #{type}"}}

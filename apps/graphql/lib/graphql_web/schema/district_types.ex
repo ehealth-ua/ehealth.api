@@ -4,8 +4,6 @@ defmodule GraphQLWeb.Schema.DistrictTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  alias GraphQLWeb.Middleware.Filtering
-
   input_object :district_filter do
     field(:name, :string)
   end

@@ -85,7 +85,7 @@ defmodule Core.LegalEntities.Validator do
 
   defp validate_pharmacy_license_number(_), do: :ok
 
-  def validate_kveds(content) do
+  defp validate_kveds(content) do
     content
     |> Map.get("kveds")
     |> KVEDs.validate(content["type"])
@@ -95,14 +95,11 @@ defmodule Core.LegalEntities.Validator do
     end
   end
 
-  # Addresses validator
-
   def validate_addresses(content) do
     addresses = Map.get(content, "addresses") || []
     Addresses.validate(addresses, "REGISTRATION")
   end
 
-  # Tax ID validator
   def validate_tax_id(content) do
     no_tax_id = get_in(content, ["owner", "no_tax_id"])
 
@@ -211,7 +208,7 @@ defmodule Core.LegalEntities.Validator do
   defp valid_owner_position?(position, positions),
     do: Enum.any?(positions, fn x -> x == position end)
 
-  defp lowercase_emails(content) do
+  def lowercase_emails(content) do
     email = Map.get(content, "email")
     path = ~w(owner email)
     owner_email = get_in(content, path)

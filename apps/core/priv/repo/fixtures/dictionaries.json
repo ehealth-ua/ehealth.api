@@ -4,7 +4,8 @@
     "values": {
       "MIS": "Medical Information system",
       "MSP": "заклад з надання медичних послуг",
-      "PHARMACY": "Аптека"
+      "PHARMACY": "Аптека",
+      "MSP_PHARMACY": "Заклад з надання медичних послуг та аптека"
     },
     "labels": [
       "SYSTEM",
@@ -14718,6 +14719,18 @@
     "name": "SERVICE_REQUEST_PRIORITY",
     "values": {
       "default": "default"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "LICENSE_TYPE",
+    "values": {
+      "MSP": "заклад з надання медичних послуг",
+      "PHARMACY": "Аптека"
     },
     "labels": [
       "SYSTEM",
