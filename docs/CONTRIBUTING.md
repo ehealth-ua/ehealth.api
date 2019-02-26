@@ -70,8 +70,8 @@ mix credo --strict
 If one of them fail, travis build will fail too and PR can't be merged.
 
 ## How to set up system from scratch
-- WIP
--
+[Step-by-step manual](https://github.com/edenlabllc/ehealth.demo.charts) how to run the cluster from scratch with the recommended default env. vars values
+
 ## Hot fix
 
 To create a hotfix, you need to create a branch from the `master`, apply a hotfix and create a PR back to master.
