@@ -23,7 +23,8 @@ Index page for projects that related to Ukrainian Health Services government ins
 ## Documentation
 
 - [Business prcesses and specifications](https://edenlab.atlassian.net/wiki/spaces/EH/overview)
-- [API docs](http://docs.uaehealthapi.apiary.io/#reference/public.-medical-service-provider-integration-layer)
+- [Production API documentation](https://ehealthmisapi1.docs.apiary.io/)
+- [Documentation of API that is under design/development. NOT STABLE](http://docs.uaehealthapi.apiary.io/#reference/public.-medical-service-provider-integration-layer)
 - [Architecture](https://docs.google.com/document/d/1oS1FiDJwOMBkR4wLbO51qcS8mO0LaBdXl7TQhk71OWM/edit) - WIP
 
 ## Installation
