@@ -8,7 +8,6 @@ defmodule EHealth.Web.ProgramMedicationView do
 
   @program_medication_view_fields [
     :id,
-    :reimbursement,
     :medication_request_allowed,
     :is_active,
     :wholesale_price,
@@ -33,6 +32,7 @@ defmodule EHealth.Web.ProgramMedicationView do
     program_medication
     |> Map.take(@program_medication_view_fields)
     |> Map.merge(%{
+      reimbursement: Map.take(program_medication.reimbursement, [:type, :reimbursement_amount]),
       medication: render_one(program_medication.medication, MedicationView, "medication.json"),
       medical_program: render_one(program_medication.medical_program, MedicalProgramView, "show.json")
     })

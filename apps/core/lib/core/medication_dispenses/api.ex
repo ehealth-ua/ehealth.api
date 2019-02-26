@@ -389,7 +389,7 @@ defmodule Core.MedicationDispense.API do
       with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
            :ok <- validate_active_medication(medication, i),
            {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
-           reimbursement_amount <- program_medication.reimbursement["reimbursement_amount"],
+           reimbursement_amount <- program_medication.reimbursement.reimbursement_amount,
            :ok <- validate_reimbursement_amount(reimbursement_amount, item, medication, i) do
         {:ok, Map.put(item, "reimbursement_amount", reimbursement_amount), medication}
       end

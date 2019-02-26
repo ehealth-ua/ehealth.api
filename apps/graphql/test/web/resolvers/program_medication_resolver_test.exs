@@ -19,6 +19,12 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
     consumerPrice
     reimbursementDailyDosage
     estimatedPaymentAmount
+    reimbursement {
+      type
+      reimbursementAmount
+    }
+    insertedAt
+    updatedAt
   """
 
   @program_medication_create_query """

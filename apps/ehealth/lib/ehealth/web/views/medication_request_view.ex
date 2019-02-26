@@ -51,7 +51,7 @@ defmodule EHealth.Web.MedicationRequestView do
       "manufacturer" => medication.manufacturer,
       "package_qty" => medication.package_qty,
       "package_min_qty" => medication.package_min_qty,
-      "reimbursement_amount" => program_medication.reimbursement["reimbursement_amount"]
+      "reimbursement_amount" => program_medication.reimbursement.reimbursement_amount
     }
   end
 end

@@ -40,7 +40,7 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       input do
         field(:medication_id, non_null(:id))
         field(:medical_program_id, non_null(:id))
-        field(:reimbursement, non_null(:reimbursement_input))
+        field(:reimbursement, non_null(:reimbursement))
         field(:wholesale_price, non_null(:float))
         field(:consumer_price, non_null(:float))
         field(:reimbursement_daily_dosage, non_null(:float))
@@ -56,33 +56,24 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
     end
   end
 
-  input_object :reimbursement_input do
-    field(:type, non_null(:reimbursement_type))
-    field(:reimbursement_amount, non_null(:float))
-  end
-
   node object(:program_medication) do
     field(:database_id, non_null(:uuid))
     field(:medical_program, non_null(:medical_program))
     field(:medication, non_null(:medication))
-    # TODO: Migrate reimbursement_amount to float
-    # field(:reimbursement, non_null(:reimbursement))
+    field(:reimbursement, non_null(:reimbursement))
     field(:wholesale_price, non_null(:string))
     field(:consumer_price, non_null(:string))
     field(:reimbursement_daily_dosage, non_null(:string))
     field(:estimated_payment_amount, non_null(:string))
     field(:is_active, non_null(:boolean))
     field(:medication_request_allowed, non_null(:boolean))
-
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   object :reimbursement do
     field(:type, non_null(:reimbursement_type))
-    # TODO: Migrate reimbursement_amount to float
-    field(:reimbursement_amount, non_null(:string))
+    field(:reimbursement_amount, non_null(:float))
   end
 
   enum :reimbursement_type do

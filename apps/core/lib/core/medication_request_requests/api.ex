@@ -293,7 +293,7 @@ defmodule Core.MedicationRequestRequests do
     Enum.map(program_medications, fn program_medication ->
       program_medication.medication
       |> Map.take(~w(id name form manufacturer)a)
-      |> Map.put("reimbursement_amount", program_medication.reimbursement["reimbursement_amount"])
+      |> Map.put("reimbursement_amount", program_medication.reimbursement.reimbursement_amount)
     end)
   end
 

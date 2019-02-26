@@ -2,12 +2,15 @@ defmodule Core.Medications.Program do
   @moduledoc false
 
   use Ecto.Schema
+
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Medication
+  alias Core.Medications.Program.Reimbursement
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts type: :utc_datetime
   schema "program_medications" do
-    field(:reimbursement, :map)
+    embeds_one(:reimbursement, Reimbursement)
     field(:medication_request_allowed, :boolean, default: true)
     field(:is_active, :boolean, default: true)
     field(:wholesale_price, :float)
