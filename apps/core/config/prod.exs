@@ -10,7 +10,7 @@ config :core, Core.ReadRepo,
   pool_size: "${READ_DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :core, Core.Repo,
   adapter: Ecto.Adapters.Postgres,
@@ -22,7 +22,7 @@ config :core, Core.Repo,
   pool_size: "${DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :core, Core.ReadPRMRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -35,7 +35,7 @@ config :core, Core.ReadPRMRepo,
   timeout: 15_000,
   pool_timeout: 15_000,
   types: Core.PRM.PostgresTypes,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :core, Core.PRMRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -48,7 +48,7 @@ config :core, Core.PRMRepo,
   timeout: 15_000,
   pool_timeout: 15_000,
   types: Core.PRM.PostgresTypes,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :core, Core.FraudRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -61,7 +61,7 @@ config :core, Core.FraudRepo,
   timeout: 15_000,
   pool_timeout: 15_000,
   types: Core.Fraud.PostgresTypes,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :core, Core.EventManagerRepo,
   adapter: Ecto.Adapters.Postgres,
@@ -73,7 +73,7 @@ config :core, Core.EventManagerRepo,
   pool_size: "${EVENT_MANAGER_DB_POOL_SIZE}",
   timeout: 15_000,
   pool_timeout: 15_000,
-  loggers: [{Ecto.LoggerJSON, :log, [:info]}]
+  loggers: [{EhealthLogger.Ecto, :log, [:info]}]
 
 config :kaffe,
   producer: [

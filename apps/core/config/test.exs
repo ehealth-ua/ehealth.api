@@ -189,3 +189,5 @@ config :core, Core.Guardian,
   secret_key: "some_super-sEcret"
 
 config :ex_unit, capture_log: true
+
+config :logger, level: :warn

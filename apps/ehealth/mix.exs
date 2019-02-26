@@ -54,7 +54,6 @@ defmodule EHealth.Mixfile do
       {:phoenix, "~> 1.4.0-rc.3", override: true},
       {:phoenix_ecto, "~> 3.2"},
       {:plug_cowboy, "~> 2.0"},
-      {:plug_logger_json, "~> 0.5"},
       {:poison, "~> 3.1"},
       {:mox, "~> 0.3", only: :test}
     ]

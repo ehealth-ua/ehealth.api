@@ -7,10 +7,12 @@ config :core,
 
 config :ecto, json_library: Jason
 
-# Configures Elixir's Logger
-config :logger, :console,
-  format: "$message\n",
-  handle_otp_reports: true,
+config :logger_json, :backend,
+  formatter: EhealthLogger.Formatter,
+  metadata: :all
+
+config :logger,
+  backends: [LoggerJSON],
   level: :info
 
 config :core,

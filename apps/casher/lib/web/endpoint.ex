@@ -4,10 +4,8 @@ defmodule Casher.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :casher
   alias Confex.Resolver
 
-  plug(Plug.Logger)
-
   plug(Plug.RequestId)
-  plug(Plug.LoggerJSON, level: Logger.level())
+  plug(LoggerJSON.Plug, level: Logger.level())
 
   plug(
     Plug.Parsers,

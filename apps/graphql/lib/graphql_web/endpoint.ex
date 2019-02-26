@@ -9,7 +9,7 @@ defmodule GraphQLWeb.Endpoint do
   @scope_header "x-consumer-scope"
 
   plug(Plug.RequestId)
-  plug(Plug.LoggerJSON, level: Logger.level())
+  plug(LoggerJSON.Plug, level: Logger.level())
 
   plug(
     Plug.Parsers,
