@@ -35,10 +35,11 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
         legal_entity_relation: :equal,
         contractor_legal_entity: [
           database_id: :equal,
-          edrpou: :equal,
+          type: :equal,
+          edrpou: :like,
+          name: :like,
           nhs_verified: :equal,
-          nhs_reviewed: :equal,
-          type: :equal
+          nhs_reviewed: :equal
         ]
       )
 

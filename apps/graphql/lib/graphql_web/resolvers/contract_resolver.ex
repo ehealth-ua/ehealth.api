@@ -14,7 +14,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       alias Core.ContractRequests
       alias Core.Contracts.Storage
       alias Ecto.Query
-      alias GraphQL.Helpers.Filtering
+      alias GraphQL.Filters.Contracts, as: ContractsFilter
       alias GraphQLWeb.Loaders.IL
 
       @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -33,33 +33,9 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       def list_contracts(%{filter: filter, order_by: order_by} = args) do
         @schema
         |> where([c], c.type == ^@schema.type())
-        |> filter(filter)
+        |> ContractsFilter.filter(filter)
         |> order_by(order_by)
         |> Connection.from_query(&@read_prm_repo.all/1, args)
-      end
-
-      defp filter(query, []), do: query
-
-      defp filter(query, [{:legal_entity_relation, :equal, :merged_from} | tail]) do
-        query
-        |> join(:inner, [r], assoc(r, :merged_from))
-        |> where([..., m], m.is_active)
-        |> filter(tail)
-      end
-
-      defp filter(query, [{:legal_entity_relation, :equal, :merged_to} | tail]) do
-        query
-        |> join(:inner, [r], assoc(r, :merged_to))
-        |> where([..., m], m.is_active)
-        |> filter(tail)
-      end
-
-      # BUG: When association condition goes before regular conditions,
-      # all following conditions will be applied to the associated table
-      defp filter(query, [condition | tail]) do
-        query
-        |> Filtering.filter([condition])
-        |> filter(tail)
       end
 
       defp order_by(query, [{direction, :contractor_legal_entity_edrpou}]) do

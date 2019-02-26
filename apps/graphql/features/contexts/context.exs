@@ -9,6 +9,7 @@ defmodule GraphQL.Features.Context do
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo, EventManagerRepo}
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
+  alias Core.Contracts.{CapitationContract, ReimbursementContract}
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms.MedicalProgram
@@ -64,16 +65,6 @@ defmodule GraphQL.Features.Context do
   end)
 
   given_(
-    ~r/^there are (?<count>\d+) capitation contracts exist$/,
-    fn state, %{count: count} ->
-      count = String.to_integer(count)
-      insert_list(count, :prm, :capitation_contract)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
     ~r/^there are (?<count>\d+) capitation contract requests exist$/,
     fn state, %{count: count} ->
       count = Jason.decode!(count)
@@ -84,20 +75,30 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
-    ~r/^there are (?<count>\d+) reimbursement contracts exist$/,
+    ~r/^there are (?<count>\d+) reimbursement contract requests exist$/,
     fn state, %{count: count} ->
-      count = String.to_integer(count)
-      insert_list(count, :prm, :reimbursement_contract)
+      count = Jason.decode!(count)
+      insert_list(count, :il, :reimbursement_contract_request)
 
       {:ok, state}
     end
   )
 
   given_(
-    ~r/^there are (?<count>\d+) reimbursement contract requests exist$/,
+    ~r/^there are (?<count>\d+) capitation contracts exist$/,
     fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :il, :reimbursement_contract_request)
+      count = String.to_integer(count)
+      insert_list(count, :prm, :capitation_contract)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^there are (?<count>\d+) reimbursement contracts exist$/,
+    fn state, %{count: count} ->
+      count = String.to_integer(count)
+      insert_list(count, :prm, :reimbursement_contract)
 
       {:ok, state}
     end
@@ -159,11 +160,45 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^the following capitation contracts exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(CapitationContract, row)
+
+        # FIXME: There are should be better way to set foreign keys
+        insert(:prm, :capitation_contract, [
+          {:contractor_legal_entity, nil},
+          {:contractor_legal_entity_id, UUID.generate()} | attrs
+        ])
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following reimbursement contracts exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(ReimbursementContract, row)
+
+        # FIXME: There are should be better way to set foreign keys
+        insert(:prm, :reimbursement_contract, [
+          {:contractor_legal_entity, nil},
+          {:contractor_legal_entity_id, UUID.generate()} | attrs
+        ])
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following employees exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
         attrs = prepare_attrs(Employee, row)
-        # FIXME: There are should be better way to set party_id foreign key for employee
+        # FIXME: There are should be better way to set foreign keys
         insert(:prm, :employee, [{:party, nil} | attrs])
       end
 
@@ -253,33 +288,6 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contracts$/,
-    fn %{conn: conn}, %{count: count} ->
-      query = """
-        query ListCapitationContracts($first: Int!) {
-          capitationContracts(first: $first) {
-            nodes {
-              id
-              databaseId
-            }
-          }
-        }
-      """
-
-      variables = %{first: Jason.decode!(count)}
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
-
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests$/,
     fn %{conn: conn}, %{count: count} ->
       query = """
@@ -307,33 +315,6 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contracts$/,
-    fn %{conn: conn}, %{count: count} ->
-      query = """
-        query ListReimbursementContracts($first: Int!) {
-          reimbursementContracts(first: $first) {
-            nodes {
-              id
-              databaseId
-            }
-          }
-        }
-      """
-
-      variables = %{first: Jason.decode!(count)}
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
-
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests$/,
     fn %{conn: conn}, %{count: count} ->
       query = """
@@ -355,6 +336,60 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contracts$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListCapitationContracts($first: Int!) {
+          capitationContracts(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contracts$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListReimbursementContracts($first: Int!) {
+          reimbursementContracts(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -553,6 +588,70 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListCapitationContractsWithFilter(
+          $first: Int!
+          $filter: CapitationContractFilter!
+        ) {
+          capitationContracts(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListReimbursementContractsWithFilter(
+          $first: Int!
+          $filter: ReimbursementContractFilter!
+        ) {
+          reimbursementContracts(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) medical programs where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
@@ -711,6 +810,70 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListCapitationContractsWithAssocFilter(
+          $first: Int!
+          $filter: CapitationContractFilter!
+        ) {
+          capitationContracts(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListReimbursementContractsWithAssocFilter(
+          $first: Int!
+          $filter: ReimbursementContractFilter!
+        ) {
+          reimbursementContracts(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -885,6 +1048,70 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) capitation contracts sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListCapitationContractsWithOrderBy(
+          $first: Int!
+          $order_by: CapitationContractOrderBy!
+        ) {
+          capitationContracts(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) reimbursement contracts sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListReimbursementContractsWithOrderBy(
+          $first: Int!
+          $order_by: ReimbursementContractOrderBy!
+        ) {
+          reimbursementContracts(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end

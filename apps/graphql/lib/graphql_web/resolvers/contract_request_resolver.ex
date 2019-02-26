@@ -26,13 +26,11 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       import Ecto.Query, only: [where: 3, select: 3, order_by: 2]
 
       alias Absinthe.Relay.Connection
-      alias GraphQL.Helpers.Filtering
+      alias GraphQL.Filters.ContractRequests, as: ContractRequestsFilter
 
       @read_repo Application.get_env(:core, :repos)[:read_repo]
-      @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
       @schema unquote(opts[:schema])
-      @related_schemas @schema.related_schemas()
 
       def list_contract_requests(args, %{context: %{client_type: "NHS"}}), do: list_contract_requests(args)
 
@@ -47,30 +45,9 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       defp list_contract_requests(%{filter: filter, order_by: order_by} = args) do
         @schema
         |> where([c], c.type == ^@schema.type())
-        |> filter(filter)
+        |> ContractRequestsFilter.filter(filter)
         |> order_by(^order_by)
         |> Connection.from_query(&@read_repo.all/1, args)
-      end
-
-      defp filter(query, []), do: query
-
-      defp filter(query, [{field, nil, conditions} | tail]) when field in @related_schemas do
-        ids =
-          field
-          |> @schema.related_schema()
-          |> Filtering.filter(conditions)
-          |> select([r], r.id)
-          |> @read_prm_repo.all()
-
-        filter(query, [{:"#{field}_id", :in, ids} | tail])
-      end
-
-      # BUG: When association condition goes before regular conditions,
-      # all following conditions will be applied to the associated table
-      defp filter(query, [condition | tail]) do
-        query
-        |> Filtering.filter([condition])
-        |> filter(tail)
       end
     end
   end
