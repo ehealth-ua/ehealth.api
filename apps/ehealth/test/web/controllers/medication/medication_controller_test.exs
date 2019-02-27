@@ -10,7 +10,7 @@ defmodule EHealth.Web.MedicationControllerTest do
     code_atc: ["C08CA01", "C01BD01"],
     certificate: "some certificate",
     certificate_expired_at: "2010-04-17",
-    container: container("Pill"),
+    container: container("PILL"),
     manufacturer: build(:manufacturer),
     package_min_qty: 21,
     package_qty: 42,

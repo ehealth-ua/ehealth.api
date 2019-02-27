@@ -78,6 +78,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:merge_request_queries)
     import_fields(:person_queries)
     import_fields(:settlement_queries)
+    import_fields(:program_medication_queries)
   end
 
   mutation do

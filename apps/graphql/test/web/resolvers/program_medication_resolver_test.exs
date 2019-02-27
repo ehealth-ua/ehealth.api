@@ -19,12 +19,53 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
     consumerPrice
     reimbursementDailyDosage
     estimatedPaymentAmount
+    insertedAt
+    updatedAt
     reimbursement {
       type
       reimbursementAmount
     }
-    insertedAt
-    updatedAt
+    medicalProgram {
+      databaseId
+      name
+      isActive
+      insertedAt
+      updatedAt
+    }
+    medication {
+      name
+      form
+      packageQty
+      packageMinQty
+      certificate
+      certificateExpiredAt
+      isActive
+      type
+      container {
+        numeratorUnit
+        numeratorValue
+        denumeratorUnit
+        denumeratorValue
+      }
+    }
+  """
+
+  @program_medications_query """
+    query ProgramMedicationsQuery($filter: ProgramMedicationFilter, $orderBy: ProgramMedicationOrderBy) {
+      programMedications(first: 10, filter: $filter, orderBy: $orderBy) {
+        nodes {
+          #{@fields}
+        }
+      }
+    }
+  """
+
+  @program_medication_by_id_query """
+    query GetProgramMedicationByIdQuery($id: ID) {
+      programMedication(id: $id) {
+        #{@fields}
+      }
+    }
   """
 
   @program_medication_create_query """
@@ -72,6 +113,89 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
       assert %{"errors" => [error]} = resp_body
       assert "FORBIDDEN" == error["extensions"]["code"]
       assert Map.has_key?(error["extensions"]["exception"], "missingAllowances")
+    end
+  end
+
+  describe "list" do
+    test "success", %{conn: conn} do
+      gen_innm_dosage = &insert(:prm, :medication, type: "INNM_DOSAGE", name: &1).id
+      gen_medical_program = &insert(:prm, :medical_program, name: &1, is_active: true).id
+
+      gen_medication =
+        &insert(:prm, :medication,
+          name: &1,
+          is_active: true,
+          form: "COATED_TABLET",
+          manufacturer: build(:manufacturer, name: "Kyiv Vitamin Plant")
+        ).id
+
+      for i <- 1..3 do
+        medication_id = gen_medication.("Lorem medication #{i}")
+        innm_dosage_id = gen_innm_dosage.("Dosage #{i}")
+
+        insert(:prm, :ingredient_medication, parent_id: medication_id, medication_child_id: innm_dosage_id)
+
+        insert(:prm, :program_medication,
+          medication_id: medication_id,
+          medical_program_id: gen_medical_program.("Acme medical program #{i}")
+        )
+      end
+
+      insert_list(6, :prm, :program_medication, is_active: false)
+      insert_list(9, :prm, :program_medication, medication_request_allowed: false)
+
+      variables = %{
+        filter: %{
+          is_active: true,
+          medication_request_allowed: true,
+          medical_program: %{
+            is_active: true,
+            name: "Acme"
+          }
+        }
+      }
+
+      resp_body =
+        conn
+        |> put_scope("program_medication:read")
+        |> post_query(@program_medications_query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data programMedications nodes))
+      refute resp_body["errors"]
+
+      assert 3 == length(resp_entities)
+    end
+  end
+
+  describe "get by id" do
+    test "success", %{conn: conn} do
+      %{id: id} = insert(:prm, :program_medication, is_active: true)
+      variables = %{id: Node.to_global_id("ProgramMedication", id)}
+
+      resp_body =
+        conn
+        |> put_scope("program_medication:read")
+        |> post_query(@program_medication_by_id_query, variables)
+        |> json_response(200)
+
+      refute resp_body["errors"]
+      assert get_in(resp_body, ~w(data programMedication))
+    end
+
+    test "not found", %{conn: conn} do
+      variables = %{id: Node.to_global_id("ProgramMedication", UUID.generate())}
+
+      resp_body =
+        conn
+        |> put_scope("program_medication:read")
+        |> post_query(@program_medication_by_id_query, variables)
+        |> json_response(200)
+
+      [error] = resp_body["errors"]
+
+      refute get_in(resp_body, ~w(data programMedication))
+      assert "NOT_FOUND" == error["extensions"]["code"]
     end
   end
 

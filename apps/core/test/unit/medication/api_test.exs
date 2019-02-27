@@ -11,9 +11,9 @@ defmodule Core.Medication.APITest do
     "id" => UUID.generate(),
     "is_primary" => true,
     "dosage" => %{
-      "numerator_unit" => "pill",
+      "numerator_unit" => "PILL",
       "numerator_value" => 10,
-      "denumerator_unit" => "g",
+      "denumerator_unit" => "MG",
       "denumerator_value" => 1
     }
   }

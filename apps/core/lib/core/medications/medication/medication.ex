@@ -8,6 +8,7 @@ defmodule Core.Medications.Medication do
   @derive {Jason.Encoder, except: [:__meta__, :ingredients]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts type: :utc_datetime
   schema "medications" do
     field(:name, :string)
     field(:form, :string)

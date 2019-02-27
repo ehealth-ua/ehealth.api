@@ -29,14 +29,14 @@ defmodule EHealth.Web.ProgramMedicationController do
   end
 
   def show(conn, %{"id" => id}) do
-    program = Medications.get_program_medication!(id, :preload)
-    render(conn, "show.json", program_medication: program)
+    with {:ok, program} <- Medications.fetch_program_medication([id: id], :preload) do
+      render(conn, "show.json", program_medication: program)
+    end
   end
 
   def update(conn, %{"id" => id} = params) do
-    program = Medications.get_program_medication!(id)
-
-    with {:ok, %ProgramMedication{} = program} <-
+    with {:ok, program} <- Medications.fetch_program_medication(id: id),
+         {:ok, %ProgramMedication{} = program} <-
            Medications.update_program_medication(
              program,
              params,

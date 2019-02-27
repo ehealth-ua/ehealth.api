@@ -593,11 +593,16 @@ defmodule Core.Medications do
     |> where([_, medication], medication.is_active)
   end
 
-  def get_program_medication!(id), do: @read_prm_repo.get!(ProgramMedication, id)
+  def fetch_program_medication(params) do
+    case @read_prm_repo.get_by(ProgramMedication, params) do
+      nil -> {:error, {:not_found, "ProgramMedication not found"}}
+      entity -> {:ok, entity}
+    end
+  end
 
-  def get_program_medication!(id, :preload) do
-    ProgramMedication
-    |> @read_prm_repo.get!(id)
+  def fetch_program_medication(params, :preload) do
+    params
+    |> fetch_program_medication()
     |> preload_references()
   end
 

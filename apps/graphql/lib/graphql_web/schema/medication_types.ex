@@ -34,14 +34,12 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     field(:package_qty, :string)
     field(:package_min_qty, :string)
     field(:certificate, :string)
-    field(:certificate_expired_at, :datetime)
+    field(:certificate_expired_at, :date)
     field(:ingredients, non_null(list_of(:medication_ingredient)))
     field(:is_active, non_null(:boolean))
     field(:type, :medication_type)
-
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   object :manufacturer do

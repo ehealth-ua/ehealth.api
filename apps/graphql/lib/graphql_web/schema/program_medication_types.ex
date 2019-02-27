@@ -4,8 +4,58 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+
   alias Absinthe.Relay.Node.ParseIDs
-  alias GraphQLWeb.Resolvers.ProgramMedicationsResolver
+  alias GraphQLWeb.Loaders.PRM
+  alias GraphQLWeb.Middleware.Filtering
+  alias GraphQLWeb.Resolvers.ProgramMedicationResolver
+
+  object :program_medication_queries do
+    @desc "Get all ProgramMedication entities"
+    connection field(:program_medications, node_type: :program_medication) do
+      meta(:scope, ~w(program_medication:read))
+
+      arg(:filter, :program_medication_filter)
+      arg(:order_by, :program_medication_order_by, default_value: :inserted_at_desc)
+
+      middleware(Filtering,
+        database_id: :equal,
+        is_active: :equal,
+        medication_request_allowed: :equal,
+        # TODO: Uncomment when medication filter is ready (https://github.com/edenlabllc/ehealth.api/issues/4188)
+        # medication: [
+        #   database_id: :equal,
+        #   name: :like,
+        #   is_active: :equal,
+        #   form: :equal,
+        #   innm_dosage: [
+        #     database_id: :equal,
+        #     name: :like
+        #   ],
+        #   manufacturer: [
+        #     name: :like
+        #   ]
+        # ],
+        medical_program: [
+          database_id: :equal,
+          is_active: :equal,
+          name: :like
+        ]
+      )
+
+      resolve(&ProgramMedicationResolver.list_program_medications/2)
+    end
+
+    @desc "Get ProgramMedication by id"
+    field(:program_medication, :program_medication) do
+      meta(:scope, ~w(program_medication:read))
+      arg(:id, non_null(:id))
+
+      middleware(ParseIDs, id: :program_medication)
+      resolve(&ProgramMedicationResolver.get_program_medication_by_id/3)
+    end
+  end
 
   input_object :program_medication_filter do
     field(:database_id, :uuid)
@@ -52,7 +102,7 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       end
 
       middleware(ParseIDs, medication_id: :medication, medical_program_id: :medical_program)
-      resolve(&ProgramMedicationsResolver.create_program_medication/2)
+      resolve(&ProgramMedicationResolver.create_program_medication/2)
     end
   end
 
@@ -63,8 +113,8 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
 
   node object(:program_medication) do
     field(:database_id, non_null(:uuid))
-    field(:medical_program, non_null(:medical_program))
-    field(:medication, non_null(:medication))
+    field(:medical_program, non_null(:medical_program), resolve: dataloader(PRM))
+    field(:medication, non_null(:medication), resolve: dataloader(PRM))
     field(:reimbursement, non_null(:reimbursement))
     field(:wholesale_price, non_null(:string))
     field(:consumer_price, non_null(:string))

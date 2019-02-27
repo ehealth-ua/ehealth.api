@@ -46,7 +46,7 @@ defmodule Core.PRMFactories.MedicationFactory do
         %INNMDosage{
           name: sequence("Prednisolonum Forte"),
           type: INNMDosage.type(),
-          form: "Pill",
+          form: "PILL",
           is_active: true,
           updated_by: UUID.generate(),
           inserted_by: UUID.generate()
@@ -54,13 +54,11 @@ defmodule Core.PRMFactories.MedicationFactory do
       end
 
       def medication_factory do
-        form = "Pill"
-
         %Medication{
           name: sequence("Prednisolonum Forte"),
           type: Medication.type(),
-          form: form,
-          container: container(form),
+          form: "TABLET",
+          container: container("PILL"),
           manufacturer: build(:manufacturer),
           package_qty: 30,
           package_min_qty: 10,
@@ -81,9 +79,9 @@ defmodule Core.PRMFactories.MedicationFactory do
           parent_id: UUID.generate(),
           is_primary: true,
           dosage: %{
-            numerator_unit: "mg",
+            numerator_unit: "MG",
             numerator_value: 5,
-            denumerator_unit: "pill",
+            denumerator_unit: "PILL",
             denumerator_value: 1
           }
         }
@@ -96,9 +94,9 @@ defmodule Core.PRMFactories.MedicationFactory do
           parent_id: UUID.generate(),
           is_primary: true,
           dosage: %{
-            numerator_unit: "mg",
+            numerator_unit: "MG",
             numerator_value: 5,
-            denumerator_unit: "pill",
+            denumerator_unit: "PILL",
             denumerator_value: 1
           }
         }
@@ -118,20 +116,20 @@ defmodule Core.PRMFactories.MedicationFactory do
         }
       end
 
-      def container("Pill") do
+      def container("PILL") do
         %{
-          numerator_unit: "pill",
+          numerator_unit: "PILL",
           numerator_value: 1,
-          denumerator_unit: "pill",
+          denumerator_unit: "PILL",
           denumerator_value: 1
         }
       end
 
       def container("Nebuliser suspension") do
         %{
-          numerator_unit: "ml",
+          numerator_unit: "ML",
           numerator_value: 2,
-          denumerator_unit: "container",
+          denumerator_unit: "CONTAINER",
           denumerator_value: 1
         }
       end
