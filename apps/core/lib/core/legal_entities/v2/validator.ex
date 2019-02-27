@@ -106,9 +106,9 @@ defmodule Core.V2.LegalEntities.Validator do
   defp form_kveds(licenses) do
     licenses
     |> Enum.map(& &1["kveds"])
+    |> List.flatten()
     |> MapSet.new()
     |> MapSet.to_list()
-    |> List.flatten()
   end
 
   defp form_types(licenses) do

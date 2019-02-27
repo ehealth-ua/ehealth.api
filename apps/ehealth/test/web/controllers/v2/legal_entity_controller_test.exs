@@ -138,6 +138,33 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert "MSP_PHARMACY" == resp["data"]["type"]
     end
 
+    test "create legal entity with type pharmacy and msp correct kveds and type do not duplicate kveds", %{conn: conn} do
+      get_client_type_by_name()
+      put_client()
+      upsert_client_connection()
+      validate_addresses()
+      template()
+      insert_dictionaries()
+      legal_entity_data = get_legal_entity_data()
+      [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
+      new_licences = [Map.put(license_msp, "kveds", ["47.73" | license_msp["kveds"]]), license_pharmasy]
+      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(200)
+
+      assert ["47.73", "86.10"] == resp["data"]["kveds"]
+      assert "MSP_PHARMACY" == resp["data"]["type"]
+    end
+
     test "create legal entity with type MSP", %{conn: conn} do
       get_client_type_by_name()
       put_client()

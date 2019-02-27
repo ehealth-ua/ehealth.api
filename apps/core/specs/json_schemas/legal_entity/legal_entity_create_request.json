@@ -290,7 +290,8 @@
               "issued_date",
               "active_from_date",
               "order_no"
-            ]
+            ],
+            "additionalProperties": false
           },
           "minItems": 1
         },
