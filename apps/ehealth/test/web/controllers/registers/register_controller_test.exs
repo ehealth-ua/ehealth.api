@@ -314,6 +314,11 @@ defmodule EHealth.Web.RegisterControllerTest do
         entity_type: "patient"
       }
 
+      expect(MPIMock, :search, 1, fn _, _ ->
+        persons_data = [string_params_for(:person, birth_date: "2000-10-10")]
+        {:ok, MockServer.wrap_response_with_paging(persons_data)}
+      end)
+
       data =
         conn
         |> post(register_path(conn, :create), attrs)
@@ -332,7 +337,8 @@ defmodule EHealth.Web.RegisterControllerTest do
         "Invalid type - expected one of #{document_types} on line 3",
         "Invalid number - MPI_ID is not UUID on line 4",
         "Invalid death_date on line 5",
-        "Invalid death_date on line 6"
+        "Invalid death_date on line 6",
+        "Invalid death_date: it is less than birth_date on line 7"
       ]
 
       assert "NEW" = data["status"]
@@ -342,10 +348,10 @@ defmodule EHealth.Web.RegisterControllerTest do
                         errors: ^errors,
                         status: @status_processed,
                         qty: %Qty{
-                          errors: 5,
+                          errors: 6,
                           not_found: 0,
                           processed: 0,
-                          total: 5
+                          total: 6
                         }
                       }},
                      200

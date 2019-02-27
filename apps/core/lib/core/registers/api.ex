@@ -30,6 +30,8 @@ defmodule Core.Registers.API do
   @status_processed Register.status(:processed)
   @status_invalid Register.status(:invalid)
 
+  @person_status_inactive "inactive"
+
   @required_register_fields ~w(
     file_name
     type
@@ -234,9 +236,9 @@ defmodule Core.Registers.API do
     with :ok <- validate_csv_type(entry_data, allowed_types),
          :ok <- validate_csv_number(entry_data),
          :ok <- validate_csv_death_date(entry_data),
-         :ok <- validate_csv_mpi_id(entry_data) do
-      mpi_response = search_person(entry_data)
-
+         :ok <- validate_csv_mpi_id(entry_data),
+         mpi_response <- search_person(entry_data),
+         :ok <- validate_death_date(entry_data, mpi_response) do
       entry_data
       |> Map.merge(%{
         "document_type" => entry_data["type"],
@@ -296,6 +298,24 @@ defmodule Core.Registers.API do
   end
 
   defp validate_csv_death_date(_), do: :ok
+
+  defp validate_death_date(%{"death_date" => death_date}, {:ok, %{"data" => [_ | _] = persons}})
+       when byte_size(death_date) > 0 do
+    with {:ok, death_date} <- Date.from_iso8601(death_date) do
+      Enum.reduce_while(persons, :ok, fn %{"birth_date" => birth_date}, _acc ->
+        with {:ok, birth_date} <- Date.from_iso8601(birth_date),
+             true <- Date.compare(death_date, birth_date) in [:gt, :eq] do
+          {:cont, :ok}
+        else
+          _ -> {:halt, {:error, "Invalid death_date: it is less than birth_date on line "}}
+        end
+      end)
+    else
+      _ -> {:error, "Invalid death_date on line "}
+    end
+  end
+
+  defp validate_death_date(_, _), do: :ok
 
   def validate_csv_mpi_id(%{"type" => "MPI_ID", "number" => number}) do
     case UUID.cast(number) do
@@ -422,7 +442,7 @@ defmodule Core.Registers.API do
   defp maybe_terminate_person_declaration(entry_data, _type, _reason_desc), do: entry_data
 
   defp maybe_deactivate_person(%{"status" => @status_matched, "person_id" => person_id} = entry_data, author_id) do
-    update_data = put_death_date(%{"status" => "INACTIVE"}, entry_data["death_date"])
+    update_data = put_death_date(%{"status" => @person_status_inactive}, entry_data["death_date"])
 
     @mpi_api.update_person(person_id, update_data, "x-consumer-id": author_id)
     # don't care about MPI response
