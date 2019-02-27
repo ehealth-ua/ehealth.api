@@ -157,7 +157,7 @@ This method is designed to give the user a possibility to receive a token in ord
 + Request (application/json)
 
     + Attributes (object)
-      
+
         + client_id: `b3ae990b-3322-49a9-80ac-27684204ece4` (string, required) - Medical Information System ID issued upon integration request. Used to identify application developer.
         + email: `user.email@gmail.com` (string, required) - user's email
         + password: 299383828 (string, required) - current expired password
@@ -631,7 +631,7 @@ Methods returns list of parties.
                 + users(array)
                     + (object)
                         + user_id: `2de19358-0062-4f14-8a50-9dff015ed165` (string, required)
-                
+
 
 ### Get party details [GET /party/{id}]
 
@@ -692,7 +692,7 @@ Methods returns list of employees.
     + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - user_id of a doctor.
     + `no_tax_id`: true (boolean, optional)
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - MSP ID.
-    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.    
+    + division_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - division ID.
     + `employee_type`: DOCTOR (string) - `Dictionary: EMPLOYEE_TYPE`
     + status: APPROVED (enum)
         - NEW
@@ -724,7 +724,7 @@ Methods returns employee details by ID.
 This service should be used for internal services/processes. Used without `access_token`
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 
 + Response 200 (application/json)
@@ -739,8 +739,8 @@ This service should be used for internal services/processes. Used without `acces
 This service should be used for approve employee request (set status on APPROVED).
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
 
 + Response 200 (application/json)
@@ -754,8 +754,8 @@ This service should be used for reject employee request (set status on REJECTED)
 
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
-    
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
+
 + Request (application/json)
 
 
@@ -769,11 +769,11 @@ This service should be used for reject employee request (set status on REJECTED)
 This service should be used for internal services/processes. Used without `access_token`
 
 + Parameters
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request (application/json)
     + Attributes
-        + password: `qwerty` (string, required) 
+        + password: `qwerty` (string, required)
 
 + Response 201 (application/json)
     + Headers
@@ -908,7 +908,7 @@ Methods returns Division details by ID.
 
 ## Ukrainian medical registry records [/ukr_med_registry]
 
-Registry of all the MSP's that has the `state` ownership type 
+Registry of all the MSP's that has the `state` ownership type
 ### Create new ukr_med_registry record [POST]
 
 Method to create new ukr_med_registry record.
@@ -946,7 +946,7 @@ Methods returns list of ukr_med_registry records.
 
 + Parameters
     + edrpou: 123456 (string, required)
- 
+
 + Request (application/json)
 
 + Response 200 (application/json)
@@ -1024,7 +1024,7 @@ The service returns statistics for all regions
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (array[StatsByRegion], optional)
-               
+
 
 
 ### Get Main Stats by Division [GET /reports/stats/division/{division_id}]
@@ -1098,7 +1098,7 @@ Method searches doctor by parameters and returnes division details
 + Parameters
     + id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - Employee ID
     + employee_type: 'DOCTOR' (string, optional)
-    + full_name: `Іванов Іван Іванович` (enum, optional) - doctor's full name 
+    + full_name: `Іванов Іван Іванович` (enum, optional) - doctor's full name
     + speciality: `FAMILY_DOCTOR` (string, optional) - doctor officio speciality
     + division_id: b075f148-7f93-4fc2-b2ec-2d81b19a9b7b (string, optional) - division ID
     + division_name: Відділення1 (string, optional) - the name of division
@@ -1108,7 +1108,7 @@ Method searches doctor by parameters and returnes division details
     + is_available: true (boolen, optional) - whether doctor is available to make declaration with
     + page: 2 (number, optional)
     + page_size: 50 (number, optional)
-    
+
 + Request (application/json)
 
 + Response 200 (application/json)
@@ -1123,16 +1123,16 @@ This method returns employee details by id
 + Response 200 (application/json)
     + Attributes (`Response_OK`)
         + data (EntriesEmployeeMap, optional)
-        
+
 
 ## Employee Requests [/employee_requests]
 
 ### Approve or Reject Employee Request [POST /employee_requests/{id}/actions/{action}]
 
-This service should be used for approve/reject employee request. 
+This service should be used for approve/reject employee request.
 
-Available employee status transitions: 
-NEW --> REJECTED (action=reject) 
+Available employee status transitions:
+NEW --> REJECTED (action=reject)
 NEW --> APPROVED (action=approve)
 
 Method logic described on [confluence page](https://edenlab.atlassian.net/wiki/pages/resumedraft.action?draftId=1316502&draftShareId=39ff8744-9673-48e0-ab0e-08fc80ed3190)
@@ -1175,7 +1175,7 @@ This service returns parties.declaration_count from report DB for get employees 
 
 # Group Internal. Media Content Storage
 
-Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies. 
+Media Content Storage is using Google Cloud Storage as storage back-end and [Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program) for access control policies.
 Before starting upload or reading a file, you need to access a short-lived Signed URL to access the resource.
 
 After obtaining token upload should be proceeded with [Google Cloud Storage API](https://cloud.google.com/storage/docs/xml-api/put-object-upload).
@@ -1361,10 +1361,10 @@ Use this method to obtain list of Innms. If you want to reduce amount of data th
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Innm_Response_Short`]) 
+        + data (array[`Innm_Response_Short`])
 
 
-## INNM Dosages [/innm_dosages] 
+## INNM Dosages [/innm_dosages]
 
 ### Create INNM Dosage [POST]
 This method is used to create INNM Dosage. Fields descriptions are listed in request Example view.
@@ -1378,7 +1378,7 @@ This method is used to create INNM Dosage. Fields descriptions are listed in req
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`INNM_Dosage_Request`, required) 
+       + include (`INNM_Dosage_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1406,7 +1406,7 @@ This method is used to deactivate INNM Dosage. Fields descriptions are listed in
 + Request (application/json)
 
     + Headers
-    
+
             Authorization: Bearer mF_9.B5f-4.1JqM
 
 + Response 200 (application/json)
@@ -1464,9 +1464,9 @@ Use this method to obtain list of INNM Dosage. If you want to reduce amount of d
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`INNM_Dosage_Response_Short`]) 
+        + data (array[`INNM_Dosage_Response_Short`])
 
-## Medications [/medications] 
+## Medications [/medications]
 
 ### Create Medication [POST]
 This method is used to create Medications. Fields descriptions are listed in request Example view.
@@ -1480,7 +1480,7 @@ This method is used to create Medications. Fields descriptions are listed in req
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Medication_Request`, required) 
+       + include (`Medication_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1622,7 +1622,7 @@ Medical program can't be deactivate if there is at least one participant in the 
             + message: `Forbidden to deactivate medical program. Medical program has active participants` (string, required)
 
 ### Get medical programs list [GET /api/medical_programs{?id,name,is_active,page,page_size}]
-Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true` 
+Method returns list of medical programs filtering by parameters. By default method returns only active medical programs `is_active=true`
 
 **Scopes required:** `medical_program:read`
 
@@ -1675,7 +1675,7 @@ This method is used to create new participant of a program - to link exsiting ac
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Program_medications_Request`, required) 
+       + include (`Program_medications_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1731,7 +1731,7 @@ This method is used to update flags "is_active" and/or "medication_request_allow
             + message: `Medications are already inactive in this program` (string, required)
 
 ### Get Program medication list [GET /program_medications{?id,medical_program_id,medical_program_name,innm_dosage_id,innm_dosage_name,medication_id,medication_name,page,page_size}]
-Method returns list of participants(medications) of medical programs filtering by parameters.  
+Method returns list of participants(medications) of medical programs filtering by parameters.
 
 **Scopes required:** `program_medication:read`
 
@@ -1743,7 +1743,7 @@ Method returns list of participants(medications) of medical programs filtering b
     + `innm_dosage_name`: `Артитміл 5 мг` (string, optional) - INNM dosage name
     + `medication_id`:  `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Medication Identifier.
     + `medication_name`: `Аритміл` (string, optional) - Medication name.
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -1787,7 +1787,7 @@ This method is used to add tax_id to black list. Fields descriptions are listed 
             Authorization: Bearer mF_9.B5f-4.1JqM
 
     + Attributes (object)
-       + include (`Black_list_user_Request`, required) 
+       + include (`Black_list_user_Request`, required)
 
 + Response 201 (application/json)
     + Attributes (Response__Process_OK)
@@ -1825,15 +1825,15 @@ This method is used by NHS Admin to deactivate user in black list.
             + message: `User is not in a black list` (string, required)
 
 ### Get Black list user list [GET /black_list_users{?id,tax_id,is_active,page,page_size}]
-Method returns list of participants(medications) of medical programs filtered by parameters.  
+Method returns list of participants(medications) of medical programs filtered by parameters.
 
 **Scopes required:** `bl_user:read`
 
 + Parameters
-    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Black list user Identifier 
-    + `tax_id`: `3126509816` (string, optional) - tax_id by party_id 
+    + `id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - Black list user Identifier
+    + `tax_id`: `3126509816` (string, optional) - tax_id by party_id
     + `is_active`: `true` (string, optional) - medical program name
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -1847,14 +1847,14 @@ Method returns list of participants(medications) of medical programs filtered by
 ## Party users [/party_users]
 
 ### Get Party users list [GET /party_users{?user_id,party_id,page,page_size}]
-Method returns list of user_id(s) by party_id(s) filtered by parameters.  
+Method returns list of user_id(s) by party_id(s) filtered by parameters.
 
 **Scopes required:** `party_user:read`
 
 + Parameters
     + `user_id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) - user Identifier
     + `party_id`: `79a91507-d409-49fc-b373-934b59c4f694` (string, optional) - Party Identifier
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -1877,7 +1877,7 @@ Method allows NHS admin to upload and save files with registers
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
        + `file`: `Base64 encoded csv file` (string, required)
        + `file_name`: `deaths.csv` (string, required)
@@ -1886,7 +1886,7 @@ Method allows NHS admin to upload and save files with registers
                     - employee
        + `type`: `death_registration` (string, required) - Dictionary REGISTER_TYPE
        + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
-       
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -1894,18 +1894,18 @@ Method allows NHS admin to upload and save files with registers
             + include `Registers_response`
 
 ### Get Registers list [GET /registers{?id,status,file_name,type,inserted_at_from,inserted_at_to,page,page_size}]
-Method returns list of files which were uploaded with statistics.  
+Method returns list of files which were uploaded with statistics.
 
 **Scopes required:** `register:read`
 
 + Parameters
-    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional) 
+    + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, optional)
     + `status`: processing (string, optional)
     + `file_name`: `November 2018 Kyiv region` (string, optional)
     + `type`: `death_registration` (string, optional)
     + `inserted_at_from`: 2017-10-01` (string, optional)
     + `inserted_at_to`: `2017-10-30` (string, optional)
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
@@ -1916,7 +1916,7 @@ Method returns list of files which were uploaded with statistics.
         + data (array[`Registers_list_response`])
 
 ### Get Register entries  list [GET /registers_entries{?id,register_id,status,inserted_at_from,inserted_at_to,document_type,document_number,page,page_size}]
-Method returns list of records from each uploaded file with status.  
+Method returns list of records from each uploaded file with status.
 
 **Scopes required:** `register_entry:read`
 
@@ -1928,7 +1928,7 @@ Method returns list of records from each uploaded file with status.
     + `inserted_at_to`: `2017-10-30` (string, optional)
     + `document_type`: `3028106992` (string, optional)
     + `document_number`: `123456789` (string, optional)
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
@@ -1949,7 +1949,7 @@ Method checks request with rules in AuthMethod table, and returns decision based
 + Request (application/json)
 
     + Headers
-    
+
             X-Application: 58eca20fe79e8563e803dc18
             Authorization: Basic YmJlMGUxMGFkMTc4ZTBlMGY3MmM1Nzg4NjU0ZTQ1MDkwNTFhYjAzMzpmODQ4ZTIyNjFiYWM4M2EzZjhkMjM4ODc4NzUxOWMxZTQzZjViYjAx
 
@@ -2064,7 +2064,7 @@ JWT_token:
 ```
 
 + Request (application/json)
-    
+
     + Headers
 
             Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNwLnZpcm55QGdtYWlsLmNvbSIsInRpbWVzdGFtcCI6IjIwMTgtMDItMjggMTA6Mzg6MDAifQ.LJRLTqK-zf9gxDNMONcI8cMCSYosDtmAIZqhzZUdhz4
@@ -2089,9 +2089,9 @@ JWT_token:
                 + factor: `+380671111111`(string, required)
                 + is_active: true (boolean, required)
             + user (object, required)
-                + `email`: `example@gmail.com` (string, required) 
-                + tax_id: 3000080053 (string, required) 
-            + acess_token: `my-oauth-token` (string, required) - access token 
+                + `email`: `example@gmail.com` (string, required)
+                + tax_id: 3000080053 (string, required)
+            + acess_token: `my-oauth-token` (string, required) - access token
 
 ### Get Nonce [GET /oauth/nonce]
 ```
@@ -2108,10 +2108,10 @@ JWT_token:
 }
 ```
 + Request (application/json)
-    
+
     + Attributes (object)
         + `client_id`: `30074b6e-fbab-4dc1-9d37-88c21dab1847` (string, required)
-        
+
 
 + Response 200 (application/json)
     + Attributes (Response_OK)
@@ -2127,11 +2127,11 @@ Thie WS designed to check existence of user with input tax_id
     + Headers
 
             Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlbWFpbC12ZXJpZmljYXRpb24iLCJlbWFpbCI6ImJvZ2RhbmEua29ub3ZhbGVua28rOEBnbWFpbC5jb20iLCJleHAiOjE1MjM2MzMwMTksImlhdCI6MTUyMzM3MzgxOSwiaXNzIjoiRUhlYWx0aCIsImp0aSI6ImY0NWYyYzI1LWY1N2ItNGM5Yy04Y2UxLTY4OWZjYzVmYWE2MiIsIm5iZiI6MTUyMzM3MzgxOCwic3ViIjoiYm9nZGFuYS5rb25vdmFsZW5rbys4QGdtYWlsLmNvbSIsInR5cCI6ImFjY2VzcyJ9.dng-m1uZO0CQa_TnQZhO2ZnR8kUcZiNl6Y-RW7oGYIUOyYLBW9ng51_Hiw0_JpUkDR4R9Yq_KS4UvdEUFz3i7A (string, required)
- 
+
     + Attributes (object)
         + `signed_content`: `eyJqd3QiOiAiZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmhkV1FpT2lKallXSnBibVYwTFhKbFoybHpkSEpoZEdsdmJpSXNJbVZ0WVdsc0lqb2lZbTluWkdGdVlTNXJiMjV2ZG1Gc1pXNXJieXMwTmtCbmJXRnBiQzVqYjIwaUxDSmxlSEFpT2pFMU1qTTJNekl6TWpnc0ltbGhkQ0k2TVRVeU16WXpNakkyT0N3aWFYTnpJam9pUlVobFlXeDBhQ0lzSW1wMGFTSTZJalUxTVRnek1XVTFMVFV3TUdZdE5HSTBaQzFpWmpoaExUQmpaREpoTm1RMlpEWmhPU0lzSW01aVppSTZNVFV5TXpZek1qSTJOeXdpYzNWaUlqb2lZbTluWkdGdVlTNXJiMjV2ZG1Gc1pXNXJieXMwTmtCbmJXRnBiQzVqYjIwaUxDSjBlWEFpT2lKaFkyTmxjM01pZlEuV2h0MU5teEVYRXA1cHI0ekN5YzIwNFJGYkx6V0ZxX2pPZ2d0U00wdGFpa2hhQW1jVHYwampRMEVrbURyQ2M3eDQ5T0pkOG9SWEFmQjhlblNCSC1qVlEifQ==` (string, required)
         + `signed_content_encoding`: `base64` (string, required)
-        
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
@@ -2168,9 +2168,9 @@ PROD    | https://api.ehealth-ukraine.org
 - When `access_token` expires, Client repeats steps 6-8 but via `grant_type=refresh_token`.
 
 **API-key:**
-- For identifiers MIS clients (as a brocker) we use term API-key. MIS must be **mandatory** send API-key when called e-Health API. 
+- For identifiers MIS clients (as a brocker) we use term API-key. MIS must be **mandatory** send API-key when called e-Health API.
 - API-key its a `client_secret` - Medical Information System secret key issued upon integration request.
-- API-key dispatched in Request HEADER as a `API-key` attribute. Example: 
+- API-key dispatched in Request HEADER as a `API-key` attribute. Example:
 ```
 HEADERS
 Content-Type:application/json
@@ -2215,7 +2215,7 @@ For security purposes, we will set `X-Frame-Options: deny` header that will disa
 
 ### Exchange oAuth Code Grant to Access Token [POST /oauth/tokens]
 
-After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**. 
+After obtaining oAuth Code Grant, it should be exchanged to an `access_token` **on your back-end**.
 
 General recommendations:
 
@@ -2247,7 +2247,7 @@ Exposed client credentials may be blocked for a security reasons, you will need 
 
 ### Use Refresh Token for Access Token extension [POST /api/oauth/tokens]
 
-Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it. 
+Currently `access_token` and `refresh_token` are configured to have same lifetime, so we don't expect you to refresh it.
 
 In future, you will be able to refresh access tokens to extend `access_token` lifetime.
 
@@ -2275,7 +2275,7 @@ In future, you will be able to refresh access tokens to extend `access_token` li
 
 Method is used to retreive eHealth dictionaries
 
-Response **$.data** object contains a list of all dictionaries. 
+Response **$.data** object contains a list of all dictionaries.
 
 Each dictionary is an object that contains *{key}*:*{value}* pairs where:
 * ***{key}*** is a dictionary record
@@ -2298,7 +2298,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + `phone_number`: `+380508887700` (string, required)
 
@@ -2316,7 +2316,7 @@ Method is used to verify that provided in declarartion request phone number is v
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + code: 3782 (number)
 
@@ -2365,7 +2365,7 @@ Method returns shortened details, to obtain full information - get Declaration R
     + `declaration_number`: `0000-12H4-245D` (string, required) - unique human redable number of declaration.
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-    
+
 
 + Request (application/json)
 
@@ -2480,12 +2480,12 @@ In case if authentication_method is OTP, request example:
   "verification_code": 3748
 }
 ```
-In case if authentication_method is OFFLINE, request body should be empty. 
+In case if authentication_method is OFFLINE, request body should be empty.
 Before approve patient's scanned documents should be uploaded to the ([Signed URL's](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program))
 as well as scanned signed declaration (with type person.DECLARATION_FORM).
 All links are generated for one one-page document in jpeg format. Document should be no more than 10MB.
 If make declaration request via cabinet then nothing must be uploaded to URL.
-Clients can use signed URL's to directly access Minio storage and upload files via API 
+Clients can use signed URL's to directly access Minio storage and upload files via API
 ([Minio](https://docs.minio.io/docs/upload-files-from-browser-using-pre-signed-urls))
 
 + Parameters
@@ -2564,7 +2564,7 @@ Use this method to resend sms on previously created Declaration Request.
 
 ### Sign Declaration Request [PATCH /api/declaration_requests/{id}/actions/sign]
 
-This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+This method is used to sign Declaration Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
 All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Declaration Request in Media Content Storage, created or update MPI records and create declaration if signature is all checks is passed.
@@ -2851,7 +2851,7 @@ declaration status will be changed to `active`
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (crud_Declaration_patch)
 
 + Response 200 (application/json)
@@ -2888,7 +2888,7 @@ all GET-endpoints returning Employee info are mounted through the
 
 ### Get Employees List [GET /api/employees{?no_tax_id,tax_id,party_id,edrpou,legal_enyity_id,division_id,status,employee_type,page,page_size}]
 
-Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`. 
+Use this end-point to obtain all Employees of the legal entity specified by the `legal_entity_id`.
 
 We suggest to use `status` filter to limit response size. Eg. you MAY want to list only active employees for everyones except HR's. Also it's a good idea to filter list by employee `type`.
 
@@ -2904,7 +2904,7 @@ Method returns shortened details (for DOCTOR and PHARMACIST - additional return
     + status: APPROVED (enum, optional) - filet employees by status
         - APPROVED
         - DISMISSED
-    + employee_type: DOCTOR (string, optional) 
+    + employee_type: DOCTOR (string, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
@@ -2956,7 +2956,7 @@ Response structure differs depending on employee type:
 Use this method to deactivate employee. OWNER and PHARMACY_OWNER can't be deactivated using this method.
 (the 409 error with message 'Owner can't be deactivated').
 OWNER and PHARMACY_OWNER deactivates when corresponding legal_entity deactivates.
-Employee deactivation: 
+Employee deactivation:
 1. Revoke role from user
 
 2. Deactivate declarations
@@ -2994,7 +2994,7 @@ Additionally to register/update Physician the `Doctor info` should be passed.
 When the `Employee_Request` will be posted the Invitation e-mail with a request
 secret token will be sent to the User specified in the request.
 
-In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces) 
+In case the employee doesn't have tax_id no_tax_id must be true and in fields tax_id input passport number (serial number in cyrillic without spaces)
 
 It can be also used to update employee data. In this case `employee_id` should be passed in the payload.
 
@@ -3024,7 +3024,7 @@ For changes to take effect employee must confirm the changes.
 ### Get Employee Requests List [GET /api/employee_requests{?id,edrpou,legal_entity_name,no_tax_id,status,page,page_size}]
 
 + Parameters
-    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) 
+    + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + `edrpou`: `341086` (string, optional)
     + `legal_entity_name`: `Лимич Медікал` (string, optional)
     + `no_tax_id`: true (boolean, optional)
@@ -3052,7 +3052,7 @@ This service should be used with `access_token` authetification method.
 
 + Parameters
 
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request
 
@@ -3077,7 +3077,7 @@ This service should be used with mis `access_token` authetification method and u
 
 + Parameters
 
-    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
+    + id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 
 + Request
 
@@ -3088,7 +3088,7 @@ This service should be used with mis `access_token` authetification method and u
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
-        + data 
+        + data
             + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
             + employee_id: `836c4753-ece4-44ba-b63c-0f92900535bf` (string, optional)
             + status: `APPROVED` (string, required)
@@ -3132,7 +3132,7 @@ Method returns only **requested** parameters, birth place and second name in add
 
 ### Create Person [GET /api/persons/create]
 This WS is designed to create person in offline method by legal_entity employee. Employee need scope person:write to create person.
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority). 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
 
 Entity data:
 {
@@ -3292,7 +3292,7 @@ List consists of legal entities with parameter `is_active = true`.
         - CLOSED
     + mis_verified: VERIFIED (enum, optional)
         - VERIFIED
-        - NOT_VERIFIED 
+        - NOT_VERIFIED
     + `nhs_verified`: false (boolean, optional)
     + page: 2 (number, optional) - Page number.
     + page_size: 50 (number, optional) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
@@ -3350,12 +3350,12 @@ List consists of legal entities with parameter `is_active = true`.
 
 Use this method to register a new Legal Entity.
 
-New Legal Entity is created with 
+New Legal Entity is created with
 status = ACTIVE
 mis_verified = NOT_VERIFIED (if legal entity IS NOT in ukr_med_registry) and VERIFIED (if legal entity IS in ukr_med_registry)
 nhs_verified = false
 
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key. 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key.
 All signature fields will be validated (including signer certificate authority).
 There is a [**dummy method**](https://uaehealthapi.docs.apiary.io/reference/dummy.-create-legal-entity/dummy-for-legal-entity/create/update-legal-entity) that describes the latest legal entity data model and can be used as documentation.
 Signed content MUST consists of JSON object with Legal Entity data:
@@ -3526,13 +3526,13 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Request_Public_Short`
-            
+
 
 ### Verify Legal Entity by NHS [PATCH /api/legal_entities/{id}/actions/nhs_verify]
 
@@ -3548,13 +3548,13 @@ Available transition:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + include `Legal_Entity_Request_Public_Short`
-            
+
 
 
 ### Deactivate Legal Entity [PATCH /api/legal_entities/{id}/actions/deactivate]
@@ -3592,7 +3592,7 @@ Update status on CLOSED
     + status: ACTIVE (string, optional)
         - ACTIVE
         - INACTIVE
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -3653,7 +3653,7 @@ API for searching Ukrainian Addresses
     + settlement_id: `eea333b5-e26d-4e3e-92e2-2ab37b131502` (string, required) - Settlement identifier
     + name: `Незалежності` (string, optional) - Street name
     + type: STREET (string, optional) - Street type (Dictionary STREET_TYPE)
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -3674,7 +3674,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
     + region: Київ (string, optional) - Province name
     + district: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 
@@ -3690,7 +3690,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
 + Parameters
     + name: Київ (string, optional) - Province name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
@@ -3707,7 +3707,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
     + region: Київ (string, optional) - Province name
     + name: `Києво-Святошинський` (string, optional) - Administrative district of province
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
@@ -3721,7 +3721,7 @@ Use this method to obtain list of cities. If you want to reduce amount of data t
 + Parameters
     + name: `Києво-Святошинський` (string, optional) - Filter by district name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
@@ -3737,7 +3737,7 @@ Get list of cities by district
 + Parameters
     + name: `Київ` (string, optional) - Filter by settlement name
     + koatuu: `2625286301` (string, optional) - koatuu classifier id
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Response 200 (application/json)
@@ -3758,9 +3758,9 @@ Roles are set separately for each Client.
 
 + Parameters
     + name: `My role` (string, optional) - Return only roles that contains `name` substring.
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
-    
+
 + Request (application/json)
 
 + Response 200 (application/json)
@@ -3806,7 +3806,7 @@ Capitation reports are created monthly
 **Scopes required:** `capitation_report:read`
 
 + Parameters
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
@@ -3828,7 +3828,7 @@ This method returns details of specified capitation report.
 + Parameters
     + `edrpou`: `34056008` (string,optional)
     + `report_id`: `role-1380df72-275a-11e7-93ae-92361f002671` (string, optional)
-    + `page`: 2 (number) - Page number.    
+    + `page`: 2 (number) - Page number.
     + `page_size`: 50 (number) - A limit on the number of objects to be returned, between 1 and 100. Default: 50
 
 + Request (application/json)
@@ -3849,7 +3849,7 @@ Get drugs list by filters.
 **Scopes required:** `drug:read`
 
 + Parameters
-    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier. 
+    + `innm_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - Innm identifier.
     + `innm_name`: `Аміодарон` (string, optional) - Innm local name.
     + `innm_sctid`: `52574003` (string, optional) - Innm CNOMED code.
     + `innm_dosage_form`: `PILL` (string, optional) - Innm_dosage form.
@@ -3864,7 +3864,7 @@ Get drugs list by filters.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            API-key: uXhEczJ56adsfh3Ri9SUkc4en 
+            API-key: uXhEczJ56adsfh3Ri9SUkc4en
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
@@ -3893,8 +3893,8 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Parameters
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
-    + `status`: `NEW` (enum, optional). Default `NEW` 
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient.
+    + `status`: `NEW` (enum, optional). Default `NEW`
         - NEW
         - SIGNED
         - EXPIRED
@@ -3910,8 +3910,8 @@ Method returns shortened details, to obtain full information - Get Medication re
 
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Request_Public_Response`]) 
- 
+        + data (array[`Medication_request_Request_Public_Response`])
+
 
 ### Get Medication Request Request by ID [GET /api/medication_request_requests/{id}]
 
@@ -3932,7 +3932,7 @@ Use this method to obrain full information of Medication request Request an `id`
         + data (object)
             + include `Medication_request_Request_Public_Response`
 
-    
+
 ### PreQualify Medication Request Request [POST /api/medication_request_requests/prequalify]
 
 This method is used to pre-qualify data Medication request Request (possibility to give reimbursement for medication according the programs) before creating Medication request Request. Fields descriptions are listed in request Example view.
@@ -3947,7 +3947,7 @@ This method is used to pre-qualify data Medication request Request (possibility 
         + `medication_request_request` (object)
             + include `Medication_request_Request_Qualify_post_data`
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
-        
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -3964,7 +3964,7 @@ This method is used to pre-qualify data Medication request Request (possibility 
 
 ### Create Medication Request Request [POST /api/medication_request_requests]
 
-This method is used to create Medication request Request (as a part of Medication request creation process). 
+This method is used to create Medication request Request (as a part of Medication request creation process).
 Fields description are listed in request Example view.
 
 + Request (application/json)
@@ -3993,7 +3993,7 @@ Fields description are listed in request Example view.
 
 ### Sign Medication Request Request [PATCH /api/medication_request_requests/{id}/actions/sign]
 
-This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property. 
+This method is used to sign Medication request Request. Method receives signed message (pkcs7) including signed content, digital signature and signer public key in `signed_content` property.
 All signature fields will be validated (including signer certificate authority).
 
 This service will store signed copy of Medication request Request in Media Content Storage and create Medication request if signature is all checks is passed.
@@ -4060,7 +4060,7 @@ This method is used to qualify (possibility to use Innm for the program) Medicat
 
     + Attributes (object)
         + `programs` (array[`Qualify_Medication_request_Request_List_program_post_data`], required) - Medical programs list for qualify
-    
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + meta (Response__Meta)
@@ -4104,8 +4104,8 @@ Method returns shortened details, to obtain full information - get Medication re
 + Parameters
     + `legal_entity_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - legal entity identifier.
     + `employee_id`: `7124259c-eeb1-4cbb-acac-ada2162675d1` (string, optional) - user_id of a doctor.
-    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient. 
-    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE` 
+    + `person_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional) - person_id of a pacient.
+    + `status`: `ACTIVE` (enum, optional). Default `ACTIVE`
         - ACTIVE
         - COMPLETED
         - EXPIRED
@@ -4125,7 +4125,7 @@ Method returns shortened details, to obtain full information - get Medication re
 
 + Response 200 (application/json)
    + Attributes (`Response_Collection_V2`)
-        + data (array[`Medication_request_Public_Response`]) 
+        + data (array[`Medication_request_Public_Response`])
 
 ### Reject Medication Request [PATCH /api/medication_requests/{id}/actions/reject]
 
@@ -4169,7 +4169,7 @@ Use this method to resend SMS for person with info medication request number & v
 
 ### Get Medication Dispenses list by Medication Request ID [GET /api/medication_requests/{id}/dispenses{?status}]
 
-Use this method to obtain list of Medication Dispenses by doctor with medication request ID. 
+Use this method to obtain list of Medication Dispenses by doctor with medication request ID.
 
 Only Medication dispenses linked to medication request id will be shown. If you want to reduce amount of data that is going trough your application, use `status` filter and show only dispenses that Doctor is interested in.
 
@@ -4216,7 +4216,7 @@ This method is used to dispense medications to patient
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + include `Medication_Dispense_Request`
 
@@ -4239,7 +4239,7 @@ This method is used to process created dispense
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
         + payment_id: F324H456 (string, optional)
 
@@ -4372,7 +4372,7 @@ In the EventDB events are kept during one month or till 10K. The duration and am
 
 ### Get events by ID [GET /api/events/{id}]
 
-This method is used to obtain events by id. 
+This method is used to obtain events by id.
 
 + Parameters
     + `id`: `a89f6a26-4221-4597-a1d2-542d5e40b565` (string, required)
@@ -4461,7 +4461,7 @@ This method is used to abtain list of events with filters.
 
 ## Cabinet [/api/cabinet]
 Patient can login to cabinet using eHealth account.
-Initially 2 login strategies will be supported: 
+Initially 2 login strategies will be supported:
 - via email/password and 2nd factor
 - via Digital Signature
 MIS can get access/refresh tokens via the [oauth2.0 flow](#reference/public.-medical-service-provider-integration-layer/oauth).
@@ -4495,8 +4495,8 @@ This WS is designed to get person details in cabinet.
 
 ### Update MPI [PATCH /api/cabinet/persons/{id}]
 
-This WS is designed to change some personal information in cabinet by patient. 
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority). 
+This WS is designed to change some personal information in cabinet by patient.
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key. All signature fields will be validated (including signer certificate authority).
 
 Entity data:
 {
@@ -4564,7 +4564,7 @@ Entity data:
 
 + Parameters
     + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
-    
+
 + Request (application/json)
     + Attributes (object)
         + `signed_request`: `MIIUKAYJKoZIhvcNAQcCoIIUGTCCFBUCAQExDjAMBgoqhiQCAQEBAQIBMIIGRgYJKoZIhvcNAQcBoIIGNwSCBjN7CiAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwKICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICJiaXJ0aF9kYXRlIjogIjE5OTEtMDgtMTkiLAogICAgImJpcnRoX2NvdW50cnkiOiAi0KPQutGA0LDRl9C90LAiLAogICAgImJpcnRoX3NldHRsZW1lbnQiOiAi0JLRltC90L3QuNGG0Y8iLAogICAgImdlbmRlciI6ICJNQUxFIiwKICAgICJlbWFpbCI6ICJlbWFpbEBleGFtcGxlLmNvbSIsCiAgICAidGF4X2lkIjogIjMxMjY1MDk4MTYiLAogICAgInNlY3JldCI6ICJzZWNyZXQiLAogICAgImRvY3VtZW50cyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlBBU1NQT1JUIiwKICAgICAgICAibnVtYmVyIjogIjEyMDUxOCIsCiAgICAgICAgImlzc3VlZF9ieSI6ICLQoNC+0LrQuNGC0L3Rj9C90YHRjNC60LjQvCDQoNCSINCT0KMg0JzQktChINCa0LjRl9Cy0YHRjNC60L7RlyDQvtCx0LvQsNGB0YLRliIsCiAgICAgICAgImlzc3VlZF9hdCI6ICIyMDE3LTAyLTI4IgogICAgICB9CiAgICBdLAogICAgImFkZHJlc3NlcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIlJFU0lERU5DRSIsCiAgICAgICAgImNvdW50cnkiOiAiVUEiLAogICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICJyZWdpb24iOiAi0JHQtdGA0LTQuNGH0ZbQstGB0YzQutC40LkiLAogICAgICAgICJzZXR0bGVtZW50IjogItCa0LjRl9CyIiwKICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICJzZXR0bGVtZW50X2lkIjogIjQzNDMyNDMyIiwKICAgICAgICAic3RyZWV0X3R5cGUiOiAiU1RSRUVUIiwKICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAiYnVpbGRpbmciOiAiMTUiLAogICAgICAgICJhcGFydG1lbnQiOiAiMjMiLAogICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgIH0KICAgIF0sCiAgICAicGhvbmVzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiTU9CSUxFIiwKICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgIH0KICAgIF0sCiAgICAiYXV0aGVudGljYXRpb25fbWV0aG9kcyI6IFsKICAgICAgewogICAgICAgICJ0eXBlIjogIk9UUCIsCiAgICAgICAgInBob25lX251bWJlciI6ICIrMzgwNTA4ODg3NzAwIgogICAgICB9CiAgICBdLAogICAgInByZWZlcnJlZF93YXlfY29tbXVuaWNhdGlvbiI6ICJlbWFpbCIsCiAgICAiZW1lcmdlbmN5X2NvbnRhY3QiOiB7CiAgICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwKICAgICAgInBob25lcyI6IFsKICAgICAgICB7CiAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgIm51bWJlciI6ICIrMzgwNTAzNDEwODcwIgogICAgICAgIH0KICAgICAgXQogICAgfSwKICAgICJwcm9jZXNzX2Rpc2Nsb3N1cmVfZGF0YV9jb25zZW50IjogdHJ1ZQogIH0KfQqgggW5MIIFtTCCBV2gAwIBAgIUDYTtobuTgegEAAAAXrQiAL+zdAAwDQYLKoYkAgEBAQEDAQEwggFCMXwwegYDVQQKDHPQn9Cj0JHQm9CG0KfQndCVINCQ0JrQptCG0J7QndCV0KDQndCVINCi0J7QktCQ0KDQmNCh0KLQktCeINCa0J7QnNCV0KDQptCG0JnQndCY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
@@ -4632,7 +4632,7 @@ This method in used to approve declaration request by patient via Cabinet
         + data (Declaration_Details_Cabinet)
 
 ### Terminate declarations via Cabinet [PATCH /api/cabinet/declarations/{id}/actions/terminate]
-Patient can terminate active declaration using this method. 
+Patient can terminate active declaration using this method.
 
 **Scopes required:** `declaration:terminate`
 
@@ -4655,14 +4655,14 @@ Current WS allows to see details of declaration knowing its' id.
 
 + Parameters
     + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
-    
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
-        + data (`Declaration_Details_Cabinet`)    
+        + data (`Declaration_Details_Cabinet`)
 
 ### Get declaration list via Cabinet [GET /api/cabinet/declarations{?status,start_year,page,page_size}]
 
-This WS allows to see history of all patient's declarations and filter them. 
+This WS allows to see history of all patient's declarations and filter them.
 
 + Parameters
     + status: active (string, optional)
@@ -4680,7 +4680,7 @@ Current WS allows to see details of declaration request knowing its' id.
 
 + Parameters
     + id: 7e9cffd9-c75f-45fb-badf-6e8d20b6a8a8 (uuid)
-    
+
 + Response 200 (application/json)
     + Attributes (Response_OK)
         + data (object)
@@ -4706,7 +4706,7 @@ Current WS allows to see details of declaration request knowing its' id.
 
 ### Get declaration request list via Cabinet [GET /api/cabinet/declaration_requests{?status,start_year,page,page_size}]
 
-This WS allows to see history of all patient's declaration requests and filter them. 
+This WS allows to see history of all patient's declaration requests and filter them.
 
 + Parameters
     + status: active (string, optional)
@@ -4738,7 +4738,7 @@ This WS allows to see 2FA number via Cabinet
 ## Contract request [/api/contract_requests]
 
 ###Business logic
-In order to create a new contract or update an existing contract, legal entity owner should create a contract request first. The contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that a new contract will be created or an existing contract will be updated. 
+In order to create a new contract or update an existing contract, legal entity owner should create a contract request first. The contract request should be approved by both sides - Medical Service Provider(MSP) and National Health Service(NHS), and than signed by both sides as well. After that a new contract will be created or an existing contract will be updated.
 The detailed flow is described in a schema below:
 
 [Confluence: Status Chart](https://edenlab.atlassian.net/wiki/x/GIDMIg)
@@ -4761,7 +4761,7 @@ This web service allows to initialize contract request creation by generating li
 
 ### Pubic. Create Contract Request [POST /api/contract_requests/{id}]
 
-This web service allows to create contract request, using contract_request_id, generated by Initialize Contract Request WS. 
+This web service allows to create contract request, using contract_request_id, generated by Initialize Contract Request WS.
 As an input parameters should be transfered signed data in PKCS7 format. Digital signiture should be applied to data filled by legal entity owner and MD5 HASH of provided files (statuste and equipment agreement).
 #### Generic contract_request object scheme to be signed
 The following tables describes contract_request object fields and it`s child objects.
@@ -4795,13 +4795,13 @@ payer_account|true| розрахунковий рахунок
 Attribute |Is required| Description
 ----------|-----------|------------
 employee_id|true| id запис про медичного працівника в системі
-staff_units|true| штатна одиниця 
+staff_units|true| штатна одиниця
 declaration_limit|true| максимальна к-сть пацієнтів, які можуть подати декларації про вибір такого лікаря за Договором
 division_id|true| місце надання медичних послуг пов'язаниз з ПМД (підмножина contractor_divisions)
 ####External_contractors
 Attribute |Is required| Description
 ----------|-----------|----------
-legal_entity_id|true| запис про надавача з системи  
+legal_entity_id|true| запис про надавача з системи
 contract|true| договір з Підрядником
 divisions|true| масив об'єктів типу Division, що зберігає запис про Місце надання медичних послуг з Системи та послугу
 ####Contract
@@ -4821,13 +4821,13 @@ medical_service|true| послуга, що надається на відділ�
 1. Create new or update existsing contract
 
     > 1.1 In order to create new contract, contract_number should be empty, start_date and end_date should be filled.
-    
+
     > 1.2 In order to update existing contract, contract_number should be filled, start_date and end_date should be empty. Existing contract must be in `VERIFIED` status.
 
 2. External contractors
-    
+
     > 2.1 In case you have external_contractors - external_contractors_flag should be set as TRUE and external_contractors array must be provided (filled).
-    
+
     > 2.2 In case you don't have external_contractors - external_contractors_flag should be set as FALSE and external_contractors array must empty.
 
 ####JSON example
@@ -4994,9 +4994,9 @@ To approve contract next fields must be signed by NHS employee and sent by same 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
     + Attributes (object)
-        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInRleHQiOiAic3RhdGljX3RleHQiDQp9`(string, required) 
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInRleHQiOiAic3RhdGljX3RleHQiDQp9`(string, required)
         + `signed_content_encoding`: `base64` (string, required)
 
 + Response 201 (application/json)
@@ -5032,9 +5032,9 @@ To decline contract next fields must be signed by NHS employee and sent by same 
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
-        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInN0YXR1c19yZWFzb24iOiAi0J3QtSDQstGW0LTQv9C+0LLRltC00LDRlCDQv9C+0L/QtdGA0LXQtNC90ZbQvCDQtNC+0LzQvtCy0LvQtdC90L7RgdGC0Y/QvCINCiJ0ZXh0IjogInN0YXRpY190ZXh0Ig0KfQ==`(string, required) 
+        + `signed_content`: `ew0KImlkIjoiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwNCiJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsNCiAgICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLA0KICAgICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLA0KICAgICAgImVkcnBvdSI6ICIzMjMyMzQ1NCINCiAgICB9LA0KInN0YXR1c19yZWFzb24iOiAi0J3QtSDQstGW0LTQv9C+0LLRltC00LDRlCDQv9C+0L/QtdGA0LXQtNC90ZbQvCDQtNC+0LzQvtCy0LvQtdC90L7RgdGC0Y/QvCINCiJ0ZXh0IjogInN0YXRpY190ZXh0Ig0KfQ==`(string, required)
         + `signed_content_encoding`: `base64` (string, required)
 
 + Response 200 (application/json)
@@ -5046,7 +5046,7 @@ To decline contract next fields must be signed by NHS employee and sent by same 
 
 ### Public. Approve Contract Request by MSP [PATCH /api/contract_requests/{id}/actions/approve_msp]
 
-This WS is designed to approve contract request by MSP side after it was approved by NHS side. 
+This WS is designed to approve contract request by MSP side after it was approved by NHS side.
 Contract request only in status APPROVED can be approved by MSP and as a result status changes to 'PENDING_NHS_SIGN'.
 Only after that NHS employee can sign the contract request.
 
@@ -5058,7 +5058,7 @@ Only after that NHS employee can sign the contract request.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -5079,7 +5079,7 @@ This WS is designed to terminate contract request by contractor. Contract reques
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
         + `status_reason`: `Неправильний період контракту`(string, optional) - the reason of terminated status
 
@@ -5115,8 +5115,8 @@ Get Contract Request Details and Get Contract Request Printout Content and sign 
 ### Private. Sign Contract Request by NHS [PATCH /api/contract_requests/{id}/actions/sign_nhs]
 
 This WS is designed to sign contract request from NHS side. Contract request's status must be ='APPROVED'.
-Method receives signed message (pkcs7) including signed content, digital signature and signer public key in signed_content property. 
-All signature fields will be validated (including signer certificate authority).This service will store signed copy of Contract Request in Media Content Storage Signed content MUST consists of JSON object with Contract Request data and printout template. 
+Method receives signed message (pkcs7) including signed content, digital signature and signer public key in signed_content property.
+All signature fields will be validated (including signer certificate authority).This service will store signed copy of Contract Request in Media Content Storage Signed content MUST consists of JSON object with Contract Request data and printout template.
 Object that need to be signed is returned by Get Contract request by ID response, JSON.Path: $.data.
 
 + Parameters
@@ -5127,9 +5127,9 @@ Object that need to be signed is returned by Get Contract request by ID response
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
-        + `signed_content`: `ewogICJpZCI6ICIwOTEwNmI3MC0xOGIwLTQ3MjYtYjBlZC02YmRhMTM2OWZkNTIiLAogICJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsKICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLAogICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLAogICAgImVkcnBvdSI6ICIzMjMyMzQ1NCIsCiAgICAiYWRkcmVzc2VzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgImFyZWEiOiAi0JbQuNGC0L7QvNC40YDRgdGM0LrQsCIsCiAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICJzZXR0bGVtZW50X3R5cGUiOiAiQ0lUWSIsCiAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiNDM0MzI0MzIiLAogICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAiLAogICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgInppcCI6ICIwMjA5MCIKICAgICAgfQogICAgXQogIH0sCiAgImNvbnRyYWN0b3Jfb3duZXIiOiB7CiAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciCiAgfSwKICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAiY29udHJhY3Rvcl9wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JfZmxhZyI6IHRydWUsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JzIjogewogICAgImxlZ2FsX2VudGl0eSI6IHsKICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsCiAgICAgICJuYW1lIjogItCa0LvRltC90ZbQutCwINCd0L7Rg9C90LXQudC8IgogICAgfSwKICAgICJjb250cmFjdCI6IHsKICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgImlzc3VlZF9hdCI6ICIyMDE4LTAxLTAxIiwKICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSIKICAgIH0sCiAgICAiZGl2aXNpb25zIjogWwogICAgICB7CiAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiLAogICAgICAgICJtZWRpY2FsX3NlcnZpY2UiOiAi0J/QvtGB0LvRg9Cz0LAg0J/QnNCUIgogICAgICB9CiAgICBdCiAgfSwKICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICB7CiAgICAgICJlbXBsb3llZV9pZCI6IHsKICAgICAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciLAogICAgICAgICJzcGVjaWFsaXRpZXMiOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJzcGVjaWFsaXR5IjogIlRIRVJBUElTVCIsCiAgICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLAogICAgICAgICAgICAibGV2ZWwiOiAiRklSU1QiLAogICAgICAgICAgICAicXVhbGlmaWNhdGlvbl90eXBlIjogIkFXQVJESU5HIiwKICAgICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsCiAgICAgICAgICAgICJhdHRlc3RhdGlvbl9kYXRlIjogIjIwMTciLAogICAgICAgICAgICAidmFsaWRfdG9fZGF0ZSI6ICIyMDIwIiwKICAgICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSIKICAgICAgICAgIH0KICAgICAgICBdCiAgICAgIH0sCiAgICAgICJzdGFmZl91bml0cyI6IDAuNSwKICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgImRpdmlzaW9uIjogewogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAgICJuYW1lIjogItCR0L7RgNC40YHQv9GW0LvRjNGB0YzQutC1INCy0ZbQtNC00ZbQu9C10L3QvdGPINCa0LvRltC90ZbQutC4INCd0L7Rg9C90LXQudC8IiwKICAgICAgICAiYWRkcmVzc2VzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAicGhvbmVzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgICAgICJ3b3JraW5nX2hvdXJzIjogewogICAgICAgICAgIm1vbiI6IFsKICAgICAgICAgICAgWwogICAgICAgICAgICAgICIwOC4wMCIsCiAgICAgICAgICAgICAgIjEyLjAwIgogICAgICAgICAgICBdLAogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjE0LjAwIiwKICAgICAgICAgICAgICAiMTguMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidHVlIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAid2VkIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidGh1IjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAiZnJpIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAic2F0IjogW10sCiAgICAgICAgICAic3VuIjogW10KICAgICAgICB9LAogICAgICAgICJtb3VudGFpbl9ncm91cCI6IGZhbHNlCiAgICAgIH0KICAgIH0KICBdLAogICJpZF9mb3JtIjogIjUiLAogICJuaHNfc2lnbmVyX2Jhc2UiOiAi0L3QsCDQv9GW0LTRgdGC0LDQstGWINC90LDQutCw0LfRgyIsCiAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICJuaHNfcGF5bWVudF9tZXRob2QiOiAicHJlcGF5bWVudCIsCiAgIm5oc19wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJzdGF0dXMiOiAiTkVXIiwKICAic3RhdHVzX3JlYXNvbiI6ICLQndC1INCy0ZbQtNC/0L7QstGW0LTQsNGUINC/0L7Qv9C10YDQtdC00L3RltC8INC00L7QvNC+0LLQu9C10L3QvtGB0YLRj9C8IiwKICAibmhzX3NpZ25lciI6IHsKICAgICJpZCI6ICJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLAogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIKICB9LAogICJuaHNfbGVnYWxfZW50aXR5X2lkIjogewogICAgImlkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAibmFtZSI6ICLQmtC70ZbQvdGW0LrQsCDQndC+0YPQvdC10LnQvCIsCiAgICAiZWRycG91IjogIjMyMzIzNDU0IiwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdCiAgfSwKICAiaXNzdWVfY2l0eSI6ICLQmtC40ZfQsiIsCiAgImNvbnRyYWN0X251bWJlciI6ICIwMDAwLTlFQVgtWFQ3WC0zMTE1IiwKICAiY29udHJhY3RfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsCiAgInByaW50b3V0X2NvbnRlbnQiOiAiQ29udHJhY3QgcmVxdWVzdCBjb250ZW50Igp9`(string, required) 
+        + `signed_content`: `ewogICJpZCI6ICIwOTEwNmI3MC0xOGIwLTQ3MjYtYjBlZC02YmRhMTM2OWZkNTIiLAogICJjb250cmFjdG9yX2xlZ2FsX2VudGl0eSI6IHsKICAgICJpZCI6ICJkZjlmNzBlZS00YjEyLTQ3NDAtYjBmNS1iYjVhZWExMTY4NjMiLAogICAgIm5hbWUiOiAi0JrQu9GW0L3RltC60LAg0J3QvtGD0L3QtdC50LwiLAogICAgImVkcnBvdSI6ICIzMjMyMzQ1NCIsCiAgICAiYWRkcmVzc2VzIjogWwogICAgICB7CiAgICAgICAgInR5cGUiOiAiUkVTSURFTkNFIiwKICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgImFyZWEiOiAi0JbQuNGC0L7QvNC40YDRgdGM0LrQsCIsCiAgICAgICAgInJlZ2lvbiI6ICLQkdC10YDQtNC40YfRltCy0YHRjNC60LjQuSIsCiAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICJzZXR0bGVtZW50X3R5cGUiOiAiQ0lUWSIsCiAgICAgICAgInNldHRsZW1lbnRfaWQiOiAiNDM0MzI0MzIiLAogICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICJzdHJlZXQiOiAi0LLRg9C7LiDQndGW0LbQuNC90YHRjNC60LAiLAogICAgICAgICJidWlsZGluZyI6ICIxNSIsCiAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgInppcCI6ICIwMjA5MCIKICAgICAgfQogICAgXQogIH0sCiAgImNvbnRyYWN0b3Jfb3duZXIiOiB7CiAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICJmaXJzdF9uYW1lIjogItCf0LXRgtGA0L4iLAogICAgImxhc3RfbmFtZSI6ICLQhtCy0LDQvdC+0LIiLAogICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciCiAgfSwKICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAiY29udHJhY3Rvcl9wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JfZmxhZyI6IHRydWUsCiAgImV4dGVybmFsX2NvbnRyYWN0b3JzIjogewogICAgImxlZ2FsX2VudGl0eSI6IHsKICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsCiAgICAgICJuYW1lIjogItCa0LvRltC90ZbQutCwINCd0L7Rg9C90LXQudC8IgogICAgfSwKICAgICJjb250cmFjdCI6IHsKICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgImlzc3VlZF9hdCI6ICIyMDE4LTAxLTAxIiwKICAgICAgImV4cGlyZXNfYXQiOiAiMjAxOS0wMS0wMSIKICAgIH0sCiAgICAiZGl2aXNpb25zIjogWwogICAgICB7CiAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiLAogICAgICAgICJtZWRpY2FsX3NlcnZpY2UiOiAi0J/QvtGB0LvRg9Cz0LAg0J/QnNCUIgogICAgICB9CiAgICBdCiAgfSwKICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICB7CiAgICAgICJlbXBsb3llZV9pZCI6IHsKICAgICAgICAiaWQiOiAiYjA3NWYxNDgtN2Y5My00ZmMyLWIyZWMtMmQ4MWIxOWE5YjdiIiwKICAgICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwKICAgICAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAgICAgInNlY29uZF9uYW1lIjogItCc0LjQutC+0LvQsNC50L7QstC40YciLAogICAgICAgICJzcGVjaWFsaXRpZXMiOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJzcGVjaWFsaXR5IjogIlRIRVJBUElTVCIsCiAgICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLAogICAgICAgICAgICAibGV2ZWwiOiAiRklSU1QiLAogICAgICAgICAgICAicXVhbGlmaWNhdGlvbl90eXBlIjogIkFXQVJESU5HIiwKICAgICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsCiAgICAgICAgICAgICJhdHRlc3RhdGlvbl9kYXRlIjogIjIwMTciLAogICAgICAgICAgICAidmFsaWRfdG9fZGF0ZSI6ICIyMDIwIiwKICAgICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSIKICAgICAgICAgIH0KICAgICAgICBdCiAgICAgIH0sCiAgICAgICJzdGFmZl91bml0cyI6IDAuNSwKICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgImRpdmlzaW9uIjogewogICAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAgICJuYW1lIjogItCR0L7RgNC40YHQv9GW0LvRjNGB0YzQutC1INCy0ZbQtNC00ZbQu9C10L3QvdGPINCa0LvRltC90ZbQutC4INCd0L7Rg9C90LXQudC8IiwKICAgICAgICAiYWRkcmVzc2VzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICAgICAiY291bnRyeSI6ICJVQSIsCiAgICAgICAgICAgICJhcmVhIjogItCW0LjRgtC+0LzQuNGA0YHRjNC60LAiLAogICAgICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAgICAgInNldHRsZW1lbnQiOiAi0JrQuNGX0LIiLAogICAgICAgICAgICAic2V0dGxlbWVudF90eXBlIjogIkNJVFkiLAogICAgICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgICAgICJzdHJlZXRfdHlwZSI6ICJTVFJFRVQiLAogICAgICAgICAgICAic3RyZWV0IjogItCy0YPQuy4g0J3RltC20LjQvdGB0YzQutCwIiwKICAgICAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAgICAgImFwYXJ0bWVudCI6ICIyMyIsCiAgICAgICAgICAgICJ6aXAiOiAiMDIwOTAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAicGhvbmVzIjogWwogICAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJNT0JJTEUiLAogICAgICAgICAgICAibnVtYmVyIjogIiszODA1MDM0MTA4NzAiCiAgICAgICAgICB9CiAgICAgICAgXSwKICAgICAgICAiZW1haWwiOiAiZW1haWxAZXhhbXBsZS5jb20iLAogICAgICAgICJ3b3JraW5nX2hvdXJzIjogewogICAgICAgICAgIm1vbiI6IFsKICAgICAgICAgICAgWwogICAgICAgICAgICAgICIwOC4wMCIsCiAgICAgICAgICAgICAgIjEyLjAwIgogICAgICAgICAgICBdLAogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjE0LjAwIiwKICAgICAgICAgICAgICAiMTguMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidHVlIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAid2VkIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAidGh1IjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAiZnJpIjogWwogICAgICAgICAgICBbCiAgICAgICAgICAgICAgIjA4LjAwIiwKICAgICAgICAgICAgICAiMTIuMDAiCiAgICAgICAgICAgIF0KICAgICAgICAgIF0sCiAgICAgICAgICAic2F0IjogW10sCiAgICAgICAgICAic3VuIjogW10KICAgICAgICB9LAogICAgICAgICJtb3VudGFpbl9ncm91cCI6IGZhbHNlCiAgICAgIH0KICAgIH0KICBdLAogICJpZF9mb3JtIjogIjUiLAogICJuaHNfc2lnbmVyX2Jhc2UiOiAi0L3QsCDQv9GW0LTRgdGC0LDQstGWINC90LDQutCw0LfRgyIsCiAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICJuaHNfcGF5bWVudF9tZXRob2QiOiAicHJlcGF5bWVudCIsCiAgIm5oc19wYXltZW50X2RldGFpbHMiOiB7CiAgICAiYmFua19uYW1lIjogItCR0LDQvdC6INC90L7QvNC10YAgMSIsCiAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAicGF5ZXJfYWNjb3VudCI6ICIzMjAwOTEwMjcwMTAyNiIKICB9LAogICJzdGF0dXMiOiAiTkVXIiwKICAic3RhdHVzX3JlYXNvbiI6ICLQndC1INCy0ZbQtNC/0L7QstGW0LTQsNGUINC/0L7Qv9C10YDQtdC00L3RltC8INC00L7QvNC+0LLQu9C10L3QvtGB0YLRj9C8IiwKICAibmhzX3NpZ25lciI6IHsKICAgICJpZCI6ICJiMDc1ZjE0OC03ZjkzLTRmYzItYjJlYy0yZDgxYjE5YTliN2IiLAogICAgImZpcnN0X25hbWUiOiAi0J/QtdGC0YDQviIsCiAgICAibGFzdF9uYW1lIjogItCG0LLQsNC90L7QsiIsCiAgICAic2Vjb25kX25hbWUiOiAi0JzQuNC60L7Qu9Cw0LnQvtCy0LjRhyIKICB9LAogICJuaHNfbGVnYWxfZW50aXR5X2lkIjogewogICAgImlkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAibmFtZSI6ICLQmtC70ZbQvdGW0LrQsCDQndC+0YPQvdC10LnQvCIsCiAgICAiZWRycG91IjogIjMyMzIzNDU0IiwKICAgICJhZGRyZXNzZXMiOiBbCiAgICAgIHsKICAgICAgICAidHlwZSI6ICJSRVNJREVOQ0UiLAogICAgICAgICJjb3VudHJ5IjogIlVBIiwKICAgICAgICAiYXJlYSI6ICLQltC40YLQvtC80LjRgNGB0YzQutCwIiwKICAgICAgICAicmVnaW9uIjogItCR0LXRgNC00LjRh9GW0LLRgdGM0LrQuNC5IiwKICAgICAgICAic2V0dGxlbWVudCI6ICLQmtC40ZfQsiIsCiAgICAgICAgInNldHRsZW1lbnRfdHlwZSI6ICJDSVRZIiwKICAgICAgICAic2V0dGxlbWVudF9pZCI6ICI0MzQzMjQzMiIsCiAgICAgICAgInN0cmVldF90eXBlIjogIlNUUkVFVCIsCiAgICAgICAgInN0cmVldCI6ICLQstGD0LsuINCd0ZbQttC40L3RgdGM0LrQsCIsCiAgICAgICAgImJ1aWxkaW5nIjogIjE1IiwKICAgICAgICAiYXBhcnRtZW50IjogIjIzIiwKICAgICAgICAiemlwIjogIjAyMDkwIgogICAgICB9CiAgICBdCiAgfSwKICAiaXNzdWVfY2l0eSI6ICLQmtC40ZfQsiIsCiAgImNvbnRyYWN0X251bWJlciI6ICIwMDAwLTlFQVgtWFQ3WC0zMTE1IiwKICAiY29udHJhY3RfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAiZW5kX2RhdGUiOiAiMjAxNy0wNC0yMCIsCiAgInByaW50b3V0X2NvbnRlbnQiOiAiQ29udHJhY3QgcmVxdWVzdCBjb250ZW50Igp9`(string, required)
         + `signed_content_encoding`: `base64` (string, required)
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -5142,8 +5142,8 @@ Object that need to be signed is returned by Get Contract request by ID response
 
 This WS is designed to sign contract request from MSP side. Contract request's status must be in status ='NHS_SIGNED'.
 Tax_id in DS certeficate = contractor_owner_id.tax_id
-Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital signature of second signer and signer public key in signed_content property. 
-All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed. 
+Method receives signed message (pkcs7) including signed content, digital signature of first signer, digital signature of second signer and signer public key in signed_content property.
+All signature fields will be validated (including signer certificate authority). This service will store signed copy of Contract Request in Media Content Storage (will update previous version of file),created contract records and linked employees_divisions if signature is all checks is passed.
 Object that need to be signed is returned by Get Partially Sigend Contract request by ID. In response will be receive a link to download a file in pkcs7 format (signed by NHS side).
 This data must be signed.
 
@@ -5155,9 +5155,9 @@ This data must be signed.
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
-        + `signed_content`: `MIIU2wYJKoZIhvcNAQcCoIIUzDCCFMgCAQExDjAMBgoqhiQCAQEBAQIBMIIG+QYJKoZIhvcNAQcBoIIG6gSCBuZ7CiAgICAiaWQiOiAiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwKICAgICJjb250cmFjdG9yX293bmVyX2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAgICJjb250cmFjdG9yX3BheW1lbnRfZGV0YWlscyI6IHsKICAgICAgImJhbmtfbmFtZSI6ICLQkdCw0L3QuiDQvdC+0LzQtdGAIDEiLAogICAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAgICJwYXllcl9hY2NvdW50IjogIjMyMDA5MTAyNzAxMDI2IgogICAgfSwKICAgICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgICAiZXh0ZXJuYWxfY29udHJhY3Rvcl9mbGFnIjogdHJ1ZSwKICAgICJleHRlcm5hbF9jb250cmFjdG9ycyI6IHsKICAgICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAiY29udHJhY3QiOiB7CiAgICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLAogICAgICAgICJleHBpcmVzX2F0IjogIjIwMTktMDEtMDEiCiAgICAgIH0sCiAgICAgICJkaXZpc2lvbnMiOiBbCiAgICAgICAgewogICAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICAgIHsKICAgICAgICAiZW1wbG95ZWVfaWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIiwKICAgICAgICAic3RhZmZfdW5pdHMiOiAwLjUsCiAgICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgICAiZGl2aXNpb25faWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIgogICAgICB9CiAgICBdLAogICAgImlkX2Zvcm0iOiAiNSIsCiAgICAibmhzX3NpZ25lcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQvdCw0LrQsNC30YMiLAogICAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICAgIm5oc19wYXltZW50X21ldGhvZCI6ICJwcmVwYXltZW50IiwKICAgICJpc3N1ZV9jaXR5IjogItCa0LjRl9CyIiwKICAgICJzdGF0dXMiOiAiTkVXIiwKICAgICJzdGF0dXNfcmVhc29uIjogItCd0LUg0LLRltC00L/QvtCy0ZbQtNCw0ZQg0L/QvtC/0LXRgNC10LTQvdGW0Lwg0LTQvtC80L7QstC70LXQvdC+0YHRgtGP0LwiLAogICAgIm5oc19zaWduZXJfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAgICJuaHNfbGVnYWxfZW50aXR5X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLAogICAgImNvbnRyYWN0X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJlbmRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJwcmludG91dF9jb250ZW50Ijog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`(string, required) 
+        + `signed_content`: `MIIU2wYJKoZIhvcNAQcCoIIUzDCCFMgCAQExDjAMBgoqhiQCAQEBAQIBMIIG+QYJKoZIhvcNAQcBoIIG6gSCBuZ7CiAgICAiaWQiOiAiMDkxMDZiNzAtMThiMC00NzI2LWIwZWQtNmJkYTEzNjlmZDUyIiwKICAgICJjb250cmFjdG9yX293bmVyX2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3Rvcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQt9Cw0LrQvtC90YMg0L/RgNC+INCc0LXQtNC40YfQvdC1INC+0LHRgdC70YPQs9C+0LLRg9Cy0LDQvdC90Y8g0L3QsNGB0LXQu9C10L3QvdGPIiwKICAgICJjb250cmFjdG9yX3BheW1lbnRfZGV0YWlscyI6IHsKICAgICAgImJhbmtfbmFtZSI6ICLQkdCw0L3QuiDQvdC+0LzQtdGAIDEiLAogICAgICAiTUZPIjogIjM1MTAwNSIsCiAgICAgICJwYXllcl9hY2NvdW50IjogIjMyMDA5MTAyNzAxMDI2IgogICAgfSwKICAgICJjb250cmFjdG9yX3Jtc3BfYW1vdW50IjogNTAwMDAsCiAgICAiZXh0ZXJuYWxfY29udHJhY3Rvcl9mbGFnIjogdHJ1ZSwKICAgICJleHRlcm5hbF9jb250cmFjdG9ycyI6IHsKICAgICAgImxlZ2FsX2VudGl0eV9pZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLAogICAgICAiY29udHJhY3QiOiB7CiAgICAgICAgIm51bWJlciI6ICIxMjM0NTY3IiwKICAgICAgICAiaXNzdWVkX2F0IjogIjIwMTgtMDEtMDEiLAogICAgICAgICJleHBpcmVzX2F0IjogIjIwMTktMDEtMDEiCiAgICAgIH0sCiAgICAgICJkaXZpc2lvbnMiOiBbCiAgICAgICAgewogICAgICAgICAgImlkIjogIjI5MjJhMjQwLTYzZGItNDA0ZS1iNzMwLTA5MjIyYmZlYjJkZCIsCiAgICAgICAgICAibWVkaWNhbF9zZXJ2aWNlIjogItCf0L7RgdC70YPQs9CwINCf0JzQlCIKICAgICAgICB9CiAgICAgIF0KICAgIH0sCiAgICAiY29udHJhY3Rvcl9lbXBsb3llZV9kaXZpc2lvbnMiOiBbCiAgICAgIHsKICAgICAgICAiZW1wbG95ZWVfaWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIiwKICAgICAgICAic3RhZmZfdW5pdHMiOiAwLjUsCiAgICAgICAgImRlY2xhcmF0aW9uX2xpbWl0IjogMjAwMCwKICAgICAgICAiZGl2aXNpb25faWQiOiAiMjkyMmEyNDAtNjNkYi00MDRlLWI3MzAtMDkyMjJiZmViMmRkIgogICAgICB9CiAgICBdLAogICAgImlkX2Zvcm0iOiAiNSIsCiAgICAibmhzX3NpZ25lcl9iYXNlIjogItC90LAg0L/RltC00YHRgtCw0LLRliDQvdCw0LrQsNC30YMiLAogICAgIm5oc19jb250cmFjdF9wcmljZSI6IDUwMDAwLAogICAgIm5oc19wYXltZW50X21ldGhvZCI6ICJwcmVwYXltZW50IiwKICAgICJpc3N1ZV9jaXR5IjogItCa0LjRl9CyIiwKICAgICJzdGF0dXMiOiAiTkVXIiwKICAgICJzdGF0dXNfcmVhc29uIjogItCd0LUg0LLRltC00L/QvtCy0ZbQtNCw0ZQg0L/QvtC/0LXRgNC10LTQvdGW0Lwg0LTQvtC80L7QstC70LXQvdC+0YHRgtGP0LwiLAogICAgIm5oc19zaWduZXJfaWQiOiAiZGY5ZjcwZWUtNGIxMi00NzQwLWIwZjUtYmI1YWVhMTE2ODYzIiwKICAgICJuaHNfbGVnYWxfZW50aXR5X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAiY29udHJhY3RfbnVtYmVyIjogIjAwMDAtOUVBWC1YVDdYLTMxMTUiLAogICAgImNvbnRyYWN0X2lkIjogImRmOWY3MGVlLTRiMTItNDc0MC1iMGY1LWJiNWFlYTExNjg2MyIsCiAgICAic3RhcnRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJlbmRfZGF0ZSI6ICIyMDE3LTA0LTIwIiwKICAgICJwcmludG91dF9jb250ZW50Ijog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`(string, required)
         + `signed_content_encoding`: `base64` (string, required)
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
@@ -5194,7 +5194,7 @@ This method is designed to obtain list of contracts with filters. This mothod re
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-    
+
 + Response 200 (application/json)
     + Attributes (`Response_Collection_V2`)
         + data (array[Contracts_list])
@@ -5228,8 +5228,8 @@ The data received in response can be changed and signed in order to update emplo
     + `is_active`: true (boolean, optional)
     + `employee_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
     + `division_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, optional)
-     
-     
+
+
 + Request (application/json)
 
     + Headers
@@ -5239,16 +5239,16 @@ The data received in response can be changed and signed in order to update emplo
         + `contractor_employee_divisions` (array, fixed, required)
                 + (object)
                     + include `Employee_divisions_response`
-        
+
 + Response 200 (application/json)
     + Attributes (Response_Collection_V2)
         + data (array)
-            + (object) 
+            + (object)
                 + include `Employee_divisions_response`
-            + `start_date`: `2017-04-20` (string, required) - employee start date 
+            + `start_date`: `2017-04-20` (string, required) - employee start date
             + `end_date`: `2017-04-20` (string, required) - employee end date
             + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
-            
+
 
 ### Public. Update Contract Employees [PATCH /api/contracts/{contract_id}/employees/actions/update]
 
@@ -5280,18 +5280,18 @@ Example data to sign:
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
-        + `signed_content`: `ICB7DQogICAgImVtcGxveWVlX2lkIjogew0KICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsDQogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwNCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwNCiAgICAgICJzcGVjaWFsaXRpZXMiOiBbDQogICAgICAgIHsNCiAgICAgICAgICAic3BlY2lhbGl0eSI6ICJUSEVSQVBJU1QiLA0KICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLA0KICAgICAgICAgICJsZXZlbCI6ICJGSVJTVCIsDQogICAgICAgICAgInF1YWxpZmljYXRpb25fdHlwZSI6ICJBV0FSRElORyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX2RhdGUiOiAiMjAxNyIsDQogICAgICAgICAgInZhbGlkX3RvX2RhdGUiOiAiMjAyMCIsDQogICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSINCiAgICAgICAgfQ0KICAgICAgXQ0KICAgIH0sDQogICAgInN0YWZmX3VuaXRzIjogMC41LA0KICAgICJpc19hY3RpdmUiOiB0cnVlLA0KICAgICJkaXZpc2lvbiI6IHsNCiAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiDQogICAgfQ0KICB9`(string, required) 
+        + `signed_content`: `ICB7DQogICAgImVtcGxveWVlX2lkIjogew0KICAgICAgImlkIjogImIwNzVmMTQ4LTdmOTMtNGZjMi1iMmVjLTJkODFiMTlhOWI3YiIsDQogICAgICAiZmlyc3RfbmFtZSI6ICLQn9C10YLRgNC+IiwNCiAgICAgICJsYXN0X25hbWUiOiAi0IbQstCw0L3QvtCyIiwNCiAgICAgICJzZWNvbmRfbmFtZSI6ICLQnNC40LrQvtC70LDQudC+0LLQuNGHIiwNCiAgICAgICJzcGVjaWFsaXRpZXMiOiBbDQogICAgICAgIHsNCiAgICAgICAgICAic3BlY2lhbGl0eSI6ICJUSEVSQVBJU1QiLA0KICAgICAgICAgICJzcGVjaWFsaXR5X29mZmljaW8iOiB0cnVlLA0KICAgICAgICAgICJsZXZlbCI6ICJGSVJTVCIsDQogICAgICAgICAgInF1YWxpZmljYXRpb25fdHlwZSI6ICJBV0FSRElORyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX25hbWUiOiAi0JDQutCw0LTQtdC80ZbRjyDQkdC+0LPQvtC80L7Qu9GM0YbRjyIsDQogICAgICAgICAgImF0dGVzdGF0aW9uX2RhdGUiOiAiMjAxNyIsDQogICAgICAgICAgInZhbGlkX3RvX2RhdGUiOiAiMjAyMCIsDQogICAgICAgICAgImNlcnRpZmljYXRlX251bWJlciI6ICJBQi8yMTMzMSINCiAgICAgICAgfQ0KICAgICAgXQ0KICAgIH0sDQogICAgInN0YWZmX3VuaXRzIjogMC41LA0KICAgICJpc19hY3RpdmUiOiB0cnVlLA0KICAgICJkaXZpc2lvbiI6IHsNCiAgICAgICJpZCI6ICIyOTIyYTI0MC02M2RiLTQwNGUtYjczMC0wOTIyMmJmZWIyZGQiLA0KICAgICAgIm5hbWUiOiAi0JHQvtGA0LjRgdC/0ZbQu9GM0YHRjNC60LUg0LLRltC00LTRltC70LXQvdC90Y8g0JrQu9GW0L3RltC60Lgg0J3QvtGD0L3QtdC50LwiDQogICAgfQ0KICB9`(string, required)
         + `signed_content_encoding`: `base64` (string, required)
-        
+
 + Response 200 (application/json)
     + Attributes (Response__Process_OK)
         + data (object)
             + `contractor_employee_divisions` (array, fixed, required)
                 + (object)
                     + include `Employee_divisions_response`
-            + `start_date`: `2017-04-20` (string, required) - employee start date 
+            + `start_date`: `2017-04-20` (string, required) - employee start date
             + `end_date`: `2017-04-20` (string, required) - employee end date
             + `contract_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - contract identifier
 
@@ -5308,7 +5308,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + Headers
 
             Authorization: Bearer mF_9.B5f-4.1JqM
-            
+
     + Attributes (object)
         + `status_reason`: `Неправильний період контракту`(string, optional) - the reason of terminated status
 
@@ -5318,7 +5318,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
             + code: 201 (number)
         + data (object)
             + include `Contract_Details`
-            
+
 
 # Data Structures
 ## Responses
@@ -5447,9 +5447,20 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + Include Person_Request
 + confident_persons (array[Person])  - Should be set if this Person is disabled, underage, etc.
 + is_active: true (boolean, required)
-+ merged_ids (array)
++ master_persons (array)
     + (object)
         + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + person_id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + master_person_id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
+        + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
++ merged_persons (array)
+    + (object)
+        + id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + person_id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + merge_person_id: `7bca069f-21e4-4546-90cf-b65e3f39d93d` (string, required)
+        + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
+        + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + inserted_at: `2017-03-02T10:45:16.000Z` (string, optional)
 + updated_at: `2017-03-02T10:45:16.000Z` (string, optional)
 
@@ -5479,7 +5490,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + phones (array[Phone], required)
 + birth_settlement: Вінниця (string, required)
 + birth_country: Україна (string, required) - країна народження
-+ documents (array[Document],optional) 
++ documents (array[Document],optional)
 
 ### `Person_Medication_Request`
 + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -5581,7 +5592,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + scope (enum, required)
     - family doctor
 + declaration_number: `0000-12H4-245D` (string, required) - unique number of declaration.
-+ declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration 
++ declaration_id: `8311ab82-e341-4da0-8a95-235ec9885e23` (string, required) - presetted id for future declaration
 
 ### `Declaration_Request_Details_Public`
 + start_date: `2017-03-02` (string, required)
@@ -5779,7 +5790,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + include `Party_Short`
 + birth_date: `1991-08-19T00:00:00.000Z` (string, required)
 + gender: MALE (string, required) - `Dictionary GENDER`
-+ `no_tax_id`: false (boolean, optional) - true if employee doesn't have tax_id and false otherwise 
++ `no_tax_id`: false (boolean, optional) - true if employee doesn't have tax_id and false otherwise
 + tax_id: 3126509816 (string, required) - if no_tax_id=true then passport number, otherwise tax_id
 + email: email@example.com (string, optional)
 + documents (array[Document], optional)
@@ -6062,7 +6073,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### `Legal_Entity_Request_Public`
 + name: Клініка Ноунейм (string, required) - full official name of legal entity also the name to show on public sources [as map, portal etc]
 + short_name: Ноунейм (string, optional) - short name of legal entity
-+ public_name: Ноунейм (string, optional) 
++ public_name: Ноунейм (string, optional)
 + type: MSP (string, required) - type of legal entity [MSP/PHARMACY]. MIS can't be created using this WS.
 + `owner_property_type`: STATE (string, required) - `Dictionary OWNER_PROPERTY_TYPE` State or private type of legal entity
 + `legal_form`: 140 (string, required) - `Dictionary LEGAL_FORM`  - business form [as ТОВ/ФОП/ДП/КП]
@@ -6076,14 +6087,14 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + beneficiary: `Борисов Борис Борисович` (string, optional) - legal owner of legal entity [нформація про власника ЗОЗ, для ФОП не заповнюється]
 + owner(`Owner`,required)
 + `medical_service_provider` (MSP)
-+ `archive`(array[Archive], optional) 
++ `archive`(array[Archive], optional)
 + security (object, fixed-type)
     + `redirect_uri`: `http://example.com` (string, required, fixed) - Redirect uri is used in oauth2.0 flow
 + public_offer(object, fixed-type)
     + `consent_text`: `Consent text` (string, required)
     + `consent`: `true` (boolean, required)
 
-### `Legal_Entity_Request_Public_Short` 
+### `Legal_Entity_Request_Public_Short`
 + name: Клініка Ноунейм (string, required) - full official name of legal entity
 + short_name: Ноунейм (string, optional) - short name of legal entity
 + public_name: Ноунейм (string, optional) - the name to show on public sources
@@ -6294,7 +6305,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + scope: `capitation_contracts:view capitation_contracts:create patients:view patients:create` (string, required) - List of scopes that is required in application business logic, separated by space
     + refresh_token: `my-oauth-refresh-token` (string, required) - oAuth refresh token
     + redirect_uri: `http://example.com/` (string, required) - Redirect URI
-    + `grant_type`: `authorization_code` 
+    + `grant_type`: `authorization_code`
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
 
 ### `Access_Token_1`
@@ -6306,7 +6317,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + details (object)
     + scope: `user:change_password` (string, required) - List of scopes that is required in application business logic, separated by space
     + redirect_uri: `http://example.com/` (string, required) - Redirect URI
-    + `grant_type`: `change_password` 
+    + `grant_type`: `change_password`
     + client_id: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Client ID of authorized user.
 
 
@@ -6321,16 +6332,16 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### Address
 + type: RESIDENCE (string, required) - `Dictionary ADDRESS_TYPE`. As for now Regisrtration and Residence types
 + country: UA (enum[string], required) - `Dictionary COUNTRY`
-+ area: Житомирська (string) - one of Ukraianian area 
++ area: Житомирська (string) - one of Ukraianian area
 + region: Бердичівський (string, optional) - district of area
 + settlement: Київ (string) - city name
 + `settlement_type`: CITY (string) - `Dictionary SETTLEMENT_TYPE` - type of settlement as city/town/village etc
-+ settlement_id: 43432432 (string, required) - settlement identificator from uaadresses 
++ settlement_id: 43432432 (string, required) - settlement identificator from uaadresses
 + `street_type`: STREET (string, optional) - `Dictionary STREET_TYPE` - type of street as street/road/line etc
 + street: `вул. Ніжинська` (string, optional) - street name
 + building: 15 (string, required) - number of building
 + apartment: 23 (string, optional) - number of appartment
-+ zip: 02090 (string, optional) - system of postal codes 
++ zip: 02090 (string, optional) - system of postal codes
 
 
 ### Phone
@@ -6437,9 +6448,9 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `region` (object, required)
     + include `Region`
 + `period` (object, required)
-    + include `RegionStats`    
+    + include `RegionStats`
 + `total` (object, required)
-    + include `RegionStats` 
+    + include `RegionStats`
 
 ### RegionStats
 + declarations_total: 100 (number, required)
@@ -6473,7 +6484,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### MainStats
 + declarations: 100 (number, required)
 + msps: 2 (number, required)
-+ doctors: 15 (number, required)   
++ doctors: 15 (number, required)
 
 ### `MainStats_Division`
 + stats (DivisionStats, required)
@@ -6482,7 +6493,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ### DivisionStats
 + declarations: 100 (number, required)
 + msps: 2 (number, required)
-+ doctors: 15 (number, required)  
++ doctors: 15 (number, required)
 
 ### DivisionName
 + id: `asSbcy12sYs8c` (string, required)
@@ -6519,15 +6530,15 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
 + party (PartyMap)
     + specialities (array[Speciality], required)  - блок інформації про отримання сертифікату спеціалісту та проходження атестацій
-    + is_available: true (boolean, required) 
+    + is_available: true (boolean, required)
 + division(object, required)
     + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
     + name: `Aдоніс` (string, required)
     + addresses (Address, optional)
 + `legal_entity` (object, required)
     + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required)
-    + name: Клініка Ноунейм (string, required)    
-    
+    + name: Клініка Ноунейм (string, required)
+
 
 ### EntriesEmployeeMap
 + id: `7d23bebb-1cf3-4221-bf21-18aada444756` (string, required) - employee id
@@ -6801,7 +6812,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `id`: `ae9bf68e-3c98-4027-9211-535f7dad7a87` (string, required)
 + `name`: `Аміодарон 200мг таблетки` (string, required)
 + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM`
-+ `innm` (`Innm_Public_Response_Short`, required) 
++ `innm` (`Innm_Public_Response_Short`, required)
 + `dosage` (`Dosage_drug`, required)
 + `packages` (array [`Medication_package`], required)
 
@@ -6866,19 +6877,19 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `medication_qty`: 10 (number, required) - Medication quantity isuued by the doctor
 
 ### `Manufacturer`
-+ `name` : `ПАТ "Київський вітамінний завод"` (string, required) 
++ `name` : `ПАТ "Київський вітамінний завод"` (string, required)
 + `country` : `UA` (string, required) - `Dictionary COUNTRY`
 
 ### `Ingredient_request`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_primary` : true (boolean, required) 
++ `is_primary` : true (boolean, required)
 
 ### `Ingredient`
 + `id` : `1349a693-4db1-4a3f-9ac6-8c2f9e541982` (string, required)
 + `name` : `Амідарон` (string, required)
 + `dosage` (`Dosage_drug`, required)
-+ `is_primary` : true (boolean, required) 
++ `is_primary` : true (boolean, required)
 
 ### `INNM_Dosage_Request`
 + `name` : `Амідарон` (string, required)
@@ -6888,12 +6899,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
         + include `Ingredient_request`
 
 ### `INNM_Dosage_Response_Short`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `INNM_Dosage_Response`
 + `is_active` : true (boolean, required)
 
 ### `INNM_Dosage_Response`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + `name` : `Амідарон` (string, required)
 + `form` :  PILL (string, required) - `Dictionary MEDICATION_FORM`
 + `ingredients` (array, required)
@@ -6920,7 +6931,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
         + include `Ingredient_request`
 
 ### `Medication_Response`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + `name` : `Амідарон` (string, required)
 + `manufacturer` (`Manufacturer`, optional)
 + `code_atc`: `C01BD01` (string, optional)
@@ -6940,7 +6951,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + updated_by: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Response_Short`
-+ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required) 
++ `id` : `09b2bffb-699a-43c0-bc9a-5066d9b9b5a8` (string, required)
 + include `Medication_Response`
 + `is_active` : true (boolean, required)
 
@@ -6973,7 +6984,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `reimbursement_amount`: 450 (number, optional) - Amount to reimburse for medication package by medical_program
 
 ### `Program_medications_Response`
-+ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) 
++ `id` : `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
 + `medication` (`Medication_Response_Short`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 + `medication_request_allowed`: true (boolean, required) - indicator whether medication is allowed to use in new medication request
@@ -7004,24 +7015,24 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
         + (object)
             + include (`Dosage_drug`, required) - substances dosage in innm
             + `substance_name`: `Аміодарон` (string, optional) - substance name
-            + `is_primary` : true (boolean, required) 
+            + `is_primary` : true (boolean, required)
 + `medications` (object, required)
     + `medication_id` : `4a63b858-c138-4921-9341-ae9e384bcbd6` (string, required)
-    + `name`: `Аміодарон 5мг` (string, required) - medication name 
+    + `name`: `Аміодарон 5мг` (string, required) - medication name
     + `form`: PILL (string, required) - `Dictionary MEDICATION_FORM` - medication form
-    + `manufacturer` (`Manufacturer`, optional) 
+    + `manufacturer` (`Manufacturer`, optional)
     + `ingredients` (array, required)
         + (object)
             + include (`Dosage_drug`, required) - innm dosage in medication
-            + `innm_name`: `Аміодарон`(string, required) 
-            + `is_primary` : true (boolean, required) 
+            + `innm_name`: `Аміодарон`(string, required)
+            + `is_primary` : true (boolean, required)
 + `medical_program` (`Medical_Program_Response`, required)
 + `reimbursement` (`Reimbursement`, required)
 + `is_active` : true (boolean, required) - flag for activation/deactiovation
 + `medication_request_allowed`: true (boolean, required) - flag whether medications are allowed to be dispensed by the program
 
 ### `Black_list_user_Request`
-+ `tax_id`: `3126509816` (string, required) - tax_id by party_id 
++ `tax_id`: `3126509816` (string, required) - tax_id by party_id
 
 ### `Black_list_user_Response`
 + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - black list user id
@@ -7090,7 +7101,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Medication_Request`)            
++ `person` (`Person_Medication_Request`)
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
@@ -7156,20 +7167,20 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
 + `division` (`Division_Details`, required)
 + `employee` (Employee_Minimal, required)
-+ `person` (`Person_Medication_Request`)            
++ `person` (`Person_Medication_Request`)
 + `medication_info` (`Innm_Dosage_for_Medication_request_Responce`, required)
 + `medical_program` (`Medical_Program_Response`, required)
 
 ### `Medication_request_Reject_Public_Response`
 + `rejected_at`: `2017-04-20T19:14:13Z` (string, required) - Reject date - ISO 8601 date and time in UTC timezone.
 + `rejected_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - Rejected user identifier
-+ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason 
++ `reject_reason` : `Помилка призначення. Несумісні препарати.` (string, required) - Medication request reject reason
 
 
 ## `Medication Dispense`
 ### `Medication_Dispense_Request`
-+ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request 
-+ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `medication_request_id`: `f08ba3a3-157a-4adc-b65d-737f24f3a1f4` (string, required) - Key for the Medication request
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense
 + dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `division_id`: `2fc70f30-08dc-493c-8d08-925905d7b1e8` (string, required) - Active legal entity (Pharmacy) division which provides dispense Identifier
 + `medical_program_id`: `6ee844fd-9f4d-4457-9eda-22aa506be4c4` (string, required) - Active medical program within which medications are going to be provided
@@ -7179,8 +7190,8 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 
 ### `Medication_Dispense_Response`
 + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Medication Dispense Response Identifier
-+ `medication_request` (`Medication_request_Public_Response`, required) - Medication request 
-+ `dispensed_at`: `2017-08-17` (string, required) - date of dispense 
++ `medication_request` (`Medication_request_Public_Response`, required) - Medication request
++ `dispensed_at`: `2017-08-17` (string, required) - date of dispense
 + dispensed_by: `Іванов Іван Іванович` (string, optional) - in case pharmacist uses owner's token this field should be filled with pharmacist's name
 + `party` (object)
     + id: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required)
@@ -7199,14 +7210,14 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Medication_Dispense_Detail_Request`
-+ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications 
++ `medication_id`: `787b6ef1-1d3a-4129-849c-87716c9a2130` (string, required) - Identifier of brand medications
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
 + `discount_amount`: 150 (number, required) - pharmacy's expected price of dicsount for the requested medication quantity
 
 ### `Medication_Dispense_Detail_Response`
-+ `medication` (`Medication_Short`, required) - Identifier of brand medications 
++ `medication` (`Medication_Short`, required) - Identifier of brand medications
 + `medication_qty`: 10 (number, required) - qnty of medication_unit (pill/ampoule/container/bottle/vial/aerosol) which provides to the patient
 + `sell_price`: 18.65 (number, required) - pharmacy's price for one nondivisible medication_unit (pill/ampoule/container/bottle/vial/aerosol)
 + `sell_amount`: 186.5 (number, required) - total pharmacy's price for the requested medication quantity
@@ -7230,12 +7241,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
         + `name`: `Клініка Ноунейм` (string, required)
         + `edrpou`: `5432345432` (string, required)
-    + `division` (object, required) 
+    + `division` (object, required)
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
         + `name`: `Бориспільське відділення Клініки Ноунейм` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
-    + `employee` (object, required) 
+    + `employee` (object, required)
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee identifier with `type=DOCTOR` who issued Medication Request.
         + `party_id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
         + `last_name`: `Іванов` (string, required)
@@ -7270,12 +7281,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
         + `id`: `b075f148-7f93-4fc2-b2ec-2d81b19a9b7b` (string, required) - Legal entity identifier
         + `name`: `Аптека 42` (string, required) - Legal entity name
         + `edrpou`: `5432345431` (string, required) - Legal entity edrpou
-    + `division` (object, optional) 
+    + `division` (object, optional)
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required)
         + `name`: `Бориспільське відділення Аптеки 42` (string, required)
         + `mountain_group`: `false` (boolean, optional)
         + `address` (`Address`, required)
-    + `party` (object, optional) 
+    + `party` (object, optional)
         + `id`: `d290f1ee-6c54-4b01-90e6-d701748f0851` (string, required) - Employee Party id
         + `last_name`: `Іванов` (string, required)
         + `first_name`: `Петро` (string, required)
@@ -7284,18 +7295,18 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 ## Uploading and processing registers
 
 ### `Registers_response`
-+ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
++ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required)
 + `file_name`: `November 2018 Kyiv region` (string, required)
 + `status`: processing (enum, required)
-        - new 
-        - processing 
-        - processed 
+        - new
+        - processing
+        - processed
 + `person_type`: patient (enum, required)
-        - patient 
-        - employee 
+        - patient
+        - employee
 + `type`: `death_registration` (string, required)
 + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
-+ `qty`(object, required) 
++ `qty`(object, required)
   + `not_found`: 10 (number, required)- not matched records
   + `processing`: 1 (number, required) - entries are still in the procces of matching
   + `errors`: 2 (number, required) - entires which had errors and couln't be processed
@@ -7306,15 +7317,15 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 
 ### `Registers_list_response`
-+ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) 
++ `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required)
 + `file_name`: `November 2018 Kyiv region` (string, required)
 + `status`: processing (enum, required)
-        - new 
-        - processing 
-        - processed 
+        - new
+        - processing
+        - processed
 + `reason_description`: `Реєстр смертності за 01-31.01.2018` (string, optional)
 + `type`: `death_registration` (string, required)
-+ `qty`(object, required) 
++ `qty`(object, required)
   + `not_found`: 10 (number, required)- not matched records
   + `processing`: 1 (number, required) - entries are still in the procces of matching
   + `errors`: 2 (number, required) - entires which had errors and couln't be processed
@@ -7324,7 +7335,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `updated_at`: `2017-04-20T19:14:13Z` (string, required) - ISO 8601 date and time in UTC timezone.
 + `updated_by`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required)
 + `errors`: `Row has length 4 - expected length 5 on line 5, Row has length 1 - expected length 5 on line 7` (array, optional)
-    
+
 
 ### `Register_entries_list_response`
 + `id`: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - record id
@@ -7402,13 +7413,13 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
 + `external_contractors` (object, optional)
     + include (`External_contractors`, required)
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `contract_number`: `0000-9EAX-XT7X-3115` (string, optional) - number of existing VERIFIED contract
 
 ### `Contract_request_list`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
 + `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
 + `contractor_owner_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - person which represent legal entity
 + `contractor_base`: `на підставі закону про Медичне обслуговування населення` (string, required) - documents which allows to represent clinic
@@ -7423,12 +7434,12 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 
 ### `Contract_request_Update`
-+ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - id of signer from nhs side 
++ `nhs_signer_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - id of signer from nhs side
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
 + `nhs_contract_price`: `50000` (number, optional) - contract price
 + `nhs_payment_method`: `prepayment` (enum, optional) - payment method for contract
@@ -7436,7 +7447,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 
 ### `Contract_request_Details`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
 + `contractor_legal_entity`(object, required)
     + include (`contract_legal_entity_details`)
 + `contractor_owner` (object, required)
@@ -7454,7 +7465,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `external_contractor_flag`: true (boolean, optional) - the existence of second appendix
 + `external_contractors` (object, optional)
     + include (`External_contractors_response`, required)
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `id_form`: `PMD_1` (string, required) - type of contract {DICTIONARY CONTRACT_TYPE}
 + `nhs_signer_base`: `на підставі наказу` (string, optional) - documents which allows to represent nhs
@@ -7465,7 +7476,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 + status: `NEW` (string, required) - contract_request status
 + status_reason: `Не відповідає попереднім домовленостям`(string, optional) - reason of status theat is setted bu nhs
-+ `nhs_signer` (object, optional) 
++ `nhs_signer` (object, optional)
     + include (`Person_Minimal_Contract`)
 + `nhs_legal_entity` (object)
     + include (`contract_legal_entity_details`)
@@ -7473,7 +7484,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + contract_number: `0000-9EAX-XT7X-3115` (string, optional) - human readable number of contract request.
 + contract_id: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, optional) - contract id
 + `parent_contract_id`: `22e416c4-5747-41cd-9f73-c3a85cdee885` (string, optional) - parent contract id
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
++ `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `printout_content`: `Contract request content` (optional) - HTML document for contract request, is shown only for requests in `APPROVED`, `PENDING_NHS_SIGN`, `NHS_SIGNED`, `SIGNED` statuses.
 
@@ -7481,7 +7492,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + include `Contract_request_Details`
 
 ### `Contract_request_Docs`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID 
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract_request ID
 + status: `NEW` (string, required) - contract_request status
 + statute: `www.url_1` (string, required) - link to statute document
 + `additional_document`: `www.url_2` (string, required) - link to report with additional document
@@ -7534,7 +7545,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + include (DoctorNew_Short_Single)
 + `staff_units`: `0.5` (number, required)
 + `declaration_limit`: `2000` (number, required) - declaration limit for current employee within the contract
-+ `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID 
++ `division_id`: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
 
 ### `Contractor_divisions`
 + id: `2922a240-63db-404e-b730-09222bfeb2dd` (string, required) - division ID
@@ -7546,7 +7557,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + mountain_group: false (boolean, optional)
 
 ### `Contracts_list`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID
 + `contractor_legal_entity_id`: `df9f70ee-4b12-4740-b0f5-bb5aea116863` (string, required) - legal entity ID which make contract request
 + `contractor_owner` (object, required)
     + include (`Person_Minimal_Contract`)
@@ -7569,8 +7580,8 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
 + is_suspended: false (string, required) - whether the contract is active or temporary suspended
 
 ### `Contract_Details`
-+ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID 
-+ `start_date`: `2017-04-20` (string, required) - contract start date 
++ id: `09106b70-18b0-4726-b0ed-6bda1369fd52` (string, required) - contract ID
++ `start_date`: `2017-04-20` (string, required) - contract start date
 + `end_date`: `2017-04-20` (string, required) - contract end date
 + `contractor_legal_entity`(object, required)
     + include (`contract_legal_entity_details`)
@@ -7596,7 +7607,7 @@ This WS is designed to terminate contract. Contract must be in status 'VERIFIED'
     + include (`Payment_details`, optional)
 + `miscellaneous`: `Жодна зі сторін не має права передавати права і зобов’язання за цим контрактом третій стороні без письмової на те згоди іншої сторони` (string, optional) - miscellaneous of a contract
 + status: `VERIFIED` (string, required) - contract_request status
-+ `nhs_signer` (object, optional) 
++ `nhs_signer` (object, optional)
     + include (`Person_Minimal_Contract`)
 + `nhs_legal_entity` (object)
     + include (`contract_legal_entity_details`)

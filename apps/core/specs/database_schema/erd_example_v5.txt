@@ -7,7 +7,7 @@ settings | jsonb
 priv_settings | jsonb
 is_blocked | boolean
 block_reason | varchar
-person_id | uuid 
+person_id | uuid
 inserted_at | timestamp | not null
 updated_at | timestamp | not null
 
@@ -91,14 +91,15 @@ is_active | boolean | not null
 documents | json | not null
 addresses | json | not null
 phones | json
-secret | varchar 
+secret | varchar
 emergency_contact | json | not null
 confidant_person | json
 patient_signed | boolean | not null
 process_disclosure_data_consent | boolean | not null
 authentication_methods | json | not null
 preferred_way_communication | enum('email', 'phone')
-merged_ids  | varchar | not null
+master_persons  | json 
+merged_persons  | json
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null
@@ -136,7 +137,7 @@ educations | jsonb
 qualifications | jsonb
 specialities | jsonb
 science_degree | jsonb
-about_myself | varchar 
+about_myself | varchar
 working_experience | varchar
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -199,7 +200,7 @@ updated_by | uuid | not null
 
 [divisions]
 id | uuid | not null
-external_id | varchar 
+external_id | varchar
 name | varchar | not null
 type | varchar | not null
 mountaint_group | boolean | not null
@@ -219,7 +220,7 @@ person_id | uuid | not null
 start_date | date | not null
 end_date | date | not null
 status | varchar | not null
-status_reason | varchar 
+status_reason | varchar
 signed_at | timestamp | not null
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -289,7 +290,7 @@ is_active | boolean | not null
 
 [innms]
 id | uuid | not null
-sctid | varchar 
+sctid | varchar
 name | varchar | not null
 name_original | varchar | not null | unique
 is_active | boolean | not null
@@ -300,7 +301,7 @@ updated_by | uuid | not null
 
 [medications]
 id | uuid | not null
-name | varchar | not null 
+name | varchar | not null
 type | varchar | not null
 manufacturer | jsonb
 code_atc | varchar
@@ -320,8 +321,8 @@ updated_by | uuid | not null
 id | uuid | not null
 dosage | jsonb | not null
 is_primary | boolean | not null
-parent_id | uuid | not null 
-innm_child_id | uuid 
+parent_id | uuid | not null
+innm_child_id | uuid
 medication_child_id | uuid
 inserted_at | timestamp | not null
 inserted_by | uuid | not null
@@ -427,9 +428,9 @@ status | varchar | not null
 inserted_at | timestamp | not null
 
 [registers]
-id | uuid | not null	
+id | uuid | not null
 file_name | varchar | not null
-status | enum[new, processing, processed] | not null	
+status | enum[new, processing, processed] | not null
 type | DICTIONARY='REGISTER_TYPE' | not null
 qty	| jsonb | not null
 errors	| array | not null
@@ -512,10 +513,10 @@ medical_service_providers 1--1 legal_entities
 users *--1 persons
 parties 1--* party_users
 party_users 1--1 users
-declaration_requests 1--? declarations 
+declaration_requests 1--? declarations
 employee_requests 1--? employees
 declarations *--1 persons
-declarations *--1 employees  
+declarations *--1 employees
 declarations 1--* declarations_status_hstr
 innms 1--* ingredients
 medications 1--* ingredients
@@ -523,7 +524,7 @@ medications 1--* program_medications
 medical_programs 1--* program_medications
 medication_requests *--1 legal_entities
 medication_requests *--1 divisions
-medication_requests *--1 employees 
+medication_requests *--1 employees
 medication_requests *--1 medications
 medication_requests ?--1 medication_request_requests
 medication_requests 1--* medication_dispenses

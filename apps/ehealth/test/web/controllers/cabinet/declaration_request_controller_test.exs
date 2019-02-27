@@ -17,7 +17,8 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
     status
     inserted_by
     updated_by
-    merged_ids
+    master_persons
+    merged_persons
     id
   )
 

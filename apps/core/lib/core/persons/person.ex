@@ -32,7 +32,8 @@ defmodule Core.Persons.Person do
     field(:inserted_by, :string, default: "default")
     field(:updated_by, :string, default: "default")
     field(:authentication_methods, {:array, :map})
-    field(:merged_ids, {:array, :string})
+    field(:master_persons, {:array, :map})
+    field(:merged_persons, {:array, :map})
     field(:no_tax_id, :boolean, default: false)
 
     timestamps(type: :utc_datetime)
@@ -65,7 +66,8 @@ defmodule Core.Persons.Person do
     invalid_tax_id
     phones
     confidant_person
-    merged_ids
+    master_persons
+    merged_persons
   )a
 
   def changeset(params) do

@@ -21,7 +21,8 @@ confidant_person | json
 patient_signed | boolean | not null
 process_disclosure_data_consent | boolean | not null
 authentication_methods | json | not null
-merged_ids  | varchar | not null
+master_persons  | json
+merged_persons  | json
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null

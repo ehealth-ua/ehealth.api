@@ -18,7 +18,10 @@ defmodule EHealth.Web.PersonView do
 
   def render("search_view.json", %{person: person, fields: fields}) do
     mandatory_fields =
-      Map.take(person, ~w(id first_name second_name last_name birth_country birth_settlement merged_ids))
+      Map.take(
+        person,
+        ~w(id first_name second_name last_name birth_country birth_settlement master_persons merged_persons)
+      )
 
     requested_fields =
       Enum.into(fields, %{}, fn field ->

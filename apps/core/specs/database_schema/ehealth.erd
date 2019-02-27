@@ -630,7 +630,8 @@ patient_signed | boolean | not null
 process_disclosure_data_consent | boolean | not null
 authentication_methods | json | not null
 preferred_way_communication | enum('email', 'phone')
-merged_ids  | varchar | not null
+merged_persons  | json
+master_persons  | json 
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null

@@ -221,7 +221,8 @@ defmodule EHealth.Web.PersonControllerTest do
         first_name
         id
         last_name
-        merged_ids
+        master_persons
+        merged_persons
         second_name)
       assert expected_keys == Map.keys(hd(resp["data"]))
     end
@@ -249,7 +250,8 @@ defmodule EHealth.Web.PersonControllerTest do
         first_name
         id
         last_name
-        merged_ids
+        master_persons
+        merged_persons
         second_name
         unzr
         )
@@ -315,7 +317,8 @@ defmodule EHealth.Web.PersonControllerTest do
         first_name
         id
         last_name
-        merged_ids
+        master_persons
+        merged_persons
         phones
         second_name)
       assert expected_keys == Map.keys(hd(resp["data"]))
