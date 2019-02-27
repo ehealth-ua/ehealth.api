@@ -73,6 +73,23 @@ defmodule GraphQLWeb.Schema.MedicalProgramTypes do
       middleware(ParseIDs, id: :medical_program)
       resolve(&MedicalProgramResolver.create/2)
     end
+
+    payload field(:deactivate_medical_program) do
+      meta(:scope, ~w(medical_program:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:medical_program, :medical_program)
+      end
+
+      middleware(ParseIDs, id: :medical_program)
+      resolve(&MedicalProgramResolver.deactivate/2)
+    end
   end
 
   node object(:medical_program) do

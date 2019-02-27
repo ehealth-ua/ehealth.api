@@ -13,6 +13,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
   alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
@@ -228,6 +229,18 @@ defmodule GraphQL.Features.Context do
       for row <- table_data do
         attrs = prepare_attrs(MedicalProgram, row)
         insert(:prm, :medical_program, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following program medications exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(ProgramMedication, row)
+        insert(:prm, :program_medication, attrs)
       end
 
       {:ok, state}
@@ -1459,6 +1472,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data createMedicalProgram medicalProgram))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I deactivate medical program where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+
+      query = """
+      mutation DeactivateMedicalProgram($input: DeactivateMedicalProgramInput!) {
+        deactivateMedicalProgram(input: $input) {
+          medicalProgram {
+            databaseId
+            isActive
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MedicalProgram", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateMedicalProgram medicalProgram))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end

@@ -1,4 +1,4 @@
-Feature: Create medical programs
+Feature: Create medical program
 
   Scenario: Successful creation of a medical program
     Given my scope is "medical_program:write"
