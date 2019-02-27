@@ -40,7 +40,7 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       input do
         field(:medication_id, non_null(:id))
         field(:medical_program_id, non_null(:id))
-        field(:reimbursement, non_null(:reimbursement))
+        field(:reimbursement, non_null(:reimbursement_input))
         field(:wholesale_price, non_null(:float))
         field(:consumer_price, non_null(:float))
         field(:reimbursement_daily_dosage, non_null(:float))
@@ -54,6 +54,11 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       middleware(ParseIDs, medication_id: :medication, medical_program_id: :medical_program)
       resolve(&ProgramMedicationsResolver.create_program_medication/2)
     end
+  end
+
+  input_object :reimbursement_input do
+    field(:type, non_null(:reimbursement_type))
+    field(:reimbursement_amount, non_null(:float))
   end
 
   node object(:program_medication) do
