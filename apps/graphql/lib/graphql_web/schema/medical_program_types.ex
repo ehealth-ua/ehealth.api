@@ -56,6 +56,25 @@ defmodule GraphQLWeb.Schema.MedicalProgramTypes do
     edge(do: nil)
   end
 
+  object :medical_program_mutations do
+    payload field(:create_medical_program) do
+      meta(:scope, ~w(medical_program:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:name, non_null(:string))
+      end
+
+      output do
+        field(:medical_program, :medical_program)
+      end
+
+      middleware(ParseIDs, id: :medical_program)
+      resolve(&MedicalProgramResolver.create/2)
+    end
+  end
+
   node object(:medical_program) do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))

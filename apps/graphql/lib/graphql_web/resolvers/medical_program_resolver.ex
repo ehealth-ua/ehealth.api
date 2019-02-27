@@ -5,6 +5,7 @@ defmodule GraphQLWeb.Resolvers.MedicalProgramResolver do
   import Ecto.Query, only: [order_by: 2]
 
   alias Absinthe.Relay.Connection
+  alias Core.MedicalPrograms
   alias Core.MedicalPrograms.MedicalProgram
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -14,5 +15,11 @@ defmodule GraphQLWeb.Resolvers.MedicalProgramResolver do
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)
+  end
+
+  def create(args, %{context: %{consumer_id: consumer_id}}) do
+    with {:ok, medical_program} <- MedicalPrograms.create(consumer_id, args) do
+      {:ok, %{medical_program: medical_program}}
+    end
   end
 end

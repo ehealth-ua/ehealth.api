@@ -54,6 +54,10 @@ defmodule GraphQL.Features.Context do
     {:ok, %{conn: put_scope(conn, scope)}}
   end)
 
+  given_(~r/^my consumer ID is "(?<id>[^"]+)"$/, fn %{conn: conn}, %{id: id} ->
+    {:ok, %{conn: put_consumer_id(conn, id)}}
+  end)
+
   given_(~r/^my client type is "(?<name>[^"]+)"$/, fn %{conn: conn}, %{name: name} ->
     get_client_type_name(name)
 
@@ -1424,6 +1428,37 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data employee))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+      ~r/^I create medical program with name "(?<name>[^"]+)"$/,
+        fn %{conn: conn}, %{name: name} ->
+
+      query = """
+      mutation CreateMedicalProgram($input: CreateMedicalProgramInput!) {
+        createMedicalProgram(input: $input) {
+          medicalProgram {
+            name
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          name: name
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data createMedicalProgram medicalProgram))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
