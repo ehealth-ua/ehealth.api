@@ -3,6 +3,7 @@ pipeline {
   environment {
     PROJECT_NAME = 'ehealth'
     INSTANCE_TYPE = 'n1-highcpu-16'
+    RD = "b${UUID.randomUUID().toString()}"
   }
   stages {
     stage('Prepare instance') {
@@ -58,7 +59,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: elixir
@@ -99,7 +100,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
 """
         }
       }
@@ -158,7 +159,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -216,7 +217,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -281,7 +282,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -339,7 +340,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -404,7 +405,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -462,7 +463,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -527,7 +528,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -585,7 +586,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -650,7 +651,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -708,7 +709,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -773,7 +774,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -831,7 +832,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -900,7 +901,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${BUILD_TAG}"
+    value: "${RD}"
     effect: "NoSchedule"
   containers:
   - name: kubectl
@@ -909,7 +910,7 @@ spec:
     - cat
     tty: true
   nodeSelector:
-    node: ${BUILD_TAG}
+    node: ${RD}
 """
         }
       }
