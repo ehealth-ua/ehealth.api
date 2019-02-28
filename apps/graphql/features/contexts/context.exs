@@ -12,6 +12,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
   alias Core.Employees.Employee
   alias Core.LegalEntities.LegalEntity
+  alias Core.Medications.{INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
@@ -236,11 +237,47 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^the following medications exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Medication, row)
+        insert(:prm, :medication, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following program medications exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
         attrs = prepare_attrs(ProgramMedication, row)
         insert(:prm, :program_medication, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following medication ingredients exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Medication.Ingredient, row)
+        insert(:prm, :ingredient_medication, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following INNM dosages exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(INNMDosage, row)
+        insert(:prm, :innm_dosage, attrs)
       end
 
       {:ok, state}
@@ -701,6 +738,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListMedicationsWithFilter(
+          $first: Int!
+          $filter: MedicationFilter!
+        ) {
+          medications(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medications nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employees where (?<field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
@@ -891,6 +960,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListMedicationsWithAssocFilter(
+          $first: Int!
+          $filter: MedicationFilter!
+        ) {
+          medications(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medications nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -1167,6 +1268,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) medications sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListMedicationsWithOrderBy(
+          $first: Int!
+          $order_by: MedicationOrderBy!
+        ) {
+          medications(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medications nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """
@@ -1365,6 +1498,32 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the medication where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetMedicationQuery($id: ID!) {
+          medication(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("Medication", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data medication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{field: field, database_id: database_id} ->
       query = """
@@ -1419,6 +1578,34 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the medication where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetMedicationQuery($id: ID!) {
+          medication(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("Medication", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data medication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
@@ -1447,9 +1634,8 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-      ~r/^I create medical program with name "(?<name>[^"]+)"$/,
-        fn %{conn: conn}, %{name: name} ->
-
+    ~r/^I create medical program with name "(?<name>[^"]+)"$/,
+    fn %{conn: conn}, %{name: name} ->
       query = """
       mutation CreateMedicalProgram($input: CreateMedicalProgramInput!) {
         createMedicalProgram(input: $input) {
@@ -1480,7 +1666,6 @@ defmodule GraphQL.Features.Context do
   when_(
     ~r/^I deactivate medical program where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
-
       query = """
       mutation DeactivateMedicalProgram($input: DeactivateMedicalProgramInput!) {
         deactivateMedicalProgram(input: $input) {
@@ -1660,10 +1845,17 @@ defmodule GraphQL.Features.Context do
 
   defp prepare_value(queryable, field, value) do
     case queryable.__schema__(:type, field) do
-      :date -> Date.from_iso8601(value)
-      :datetime -> DateTime.from_iso8601(value)
-      :naive_datetime -> NaiveDateTime.from_iso8601(value)
-      _ -> {:ok, value}
+      :date ->
+        Date.from_iso8601(value)
+
+      :utc_datetime ->
+        with {:ok, datetime, _} <- DateTime.from_iso8601(value), do: {:ok, datetime}
+
+      :naive_datetime ->
+        NaiveDateTime.from_iso8601(value)
+
+      _ ->
+        {:ok, value}
     end
   end
 

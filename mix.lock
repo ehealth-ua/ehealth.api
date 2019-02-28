@@ -27,7 +27,7 @@
   "distillery": {:hex, :distillery, "2.0.12", "6e78fe042df82610ac3fa50bd7d2d8190ad287d120d3cd1682d83a44e8b34dfb", [:mix], [{:artificery, "~> 0.2", [hex: :artificery, repo: "hexpm", optional: false]}], "hexpm"},
   "earmark": {:hex, :earmark, "1.3.1", "73812f447f7a42358d3ba79283cfa3075a7580a3a2ed457616d6517ac3738cb9", [:mix], [], "hexpm"},
   "ecto": {:hex, :ecto, "2.2.11", "4bb8f11718b72ba97a2696f65d247a379e739a0ecabf6a13ad1face79844791c", [:mix], [{:db_connection, "~> 1.1", [hex: :db_connection, repo: "hexpm", optional: true]}, {:decimal, "~> 1.2", [hex: :decimal, repo: "hexpm", optional: false]}, {:mariaex, "~> 0.8.0", [hex: :mariaex, repo: "hexpm", optional: true]}, {:poison, "~> 2.2 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: true]}, {:poolboy, "~> 1.5", [hex: :poolboy, repo: "hexpm", optional: false]}, {:postgrex, "~> 0.13.0", [hex: :postgrex, repo: "hexpm", optional: true]}, {:sbroker, "~> 1.0", [hex: :sbroker, repo: "hexpm", optional: true]}], "hexpm"},
-  "ecto_filter": {:git, "https://github.com/edenlabllc/ecto_filter", "4eb664c59b49615844292570c4217c53343f7fc3", []},
+  "ecto_filter": {:git, "https://github.com/edenlabllc/ecto_filter", "942ee03e6c18fd59a53f34071de1610cfc9bec4a", []},
   "ecto_trail": {:hex, :ecto_trail, "0.2.3", "cdb031b5fab16cb08b1ac37cf4ff43103f0d686547ff825742f969fbd0ffa958", [:mix], [{:ecto, "~> 2.1", [hex: :ecto, repo: "hexpm", optional: false]}, {:postgrex, "~> 0.13.2", [hex: :postgrex, repo: "hexpm", optional: true]}], "hexpm"},
   "ehealth_logger": {:git, "https://github.com/edenlabllc/ehealth_logger.git", "d138ed1901f61947a4b7aa2d4ac8ef5e176edafb", []},
   "elixir_uuid": {:hex, :elixir_uuid, "1.2.0", "ff26e938f95830b1db152cb6e594d711c10c02c6391236900ddd070a6b01271d", [:mix], [], "hexpm"},

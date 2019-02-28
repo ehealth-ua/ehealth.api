@@ -24,9 +24,9 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
   defmacro __using__(opts) do
     quote do
       import Ecto.Query, only: [where: 3, select: 3, order_by: 2]
+      import GraphQL.Filters.ContractRequests, only: [filter: 2]
 
       alias Absinthe.Relay.Connection
-      alias GraphQL.Filters.ContractRequests, as: ContractRequestsFilter
 
       @read_repo Application.get_env(:core, :repos)[:read_repo]
 
@@ -45,7 +45,7 @@ defmodule GraphQLWeb.Resolvers.ContractRequestResolver do
       defp list_contract_requests(%{filter: filter, order_by: order_by} = args) do
         @schema
         |> where([c], c.type == ^@schema.type())
-        |> ContractRequestsFilter.filter(filter)
+        |> filter(filter)
         |> order_by(^order_by)
         |> Connection.from_query(&@read_repo.all/1, args)
       end

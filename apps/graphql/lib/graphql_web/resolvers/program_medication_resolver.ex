@@ -3,7 +3,7 @@ defmodule GraphQLWeb.Resolvers.ProgramMedicationResolver do
 
   import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
   import Ecto.Query, only: [order_by: 2]
-  import GraphQL.Helpers.Filtering, only: [filter: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Medications
@@ -12,7 +12,6 @@ defmodule GraphQLWeb.Resolvers.ProgramMedicationResolver do
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list_program_medications(%{filter: filter, order_by: order_by} = args, _resolution) do
-    # TODO: Add medication filter when it is ready (https://github.com/edenlabllc/ehealth.api/issues/4188)
     ProgramMedication
     |> filter(filter)
     |> order_by(^order_by)

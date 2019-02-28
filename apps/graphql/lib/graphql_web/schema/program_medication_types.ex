@@ -23,20 +23,19 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
         database_id: :equal,
         is_active: :equal,
         medication_request_allowed: :equal,
-        # TODO: Uncomment when medication filter is ready (https://github.com/edenlabllc/ehealth.api/issues/4188)
-        # medication: [
-        #   database_id: :equal,
-        #   name: :like,
-        #   is_active: :equal,
-        #   form: :equal,
-        #   innm_dosage: [
-        #     database_id: :equal,
-        #     name: :like
-        #   ],
-        #   manufacturer: [
-        #     name: :like
-        #   ]
-        # ],
+        medication: [
+          database_id: :equal,
+          name: :like,
+          is_active: :equal,
+          form: :equal,
+          innm_dosages: [
+            database_id: :equal,
+            name: :like
+          ],
+          manufacturer: [
+            name: :like
+          ]
+        ],
         medical_program: [
           database_id: :equal,
           is_active: :equal,

@@ -22,6 +22,7 @@ defmodule Core.Medications.Program do
 
     belongs_to(:medication, Medication, type: Ecto.UUID)
     belongs_to(:medical_program, MedicalProgram, type: Ecto.UUID)
+    has_many(:innm_dosages, through: [:medication, :innm_dosages])
 
     timestamps()
   end

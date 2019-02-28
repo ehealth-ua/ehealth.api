@@ -8,13 +8,13 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
     quote do
       import Absinthe.Resolution.Helpers, only: [on_load: 2]
       import Ecto.Query, only: [join: 4, where: 3]
+      import GraphQL.Filters.Contracts, only: [filter: 2]
       import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_parent_with_connection: 4]
 
       alias Absinthe.Relay.Connection
       alias Core.ContractRequests
       alias Core.Contracts.Storage
       alias Ecto.Query
-      alias GraphQL.Filters.Contracts, as: ContractsFilter
       alias GraphQLWeb.Loaders.IL
 
       @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -33,7 +33,7 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       def list_contracts(%{filter: filter, order_by: order_by} = args) do
         @schema
         |> where([c], c.type == ^@schema.type())
-        |> ContractsFilter.filter(filter)
+        |> filter(filter)
         |> order_by(order_by)
         |> Connection.from_query(&@read_prm_repo.all/1, args)
       end

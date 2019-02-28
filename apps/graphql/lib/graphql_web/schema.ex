@@ -23,6 +23,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.ManualMerge.ManualMergeRequest
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.Medications.Medication
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
   alias GraphQLWeb.Loaders.{IL, MPI, OPS, PRM, Uaddresses}
@@ -75,6 +76,7 @@ defmodule GraphQLWeb.Schema do
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:legal_entity_deactivation_job_queries)
     import_fields(:medical_program_queries)
+    import_fields(:medication_queries)
     import_fields(:merge_request_queries)
     import_fields(:person_queries)
     import_fields(:settlement_queries)
@@ -108,6 +110,7 @@ defmodule GraphQLWeb.Schema do
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
       %MedicalProgram{}, _ -> :medical_program
+      %Medication{}, _ -> :medication
       %ProgramMedication{}, _ -> :program_medication
       %ManualMergeRequest{}, _ -> :merge_request
       %Person{}, _ -> :person

@@ -4,12 +4,55 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+  import GraphQLWeb.Resolvers.Helpers.Load, only: [load_by_args: 2]
+
+  alias Absinthe.Relay.Node.ParseIDs
+  alias Core.Medications.Medication
+  alias GraphQLWeb.Loaders.PRM
+  alias GraphQLWeb.Middleware.Filtering
+  alias GraphQLWeb.Resolvers.MedicationResolver
+
+  object :medication_queries do
+    connection field(:medications, node_type: :medication) do
+      meta(:scope, ~w(medication:read))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      arg(:filter, :medication_filter)
+      arg(:order_by, :medication_order_by, default_value: :inserted_at_desc)
+
+      middleware(Filtering,
+        database_id: :equal,
+        name: :like,
+        is_active: :equal,
+        form: :equal,
+        innm_dosages: [database_id: :equal, name: :like],
+        manufacturer: [name: :like]
+      )
+
+      resolve(&MedicationResolver.list_medications/2)
+    end
+
+    field(:medication, :medication) do
+      meta(:scope, ~w(medication:read))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      arg(:id, non_null(:id))
+
+      middleware(ParseIDs, id: :medication)
+
+      resolve(load_by_args(PRM, Medication))
+    end
+  end
+
   input_object :medication_filter do
     field(:database_id, :uuid)
     field(:name, :string)
     field(:is_active, :boolean)
     field(:form, :string)
-    field(:innm_dosage, :innm_dosage_filter)
+    field(:innm_dosages, :innm_dosage_filter)
     field(:manufacturer, :manufacturer_filter)
   end
 
@@ -24,6 +67,14 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     value(:name_desc)
   end
 
+  connection node_type: :medication do
+    field :nodes, list_of(:medication) do
+      resolve(fn _, %{source: conn} -> {:ok, Enum.map(conn.edges, & &1.node)} end)
+    end
+
+    edge(do: nil)
+  end
+
   node object(:medication) do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
@@ -31,11 +82,11 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     field(:code_atc, non_null(list_of(:code_atc)))
     field(:form, :medication_form)
     field(:container, non_null(:container))
-    field(:package_qty, :string)
-    field(:package_min_qty, :string)
+    field(:package_qty, :integer)
+    field(:package_min_qty, :integer)
     field(:certificate, :string)
     field(:certificate_expired_at, :date)
-    field(:ingredients, non_null(list_of(:medication_ingredient)))
+    field(:ingredients, non_null(list_of(:medication_ingredient)), resolve: dataloader(PRM))
     field(:is_active, non_null(:boolean))
     field(:type, :medication_type)
     field(:inserted_at, non_null(:datetime))

@@ -1,11 +1,13 @@
 defmodule Core.Medications.Medication do
   @moduledoc false
+
   use Ecto.Schema
+
   alias Core.Medications.Medication.Ingredient
 
   @medication_type "BRAND"
 
-  @derive {Jason.Encoder, except: [:__meta__, :ingredients]}
+  @derive {Jason.Encoder, except: [:__meta__, :ingredients, :innm_dosages]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts type: :utc_datetime
@@ -26,6 +28,7 @@ defmodule Core.Medications.Medication do
     field(:updated_by, Ecto.UUID)
 
     has_many(:ingredients, Ingredient, foreign_key: :parent_id)
+    has_many(:innm_dosages, through: [:ingredients, :innm_dosage])
 
     timestamps()
   end

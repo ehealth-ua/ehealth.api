@@ -151,6 +151,14 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
           medical_program: %{
             is_active: true,
             name: "Acme"
+          },
+          medication: %{
+            name: "Lorem",
+            is_active: true,
+            form: "COATED_TABLET",
+            innm_dosages: %{
+              name: "Dosage 1"
+            }
           }
         }
       }
@@ -164,7 +172,7 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
       resp_entities = get_in(resp_body, ~w(data programMedications nodes))
       refute resp_body["errors"]
 
-      assert 3 == length(resp_entities)
+      assert 1 == length(resp_entities)
     end
   end
 
