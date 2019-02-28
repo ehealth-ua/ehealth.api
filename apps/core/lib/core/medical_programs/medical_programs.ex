@@ -74,5 +74,6 @@ defmodule Core.MedicalPrograms do
     medical_program
     |> cast(attrs, @fields_required ++ @fields_optional)
     |> validate_required(@fields_required)
+    |> validate_length(:name, max: 100)
   end
 end

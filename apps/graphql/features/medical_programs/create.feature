@@ -32,3 +32,11 @@ Feature: Create medical program
     Then the "UNPROCESSABLE_ENTITY" error should be returned
     And I should not receive requested item
 
+  Scenario: Create medical program with too long name
+    Given my scope is "medical_program:write"
+    And my client type is "NHS"
+    And my consumer ID is "a538013e-70e6-4554-83ef-8d2beedbe7b0"
+    When I create medical program with name "TooLongNamezzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+    Then the "UNPROCESSABLE_ENTITY" error should be returned
+    And I should not receive requested item
+
