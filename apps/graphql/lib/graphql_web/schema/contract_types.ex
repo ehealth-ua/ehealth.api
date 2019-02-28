@@ -75,10 +75,8 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:nhs_signer_base, :string)
     field(:nhs_payment_method, :nhs_payment_method)
     field(:attached_documents, non_null(list_of(:contract_document)))
-
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
 
     resolve_type(fn
       %{type: @capitation}, _ -> :capitation_contract

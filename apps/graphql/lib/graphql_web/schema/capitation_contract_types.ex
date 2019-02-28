@@ -141,9 +141,14 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
       resolve: &CapitationContractResolver.get_attached_documents/3
     )
 
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    # TODO: Model should return :datetime type
+    field(:inserted_at, non_null(:datetime),
+      resolve: fn _, res -> DateTime.from_naive(res.source.inserted_at, "Etc/UTC") end
+    )
+
+    field(:updated_at, non_null(:datetime),
+      resolve: fn _, res -> DateTime.from_naive(res.source.updated_at, "Etc/UTC") end
+    )
 
     connection field(:contractor_employee_divisions, node_type: :contract_employee_division) do
       arg(:filter, :contractor_employee_division_filter)

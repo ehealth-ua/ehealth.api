@@ -148,9 +148,15 @@ defmodule GraphQLWeb.Schema.CapitationContractRequestTypes do
     field(:external_contractor_flag, non_null(:boolean))
     field(:external_contractors, list_of(:external_contractor))
     field(:nhs_contract_price, :float)
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+
+    # TODO: Model should return :datetime type
+    field(:inserted_at, non_null(:datetime),
+      resolve: fn _, res -> DateTime.from_naive(res.source.inserted_at, "Etc/UTC") end
+    )
+
+    field(:updated_at, non_null(:datetime),
+      resolve: fn _, res -> DateTime.from_naive(res.source.updated_at, "Etc/UTC") end
+    )
   end
 
   object :contractor_employee_division do

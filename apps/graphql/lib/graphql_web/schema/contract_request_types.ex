@@ -145,9 +145,8 @@ defmodule GraphQLWeb.Schema.ContractRequestTypes do
     field(:to_approve_content, :json)
     field(:to_decline_content, :json)
     field(:to_sign_content, :json)
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
 
     resolve_type(fn
       %{type: @capitation_type}, _ -> :capitation_contract_request

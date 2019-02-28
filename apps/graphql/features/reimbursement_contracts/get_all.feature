@@ -95,14 +95,14 @@ Feature: Get all reimbursement contracts
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field       | direction  | expected_value               | alternate_value              |
-      | endDate     | ascending  | "2018-07-12"                 | "2018-11-22"                 |
-      | endDate     | descending | "2018-11-22"                 | "2018-07-12"                 |
-      | insertedAt  | ascending  | "2016-01-15T14:00:00.000000" | "2017-05-13T17:00:00.000000" |
-      | insertedAt  | descending | "2017-05-13T17:00:00.000000" | "2016-01-15T14:00:00.000000" |
-      | isSuspended | ascending  | false                        | true                         |
-      | isSuspended | descending | true                         | false                        |
-      | startDate   | ascending  | "2016-08-01"                 | "2016-10-30"                 |
-      | startDate   | descending | "2016-10-30"                 | "2016-08-01"                 |
-      | status      | ascending  | "TERMINATED"                 | "VERIFIED"                   |
-      | status      | descending | "VERIFIED"                   | "TERMINATED"                 |
+      | field       | direction  | expected_value                | alternate_value               |
+      | endDate     | ascending  | "2018-07-12"                  | "2018-11-22"                  |
+      | endDate     | descending | "2018-11-22"                  | "2018-07-12"                  |
+      | insertedAt  | ascending  | "2016-01-15T14:00:00.000000Z" | "2017-05-13T17:00:00.000000Z" |
+      | insertedAt  | descending | "2017-05-13T17:00:00.000000Z" | "2016-01-15T14:00:00.000000Z" |
+      | isSuspended | ascending  | false                         | true                          |
+      | isSuspended | descending | true                          | false                         |
+      | startDate   | ascending  | "2016-08-01"                  | "2016-10-30"                  |
+      | startDate   | descending | "2016-10-30"                  | "2016-08-01"                  |
+      | status      | ascending  | "TERMINATED"                  | "VERIFIED"                    |
+      | status      | descending | "VERIFIED"                    | "TERMINATED"                  |
