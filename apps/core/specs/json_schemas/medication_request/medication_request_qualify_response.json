@@ -55,6 +55,18 @@
             "reimbursement_amount": {
               "type": "number"
             },
+            "wholesale_price": {
+              "type": "number"
+            },
+            "consumer_price": {
+              "type": "number"
+            },
+            "reimbursement_daily_dosage": {
+              "type": "number"
+            },
+            "estimated_payment_amount": {
+              "type": "number"
+            },
             "package_qty": {
               "type": "number"
             },

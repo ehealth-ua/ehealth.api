@@ -51,7 +51,11 @@ defmodule EHealth.Web.MedicationRequestView do
       "manufacturer" => medication.manufacturer,
       "package_qty" => medication.package_qty,
       "package_min_qty" => medication.package_min_qty,
-      "reimbursement_amount" => program_medication.reimbursement.reimbursement_amount
+      "reimbursement_amount" => program_medication.reimbursement.reimbursement_amount,
+      "wholesale_price" => program_medication.wholesale_price,
+      "consumer_price" => program_medication.consumer_price,
+      "reimbursement_daily_dosage" => program_medication.reimbursement_daily_dosage,
+      "estimated_payment_amount" => program_medication.estimated_payment_amount
     }
   end
 end
