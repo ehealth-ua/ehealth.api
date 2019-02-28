@@ -25,7 +25,11 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
         edrpou: :like,
         name: :like,
         nhs_verified: :equal,
-        nhs_reviewed: :equal
+        nhs_reviewed: :equal,
+        addresses: [
+          type: :equal,
+          settlement_id: :equal
+        ]
       )
 
       resolve(&LegalEntityResolver.list_legal_entities/2)
@@ -49,6 +53,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     field(:name, :string)
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
+    field(:addresses, :address_filter)
   end
 
   enum :legal_entity_order_by do

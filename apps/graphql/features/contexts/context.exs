@@ -1108,6 +1108,35 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:\d+|\w+|"[^"]+"))$/,
+    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
+          legalEntities(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """

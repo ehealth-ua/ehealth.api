@@ -3,6 +3,11 @@ defmodule GraphQLWeb.Schema.AddressTypes do
 
   use Absinthe.Schema.Notation
 
+  input_object :address_filter do
+    field(:type, :string)
+    field(:settlement_id, :string)
+  end
+
   object :address do
     field(:type, non_null(:address_type))
     field(:country, non_null(:string))
