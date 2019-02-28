@@ -181,13 +181,11 @@ defmodule Core.ContractRequests.Renderer do
     divisions = external_contractor["divisions"] || []
 
     divisions =
-      Enum.map(divisions, fn %{"id" => id, "medical_service" => medical_service} ->
-        division =
-          references
-          |> Map.get(:division)
-          |> Map.get(id) || %{}
-
-        %{"id" => id, "name" => division.name, "medical_service" => medical_service}
+      Enum.reduce(divisions, [], fn %{"id" => id, "medical_service" => medical_service}, acc ->
+        case get_in(references, [:division, id]) do
+          nil -> acc
+          division -> [%{"id" => id, "name" => division.name, "medical_service" => medical_service} | acc]
+        end
       end)
 
     external_contractor

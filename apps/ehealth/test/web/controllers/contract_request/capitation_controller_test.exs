@@ -9,12 +9,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Contracts.CapitationContract
+  alias Core.Divisions.Division
   alias Core.Employees.Employee
+  alias Core.EventManagerRepo
+  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
-  alias Core.EventManagerRepo
-  alias Core.EventManager.Event
 
   @capitation "capitation"
   @contract_request_status_new CapitationContractRequest.status(:new)
@@ -1756,8 +1757,36 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
        }}
     end
 
-    test "success showing data for correct MPS client", %{conn: conn} = context do
+    test "success showing data for correct MPS client with inactive division", %{conn: conn} do
       msp()
+
+      phones = [%{"type" => "MOBILE", "number" => "+380631111111"}]
+      today = Date.utc_today()
+      end_date = Date.add(today, 50)
+      legal_entity = insert(:prm, :legal_entity, type: "MSP")
+      division = insert(:prm, :division, legal_entity: legal_entity, phones: phones)
+
+      inactive_division =
+        insert(:prm, :division, status: Division.status(:inactive), legal_entity: legal_entity, phones: phones)
+
+      %{id: contract_request_id} =
+        insert(:il, :capitation_contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          external_contractors: [
+            %{
+              "legal_entity_id" => legal_entity.id,
+              "divisions" => [
+                %{"id" => division.id, "medical_service" => "PHC_SERVICES"},
+                %{"id" => inactive_division.id, "medical_service" => "PHC_SERVICES"}
+              ],
+              "contract" => %{
+                "number" => "1234567",
+                "issued_at" => to_string(today),
+                "expires_at" => to_string(end_date)
+              }
+            }
+          ]
+        )
 
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
@@ -1765,11 +1794,17 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       resp =
         conn
-        |> put_client_id_header(context.legal_entity_id_1)
-        |> get(contract_request_path(conn, :show, @capitation, context.contract_request_id_1))
+        |> put_client_id_header(legal_entity.id)
+        |> get(contract_request_path(conn, :show, @capitation, contract_request_id))
         |> json_response(200)
 
-      assert resp
+      division_ids =
+        resp
+        |> get_in(["data", "external_contractors", Access.all(), "divisions", Access.all(), "id"])
+        |> Enum.flat_map(& &1)
+
+      assert division.id in division_ids
+      assert inactive_division.id not in division_ids
 
       Enum.each(resp["urgent"]["documents"], fn urgent_data ->
         assert %{"type" => type} = urgent_data
