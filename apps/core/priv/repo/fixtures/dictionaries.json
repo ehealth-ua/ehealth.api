@@ -14639,7 +14639,8 @@
   {
     "name": "eHealth/SNOMED/service_request_categories",
     "values": {
-      "409063005": "Counselling"
+      "409063005": "Counselling",
+      "108252007": "Laboratory procedure"
     },
     "labels": [
       "SYSTEM",
