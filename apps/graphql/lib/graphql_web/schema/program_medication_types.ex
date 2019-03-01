@@ -90,10 +90,10 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
         field(:medication_id, non_null(:id))
         field(:medical_program_id, non_null(:id))
         field(:reimbursement, non_null(:create_reimbursement_input))
-        field(:wholesale_price, non_null(:float))
-        field(:consumer_price, non_null(:float))
-        field(:reimbursement_daily_dosage, non_null(:float))
-        field(:estimated_payment_amount, non_null(:float))
+        field(:wholesale_price, :float)
+        field(:consumer_price, :float)
+        field(:reimbursement_daily_dosage, :float)
+        field(:estimated_payment_amount, :float)
       end
 
       output do
@@ -139,10 +139,10 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
     field(:medical_program, non_null(:medical_program), resolve: dataloader(PRM))
     field(:medication, non_null(:medication), resolve: dataloader(PRM))
     field(:reimbursement, non_null(:reimbursement))
-    field(:wholesale_price, non_null(:float))
-    field(:consumer_price, non_null(:float))
-    field(:reimbursement_daily_dosage, non_null(:float))
-    field(:estimated_payment_amount, non_null(:float))
+    field(:wholesale_price, :float)
+    field(:consumer_price, :float)
+    field(:reimbursement_daily_dosage, :float)
+    field(:estimated_payment_amount, :float)
     field(:is_active, non_null(:boolean))
     field(:medication_request_allowed, non_null(:boolean))
     field(:inserted_at, non_null(:datetime))
@@ -155,7 +155,6 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
   end
 
   enum :reimbursement_type do
-    value(:external, as: "EXTERNAL")
     value(:fixed, as: "FIXED")
   end
 end

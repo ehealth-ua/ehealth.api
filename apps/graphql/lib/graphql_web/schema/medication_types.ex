@@ -79,7 +79,7 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
     field(:manufacturer, :manufacturer)
-    field(:code_atc, non_null(list_of(:code_atc)))
+    field(:atc_codes, non_null(list_of(:string)), resolve: fn _, res -> res.source.code_atc end)
     field(:form, :medication_form)
     field(:container, non_null(:container))
     field(:package_qty, :integer)
@@ -109,10 +109,6 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     value(:pressurised_inhalation, as: "PRESSURISED_INHALATION")
     value(:sublingval_tablet, as: "SUBLINGVAL_TABLET")
     value(:tablet, as: "TABLET")
-  end
-
-  object :code_atc do
-    field(:code_atc, non_null(:string))
   end
 
   object :container do

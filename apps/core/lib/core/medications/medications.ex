@@ -514,7 +514,7 @@ defmodule Core.Medications do
     program_medication
     |> cast(attrs, @fields_program_medication_required ++ @fields_program_medication_optional)
     |> validate_required(@fields_program_medication_required)
-    |> cast_embed(:reimbursement, with: &Reimbursement.changeset/2)
+    |> cast_embed(:reimbursement, with: &Reimbursement.changeset/2, required: true)
     |> foreign_key_constraint(:medication_id)
     |> foreign_key_constraint(:medical_program_id)
     |> unique_constraint(:medication_id, opts)

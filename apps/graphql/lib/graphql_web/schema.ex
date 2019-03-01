@@ -23,6 +23,7 @@ defmodule GraphQLWeb.Schema do
   alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.ManualMerge.ManualMergeRequest
   alias Core.MedicalPrograms.MedicalProgram
+  alias Core.Medications.INNMDosage
   alias Core.Medications.Medication
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
@@ -109,6 +110,7 @@ defmodule GraphQLWeb.Schema do
       %Employee{}, _ -> :employee
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
+      %INNMDosage{}, _ -> :innm_dosage
       %MedicalProgram{}, _ -> :medical_program
       %Medication{}, _ -> :medication
       %ProgramMedication{}, _ -> :program_medication

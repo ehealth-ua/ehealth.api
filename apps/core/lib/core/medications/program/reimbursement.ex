@@ -5,10 +5,8 @@ defmodule Core.Medications.Program.Reimbursement do
   import Ecto.Changeset
 
   @type_fixed "FIXED"
-  @type_external "EXTERNAL"
 
   def type(:fixed), do: @type_fixed
-  def type(:external), do: @type_external
 
   @primary_key false
   embedded_schema do
@@ -22,7 +20,7 @@ defmodule Core.Medications.Program.Reimbursement do
     entity
     |> cast(params, fields)
     |> validate_required(fields)
-    |> validate_inclusion(:type, [@type_fixed, @type_external])
+    |> validate_inclusion(:type, [@type_fixed])
     |> validate_number(:reimbursement_amount, greater_than_or_equal_to: 0)
   end
 end

@@ -306,7 +306,7 @@ create table _temp_program_medications
 INSERT INTO _temp_program_medications(id, reimbursement, is_active, medication_request_allowed, inserted_by, updated_by, medication_id, medical_program_id, inserted_at, updated_at)
 SELECT
 	uuid_generate_v4() AS id,
-  ('{"type": "fixed", "reimbursement_amount": ' || round(cast(REESTR.amount_reimbursement as NUMERIC),2) || '}')::jsonb
+  ('{"type": "FIXED", "reimbursement_amount": ' || round(cast(REESTR.amount_reimbursement as NUMERIC),2) || '}')::jsonb
  		as reimbursement,
   --REESTR.id, REESTR.amount_reimbursement,
   TRUE as is_active,
