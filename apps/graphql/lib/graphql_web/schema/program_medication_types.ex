@@ -89,7 +89,7 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       input do
         field(:medication_id, non_null(:id))
         field(:medical_program_id, non_null(:id))
-        field(:reimbursement, non_null(:reimbursement_input))
+        field(:reimbursement, non_null(:create_reimbursement_input))
         field(:wholesale_price, non_null(:float))
         field(:consumer_price, non_null(:float))
         field(:reimbursement_daily_dosage, non_null(:float))
@@ -103,10 +103,34 @@ defmodule GraphQLWeb.Schema.ProgramMedicationTypes do
       middleware(ParseIDs, medication_id: :medication, medical_program_id: :medical_program)
       resolve(&ProgramMedicationResolver.create_program_medication/2)
     end
+
+    payload field(:update_program_medication) do
+      meta(:scope, ~w(program_medication:write))
+      meta(:client_metadata, ~w(consumer_id client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:is_active, :boolean)
+        field(:medication_request_allowed, :boolean)
+        field(:reimbursement, :update_reimbursement_input)
+      end
+
+      output do
+        field(:program_medication, :program_medication)
+      end
+
+      middleware(ParseIDs, id: :program_medication)
+      resolve(&ProgramMedicationResolver.update_program_medication/2)
+    end
   end
 
-  input_object :reimbursement_input do
+  input_object :create_reimbursement_input do
     field(:type, non_null(:reimbursement_type))
+    field(:reimbursement_amount, non_null(:float))
+  end
+
+  input_object :update_reimbursement_input do
     field(:reimbursement_amount, non_null(:float))
   end
 

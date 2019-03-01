@@ -623,13 +623,14 @@ defmodule Core.Medications do
     end
   end
 
-  def update_program_medication(%ProgramMedication{} = program_medication, attrs, headers) do
+  def update_program_medication(%ProgramMedication{} = program_medication, %{} = attrs, consumer_id)
+      when is_binary(consumer_id) do
     case JsonSchema.validate(:program_medication_update, attrs) do
       :ok ->
-        consumer_id = get_consumer_id(headers)
+        attrs = Map.put(attrs, "updated_by", consumer_id)
 
         program_medication
-        |> changeset(put_consumer_id(attrs, headers))
+        |> changeset(attrs)
         |> PRMRepo.update_and_log(consumer_id)
         |> preload_references()
 

@@ -29,4 +29,14 @@ defmodule GraphQLWeb.Resolvers.ProgramMedicationResolver do
       {:ok, %{program_medication: program_medication}}
     end
   end
+
+  def update_program_medication(args, %{context: %{consumer_id: consumer_id}}) do
+    {id, args} = Map.pop(args, :id)
+    args = atoms_to_strings(args)
+
+    with {:ok, program_medication} <- Medications.fetch_program_medication(id: id),
+         {:ok, program_medication} <- Medications.update_program_medication(program_medication, args, consumer_id) do
+      {:ok, %{program_medication: program_medication}}
+    end
+  end
 end

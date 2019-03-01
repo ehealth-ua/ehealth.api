@@ -1723,6 +1723,38 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(
+    ~r/^I update a program medication field (?<field>\w+) with (?<value>(?:\d+|\w+|"[^"]+")) where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
+      query = """
+        mutation UpdateProgramMedicationMutation($input: UpdateProgramMedicationInput!) {
+          updateProgramMedication(input: $input) {
+            programMedication {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          :id => Node.to_global_id("ProgramMedication", database_id),
+          field => Jason.decode!(value)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data updateProgramMedication programMedication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]
 
