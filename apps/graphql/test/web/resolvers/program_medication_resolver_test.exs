@@ -118,7 +118,7 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
 
   describe "list" do
     test "success", %{conn: conn} do
-      gen_innm_dosage = &insert(:prm, :medication, type: "INNM_DOSAGE", name: &1).id
+      gen_innm_dosage = &insert(:prm, :innm_dosage, name: &1).id
       gen_medical_program = &insert(:prm, :medical_program, name: &1, is_active: true).id
 
       gen_medication =
@@ -131,13 +131,21 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
 
       for i <- 1..3 do
         medication_id = gen_medication.("Lorem medication #{i}")
+        medication2_id = gen_medication.("Next medication #{i}")
         innm_dosage_id = gen_innm_dosage.("Dosage #{i}")
+        innm_dosage2_id = insert(:prm, :innm_dosage, name: "Dosage #{i}", is_active: false).id
 
         insert(:prm, :ingredient_medication, parent_id: medication_id, medication_child_id: innm_dosage_id)
+        insert(:prm, :ingredient_medication, parent_id: medication2_id, medication_child_id: innm_dosage2_id)
 
         insert(:prm, :program_medication,
           medication_id: medication_id,
           medical_program_id: gen_medical_program.("Acme medical program #{i}")
+        )
+
+        insert(:prm, :program_medication,
+          medication_id: medication2_id,
+          medical_program_id: gen_medical_program.("Next Acme medical program #{i}")
         )
       end
 
@@ -153,7 +161,7 @@ defmodule GraphQLWeb.ProgramMedicationResolverTest do
             name: "Acme"
           },
           medication: %{
-            name: "Lorem",
+            name: "medication",
             is_active: true,
             form: "COATED_TABLET",
             innm_dosages: %{
