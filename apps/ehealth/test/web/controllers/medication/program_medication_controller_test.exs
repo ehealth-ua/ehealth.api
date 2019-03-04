@@ -3,16 +3,9 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
 
   use EHealth.Web.ConnCase, async: true
 
+  alias Core.Medications.Program, as: ProgramMedication
   alias Ecto.UUID
   alias ExMachina.Sequence
-  alias Core.Medications.Program, as: ProgramMedication
-
-  describe "index" do
-    test "empty program_medications list", %{conn: conn} do
-      conn = get(conn, program_medication_path(conn, :index))
-      assert json_response(conn, 200)["data"] == []
-    end
-  end
 
   describe "search" do
     setup %{conn: conn} do
