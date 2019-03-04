@@ -71,7 +71,7 @@ defmodule Core.V2.LegalEntities do
   defp update_type_allow?([%LegalEntity{type: @pharmacy} = legal_entity], @msp_pharmacy), do: {:ok, legal_entity}
 
   defp update_type_allow?([%LegalEntity{type: current_type}], type),
-    do: {:error, {:not_implemented, "LegalEntity with #{current_type} could not be updated to #{type} for now"}}
+    do: {:error, {:conflict, "LegalEntity with #{current_type} could not be updated to #{type} for now"}}
 
   defdelegate list(params), to: LegalEntities
   defdelegate check_status(legal_entity), to: LegalEntities

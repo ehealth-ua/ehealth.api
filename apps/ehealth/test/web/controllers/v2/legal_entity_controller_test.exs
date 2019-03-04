@@ -445,7 +445,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(501)
+        |> json_response(409)
 
       assert "LegalEntity with MSP could not be updated to PHARMACY for now" == resp["error"]["message"]
     end
@@ -527,7 +527,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(501)
+        |> json_response(409)
 
       assert "LegalEntity with PHARMACY could not be updated to MSP for now" == resp["error"]["message"]
     end
@@ -633,7 +633,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
                |> put_req_header("x-consumer-id", UUID.generate())
                |> put_req_header("edrpou", legal_entity_params["edrpou"])
                |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-               |> json_response(501)
+               |> json_response(409)
 
       assert "LegalEntity with MSP_PHARMACY could not be updated to MSP for now" == resp["error"]["message"]
     end
@@ -661,7 +661,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
                |> put_req_header("x-consumer-id", UUID.generate())
                |> put_req_header("edrpou", legal_entity_params["edrpou"])
                |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-               |> json_response(501)
+               |> json_response(409)
 
       assert "LegalEntity with MSP_PHARMACY could not be updated to PHARMACY for now" == resp["error"]["message"]
     end
