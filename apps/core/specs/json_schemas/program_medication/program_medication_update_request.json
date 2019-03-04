@@ -21,10 +21,7 @@
           "minimum": 0,
           "description": "Amount to reimburse for one medication_unit by medical_program"
         }
-      },
-      "required": [
-        "type"
-      ]
+      }
     },
     "wholesale_price": {
       "type": "number",

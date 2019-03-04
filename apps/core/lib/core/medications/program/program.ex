@@ -10,7 +10,6 @@ defmodule Core.Medications.Program do
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts type: :utc_datetime
   schema "program_medications" do
-    embeds_one(:reimbursement, Reimbursement)
     field(:medication_request_allowed, :boolean, default: true)
     field(:is_active, :boolean, default: true)
     field(:wholesale_price, :float)
@@ -19,6 +18,8 @@ defmodule Core.Medications.Program do
     field(:estimated_payment_amount, :float)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
+
+    embeds_one(:reimbursement, Reimbursement, on_replace: :update)
 
     belongs_to(:medication, Medication, type: Ecto.UUID)
     belongs_to(:medical_program, MedicalProgram, type: Ecto.UUID)
