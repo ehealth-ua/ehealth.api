@@ -11873,3 +11873,7 @@ WHERE name IN (
 	'Сальбутамол 100 MKG інгаляція під тиском, суспензія'
 )
 AND is_active = TRUE ;
+
+
+UPDATE program_medications
+SET reimbursement = jsonb_set(reimbursement, '{reimbursement_amount}', to_jsonb((reimbursement ->> 'reimbursement_amount')::NUMERIC));
