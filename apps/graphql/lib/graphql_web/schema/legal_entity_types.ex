@@ -259,6 +259,7 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
     value(:nhs, as: "NHS")
     value(:msp, as: "MSP")
     value(:pharmacy, as: "PHARMACY")
+    value(:msp_pharmacy, as: "MSP_PHARMACY")
   end
 
   enum :legal_entity_status do

@@ -32,15 +32,32 @@ defmodule GraphQLWeb.Dataloader.RPC do
       %{source | batches: %{}, results: results}
     end
 
-    defp handle_batch(source, {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids}) do
-      filter = [{foreign_key, :in, MapSet.to_list(foreign_ids)}]
+    defp handle_batch(source, batch_key) do
+      case batch_key do
+        {{{rpc_function, :one, _item_key, foreign_key}, _}, foreign_ids} ->
+          do_handle_batch(source, :one, MapSet.to_list(foreign_ids), rpc_function, foreign_key)
+
+        {{rpc_function, :many, foreign_key, args}, item_ids} ->
+          do_handle_batch(source, :many, MapSet.to_list(item_ids), rpc_function, foreign_key, args)
+
+        _ ->
+          raise "Invalid batch key"
+      end
+    end
+
+    defp do_handle_batch(_, :one, [], _, _), do: %{}
+
+    defp do_handle_batch(source, :one, foreign_ids, rpc_function, foreign_key) do
+      filter = [{foreign_key, :in, foreign_ids}]
 
       with {:ok, results} <- @rpc_worker.run(source.rpc_name, source.rpc_module, rpc_function, [filter]) do
         Enum.into(results, %{}, fn item -> {Map.get(item, foreign_key), item} end)
       end
     end
 
-    defp handle_batch(source, {{rpc_function, :many, foreign_key, args}, item_ids}) do
+    defp do_handle_batch(_, :many, [], _, _, _), do: %{}
+
+    defp do_handle_batch(source, :many, item_ids, rpc_function, foreign_key, args) do
       with {:ok, params} <- prepare_params(args, foreign_key, item_ids),
            {:ok, results} <- @rpc_worker.run(source.rpc_name, source.rpc_module, rpc_function, params) do
         Enum.group_by(results, &Map.get(&1, foreign_key))
@@ -52,7 +69,11 @@ defmodule GraphQLWeb.Dataloader.RPC do
       item_id = Map.get(item, item_key)
 
       update_in(source.batches, fn batches ->
-        Map.update(batches, batch_key, MapSet.new([item_id]), &MapSet.put(&1, item_id))
+        if item_id != nil do
+          Map.update(batches, batch_key, MapSet.new([item_id]), &MapSet.put(&1, item_id))
+        else
+          batches
+        end
       end)
     end
 
@@ -65,6 +86,7 @@ defmodule GraphQLWeb.Dataloader.RPC do
       batch =
         Enum.find(results, fn
           {{^batch_key, _item_ids}, {:ok, value}} -> value
+          _ -> %{}
         end)
 
       case batch do
@@ -86,9 +108,9 @@ defmodule GraphQLWeb.Dataloader.RPC do
     defp resolve_item_key({{_, :one, item_key, _}, _}), do: item_key
     defp resolve_item_key(_), do: :id
 
-    defp prepare_params(args, foreign_key, %{} = item_ids) do
+    defp prepare_params(args, foreign_key, item_ids) when is_list(item_ids) do
       filter = args[:filter] || []
-      filter = [{foreign_key, :in, MapSet.to_list(item_ids)} | filter]
+      filter = [{foreign_key, :in, item_ids} | filter]
       order_by = Map.get(args, :order_by, [])
 
       with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
