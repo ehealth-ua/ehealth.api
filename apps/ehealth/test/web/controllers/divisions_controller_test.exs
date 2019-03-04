@@ -210,6 +210,26 @@ defmodule EHealth.Web.DivisionsControllerTest do
     refute %{} == json_response(conn, 422)["error"]
   end
 
+  test "create division AMBULANT_CLINIC to MSP_PHARMACY", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity, type: "MSP_PHARMACY")
+    division_params = get_division()
+
+    params =
+      get_division()
+      |> Map.get("addresses", [])
+      |> Enum.at(0)
+      |> Map.take(~w(settlement_id region_id district_id area))
+      |> Map.put_new("region_id", UUID.generate())
+      |> Map.put_new("district_id", nil)
+
+    uaddresses_mock_expect(params)
+
+    conn = put_client_id_header(conn, legal_entity.id)
+    conn = post(conn, division_path(conn, :create), division_params)
+
+    refute %{} == json_response(conn, 201)["data"]
+  end
+
   test "create division with empty required address field", %{conn: conn} do
     %{id: id} = insert(:prm, :legal_entity)
     division_data = get_division()

@@ -258,7 +258,10 @@ config :core, :legal_entity_employee_types,
 
 config :core, :legal_entity_division_types,
   msp: {:system, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
-  pharmacy: {:system, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}
+  pharmacy: {:system, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]},
+  msp_pharmacy:
+    {:system, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
+     ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]}
 
 config :core, :employee_specialities_types,
   doctor: {:system, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
