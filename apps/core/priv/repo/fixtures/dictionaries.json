@@ -12065,8 +12065,8 @@
       "cm": "сантиметр",
       "kg/m2": "кілограм на метр квадратний",
       "mmol/L": "мілімоль на літр",
-      "day":"доба",
-      "administration":"прийом"
+      "day": "доба",
+      "administration": "прийом"
     },
     "labels": [
       "SYSTEM",
@@ -14735,6 +14735,19 @@
     "values": {
       "MSP": "заклад з надання медичних послуг",
       "PHARMACY": "Аптека"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "CONTRACT_STATUS_REASON",
+    "values": {
+      "AUTO_DEACTIVATION_LEGAL_ENTITY": "Деативація юридичної особи",
+      "AUTO_EXPIRED": "Закінчення строку дії контракту",
+      "DEFAULT": "По замовчуванню"
     },
     "labels": [
       "SYSTEM",
