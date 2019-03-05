@@ -13,7 +13,8 @@ config :graphql, GraphQLWeb.Endpoint,
   render_errors: [
     view: GraphQLWeb.Resolvers.Helpers.ErrorView,
     accepts: ~w(json)
-  ]
+  ],
+  instrumenters: [LoggerJSON.Phoenix.Instruments]
 
 # Config Jason as default Json encoder for Phoenix
 config :phoenix, :format_encoders, json: Jason
