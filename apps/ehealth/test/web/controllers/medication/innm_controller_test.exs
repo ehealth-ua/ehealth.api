@@ -39,7 +39,7 @@ defmodule EHealth.Web.INNMControllerTest do
       insert(:prm, :innm, is_active: false)
 
       conn = get(conn, innm_path(conn, :index))
-      assert 24 == length(json_response(conn, 200)["data"])
+      assert 1 == length(json_response(conn, 200)["data"])
     end
 
     test "paging", %{conn: conn} do
@@ -48,7 +48,7 @@ defmodule EHealth.Web.INNMControllerTest do
       # default entities per page is 50
       conn = get(conn, innm_path(conn, :index))
       first_page = json_response(conn, 200)["data"]
-      assert 44 == length(first_page)
+      assert 21 == length(first_page)
 
       # same order for first page
       conn = get(conn, innm_path(conn, :index))
@@ -66,8 +66,8 @@ defmodule EHealth.Web.INNMControllerTest do
       page_meta = %{
         "page_number" => 3,
         "page_size" => 5,
-        "total_pages" => 9,
-        "total_entries" => 44
+        "total_pages" => 5,
+        "total_entries" => 21
       }
 
       assert page_meta == resp["paging"]

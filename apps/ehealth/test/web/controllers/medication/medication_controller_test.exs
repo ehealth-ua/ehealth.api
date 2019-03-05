@@ -61,8 +61,8 @@ defmodule EHealth.Web.MedicationControllerTest do
       conn = get(conn, medication_path(conn, :drugs), %{"page" => "2", "page_size" => "1"})
       paging = json_response(conn, 200)["paging"]
       assert 1 == paging["page_size"]
-      assert 53 == paging["total_entries"]
-      assert 53 == paging["total_pages"]
+      assert 2 == paging["total_entries"]
+      assert 2 == paging["total_pages"]
       assert 2 == paging["page_number"]
     end
 
@@ -80,8 +80,8 @@ defmodule EHealth.Web.MedicationControllerTest do
 
       conn = get(conn, medication_path(conn, :drugs), innm_name: "бу")
       resp = json_response(conn, 200)
-      assert 11 == length(resp["data"])
-      assert 11 == resp["paging"]["total_entries"]
+      assert 3 == length(resp["data"])
+      assert 3 == resp["paging"]["total_entries"]
     end
 
     test "find by INNM name", %{conn: conn} do
@@ -243,8 +243,8 @@ defmodule EHealth.Web.MedicationControllerTest do
       page_meta = %{
         "page_number" => 2,
         "page_size" => 10,
-        "total_pages" => 28,
-        "total_entries" => 279
+        "total_pages" => 3,
+        "total_entries" => 21
       }
 
       assert page_meta == resp["paging"]

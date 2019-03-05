@@ -25,8 +25,12 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
     end
 
     test "search by is_active", %{conn: conn} do
+      %{id: id} = insert(:prm, :medical_program, is_active: true)
+      insert(:prm, :medical_program, is_active: false)
       conn = get(conn, medical_program_path(conn, :index), %{"is_active" => true})
       resp = json_response(conn, 200)["data"]
+      assert 1 == length(resp)
+      assert id == Map.get(hd(resp), "id")
       assert Map.get(hd(resp), "is_active")
     end
 

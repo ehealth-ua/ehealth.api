@@ -34,8 +34,8 @@ defmodule EHealth.Web.INNMDosageControllerTest do
       page_meta = %{
         "page_number" => 2,
         "page_size" => 10,
-        "total_pages" => 8,
-        "total_entries" => 72
+        "total_pages" => 3,
+        "total_entries" => 21
       }
 
       assert page_meta == resp["paging"]
