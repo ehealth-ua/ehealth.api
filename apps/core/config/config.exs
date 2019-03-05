@@ -2,6 +2,7 @@ use Mix.Config
 
 config :core,
   namespace: Core,
+  env: Mix.env(),
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
   ecto_repos: [Core.Repo, Core.PRMRepo, Core.FraudRepo, Core.EventManagerRepo]
 

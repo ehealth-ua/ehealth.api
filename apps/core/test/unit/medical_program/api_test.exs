@@ -7,7 +7,7 @@ defmodule Core.MedicalProgram.APITest do
 
   test "list/1" do
     insert(:prm, :medical_program)
-    assert %Page{entries: [_, _]} = MedicalPrograms.list(%{})
+    assert %Page{entries: [_]} = MedicalPrograms.list(%{})
   end
 
   test "get_by_id/1" do
