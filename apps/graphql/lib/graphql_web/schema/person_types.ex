@@ -24,6 +24,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
         :authentication_methods => [:personal, :authentication_method, :phone_number],
         :tax_id => [:identity, :tax_id],
         :unzr => [:identity, :unzr],
+        :status => [:status],
         [:documents, :number] => [:identity, :document, :number],
         [:documents, :type] => [:identity, :document, :type]
       })
@@ -35,6 +36,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
         authentication_methods: :contains,
         tax_id: :equal,
         unzr: :equal,
+        status: :equal,
         documents: [
           type: :equal,
           number: :equal
@@ -57,6 +59,7 @@ defmodule GraphQLWeb.Schema.PersonTypes do
   input_object :person_filter do
     field(:personal, non_null(:person_personal_filter))
     field(:identity, non_null(:person_identity_filter))
+    field(:status, :person_status)
   end
 
   input_object :person_personal_filter do
