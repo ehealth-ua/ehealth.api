@@ -488,8 +488,7 @@
                         "type": "string"
                       },
                       "country": {
-                        "type": "string",
-                        "description": "Dictionary: COUNTRY"
+                        "type": "string"
                       }
                     },
                     "required": [
