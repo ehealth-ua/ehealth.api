@@ -17,6 +17,8 @@ defmodule Core.LegalEntities.Renderer do
     })
   end
 
+  def render("accreditation.json", %MedicalServiceProvider{accreditation: nil}), do: nil
+
   def render("accreditation.json", %MedicalServiceProvider{accreditation: accreditation}) do
     Map.take(accreditation, ~w(category issued_date expiry_date order_no order_date))
   end
