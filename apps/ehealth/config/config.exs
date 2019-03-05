@@ -20,7 +20,7 @@ config :ehealth, EHealth.Web.Endpoint,
     view: EView.Views.PhoenixError,
     accepts: ~w(json)
   ],
-  instrumenters: [EHealth.Phoenix.Instruments]
+  instrumenters: [LoggerJSON.Phoenix.Instruments]
 
 config :ehealth,
   topologies: [
