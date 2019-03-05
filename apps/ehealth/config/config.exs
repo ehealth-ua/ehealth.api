@@ -19,7 +19,8 @@ config :ehealth, EHealth.Web.Endpoint,
   render_errors: [
     view: EView.Views.PhoenixError,
     accepts: ~w(json)
-  ]
+  ],
+  instrumenters: [EHealth.Phoenix.Instruments]
 
 config :ehealth,
   topologies: [
