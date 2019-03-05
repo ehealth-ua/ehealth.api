@@ -19,6 +19,8 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       arg(:filter, :legal_entity_filter)
       arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_desc)
 
+      middleware(ParseIDs, filter: [addresses: [settlement_id: :settlement]])
+
       middleware(Filtering,
         database_id: :equal,
         type: :equal,
