@@ -10,10 +10,8 @@ defmodule GraphQLWeb.Resolvers.PersonResolver do
   alias Core.Persons.Person
   alias GraphQLWeb.Loaders.OPS
 
-  @person_status_active "active"
-
   def list_persons(%{filter: filter, order_by: order_by} = args, _resolution) do
-    filter = [{:status, :equal, @person_status_active}, {:is_active, :equal, true} | filter]
+    filter = [{:is_active, :equal, true} | filter]
 
     with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []),
          {:ok, persons} <- Persons.list(filter, order_by, {offset, limit + 1}) do

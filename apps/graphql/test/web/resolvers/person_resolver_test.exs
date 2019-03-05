@@ -182,7 +182,6 @@ defmodule GraphQLWeb.PersonResolverTest do
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [filter, _, _] ->
         assert {:is_active, :equal, true} in filter
-        assert {:status, :equal, "active"} in filter
 
         {:ok, persons}
       end)
@@ -192,7 +191,8 @@ defmodule GraphQLWeb.PersonResolverTest do
       variables = %{
         filter: %{
           personal: %{authentication_method: %{phone_number: "+380971234567"}, birth_date: "1990-10-10"},
-          identity: %{tax_id: "123456", unzr: "123456", document: %{type: "PASSPORT", number: "AA123123"}}
+          identity: %{tax_id: "123456", unzr: "123456", document: %{type: "PASSPORT", number: "AA123123"}},
+          status: "ACTIVE"
         },
         order_by: "TAX_ID_ASC"
       }
