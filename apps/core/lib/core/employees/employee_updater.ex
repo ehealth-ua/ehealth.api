@@ -43,7 +43,7 @@ defmodule Core.Employees.EmployeeUpdater do
     with active_employees <- get_active_employees(employee),
          :ok <- revoke_user_auth_data(employee, active_employees, headers),
          :ok <- @producer.publish_deactivate_declaration_event(deactivation_event) do
-      set_employee_status_as_dismissed(employee, user_id, skip_contracts_suspend?)
+      set_employee_status_as_dismissed(employee, reason, user_id, skip_contracts_suspend?)
     end
   end
 
@@ -128,11 +128,11 @@ defmodule Core.Employees.EmployeeUpdater do
     end
   end
 
-  def set_employee_status_as_dismissed(%Employee{} = employee, user_id, skip_contracts_suspend?) do
+  def set_employee_status_as_dismissed(%Employee{} = employee, reason, user_id, skip_contracts_suspend?) do
     params =
       user_id
       |> get_deactivate_employee_params()
-      |> put_employee_status(employee)
+      |> put_employee_status(employee, reason)
 
     if employee.employee_type in [@type_owner, @type_admin] and !skip_contracts_suspend? do
       Employees.update_with_ops_contract(employee, params, user_id)
@@ -142,21 +142,19 @@ defmodule Core.Employees.EmployeeUpdater do
   end
 
   defp get_deactivate_employee_params(user_id) do
-    %{}
-    |> Map.put(:updated_by, user_id)
-    |> Map.put(:end_date, Date.utc_today() |> Date.to_iso8601())
+    %{updated_by: user_id, end_date: Date.utc_today() |> Date.to_iso8601()}
   end
 
-  defp put_employee_status(params, %{employee_type: @type_owner}) do
-    Map.put(params, :is_active, false)
+  defp put_employee_status(params, %{employee_type: @type_owner}, reason) do
+    Map.merge(params, %{is_active: false, status_reason: reason})
   end
 
-  defp put_employee_status(params, %{employee_type: @type_pharmacy_owner}) do
-    Map.put(params, :is_active, false)
+  defp put_employee_status(params, %{employee_type: @type_pharmacy_owner}, reason) do
+    Map.merge(params, %{is_active: false, status_reason: reason})
   end
 
-  defp put_employee_status(params, _employee) do
-    Map.put(params, :status, @status_dismissed)
+  defp put_employee_status(params, _employee, reason) do
+    Map.merge(params, %{status: @status_dismissed, status_reason: reason})
   end
 
   defp check_legal_entity_id(client_id, %Employee{legal_entity_id: legal_entity_id}) do

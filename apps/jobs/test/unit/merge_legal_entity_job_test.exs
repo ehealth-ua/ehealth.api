@@ -98,6 +98,10 @@ defmodule Unit.LegalEntityMergeJobTest do
       assert @dismissed == Employees.get_by_id(employee_dismissed2.id).status
       assert @dismissed == Employees.get_by_id(employee_dismissed3.id).status
 
+      assert "auto_reorganization" == Employees.get_by_id(employee_dismissed.id).status_reason
+      assert "auto_reorganization" == Employees.get_by_id(employee_dismissed2.id).status_reason
+      assert "auto_reorganization" == Employees.get_by_id(employee_dismissed3.id).status_reason
+
       # approved employees
       assert @approved == Employees.get_by_id(employee_approved.id).status
       assert @approved == Employees.get_by_id(employee_owner.id).status

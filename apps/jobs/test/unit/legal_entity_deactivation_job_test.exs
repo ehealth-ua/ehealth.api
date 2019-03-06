@@ -52,6 +52,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
       employee = insert(:prm, :employee, legal_entity_id: legal_entity_id)
 
       assert Employee.status(:approved) == employee.status
+      refute employee.status_reason
       refute actor_id == employee.updated_by
 
       employee_record = %{
@@ -71,6 +72,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
 
       employee = Employees.get_by_id(employee.id)
       assert Employee.status(:dismissed) == employee.status
+      assert employee.status_reason == "auto_deactivation_legal_entity"
       assert actor_id == employee.updated_by
     end
 
