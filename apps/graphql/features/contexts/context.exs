@@ -578,7 +578,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListCapitationContractRequestsWithFilter(
@@ -610,7 +610,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListReimbursementContractRequestsWithFilter(
@@ -642,7 +642,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListCapitationContractsWithFilter(
@@ -674,7 +674,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListReimbursementContractsWithFilter(
@@ -706,71 +706,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) medical programs where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
-      query = """
-        query ListMedicalProgramsWithFilter(
-          $first: Int!
-          $filter: MedicalProgramFilter!
-        ) {
-          medicalPrograms(first: $first, filter: $filter) {
-            nodes {
-              #{field}
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count),
-        filter: filter_argument(field, Jason.decode!(value))
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
-
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
-    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
-      query = """
-        query ListMedicationsWithFilter(
-          $first: Int!
-          $filter: MedicationFilter!
-        ) {
-          medications(first: $first, filter: $filter) {
-            nodes {
-              #{field}
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count),
-        filter: filter_argument(field, Jason.decode!(value))
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data medications nodes))
-
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
-    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, field: field, value: value} ->
       query = """
         query ListEmployeesWithFilter(
@@ -802,7 +738,103 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListLegalEntitiesWithFilter(
+          $first: Int!
+          $filter: LegalEntityFilter!
+        ) {
+          legalEntities(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) medical programs where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListMedicalProgramsWithFilter(
+          $first: Int!
+          $filter: MedicalProgramFilter!
+        ) {
+          medicalPrograms(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListMedicationsWithFilter(
+          $first: Int!
+          $filter: MedicationFilter!
+        ) {
+          medications(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data medications nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{settlements: settlements, conn: conn}, %{count: count, field: field, value: value} ->
       expect(RPCWorkerMock, :run, fn
         _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, tl(settlements)}
@@ -838,7 +870,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListCapitationContractRequestsWithAssocFilter(
@@ -870,7 +902,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListReimbursementContractRequestsWithAssocFilter(
@@ -902,7 +934,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListCapitationContractsWithAssocFilter(
@@ -934,7 +966,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListReimbursementContractsWithAssocFilter(
@@ -966,7 +998,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) medications where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListMedicationsWithAssocFilter(
@@ -998,7 +1030,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) employees where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListEmployeesWithAssocFilter(
@@ -1030,7 +1062,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn},
        %{
          count: count,
@@ -1069,7 +1101,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn},
        %{
          count: count,
@@ -1108,7 +1140,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
@@ -1724,7 +1756,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+")) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
+    ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
       query = """
         mutation UpdateProgramMedicationMutation($input: UpdateProgramMedicationInput!) {
@@ -1755,7 +1787,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I update the (?<nested_field>\w+) of the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+")) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
+    ~r/^I update the (?<nested_field>\w+) of the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, field: field, nested_field: nested_field, value: value} ->
       query = """
         mutation UpdateProgramMedicationMutation($input: UpdateProgramMedicationInput!) {
@@ -1845,7 +1877,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^the (?<field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entities: resp_entities} = state, %{field: field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = hd(resp_entities)[field]
@@ -1857,7 +1889,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) in the (?<association_field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^the (?<field>\w+) in the (?<association_field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entities: resp_entities} = state, %{field: field, association_field: association_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entities |> hd() |> get_in([association_field, field])
@@ -1869,7 +1901,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entity: resp_entity} = state, %{field: field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entity[field]
@@ -1881,7 +1913,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<nested_field>\w+) in the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"))$/,
+    ~r/^the (?<nested_field>\w+) in the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = get_in(resp_entity, [field, nested_field])

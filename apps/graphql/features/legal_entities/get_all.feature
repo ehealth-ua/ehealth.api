@@ -21,3 +21,23 @@ Feature: Get all legal entities
     Then no errors should be returned
     And I should receive collection with 1 item
     And the databaseId of the first item in the collection should be "33413dc5-ca93-49ee-8bf2-57b4df4056c8"
+
+  Scenario Outline: Request items filtered by condition
+    Given the following legal entities exist:
+      | <field>           |
+      | <alternate_value> |
+      | <expected_value>  |
+    And my scope is "legal_entity:read"
+    When I request first 10 legal entities where <field> is <filter_value>
+    Then no errors should be returned
+    And I should receive collection with 1 item
+    And the <field> of the first item in the collection should be <expected_value>
+
+    Examples:
+      | field       | filter_value                           | expected_value                         | alternate_value                        |
+      | databaseId  | "3fc65def-670d-42f6-bac1-fa48ad2b6da4" | "3fc65def-670d-42f6-bac1-fa48ad2b6da4" | "170ed3bf-eb18-440b-9552-840fa109cf71" |
+      | type        | ["PHARMACY", "MSP_PHARMACY"]           | "PHARMACY"                             | "NHS"                                  |
+      | edrpou      | "12345"                                | "1234567890"                           | "0987654321"                           |
+      | name        | "acme"                                 | "Acme Corporation"                     | "Ajax LLC"                             |
+      | nhsVerified | true                                   | true                                   | false                                  |
+      | nhsReviewed | false                                  | false                                  | true                                   |

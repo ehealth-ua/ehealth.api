@@ -35,7 +35,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
         legal_entity_relation: :equal,
         contractor_legal_entity: [
           database_id: :equal,
-          type: :equal,
+          type: :in,
           edrpou: :like,
           name: :like,
           nhs_verified: :equal,
