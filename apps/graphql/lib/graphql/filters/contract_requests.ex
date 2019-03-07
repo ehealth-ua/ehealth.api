@@ -3,7 +3,7 @@ defmodule GraphQL.Filters.ContractRequests do
 
   use EctoFilter
   use EctoFilter.Operators.JSON
-  use GraphQL.Operators.DateInclusion
+  use GraphQL.Operators.RangeInclusion
 
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
 
