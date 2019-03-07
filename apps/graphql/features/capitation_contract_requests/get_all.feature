@@ -47,12 +47,13 @@ Feature: Get all capitation contract requests
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field          | filter_value                           | expected_value                         | alternate_value                        |
-      | databaseId     | "d19255a9-4703-49a2-9820-215dceda0ff4" | "d19255a9-4703-49a2-9820-215dceda0ff4" | "06ad0e9a-9cda-4751-84ec-02cd962999eb" |
-      | contractNumber | "0000-AEHK-1234-5678"                  | "0000-AEHK-1234-5678"                  | "0000-MPTX-8765-4321"                  |
-      | status         | "NEW"                                  | "NEW"                                  | "APPROWED"                             |
-      | startDate      | "2018-05-23/2018-10-15"                | "2018-07-12"                           | "2018-11-22"                           |
-      | endDate        | "2018-05-23/2018-10-15"                | "2018-07-12"                           | "2018-11-22"                           |
+      | field          | filter_value                                                        | expected_value                         | alternate_value                        |
+      | databaseId     | "d19255a9-4703-49a2-9820-215dceda0ff4"                              | "d19255a9-4703-49a2-9820-215dceda0ff4" | "06ad0e9a-9cda-4751-84ec-02cd962999eb" |
+      | contractNumber | "0000-AEHK-1234-5678"                                               | "0000-AEHK-1234-5678"                  | "0000-MPTX-8765-4321"                  |
+      | status         | "NEW"                                                               | "NEW"                                  | "APPROWED"                             |
+      | startDate      | "2018-05-23/2018-10-15"                                             | "2018-07-12"                           | "2018-11-22"                           |
+      | endDate        | "2018-05-23/2018-10-15"                                             | "2018-07-12"                           | "2018-11-22"                           |
+      | insertedAt     | "2018-03-01T00:00:00.000000+02:00/2018-06-30T23:59:59.999999+03:00" | "2018-03-01T00:00:00.000000Z"          | "2018-02-28T20:00:00.000000Z"          |
 
   Scenario Outline: Request items filtered by condition on association
     Given the following <association_entity> exist:
@@ -73,7 +74,7 @@ Feature: Get all capitation contract requests
     Examples:
       | association_entity | association_field     | field        | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           | expected_association_id                | alternate_association_id               |
       | employees          | assignee              | databaseId   | "db546b7e-4e6a-4d46-930c-b02f41b4af28" | "088ebd4c-1029-4879-94fc-3c105f336e70" | "98b76797-3394-4868-8395-be387d76ff98" | "088ebd4c-1029-4879-94fc-3c105f336e70" | "98b76797-3394-4868-8395-be387d76ff98" | "db546b7e-4e6a-4d46-930c-b02f41b4af28" | "cd7cd90c-4922-4275-8b5a-72ce055dbed8" |
-      # | employees          | assignee              | employeeType | ["DOCTOR", "OWNER"]                    | "DOCTOR"                               | "PHARMACIST"                           | "9976bb1c-81e5-46d7-9eec-a8f976d0184e" | "e1971220-942f-4767-ba18-6c2a99a5cf8d" | "b57a36e5-7862-4309-ab25-6cd8fbec70f7" | "5f094f1a-1437-41e3-8ea9-4084e36be01b" |
+      | employees          | assignee              | employeeType | ["DOCTOR", "OWNER"]                    | "DOCTOR"                               | "PHARMACIST"                           | "9976bb1c-81e5-46d7-9eec-a8f976d0184e" | "e1971220-942f-4767-ba18-6c2a99a5cf8d" | "b57a36e5-7862-4309-ab25-6cd8fbec70f7" | "5f094f1a-1437-41e3-8ea9-4084e36be01b" |
       | employees          | assignee              | status       | "APPROVED"                             | "APPROVED"                             | "DISMISSED"                            | "cb7a79d6-77f3-49d9-ac35-052d22791e68" | "a97fa716-3d56-4870-9ef4-634666020713" | "6c2b7dfd-f4a0-46f6-b5df-0752e2367065" | "4582ed88-31c2-4642-9d90-5d21ec92f5aa" |
       | employees          | assignee              | isActive     | true                                   | true                                   | false                                  | "24a05d02-b964-44c9-bc48-90b93e0cfa86" | "f3c129d2-b934-4f94-a5d5-a9ca155f7d6f" | "ce8ed847-eb6e-424d-9ada-32ff73c8896f" | "34f27c10-2c8a-4b76-a10c-0ca4b2f5f8dc" |
       | legal entities     | contractorLegalEntity | databaseId   | "12a7de65-7847-4c6f-9ff5-42953be8441b" | "3c68c9c5-af9c-40bd-b889-adeb842f9474" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "3c68c9c5-af9c-40bd-b889-adeb842f9474" | "6db78127-0cda-4e6b-92b9-095964792e9d" | "12a7de65-7847-4c6f-9ff5-42953be8441b" | "a49c7a14-431d-476e-a360-db5709e18ba3" |

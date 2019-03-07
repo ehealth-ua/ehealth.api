@@ -47,12 +47,13 @@ Feature: Get all reimbursement contract requests
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field          | filter_value                           | expected_value                         | alternate_value                        |
-      | databaseId     | "92c5a8c1-1df2-4dc4-abf2-c37cfc6dbad4" | "92c5a8c1-1df2-4dc4-abf2-c37cfc6dbad4" | "ae495e7c-6398-4f4b-905f-9425375b5b5c" |
-      | contractNumber | "0000-AEHK-1234-5678"                  | "0000-AEHK-1234-5678"                  | "0000-MPTX-8765-4321"                  |
-      | status         | "NEW"                                  | "NEW"                                  | "APPROWED"                             |
-      | startDate      | "2018-05-23/2018-10-15"                | "2018-07-12"                           | "2018-11-22"                           |
-      | endDate        | "2018-05-23/2018-10-15"                | "2018-07-12"                           | "2018-11-22"                           |
+      | field          | filter_value                                                        | expected_value                         | alternate_value                        |
+      | databaseId     | "92c5a8c1-1df2-4dc4-abf2-c37cfc6dbad4"                              | "92c5a8c1-1df2-4dc4-abf2-c37cfc6dbad4" | "ae495e7c-6398-4f4b-905f-9425375b5b5c" |
+      | contractNumber | "0000-AEHK-1234-5678"                                               | "0000-AEHK-1234-5678"                  | "0000-MPTX-8765-4321"                  |
+      | status         | "NEW"                                                               | "NEW"                                  | "APPROWED"                             |
+      | startDate      | "2018-05-23/2018-10-15"                                             | "2018-07-12"                           | "2018-11-22"                           |
+      | endDate        | "2018-05-23/2018-10-15"                                             | "2018-07-12"                           | "2018-11-22"                           |
+      | insertedAt     | "2018-03-01T00:00:00.000000+02:00/2018-06-30T23:59:59.999999+03:00" | "2018-03-01T00:00:00.000000Z"          | "2018-02-28T20:00:00.000000Z"          |
 
   Scenario Outline: Request items filtered by condition on association
     Given the following <association_entity> exist:
@@ -73,7 +74,7 @@ Feature: Get all reimbursement contract requests
     Examples:
       | association_entity | association_field     | field        | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           | expected_association_id                | alternate_association_id               |
       | employees          | assignee              | databaseId   | "90d4245b-07ee-4a95-bfba-1b62d2ecd30d" | "be1c31fc-55c6-40b1-a67e-92adcde784e1" | "6005c885-4ecf-47db-914d-49ee93e2d0c2" | "be1c31fc-55c6-40b1-a67e-92adcde784e1" | "6005c885-4ecf-47db-914d-49ee93e2d0c2" | "90d4245b-07ee-4a95-bfba-1b62d2ecd30d" | "0e997bf4-7651-4d6e-b3e8-ce84934cb262" |
-      # | employees          | assignee              | employeeType | ["DOCTOR", "OWNER"]                    | "DOCTOR"                               | "PHARMACIST"                           | "e8fa7faa-ff55-496b-a2e9-1a5c5aa46647" | "86f16c98-b0e8-45e0-80f2-7c6b6a67b199" | "1acf0627-7dab-4110-aa39-bbfdb38a907b" | "fff08cca-09f8-4e4e-a0eb-dcb248557e8c" |
+      | employees          | assignee              | employeeType | ["DOCTOR", "OWNER"]                    | "DOCTOR"                               | "PHARMACIST"                           | "e8fa7faa-ff55-496b-a2e9-1a5c5aa46647" | "86f16c98-b0e8-45e0-80f2-7c6b6a67b199" | "1acf0627-7dab-4110-aa39-bbfdb38a907b" | "fff08cca-09f8-4e4e-a0eb-dcb248557e8c" |
       | employees          | assignee              | status       | "APPROVED"                             | "APPROVED"                             | "DISMISSED"                            | "6faf4d46-446a-47ba-94db-e54606b7ef63" | "e9064db7-905d-456a-b195-9895ad8a65ba" | "75a96e13-4c1a-4b36-84aa-eb3d86998494" | "e1931ec0-69be-4394-a3c0-6a392e33f4b9" |
       | employees          | assignee              | isActive     | true                                   | true                                   | false                                  | "88a01700-f957-450d-85ec-21bd187599be" | "f18ff75d-9a51-48ce-bdca-ab6cf5af55fe" | "71b0b763-dcac-4f54-8bfb-581d8b96172e" | "37aa9e50-1596-4ddf-801b-bc34c6e2061a" |
       | legal entities     | contractorLegalEntity | databaseId   | "cfc3965c-e7bb-447e-9d80-354f3219ff22" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "ac972e99-2e1e-4ccc-ba45-99aa48687db8" | "28cf3260-7b80-442c-9875-e01aa89e85c0" | "cfc3965c-e7bb-447e-9d80-354f3219ff22" | "5fd99d7d-b1a8-4fff-b83f-4d617268647e" |

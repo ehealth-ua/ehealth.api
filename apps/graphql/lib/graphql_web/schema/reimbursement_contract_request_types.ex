@@ -33,6 +33,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
         status: :equal,
         start_date: :in,
         end_date: :in,
+        inserted_at: :in,
         assignee: [
           database_id: :equal,
           employee_type: :in,
@@ -89,6 +90,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     field(:status, :contract_request_status)
     field(:start_date, :date_interval)
     field(:end_date, :date_interval)
+    field(:inserted_at, :datetime_interval)
     field(:assignee, :employee_filter)
     field(:contractor_legal_entity, :legal_entity_filter)
     field(:medical_program, :medical_program_filter)
