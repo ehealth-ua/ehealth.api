@@ -3,7 +3,7 @@ defmodule GraphQLWeb.Resolvers.LegalEntityResolver do
 
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
   import Ecto.Query, only: [order_by: 2]
-  import GraphQL.Helpers.Filtering, only: [filter: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Employees.Employee

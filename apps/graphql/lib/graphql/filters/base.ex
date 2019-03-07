@@ -5,6 +5,7 @@ defmodule GraphQL.Filters.Base do
   use EctoFilter.Operators.JSON
 
   alias Core.Medications.INNMDosage
+  alias Core.Parties.Party
 
   def apply(query, {_, nil, []}, :map, _), do: query
 
@@ -18,7 +19,21 @@ defmodule GraphQL.Filters.Base do
 
   defoverridable EctoFilter
 
-  def apply(query, {field, operation, value} = condition, type, INNMDosage = context) do
+  def apply(query, {:full_name, :full_text_search, value}, _, Party) do
+    where(
+      query,
+      [..., r],
+      fragment(
+        "to_tsvector(concat_ws(' ', ?, ?, ?)) @@ plainto_tsquery(?)",
+        r.last_name,
+        r.first_name,
+        r.second_name,
+        ^value
+      )
+    )
+  end
+
+  def apply(query, condition, type, INNMDosage = context) do
     query
     |> where([..., r], r.is_active == true)
     |> super(condition, type, context)

@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.Resolvers.MedicalProgramResolver do
   @moduledoc false
 
-  import GraphQL.Helpers.Filtering, only: [filter: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
   import Ecto.Query, only: [order_by: 2]
 
   alias Absinthe.Relay.Connection

@@ -2,7 +2,7 @@ defmodule GraphQLWeb.Loaders.PRM do
   @moduledoc false
 
   import Ecto.Query, only: [where: 2, order_by: 2, limit: 2, offset: 2]
-  import GraphQL.Helpers.Filtering, only: [filter: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Contracts.CapitationContract

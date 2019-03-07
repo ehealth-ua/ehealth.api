@@ -1,7 +1,7 @@
 defmodule GraphQLWeb.Resolvers.DictionaryResolver do
   @moduledoc false
 
-  import GraphQL.Helpers.Filtering, only: [filter: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Dictionaries
