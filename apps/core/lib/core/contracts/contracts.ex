@@ -18,6 +18,7 @@ defmodule Core.Contracts do
   alias Core.Contracts.ContractEmployeeSearch
   alias Core.Contracts.ReimbursementContract
   alias Core.Contracts.Search
+  alias Core.Dictionaries
   alias Core.Employees.Employee
   alias Core.EventManager
   alias Core.LegalEntities
@@ -208,6 +209,7 @@ defmodule Core.Contracts do
       contract
       |> changeset(%{
         "status_reason" => params["status_reason"],
+        "reason" => params["reason"],
         "status" => CapitationContract.status(:terminated),
         "updated_by" => user_id,
         "end_date" => Date.utc_today() |> Date.to_iso8601()
@@ -217,6 +219,24 @@ defmodule Core.Contracts do
     with {:ok, contract} <- update_result do
       EventManager.insert_change_status(contract, contract.status, user_id)
       update_result
+    end
+  end
+
+  def suspend(%{__struct__: _} = contract, %{} = params, user_id) do
+    params = Map.merge(params, %{updated_by: user_id})
+
+    with {:ok, dictionary} <- Dictionaries.fetch_or_fail("CONTRACT_STATUS_REASON"),
+         {_, true} <- {:status, contract.status == @status_verified},
+         {_, true} <- {:is_suspended, contract.is_suspended == false},
+         :ok <- validate_date_activeness(contract.end_date),
+         :ok <- validate_status_reason(params.status_reason, dictionary),
+         {:ok, updated_contract} <- contract |> changeset(params) |> PRMRepo.update() do
+      EventManager.insert_change_status(updated_contract, user_id)
+      {:ok, updated_contract}
+    else
+      {:status, _} -> {:error, {:conflict, "Incorrect status of contract to modify it"}}
+      {:is_suspended, _} -> {:error, {:conflict, "Contract is suspended"}}
+      err -> err
     end
   end
 

@@ -8,6 +8,7 @@ defmodule Core.Dictionaries do
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.Dictionaries.DictionarySearch
+  alias Core.Log
   alias Core.Repo
 
   @read_repo Application.get_env(:core, :repos)[:read_repo]
@@ -33,6 +34,17 @@ defmodule Core.Dictionaries do
     case get_by_id(id) do
       %Dictionary{} = dictionary -> {:ok, dictionary}
       nil -> {:error, {:not_found, "Dictionary not found"}}
+    end
+  end
+
+  def fetch_or_fail(name) do
+    case get_dictionary(name) do
+      %Dictionary{} = dictionary ->
+        {:ok, dictionary}
+
+      _ ->
+        Log.error("Dictionary with name: #{inspect(name)} not found")
+        {:error, {:internal_server_error, "Dictionary error"}}
     end
   end
 

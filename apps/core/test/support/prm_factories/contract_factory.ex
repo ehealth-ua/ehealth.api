@@ -54,7 +54,7 @@ defmodule Core.PRMFactories.ContractFactory do
         %{
           id: UUID.generate(),
           start_date: Date.utc_today(),
-          end_date: Date.utc_today(),
+          end_date: Date.utc_today() |> Date.add(14),
           status: CapitationContract.status(:verified),
           contractor_legal_entity: build(:legal_entity),
           contractor_owner: build(:employee),

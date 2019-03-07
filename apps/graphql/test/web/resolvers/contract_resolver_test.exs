@@ -21,6 +21,7 @@ defmodule GraphQLWeb.ContractResolverTest do
         contract {
           status
           status_reason
+          reason
           ... on CapitationContract {
             external_contractors {
               legal_entity {
@@ -46,7 +47,7 @@ defmodule GraphQLWeb.ContractResolverTest do
     }
   """
 
-  @status_reason "Period of contract is wrong"
+  @status_reason "DEFAULT"
 
   setup :verify_on_exit!
 
@@ -94,6 +95,7 @@ defmodule GraphQLWeb.ContractResolverTest do
       assert %{
                "status" => @contract_status_terminated,
                "status_reason" => @status_reason,
+               "reason" => _,
                "external_contractors" => [%{"legal_entity" => %{"database_id" => ^legal_entity_id}}]
              } = resp_entity
     end

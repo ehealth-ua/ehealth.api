@@ -50,6 +50,26 @@ defmodule GraphQLWeb.Schema.ContractTypes do
       middleware(ParseIDs, id: [:capitation_contract, :reimbursement_contract])
       resolve(&ContractResolver.prolongate/2)
     end
+
+    payload field(:suspend_contract) do
+      meta(:scope, ~w(contract:update))
+      meta(:client_metadata, ~w(client_id client_type consumer_id)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:is_suspended, non_null(:boolean))
+        field(:reason, :string)
+        field(:status_reason, non_null(:contract_status_reason))
+      end
+
+      output do
+        field(:contract, :contract)
+      end
+
+      middleware(ParseIDs, id: [:capitation_contract, :reimbursement_contract])
+      resolve(&ContractResolver.suspend/2)
+    end
   end
 
   interface :contract do
@@ -60,6 +80,7 @@ defmodule GraphQLWeb.Schema.ContractTypes do
     field(:id_form, non_null(:string))
     field(:status, non_null(:contract_status))
     field(:status_reason, :string)
+    field(:reason, :string)
     field(:issue_city, :string)
     field(:printout_content, :string)
     field(:start_date, non_null(:date))
@@ -93,5 +114,11 @@ defmodule GraphQLWeb.Schema.ContractTypes do
   enum :contract_status do
     value(:terminated, as: @contract_status_terminated)
     value(:verified, as: @contract_status_verified)
+  end
+
+  enum :contract_status_reason do
+    value(:auto_deactivation_legal_entity, as: "AUTO_DEACTIVATION_LEGAL_ENTITY")
+    value(:auto_expired, as: "AUTO_EXPIRED")
+    value(:default, as: "DEFAULT")
   end
 end

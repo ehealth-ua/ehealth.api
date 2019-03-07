@@ -34,6 +34,7 @@ defmodule Core.Contracts.Contract do
         field(:end_date, :date)
         field(:status, :string)
         field(:status_reason, :string)
+        field(:reason, :string)
         field(:contractor_base, :string)
         field(:contractor_payment_details, :map)
         field(:nhs_payment_method, :string)

@@ -121,6 +121,7 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
     field(:id_form, non_null(:string))
     field(:status, non_null(:contract_status))
     field(:status_reason, :string)
+    field(:reason, :string)
     field(:issue_city, :string)
     field(:printout_content, :string, resolve: &ContractResolver.get_printout_content/3)
     field(:start_date, non_null(:date))

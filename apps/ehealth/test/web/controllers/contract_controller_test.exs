@@ -16,6 +16,7 @@ defmodule EHealth.Web.ContractControllerTest do
   @reimbursement "reimbursement"
 
   @contract_type_reimbursement ReimbursementContract.type()
+  @contract_status_reason "DEFAULT"
 
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
@@ -817,7 +818,7 @@ defmodule EHealth.Web.ContractControllerTest do
           external_contractors: external_contractors
         )
 
-      params = %{"status_reason" => "Period of contract is wrong"}
+      params = %{"status_reason" => @contract_status_reason, "reason" => "Period of contract is wrong"}
 
       resp =
         conn
@@ -826,7 +827,8 @@ defmodule EHealth.Web.ContractControllerTest do
         |> json_response(200)
 
       assert resp["data"]["status"] == CapitationContract.status(:terminated)
-      assert resp["data"]["status_reason"] == "Period of contract is wrong"
+      assert resp["data"]["status_reason"] == @contract_status_reason
+      assert resp["data"]["reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
 
       resp
@@ -863,7 +865,7 @@ defmodule EHealth.Web.ContractControllerTest do
           external_contractors: external_contractors
         )
 
-      params = %{"status_reason" => "Period of contract is wrong"}
+      params = %{"status_reason" => @contract_status_reason, "reason" => "Period of contract is wrong"}
 
       resp =
         conn
@@ -872,7 +874,8 @@ defmodule EHealth.Web.ContractControllerTest do
         |> json_response(200)
 
       assert resp["data"]["status"] == CapitationContract.status(:terminated)
-      assert resp["data"]["status_reason"] == "Period of contract is wrong"
+      assert resp["data"]["status_reason"] == @contract_status_reason
+      assert resp["data"]["reason"] == "Period of contract is wrong"
       Enum.each(terminate_response_fields(), fn field -> assert %{^field => _} = resp["data"] end)
 
       resp
@@ -887,7 +890,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "NHS terminate not verified contract", %{conn: conn} do
       nhs()
       contract = insert(:prm, :capitation_contract, status: CapitationContract.status(:terminated))
-      params = %{"status_reason" => "Period of contract is wrong"}
+      params = %{"status_reason" => @contract_status_reason, "reason" => "Period of contract is wrong"}
 
       resp =
         conn
@@ -912,7 +915,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "terminate contract with wrong client id", %{conn: conn} do
       nhs()
       contract = insert(:prm, :capitation_contract)
-      params = %{"status_reason" => "Period of contract is wrong"}
+      params = %{"status_reason" => @contract_status_reason, "reason" => "Period of contract is wrong"}
 
       resp =
         conn
@@ -924,7 +927,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "terminate contract not exists", %{conn: conn} do
       nhs()
-      params = %{"status_reason" => "Period of contract is wrong"}
+      params = %{"status_reason" => @contract_status_reason, "reason" => "Period of contract is wrong"}
 
       resp =
         conn
@@ -934,10 +937,10 @@ defmodule EHealth.Web.ContractControllerTest do
       assert json_response(resp, 404)
     end
 
-    test "terminate contract with too long status_reason", %{conn: conn} do
+    test "terminate contract with too long reason", %{conn: conn} do
       nhs()
       contract = insert(:prm, :capitation_contract)
-      params = %{"status_reason" => String.duplicate("a", 3001)}
+      params = %{"status_reason" => @contract_status_reason, "reason" => String.duplicate("a", 3001)}
 
       resp =
         conn
@@ -948,7 +951,7 @@ defmodule EHealth.Web.ContractControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.status_reason",
+                   "entry" => "$.reason",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{

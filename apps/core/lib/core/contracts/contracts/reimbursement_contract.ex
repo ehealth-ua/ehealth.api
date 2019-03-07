@@ -37,6 +37,7 @@ defmodule Core.Contracts.ReimbursementContract do
   @fields_optional ~w(
     parent_contract_id
     status_reason
+    reason
   )a
 
   use Core.Contracts.Contract,

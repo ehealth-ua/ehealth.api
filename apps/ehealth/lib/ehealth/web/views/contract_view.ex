@@ -80,6 +80,7 @@ defmodule EHealth.Web.ContractView do
       start_date
       end_date
       status
+      reason
       contractor_base
       contractor_payment_details
       contractor_rmsp_amount
@@ -106,6 +107,7 @@ defmodule EHealth.Web.ContractView do
       start_date
       end_date
       status
+      reason
       contractor_base
       contractor_payment_details
       nhs_payment_method
@@ -137,6 +139,7 @@ defmodule EHealth.Web.ContractView do
       nhs_payment_method
       status
       status_reason
+      reason
       issue_city
       contract_number
       contract_request_id

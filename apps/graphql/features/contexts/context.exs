@@ -4,13 +4,16 @@ defmodule GraphQL.Features.Context do
 
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
+  import Ecto.Query, only: [where: 2]
   import Mox, only: [expect: 3, expect: 4]
 
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo, EventManagerRepo}
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
+  alias Core.Dictionaries.Dictionary
   alias Core.Employees.Employee
+  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.Medications.{INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
@@ -218,6 +221,18 @@ defmodule GraphQL.Features.Context do
       for row <- table_data do
         attrs = prepare_attrs(LegalEntity, row)
         insert(:prm, :legal_entity, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following dictionaries exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Dictionary, row)
+        insert(:il, :dictionary, attrs)
       end
 
       {:ok, state}
@@ -1755,6 +1770,46 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id, contract_type: contract_type} ->
+      query = """
+      mutation SuspendContract($input: SuspendContractInput!) {
+        suspendContract(input: $input) {
+          contract {
+            id
+            databaseId
+            isSuspended
+            statusReason
+            reason
+          }
+        }
+      }
+      """
+
+      contract_type = case contract_type do
+        "capitation" -> "CapitationContract"
+        "reimbursement" -> "ReimbursementContract"
+      end
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id(contract_type, database_id),
+          is_suspended: true,
+          status_reason: "DEFAULT",
+          reason: "Custom reason"
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data suspendContract contract))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+  end)
+
   when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
@@ -1820,6 +1875,20 @@ defmodule GraphQL.Features.Context do
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
+  
+  then_(
+    ~r/^event manager has event for (?<entity_type>[^"]+) with ID "(?<entity_id>[^"]+)" and consumer ID "(?<updated_by>[^"]+)"$/,
+    fn state, %{entity_id: entity_id, entity_type: entity_type, updated_by: updated_by} ->
+      event = 
+        Event
+        |> where(entity_id: ^entity_id, entity_type: ^entity_type, changed_by: ^updated_by)
+        |> EventManagerRepo.one()
+
+      assert event
+
+      {:ok, state}
+  end)
+  
 
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]

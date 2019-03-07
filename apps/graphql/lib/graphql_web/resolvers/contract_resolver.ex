@@ -103,4 +103,14 @@ defmodule GraphQLWeb.Resolvers.ContractResolver do
       {:ok, %{contract: contract}}
     end
   end
+
+  def suspend(%{id: %{id: id, type: type}} = args, %{context: %{consumer_id: consumer_id}}) do
+    args = Map.delete(args, :id)
+    type = RequestPack.get_type_by_atom(type)
+
+    with {:ok, contract} <- Contracts.fetch_by_id(id, type),
+         {:ok, contract} <- Contracts.suspend(contract, args, consumer_id) do
+      {:ok, %{contract: contract}}
+    end
+  end
 end

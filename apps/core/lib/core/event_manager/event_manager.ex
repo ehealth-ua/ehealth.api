@@ -1,16 +1,29 @@
 defmodule Core.EventManager do
   @moduledoc false
 
+  alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ReimbursementContract
   alias Core.EmployeeRequests.EmployeeRequest
   alias Core.EventManager.Event
   alias Core.EventManagerRepo, as: Repo
 
   @type_change_status "StatusChangeEvent"
+  @contract_schemas [CapitationContract, ReimbursementContract]
 
   def insert_change_status(_entity, status, status, _user_id), do: nil
 
   def insert_change_status(entity, _, status, user_id) do
     insert_change_status(entity, status, user_id)
+  end
+
+  def insert_change_status(%{__struct__: schema} = entity, user_id) when schema in @contract_schemas do
+    properties = %{
+      "is_suspended" => %{
+        "new_value" => entity.is_suspended
+      }
+    }
+
+    Repo.insert(create_event(entity, user_id, properties))
   end
 
   def insert_change_status(%EmployeeRequest{employee_id: employee_id} = entity, new_status, user_id) do

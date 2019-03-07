@@ -37,6 +37,7 @@ defmodule Core.Contracts.CapitationContract do
   @fields_optional ~w(
     parent_contract_id
     status_reason
+    reason
     external_contractor_flag
     external_contractors
   )a

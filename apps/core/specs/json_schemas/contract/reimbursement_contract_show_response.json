@@ -329,6 +329,10 @@
       "type": "string",
       "description": "contract status"
     },
+    "reason": {
+      "type": ["string", "null"],
+      "description": "reason of terminated status"
+    },
     "nhs_signer": {
       "type": "object",
       "properties": {

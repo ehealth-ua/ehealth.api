@@ -6,6 +6,7 @@ defmodule Core.Contracts.Validator do
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
+  alias Core.Dictionaries.Dictionary
   alias Core.Divisions
   alias Core.Divisions.Division
   alias Core.Employees
@@ -50,6 +51,24 @@ defmodule Core.Contracts.Validator do
           description: "End date should be greater then contract end date",
           path: "$.end_date"
         })
+    end
+  end
+
+  def validate_date_activeness(%Date{} = end_date, %Date{} = compared_date \\ Date.utc_today()) do
+    case Date.compare(end_date, compared_date) do
+      :gt -> :ok
+      _ -> {:error, {:conflict, "Contract dates are not valid"}}
+    end
+  end
+
+  def validate_status_reason(status_reason, %Dictionary{values: values}) do
+    values
+    |> Map.keys()
+    |> Enum.reject(&String.starts_with?(&1, "AUTO_"))
+    |> Enum.member?(status_reason)
+    |> case do
+      true -> :ok
+      _ -> Error.dump(%ValidationError{description: "Status reason is not allowed", path: "$.status_reason"})
     end
   end
 

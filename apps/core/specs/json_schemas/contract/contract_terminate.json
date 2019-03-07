@@ -4,8 +4,13 @@
     "properties": {
       "status_reason": {
         "type": "string",
-        "maxLength": 3000,
-        "description": "the reason of terminated status"
+        "description": "code of reason of terminated status",
+        "enum": ["DEFAULT"]
+      },
+      "reason": {
+        "type": "string",
+        "description": "reason of terminated status",
+        "maxLength": 3000
       },
       "type": {
         "type": "string",
