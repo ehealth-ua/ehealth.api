@@ -4,7 +4,7 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
   use Absinthe.Schema.Notation
 
   alias Absinthe.Blueprint.Input
-  alias Core.Ecto.TimestampRange
+  alias Core.Ecto.{DateRange, TimestampRange}
   alias Ecto.UUID
 
   scalar :uuid, name: "UUID" do
@@ -18,7 +18,7 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
   end
 
   scalar :date_interval do
-    serialize(&Date.Interval.to_edtf/1)
+    serialize(&DateRange.to_iso8601/1)
     parse(&do_parse(:date_interval, &1))
   end
 
@@ -42,9 +42,9 @@ defmodule GraphQLWeb.Schema.ScalarTypes do
   end
 
   defp do_parse(:date_interval, %Input.String{value: value}) do
-    case Date.Interval.from_edtf(value) do
+    case DateRange.from_iso8601(value) do
       {:ok, interval} -> {:ok, interval}
-      _error -> :error
+      _ -> :error
     end
   end
 
