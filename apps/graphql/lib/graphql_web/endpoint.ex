@@ -3,7 +3,10 @@ defmodule GraphQLWeb.Endpoint do
 
   use Phoenix.Endpoint, otp_app: :graphql
 
+  alias Absinthe.Phase.Document.Result
+  alias Absinthe.Pipeline
   alias Confex.Resolver
+  alias GraphQLWeb.Phase.RequestID
   alias GraphQLWeb.Plugs.Context
 
   @scope_header "x-consumer-scope"
@@ -23,8 +26,15 @@ defmodule GraphQLWeb.Endpoint do
   plug(
     Absinthe.Plug,
     schema: GraphQLWeb.Schema,
-    json_codec: Jason
+    json_codec: Jason,
+    pipeline: {__MODULE__, :pipeline}
   )
+
+  def pipeline(config, pipeline_opts) do
+    config.schema_mod
+    |> Pipeline.for_document(pipeline_opts)
+    |> Pipeline.insert_after(Result, RequestID)
+  end
 
   @doc """
   Callback invoked for dynamically configuring the endpoint.

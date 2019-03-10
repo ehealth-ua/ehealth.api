@@ -1908,6 +1908,13 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  then_("request id should be returned", fn %{resp_body: resp_body} = state ->
+      assert %{"extensions" => %{"requestId" => _}} = resp_body
+
+      {:ok, state}
+    end
+  )
+
   then_(
     ~r/^I should receive collection with (?<count>\d+) items?$/,
     fn %{resp_entities: resp_entities} = state, %{count: count} ->

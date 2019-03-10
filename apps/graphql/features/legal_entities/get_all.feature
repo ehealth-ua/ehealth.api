@@ -8,6 +8,7 @@ Feature: Get all legal entities
     And my scope is "legal_entity:read"
     When I request first 10 legal entities where settlement_id of the associated addresses is "U2V0dGxlbWVudDo0MDMyMzc3NS02MTAyLTQ3NmQtODYxYi03MDQxMzM4NWE4ODg="
     Then no errors should be returned
+    And request id should be returned
     And I should receive collection with 1 item
     And the databaseId of the first item in the collection should be "5bf0aee4-8de7-42b4-8a5d-54e851c5a6b7"
 
