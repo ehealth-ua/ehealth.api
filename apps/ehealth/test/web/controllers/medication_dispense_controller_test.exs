@@ -1879,16 +1879,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.payment_id",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" => "required property payment_id was not present",
-                       "rule" => "required"
-                     }
-                   ]
-                 },
-                 %{
                    "entry" => "$.payment_amount",
                    "entry_type" => "json_data_property",
                    "rules" => [
