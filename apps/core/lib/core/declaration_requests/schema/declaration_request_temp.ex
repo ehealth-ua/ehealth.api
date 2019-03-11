@@ -5,6 +5,6 @@ defmodule Core.DeclarationRequests.DeclarationRequestTemp do
 
   @primary_key {:id, :id, autogenerate: false}
   schema "declaration_requests_temp" do
-    field(:last_inserted_at, :naive_datetime)
+    field(:last_inserted_at, :utc_datetime)
   end
 end

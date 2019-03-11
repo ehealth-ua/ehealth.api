@@ -173,14 +173,14 @@ defmodule EHealth.Web.ContractView do
       declaration_limit
     )a)
     |> Map.merge(%{
-      start_date: convert_naive_datetime_to_date(contract_employee.start_date),
-      end_date: convert_naive_datetime_to_date(contract_employee.end_date),
+      start_date: convert_datetime_to_date(contract_employee.start_date),
+      end_date: convert_datetime_to_date(contract_employee.end_date),
       employee: render_association(:employee, references, contract_employee.employee_id)
     })
   end
 
-  defp convert_naive_datetime_to_date(%NaiveDateTime{} = value), do: NaiveDateTime.to_date(value)
-  defp convert_naive_datetime_to_date(value), do: value
+  defp convert_datetime_to_date(%DateTime{} = value), do: DateTime.to_date(value)
+  defp convert_datetime_to_date(value), do: value
 
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)

@@ -28,8 +28,9 @@ defmodule Core.Contracts.ContractEmployee do
   schema "contract_employees" do
     field(:staff_units, :float)
     field(:declaration_limit, :integer)
-    field(:start_date, :naive_datetime)
-    field(:end_date, :naive_datetime)
+    # TODO: Since we are returning these fields as date, there is no sense to store this data as timestamp
+    field(:start_date, :utc_datetime)
+    field(:end_date, :utc_datetime)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
