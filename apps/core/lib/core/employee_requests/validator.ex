@@ -55,16 +55,52 @@ defmodule Core.EmployeeRequests.Validator do
     json_schema = String.to_atom("employee_#{employee_type}")
 
     with :ok <- JsonSchema.validate(json_schema, additional_info),
-         {:ok, speciality} <- validate_and_fetch_speciality_officio(additional_info["specialities"]),
-         :ok <- validate_speciality(speciality, employee_type) do
+         {_, {:ok, speciality}} <-
+           {:speciality, validate_and_fetch_speciality_officio(additional_info["specialities"])},
+         {_, :ok} <- {:education, validate_education_degree(additional_info["educations"], employee_type)},
+         {_, :ok} <- {:qualification, validate_qualification_type(additional_info["qualifications"], employee_type)},
+         {_, :ok} <- {:speciality, validate_speciality_type(speciality, employee_type)},
+         {_, :ok} <- {:speciality, validate_speciality_level(speciality, employee_type)} do
       :ok
     else
-      {:error, message} when is_binary(message) ->
+      {:speciality, {:error, message}} when is_binary(message) ->
         cast_error(message, "$.employee_request.#{employee_type}.specialities", :invalid)
+
+      {:education, {:error, message}} when is_binary(message) ->
+        cast_error(message, "$.employee_request.#{employee_type}.educations", :invalid)
+
+      {:qualification, {:error, message}} when is_binary(message) ->
+        cast_error(message, "$.employee_request.#{employee_type}.qualifications", :invalid)
 
       err ->
         err
     end
+  end
+
+  defp validate_education_degree(educations, employee_type) do
+    allowed_degrees = Confex.fetch_env!(:core, :employee_education_degrees)[String.to_atom(employee_type)]
+
+    Enum.reduce_while(educations, :ok, fn education, _ ->
+      degree = education["degree"]
+
+      case degree in allowed_degrees do
+        true -> {:cont, :ok}
+        _ -> {:halt, {:error, "education degree #{degree} is not allowed for #{employee_type}"}}
+      end
+    end)
+  end
+
+  defp validate_qualification_type(qualifications, employee_type) do
+    allowed_types = Confex.fetch_env!(:core, :employee_qualification_types)[String.to_atom(employee_type)]
+
+    Enum.reduce_while(qualifications, :ok, fn qualification, _ ->
+      type = qualification["type"]
+
+      case type in allowed_types do
+        true -> {:cont, :ok}
+        _ -> {:halt, {:error, "qualification type #{type} is not allowed for #{employee_type}"}}
+      end
+    end)
   end
 
   defp validate_and_fetch_speciality_officio(specialities) do
@@ -75,12 +111,21 @@ defmodule Core.EmployeeRequests.Validator do
     end
   end
 
-  defp validate_speciality(%{"speciality" => speciality}, employee_type) do
-    allowed_specialities = Confex.fetch_env!(:core, :employee_specialities_types)[String.to_atom(employee_type)]
+  defp validate_speciality_type(%{"speciality" => speciality}, employee_type) do
+    allowed_specialities = Confex.fetch_env!(:core, :employee_speciality_types)[String.to_atom(employee_type)]
 
     case speciality in allowed_specialities do
       true -> :ok
       _ -> {:error, "speciality #{speciality} with active speciality_officio is not allowed for #{employee_type}"}
+    end
+  end
+
+  defp validate_speciality_level(%{"level" => level}, employee_type) do
+    allowed_levels = Confex.fetch_env!(:core, :employee_speciality_levels)[String.to_atom(employee_type)]
+
+    case level in allowed_levels do
+      true -> :ok
+      _ -> {:error, "speciality level #{level} with active speciality_officio is not allowed for #{employee_type}"}
     end
   end
 

@@ -35,13 +35,13 @@
           "institution_name": "Академія Богомольця",
           "issued_date": "2017-08-01",
           "diploma_number": "DD123543",
-          "degree": "Молодший спеціаліст",
+          "degree": "JUNIOR_EXPERT",
           "speciality": "Педіатр"
         }
       ],
       "qualifications": [
         {
-          "type": "Інтернатура",
+          "type": "INTERNSHIP",
           "institution_name": "Академія Богомольця",
           "speciality": "Педіатр",
           "issued_date": "2017-08-02",
@@ -54,7 +54,7 @@
         {
           "speciality": "PHARMACIST",
           "speciality_officio": true,
-          "level": "Перша категорія",
+          "level": "FIRST",
           "qualification_type": "Присвоєння",
           "attestation_name": "Академія Богомольця",
           "attestation_date": "2017-08-04",
@@ -64,7 +64,7 @@
         {
           "speciality": "PEDIATRICIAN",
           "speciality_officio": false,
-          "level": "Перша категорія",
+          "level": "FIRST",
           "qualification_type": "Присвоєння",
           "attestation_name": "Академія Богомольця",
           "attestation_date": "2017-08-04",
