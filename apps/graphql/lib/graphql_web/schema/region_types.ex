@@ -19,7 +19,7 @@ defmodule GraphQLWeb.Schema.RegionTypes do
     #   resolve(dataloader(Uaddresses, {:search_districts, :many, :id, :region_id}))
     # end
 
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 end

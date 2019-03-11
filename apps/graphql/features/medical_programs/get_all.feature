@@ -36,8 +36,8 @@ Feature: Get all medical programs
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field      | direction  | expected_value               | alternate_value              |
-      | insertedAt | ascending  | "2017-01-24T19:15:01.000000" | "2018-04-21T12:29:05.000000" |
-      | insertedAt | descending | "2018-04-21T12:29:05.000000" | "2017-01-24T19:15:01.000000" |
-      | name       | ascending  | "Безкоштовні вакцини"        | "Доступні ліки"              |
-      | name       | descending | "Доступні ліки"              | "Безкоштовні вакцини"        |
+      | field      | direction  | expected_value                | alternate_value               |
+      | insertedAt | ascending  | "2017-01-24T19:15:01.000000Z" | "2018-04-21T12:29:05.000000Z" |
+      | insertedAt | descending | "2018-04-21T12:29:05.000000Z" | "2017-01-24T19:15:01.000000Z" |
+      | name       | ascending  | "Безкоштовні вакцини"         | "Доступні ліки"               |
+      | name       | descending | "Доступні ліки"               | "Безкоштовні вакцини"         |

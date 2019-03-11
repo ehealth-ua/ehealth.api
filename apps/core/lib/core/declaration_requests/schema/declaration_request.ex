@@ -61,6 +61,6 @@ defmodule Core.DeclarationRequests.DeclarationRequest do
     field(:data_person_last_name, :string)
     field(:data_person_birth_date, :date)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

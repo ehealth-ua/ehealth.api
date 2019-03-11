@@ -61,7 +61,7 @@ defmodule Core.Contracts.Contract do
         has_one(:merged_from, RelatedLegalEntity, foreign_key: :merged_from_id, references: :contractor_legal_entity_id)
         has_many(:merged_to, RelatedLegalEntity, foreign_key: :merged_to_id, references: :contractor_legal_entity_id)
 
-        timestamps()
+        timestamps(type: :utc_datetime)
 
         if fields = unquote(opts)[:fields] do
           for args <- fields do

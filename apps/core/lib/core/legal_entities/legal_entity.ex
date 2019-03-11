@@ -69,6 +69,6 @@ defmodule Core.LegalEntities.LegalEntity do
     has_many(:divisions, Division, foreign_key: :legal_entity_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

@@ -21,9 +21,8 @@ defmodule GraphQLWeb.Schema.INNMDosageTypes do
     field(:ingredients, non_null(list_of(:innm_dosage_ingredient)))
     field(:is_active, non_null(:boolean))
 
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   object(:innm_dosage_ingredient) do

@@ -30,7 +30,7 @@ defmodule Core.Medications.Medication do
     has_many(:ingredients, Ingredient, foreign_key: :parent_id)
     has_many(:innm_dosages, through: [:ingredients, :innm_dosage])
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def type, do: @medication_type

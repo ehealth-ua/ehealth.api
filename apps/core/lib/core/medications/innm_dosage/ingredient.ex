@@ -22,7 +22,7 @@ defmodule Core.Medications.INNMDosage.Ingredient do
     belongs_to(:innm_dosage, INNMDosage, type: Ecto.UUID, foreign_key: :parent_id)
     belongs_to(:innm, INNM, type: Ecto.UUID, foreign_key: :innm_child_id)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(%Core.Medications.INNMDosage.Ingredient{} = ingredient, attrs) do

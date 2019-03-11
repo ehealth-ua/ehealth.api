@@ -7,6 +7,6 @@ defmodule Core.Uaddresses.Region do
     field(:name, :string)
     field(:koatuu, :string)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

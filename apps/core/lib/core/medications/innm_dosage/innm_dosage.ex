@@ -20,7 +20,7 @@ defmodule Core.Medications.INNMDosage do
     has_many(:ingredients, INNMDosageIngredient, foreign_key: :parent_id)
     has_many(:ingredients_medication, MedicationIngredient, foreign_key: :medication_child_id)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def type, do: @medication_type

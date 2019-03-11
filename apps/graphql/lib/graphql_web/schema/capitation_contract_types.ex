@@ -142,15 +142,6 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
       resolve: &CapitationContractResolver.get_attached_documents/3
     )
 
-    # TODO: Model should return :datetime type
-    field(:inserted_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.inserted_at, "Etc/UTC") end
-    )
-
-    field(:updated_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.updated_at, "Etc/UTC") end
-    )
-
     connection field(:contractor_employee_divisions, node_type: :contract_employee_division) do
       arg(:filter, :contractor_employee_division_filter)
       arg(:order_by, :contractor_employee_division_order_by, default_value: :inserted_at_asc)
@@ -170,6 +161,9 @@ defmodule GraphQLWeb.Schema.CapitationContractTypes do
     field(:external_contractors, list_of(:external_contractor))
     field(:nhs_contract_price, :float)
     field(:contractor_rmsp_amount, non_null(:integer))
+
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   input_object :contractor_employee_division_filter do

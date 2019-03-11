@@ -151,15 +151,9 @@ defmodule GraphQLWeb.Schema.ReimbursementContractRequestTypes do
     field(:to_decline_content, :json, resolve: &ContractRequestResolver.get_to_decline_content/3)
     field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
 
-    # TODO: Model should return :datetime type
-    field(:inserted_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.inserted_at, "Etc/UTC") end
-    )
-
-    field(:updated_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.updated_at, "Etc/UTC") end
-    )
-
     field(:medical_program, :medical_program, resolve: load_by_parent(PRM, MedicalProgram))
+
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 end

@@ -41,7 +41,7 @@ defmodule GraphQLWeb.Schema.DistrictTypes do
     #   resolve(dataloader(Uaddresses, {:search_settlements, :many, :id, :settlement_id}))
     # end
 
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 end

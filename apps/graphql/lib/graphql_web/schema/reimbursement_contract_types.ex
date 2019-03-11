@@ -154,15 +154,9 @@ defmodule GraphQLWeb.Schema.ReimbursementContractTypes do
       resolve: &ReimbursementContractResolver.get_attached_documents/3
     )
 
-    # TODO: Model should return :datetime type
-    field(:inserted_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.inserted_at, "Etc/UTC") end
-    )
-
-    field(:updated_at, non_null(:datetime),
-      resolve: fn _, res -> DateTime.from_naive(res.source.updated_at, "Etc/UTC") end
-    )
-
     field(:medical_program, :medical_program, resolve: dataloader(PRM))
+
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 end

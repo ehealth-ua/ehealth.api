@@ -71,8 +71,8 @@ Feature: Get specific employee
       | "eea81205-68f7-4b9a-b052-7ff3dfd6b2d3" | isActive     | true                                   |
       | "74d10c3e-f3f6-4f48-985b-ab5277e9f0b6" | employeeType | "DOCTOR"                               |
       | "5b148af1-1002-40ee-9778-e8c775bd0f91" | status       | "APPROVED"                             |
-      | "3fe7ea71-fc43-408d-a711-13ead3e00247" | insertedAt   | "2017-01-04T22:49:12.000000"           |
-      | "d46d771c-4d74-4c7c-a7da-cc21a275bb61" | updatedAt    | "2018-10-24T11:38:46.000000"           |
+      | "3fe7ea71-fc43-408d-a711-13ead3e00247" | insertedAt   | "2017-01-04T22:49:12.000000Z"          |
+      | "d46d771c-4d74-4c7c-a7da-cc21a275bb61" | updatedAt    | "2018-10-24T11:38:46.000000Z"          |
 
   Scenario Outline: Request one-to-one association fields
     Given the following <association_entity> exist:

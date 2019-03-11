@@ -17,6 +17,6 @@ defmodule Core.Medications.INNM do
 
     has_many(:ingredients, Ingredient, foreign_key: :innm_child_id)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

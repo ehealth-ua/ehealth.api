@@ -24,7 +24,7 @@ defmodule Core.Contracts.ContractDivision do
 
     belongs_to(:division, Division, type: UUID)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(%__MODULE__{} = contract_division, attrs) do

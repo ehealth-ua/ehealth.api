@@ -10,6 +10,6 @@ defmodule Core.Uaddresses.District do
     field(:koatuu, :string)
     field(:region_id, UUID)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

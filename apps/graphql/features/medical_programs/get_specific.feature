@@ -15,5 +15,5 @@ Feature: Get specific medical program
       | "b1b4a2ac-e133-4e9f-bf51-18ce1288c6a0" | databaseId | "b1b4a2ac-e133-4e9f-bf51-18ce1288c6a0" |
       | "d703c4a6-a1b4-4c26-9c94-0b06ba82bd96" | name       | "Доступні ліки"                        |
       | "c5ba7819-01e7-4431-88c0-b9c59ba3636a" | isActive   | true                                   |
-      | "48b37395-e71d-4a2a-bfb9-90fbc1aab670" | insertedAt | "2018-03-10T02:13:00.000000"           |
-      | "48b37395-e71d-4a2a-bfb9-90fbc1aab670" | updatedAt  | "2018-05-31T01:36:01.000000"           |
+      | "48b37395-e71d-4a2a-bfb9-90fbc1aab670" | insertedAt | "2018-03-10T02:13:00.000000Z"          |
+      | "48b37395-e71d-4a2a-bfb9-90fbc1aab670" | updatedAt  | "2018-05-31T01:36:01.000000Z"          |

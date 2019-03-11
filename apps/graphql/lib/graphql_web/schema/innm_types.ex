@@ -20,8 +20,7 @@ defmodule GraphQLWeb.Schema.INNMTypes do
     field(:name_original, non_null(:string))
     field(:is_active, non_null(:boolean))
 
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 end

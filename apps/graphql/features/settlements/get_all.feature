@@ -31,13 +31,13 @@ Feature: Get all settlements
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field         | direction  | expected_value               | alternate_value              |
-      | mountainGroup | ascending  | false                        | true                         |
-      | mountainGroup | descending | true                         | false                        |
-      | name          | ascending  | "АНДРІЇВКА"                  | "ВАСИЛІВКА"                  |
-      | name          | descending | "ВАСИЛІВКА"                  | "АНДРІЇВКА"                  |
-      | insertedAt    | ascending  | "2017-01-28T06:00:27.000000" | "2018-12-24T10:30:01.000000" |
-      | insertedAt    | descending | "2018-12-24T10:30:01.000000" | "2017-01-28T06:00:27.000000" |
+      | field         | direction  | expected_value                | alternate_value               |
+      | mountainGroup | ascending  | false                         | true                          |
+      | mountainGroup | descending | true                          | false                         |
+      | name          | ascending  | "АНДРІЇВКА"                   | "ВАСИЛІВКА"                   |
+      | name          | descending | "ВАСИЛІВКА"                   | "АНДРІЇВКА"                   |
+      | insertedAt    | ascending  | "2017-01-28T06:00:27.000000Z" | "2018-12-24T10:30:01.000000Z" |
+      | insertedAt    | descending | "2018-12-24T10:30:01.000000Z" | "2017-01-28T06:00:27.000000Z" |
 
   # TODO: move this into "get specific" feature
   Scenario Outline: Request one-to-one association fields

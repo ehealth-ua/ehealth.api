@@ -1084,8 +1084,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     refute data["no_tax_id"]
     assert Map.get(employee_request, :id) == resp["data"]["id"]
     assert Map.get(employee_request, :status) == resp["data"]["status"]
-    assert NaiveDateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
-    assert NaiveDateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
+    assert DateTime.to_iso8601(Map.get(employee_request, :inserted_at)) == resp["data"]["inserted_at"]
+    assert DateTime.to_iso8601(Map.get(employee_request, :updated_at)) == resp["data"]["updated_at"]
     refute Map.has_key?(resp, "urgent")
   end
 
@@ -1122,8 +1122,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     refute data["no_tax_id"]
     assert Map.get(fixture_request, :id) == resp["data"]["id"]
     assert Map.get(fixture_request, :status) == resp["data"]["status"]
-    assert NaiveDateTime.to_iso8601(Map.get(fixture_request, :inserted_at)) == resp["data"]["inserted_at"]
-    assert NaiveDateTime.to_iso8601(Map.get(fixture_request, :updated_at)) == resp["data"]["updated_at"]
+    assert DateTime.to_iso8601(Map.get(fixture_request, :inserted_at)) == resp["data"]["inserted_at"]
+    assert DateTime.to_iso8601(Map.get(fixture_request, :updated_at)) == resp["data"]["updated_at"]
     assert Map.has_key?(resp, "urgent")
     assert Map.has_key?(resp["urgent"], "user_id")
     assert user_id == resp["urgent"]["user_id"]

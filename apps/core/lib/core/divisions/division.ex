@@ -42,6 +42,6 @@ defmodule Core.Divisions.Division do
     belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
     has_many(:addresses, DivisionAddress, foreign_key: :division_id, on_replace: :delete)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

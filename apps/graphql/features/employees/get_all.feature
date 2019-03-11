@@ -109,10 +109,10 @@ Feature: Get all employees
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field        | direction  | expected_value               | alternate_value              |
-      | employeeType | ascending  | "ADMIN"                      | "DOCTOR"                     |
-      | employeeType | descending | "DOCTOR"                     | "ADMIN"                      |
-      | insertedAt   | ascending  | "2017-07-14T19:25:38.000000" | "2018-09-27T18:22:20.000000" |
-      | insertedAt   | descending | "2018-09-27T18:22:20.000000" | "2017-07-14T19:25:38.000000" |
-      | status       | ascending  | "APPROVED"                   | "DISMISSED"                  |
-      | status       | descending | "DISMISSED"                  | "APPROVED"                   |
+      | field        | direction  | expected_value                | alternate_value               |
+      | employeeType | ascending  | "ADMIN"                       | "DOCTOR"                      |
+      | employeeType | descending | "DOCTOR"                      | "ADMIN"                       |
+      | insertedAt   | ascending  | "2017-07-14T19:25:38.000000Z" | "2018-09-27T18:22:20.000000Z" |
+      | insertedAt   | descending | "2018-09-27T18:22:20.000000Z" | "2017-07-14T19:25:38.000000Z" |
+      | status       | ascending  | "APPROVED"                    | "DISMISSED"                   |
+      | status       | descending | "DISMISSED"                   | "APPROVED"                    |

@@ -96,9 +96,9 @@ defmodule GraphQLWeb.Schema.MergeRequestTypes do
     field(:database_id, non_null(:uuid))
     field(:status, non_null(:merge_request_status))
     field(:comment, :string)
+    field(:manual_merge_candidate, non_null(:manual_merge_candidate))
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
-    field(:manual_merge_candidate, non_null(:manual_merge_candidate))
   end
 
   enum :merge_request_status do

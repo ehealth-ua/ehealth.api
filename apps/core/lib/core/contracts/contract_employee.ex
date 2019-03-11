@@ -37,7 +37,7 @@ defmodule Core.Contracts.ContractEmployee do
     belongs_to(:employee, Employee, type: UUID)
     belongs_to(:division, Division, type: UUID)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(%__MODULE__{} = contract_employee, attrs) do

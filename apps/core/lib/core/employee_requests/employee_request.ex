@@ -22,6 +22,6 @@ defmodule Core.EmployeeRequests.EmployeeRequest do
     field(:status, :string)
     field(:employee_id, Ecto.UUID)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 end

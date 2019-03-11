@@ -220,9 +220,9 @@ defmodule GraphQLWeb.Schema.LegalEntityTypes do
       resolve(&LegalEntityResolver.load_related_legal_entities/3)
     end
 
-    # dates
-    field(:inserted_at, :string)
-    field(:updated_at, :string)
+    # timestamps
+    field(:inserted_at, :datetime)
+    field(:updated_at, :datetime)
   end
 
   # embed

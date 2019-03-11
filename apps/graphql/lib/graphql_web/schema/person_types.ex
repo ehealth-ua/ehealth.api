@@ -152,8 +152,6 @@ defmodule GraphQLWeb.Schema.PersonTypes do
       resolve: PersonResolver.resolve_upcased(:person_preferred_way_communication)
     )
 
-    field(:inserted_at, non_null(:datetime))
-    field(:updated_at, non_null(:datetime))
     field(:authentication_methods, non_null(list_of(:person_authentication_method)))
     field(:documents, list_of(:person_document))
     field(:addresses, non_null(list_of(:address)))
@@ -167,6 +165,9 @@ defmodule GraphQLWeb.Schema.PersonTypes do
 
       resolve(&PersonResolver.load_declarations/3)
     end
+
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   enum :person_status do

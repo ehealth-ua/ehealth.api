@@ -118,9 +118,8 @@ defmodule GraphQLWeb.Schema.EmployeeTypes do
     field(:legal_entity, non_null(:legal_entity), resolve: dataloader(PRM))
 
     # timestamps
-    # TODO: Timestamp fields should return :datetime type
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   # embed

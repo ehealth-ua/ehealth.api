@@ -18,7 +18,7 @@ defmodule Core.LegalEntities.MedicalServiceProvider do
 
     belongs_to(:legal_entity, Core.LegalEntities.LegalEntity, type: Ecto.UUID)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   def changeset(%__MODULE__{} = doc, attrs) do

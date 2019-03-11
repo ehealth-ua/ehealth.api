@@ -17,7 +17,7 @@ defmodule EHealth.Web.MisControllerTest do
                "id" => employee_request.id,
                "employee_id" => employee_request.employee_id,
                "status" => employee_request.status,
-               "updated_at" => NaiveDateTime.to_iso8601(employee_request.updated_at)
+               "updated_at" => DateTime.to_iso8601(employee_request.updated_at)
              } == res["data"]
     end
   end

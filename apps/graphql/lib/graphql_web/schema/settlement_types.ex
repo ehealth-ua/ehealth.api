@@ -57,8 +57,8 @@ defmodule GraphQLWeb.Schema.SettlementTypes do
       resolve: dataloader(Uaddresses, {:search_settlements, :one, :parent_settlement_id, :id})
     )
 
-    field(:inserted_at, non_null(:naive_datetime))
-    field(:updated_at, non_null(:naive_datetime))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
   end
 
   enum :settlement_type do

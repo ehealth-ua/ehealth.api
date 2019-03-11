@@ -19,7 +19,7 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
     belongs_to(:merged_from, LegalEntity, type: Ecto.UUID)
     belongs_to(:merged_to, LegalEntity, type: Ecto.UUID)
 
-    timestamps(updated_at: false)
+    timestamps(type: :utc_datetime, updated_at: false)
   end
 
   def changeset(%__MODULE__{} = entity, attrs) do

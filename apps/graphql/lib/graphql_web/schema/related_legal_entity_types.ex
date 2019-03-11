@@ -28,8 +28,8 @@ defmodule GraphQLWeb.Schema.RelatedLegalEntityTypes do
     field(:merged_from_legal_entity, non_null(:legal_entity), resolve: dataloader(PRM, :merged_from, []))
 
     # dates
-    field(:inserted_at, non_null(:string))
-    field(:inserted_by, non_null(:string))
+    field(:inserted_at, non_null(:datetime))
+    field(:inserted_by, non_null(:datetime))
   end
 
   input_object :related_legal_entity_filter do
