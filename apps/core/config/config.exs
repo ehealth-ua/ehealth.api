@@ -258,27 +258,28 @@ config :core, :legal_entity_employee_types,
   pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST", "HR"]}
 
 config :core, :legal_entity_division_types,
-  msp: {:system, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
-  pharmacy: {:system, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]},
+  msp: {:system, :list, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
+  pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]},
   msp_pharmacy:
-    {:system, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
+    {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
      ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]}
 
 config :core, :employee_speciality_types,
-  doctor: {:system, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
-  pharmacist: {:system, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PHARMACIST2"]}
+  doctor: {:system, :list, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
+  pharmacist:
+    {:system, :list, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PROVISOR", "CLINICAL_PROVISOR", "RECEPTIONIST"]}
 
 config :core, :employee_speciality_levels,
-  doctor: {:system, "DOCTOR_SPECIALITY_LEVELS", ["FIRST", "SECOND", "HIGHEST", "NOT_APPLICABLE"]},
-  pharmacist: {:system, "PHARMACIST_SPECIALITY_LEVELS", ["BASIC", "FIRST", "SECOND", "HIGHEST"]}
+  doctor: {:system, :list, "DOCTOR_SPECIALITY_LEVELS", ["FIRST", "SECOND", "HIGHEST", "NOT_APPLICABLE"]},
+  pharmacist: {:system, :list, "PHARMACIST_SPECIALITY_LEVELS", ["BASIC", "FIRST", "SECOND", "HIGHEST"]}
 
 config :core, :employee_education_degrees,
-  doctor: {:system, "DOCTOR_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]},
-  pharmacist: {:system, "PHARMACIST_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]}
+  doctor: {:system, :list, "DOCTOR_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]},
+  pharmacist: {:system, :list, "PHARMACIST_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]}
 
 config :core, :employee_qualification_types,
   doctor:
-    {:system, "DOCTOR_QUALIFICATION_TYPES",
+    {:system, :list, "DOCTOR_QUALIFICATION_TYPES",
      [
        "INTERNSHIP",
        "STAZHUVANNYA",
@@ -289,7 +290,7 @@ config :core, :employee_qualification_types,
        "INFORMATION_COURSES"
      ]},
   pharmacist:
-    {:system, "PHARMACIST_QUALIFICATION_TYPES",
+    {:system, :list, "PHARMACIST_QUALIFICATION_TYPES",
      ["INTERNSHIP", "STAZHUVANNYA", "REATTESTATION", "SPECIALIZATION", "TOPIC_IMPROVEMENT", "INFORMATION_COURSES"]}
 
 config :core, :medication_request_request,
@@ -332,7 +333,8 @@ config :core, Core.Bamboo.SMTPMailer,
   retries: 1
 
 # Configures address merger
-config :core, Core.Utils.AddressMerger, no_suffix_areas: {:system, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
+config :core, Core.Utils.AddressMerger,
+  no_suffix_areas: {:system, :list, "NO_SUFFIX_AREAS", ["М.КИЇВ", "М.СЕВАСТОПОЛЬ"]}
 
 # Configures genral validator
 config :core, Core.LegalEntities.Validator, owner_positions: {:system, :list, "OWNER_POSITIONS", [""]}
