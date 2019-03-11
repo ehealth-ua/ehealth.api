@@ -264,9 +264,33 @@ config :core, :legal_entity_division_types,
     {:system, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
      ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]}
 
-config :core, :employee_specialities_types,
+config :core, :employee_speciality_types,
   doctor: {:system, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
   pharmacist: {:system, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PHARMACIST2"]}
+
+config :core, :employee_speciality_levels,
+  doctor: {:system, "DOCTOR_SPECIALITY_LEVELS", ["FIRST", "SECOND", "HIGHEST", "NOT_APPLICABLE"]},
+  pharmacist: {:system, "PHARMACIST_SPECIALITY_LEVELS", ["BASIC", "FIRST", "SECOND", "HIGHEST"]}
+
+config :core, :employee_education_degrees,
+  doctor: {:system, "DOCTOR_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]},
+  pharmacist: {:system, "PHARMACIST_EDUCATION_DEGREES", ["EXPERT", "MASTER", "BACHELOR", "JUNIOR_EXPERT"]}
+
+config :core, :employee_qualification_types,
+  doctor:
+    {:system, "DOCTOR_QUALIFICATION_TYPES",
+     [
+       "INTERNSHIP",
+       "STAZHUVANNYA",
+       "REATTESTATION",
+       "SPECIALIZATION",
+       "TOPIC_IMPROVEMENT",
+       "CLINICAL_RESIDENCY",
+       "INFORMATION_COURSES"
+     ]},
+  pharmacist:
+    {:system, "PHARMACIST_QUALIFICATION_TYPES",
+     ["INTERNSHIP", "STAZHUVANNYA", "REATTESTATION", "SPECIALIZATION", "TOPIC_IMPROVEMENT", "INFORMATION_COURSES"]}
 
 config :core, :medication_request_request,
   expire_in_minutes: {:system, :integer, "MEDICATION_REQUEST_REQUEST_EXPIRATION", 30},

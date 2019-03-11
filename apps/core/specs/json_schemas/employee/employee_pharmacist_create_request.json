@@ -74,11 +74,7 @@
           "minLength": 1
         }
       },
-      "required": [
-        "type",
-        "institution_name",
-        "speciality"
-      ],
+      "required": ["type", "institution_name", "speciality"],
       "additionalProperties": false
     },
     "specialities": {
@@ -112,15 +108,7 @@
           "$ref": "#/definitions/name"
         }
       },
-      "required": [
-        "speciality",
-        "speciality_officio",
-        "level",
-        "qualification_type",
-        "attestation_name",
-        "attestation_date",
-        "certificate_number"
-      ],
+      "required": ["speciality", "speciality_officio", "level"],
       "additionalProperties": false
     },
     "science_degree": {
@@ -164,33 +152,30 @@
   },
   "type": "object",
   "properties": {
-    "educations":{
-        "type":"array",
-        "items":{
-          "$ref":"#/definitions/education"
-        },
-        "minItems":1
+    "educations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/education"
+      },
+      "minItems": 1
     },
-    "qualifications":{
-        "type":"array",
-        "items":{
-          "$ref":"#/definitions/qualification"
-        },
-        "minItems":1
+    "qualifications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/qualification"
+      },
+      "minItems": 1
     },
-    "specialities":{
-        "type":"array",
-        "items":{
-          "$ref":"#/definitions/specialities"
-        },
-        "minItems":1
+    "specialities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/specialities"
+      },
+      "minItems": 1
     },
-    "science_degree":{
-        "$ref":"#/definitions/science_degree"
+    "science_degree": {
+      "$ref": "#/definitions/science_degree"
     }
   },
-  "required": [
-    "educations",
-    "specialities"
-  ]
+  "required": ["educations", "specialities"]
 }

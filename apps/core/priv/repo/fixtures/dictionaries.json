@@ -1260,9 +1260,11 @@
     "values": {
       "THERAPIST": "Терапевт",
       "PHARMACIST": "Фармацевт",
-      "PHARMACIST2": "Провізор",
+      "PROVISOR": "Провізор",
       "PEDIATRICIAN": "Педіатр",
-      "FAMILY_DOCTOR": "Сімейний лікар"
+      "FAMILY_DOCTOR": "Сімейний лікар",
+      "CLINICAL_PROVISOR": "Провізор клінічний",
+      "RECEPTIONIST": "Реєстратор"
     },
     "labels": [
       "SYSTEM",
