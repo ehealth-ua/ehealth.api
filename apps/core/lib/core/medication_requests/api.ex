@@ -42,6 +42,7 @@ defmodule Core.MedicationRequests.API do
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
+  @legal_entity_msp_pharmacy LegalEntity.type(:msp_pharmacy)
 
   @intent_order MedicationRequest.intent(:order)
 
@@ -200,7 +201,7 @@ defmodule Core.MedicationRequests.API do
   defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
     with %PartyUser{party: party} <- get_party_user(user_id),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         {:ok, search_params} <- get_show_search_params(party.id, legal_entity, id),
+         {:ok, search_params} <- get_show_search_params(party.id, legal_entity.id, legal_entity.type, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
@@ -216,14 +217,18 @@ defmodule Core.MedicationRequests.API do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
   end
 
-  defp get_show_search_params(party_id, %LegalEntity{id: legal_entity_id, type: @legal_entity_msp}, id) do
+  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp_pharmacy, id) do
+    get_show_search_params(party_id, legal_entity_id, @legal_entity_pharmacy, id)
+  end
+
+  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp, id) do
     with employee_ids <- get_employees(party_id, legal_entity_id),
          {:ok, search_params} <- add_id_search_params(%{"employee_id" => Enum.join(employee_ids, ",")}, id) do
       {:ok, search_params}
     end
   end
 
-  defp get_show_search_params(_, %LegalEntity{type: @legal_entity_pharmacy}, id), do: add_id_search_params(%{}, id)
+  defp get_show_search_params(_, _, @legal_entity_pharmacy, id), do: add_id_search_params(%{}, id)
 
   defp add_id_search_params(search_params, id) do
     symbols = NumberGenerator.get_number_symbols()
