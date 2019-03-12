@@ -124,6 +124,16 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^there are (?<count>\d+) INNMs exist$/,
+    fn state, %{count: count} ->
+      count = Jason.decode!(count)
+      insert_list(count, :prm, :innm)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^there are (?<count>\d+) employees exist$/,
     fn state, %{count: count} ->
       count = Jason.decode!(count)
@@ -257,6 +267,18 @@ defmodule GraphQL.Features.Context do
       for row <- table_data do
         attrs = prepare_attrs(Medication, row)
         insert(:prm, :medication, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following INNMs exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(Medication, row)
+        insert(:prm, :innm, attrs)
       end
 
       {:ok, state}
@@ -486,6 +508,33 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) INNMs$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListINNMs($first: Int!) {
+          innms(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innms nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -843,6 +892,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data medications nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) INNMs where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListINNMsWithFilter(
+          $first: Int!
+          $filter: INNMFilter!
+        ) {
+          innms(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innms nodes))
 
       {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -1376,6 +1457,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) INNMs sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListINNMsWithOrderBy(
+          $first: Int!
+          $order_by: INNMOrderBy!
+        ) {
+          innms(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innms nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """
@@ -1522,6 +1635,32 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request INNM where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+        query GetINNMQuery($id: ID!) {
+          innm(id: $id) {
+            databaseId
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("INNM", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data innm))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{field: field, database_id: database_id} ->
       query = """
@@ -1594,6 +1733,32 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data medication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the INNM where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetINNMQuery($id: ID!) {
+          innm(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("INNM", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data innm))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -1875,11 +2040,11 @@ defmodule GraphQL.Features.Context do
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
-  
+
   then_(
     ~r/^event manager has event for (?<entity_type>[^"]+) with ID "(?<entity_id>[^"]+)" and consumer ID "(?<updated_by>[^"]+)"$/,
     fn state, %{entity_id: entity_id, entity_type: entity_type, updated_by: updated_by} ->
-      event = 
+      event =
         Event
         |> where(entity_id: ^entity_id, entity_type: ^entity_type, changed_by: ^updated_by)
         |> EventManagerRepo.one()
@@ -1888,7 +2053,6 @@ defmodule GraphQL.Features.Context do
 
       {:ok, state}
   end)
-  
 
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]
