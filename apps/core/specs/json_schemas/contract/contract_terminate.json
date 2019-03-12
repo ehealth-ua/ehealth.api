@@ -5,10 +5,10 @@
       "status_reason": {
         "type": "string",
         "description": "code of reason of terminated status",
-        "enum": ["DEFAULT"]
+        "enum": ["DEFAULT", "AUTO_EXPIRED", "AUTO_DEACTIVATION_LEGAL_ENTITY"]
       },
       "reason": {
-        "type": "string",
+        "type": ["null", "string"],
         "description": "reason of terminated status",
         "maxLength": 3000
       },

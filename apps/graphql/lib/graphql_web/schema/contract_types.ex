@@ -22,7 +22,8 @@ defmodule GraphQLWeb.Schema.ContractTypes do
 
       input do
         field(:id, non_null(:id))
-        field(:status_reason, :string)
+        field(:reason, :string)
+        field(:status_reason, non_null(:contract_status_reason))
       end
 
       output do
