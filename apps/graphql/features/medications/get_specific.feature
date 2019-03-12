@@ -23,3 +23,15 @@ Feature: Get specific medication
       | "ac0d78ca-8fd6-4aff-8389-f421c7c5a091" | isActive             | true                                   |
       | "0d5596d4-ea91-4975-bd8e-2c5b2eac648c" | insertedAt           | "2017-01-04T22:49:12.000000Z"          |
       | "a4922db2-3f1d-47d0-963d-3b9a7760e8ad" | updatedAt            | "2018-10-24T11:38:46.000000Z"          |
+
+
+  Scenario: Request atcCodes field
+    Given the following medications exist:
+      | databaseId                             | codeAtc     |
+      | "27dc8db2-7502-4dab-9806-e743ce670950" | ["C01BD01"] |
+    And my scope is "medication:read"
+    And my client type is "NHS"
+    When I request atcCodes of the medication where databaseId is "27dc8db2-7502-4dab-9806-e743ce670950"
+    Then no errors should be returned
+    And I should receive requested item
+    And the atcCodes of the requested item should be ["C01BD01"]

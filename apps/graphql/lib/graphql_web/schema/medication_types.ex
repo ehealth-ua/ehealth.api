@@ -79,7 +79,7 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
     field(:manufacturer, :manufacturer)
-    field(:atc_codes, non_null(list_of(:string)), resolve: fn _, res -> res.source.code_atc end)
+    field(:atc_codes, non_null(list_of(:string)), resolve: fn _, res -> {:ok, res.source.code_atc} end)
     field(:form, :medication_form)
     field(:container, non_null(:container))
     field(:package_qty, :integer)
@@ -123,7 +123,7 @@ defmodule GraphQLWeb.Schema.MedicationTypes do
 
     field(:dosage, non_null(:dosage))
     field(:is_primary, non_null(:boolean))
-    field(:innm_dosage, non_null(:innm_dosage))
+    field(:innm_dosage, non_null(:innm_dosage), resolve: dataloader(PRM))
   end
 
   enum :medication_type do
