@@ -9,8 +9,6 @@ defmodule Core.PartyUsers do
   alias Core.PartyUsers.Search
   alias Core.PRMRepo
 
-  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
-
   @fields_required ~w(
     user_id
     party_id
@@ -29,7 +27,7 @@ defmodule Core.PartyUsers do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(%Search{}, params) do
       PartyUser
       |> get_search_query(changes)
-      |> @read_prm_repo.all()
+      |> PRMRepo.all()
     end
   end
 
