@@ -304,7 +304,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       insert(
         :il,
         :dictionary,
-        name: "CONTRACT_REQUEST_REVIEW_TEXT",
+        name: "CAPITATION_CONTRACT_REQUEST_REVIEW_TEXT",
         values: %{"APPROVED" => approved_text, "DECLINED" => declined_text}
       )
 

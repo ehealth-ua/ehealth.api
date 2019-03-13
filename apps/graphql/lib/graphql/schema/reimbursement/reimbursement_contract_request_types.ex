@@ -148,8 +148,8 @@ defmodule GraphQL.Schema.ReimbursementContractRequestTypes do
     )
 
     field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
-    field(:to_approve_content, :json, resolve: &ContractRequestResolver.get_to_approve_content/3)
-    field(:to_decline_content, :json, resolve: &ContractRequestResolver.get_to_decline_content/3)
+    field(:to_approve_content, :json, resolve: &ReimbursementContractRequestResolver.get_to_approve_content/3)
+    field(:to_decline_content, :json, resolve: &ReimbursementContractRequestResolver.get_to_decline_content/3)
     field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
 
     field(:medical_program, :medical_program, resolve: load_by_parent(PRM, MedicalProgram))

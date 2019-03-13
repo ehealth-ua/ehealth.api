@@ -143,8 +143,8 @@ defmodule GraphQL.Schema.CapitationContractRequestTypes do
     )
 
     field(:miscellaneous, :string, resolve: fn _, res -> {:ok, res.source.misc} end)
-    field(:to_approve_content, :json, resolve: &ContractRequestResolver.get_to_approve_content/3)
-    field(:to_decline_content, :json, resolve: &ContractRequestResolver.get_to_decline_content/3)
+    field(:to_approve_content, :json, resolve: &CapitationContractRequestResolver.get_to_approve_content/3)
+    field(:to_decline_content, :json, resolve: &CapitationContractRequestResolver.get_to_decline_content/3)
     field(:to_sign_content, :json, resolve: &ContractRequestResolver.get_to_sign_content/3)
     field(:contractor_rmsp_amount, non_null(:integer))
     field(:contractor_employee_divisions, list_of(:contractor_employee_division))
