@@ -155,6 +155,16 @@ defmodule GraphQL.Features.Context do
   )
 
   given_(
+    ~r/^there are (?<count>\d+) INNM dosages exist$/,
+    fn state, %{count: count} ->
+      count = Jason.decode!(count)
+      insert_list(count, :prm, :innm_dosage)
+
+      {:ok, state}
+    end
+  )
+
+  given_(
     ~r/^the following capitation contract requests exist:$/,
     fn state, %{table_data: table_data} ->
       for row <- table_data do
@@ -303,6 +313,18 @@ defmodule GraphQL.Features.Context do
       for row <- table_data do
         attrs = prepare_attrs(Medication.Ingredient, row)
         insert(:prm, :ingredient_medication, attrs)
+      end
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following INNM dosage ingredients exist:$/,
+    fn state, %{table_data: table_data} ->
+      for row <- table_data do
+        attrs = prepare_attrs(INNMDosage.Ingredient, row)
+        insert(:prm, :ingredient_innm_dosage, attrs)
       end
 
       {:ok, state}
@@ -930,6 +952,36 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) INNM dosages where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListINNMDosages($first: Int!, $filter: INNMDosageFilter!) {
+          innmDosages(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+              #{field}
+            }
+          }
+        }
+      """
+      
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{settlements: settlements, conn: conn}, %{count: count, field: field, value: value} ->
       expect(RPCWorkerMock, :run, fn
@@ -1489,6 +1541,68 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) INNM dosages$/,
+    fn %{conn: conn}, %{count: count} ->
+
+      query = """
+        query ListINNMDosages($first: Int!) {
+          innmDosages(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) INNM dosages sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListINNMDosagesWithOrderBy(
+          $first: Int!
+          $order_by: INNMDosageOrderBy!
+        ) {
+          innmDosages(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """
@@ -1655,6 +1769,64 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data innm))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the INNM dosage where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetINNMDosageQuery($id: ID!) {
+          innmDosage(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("INNMDosage", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data innmDosage))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+
+  when_(
+    ~r/^I request INNM dosage with INNM where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+        query GetINNMDosageQuery($id: ID!) {
+          innmDosage(id: $id) {
+            ingredients {
+              innm {
+                id
+                databaseId
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("INNMDosage", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data innmDosage))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end

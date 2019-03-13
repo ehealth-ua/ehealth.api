@@ -19,7 +19,6 @@ Feature: Get all medications
       | isActive   | true                                   | true                                   | false                                  |
       | form       | "TABLET"                               | "TABLET"                               | "AEROSOL_FOR_INHALATION"               |
 
-
   Scenario Outline: Request items filtered by condition on INNM Dosage
     Given the following INNM dosages exist:
       | databaseId                 | <field>           |

@@ -71,6 +71,7 @@ defmodule GraphQL.Schema do
     import_fields(:reimbursement_contract_request_queries)
     import_fields(:employee_queries)
     import_fields(:innm_queries)
+    import_fields(:innm_dosage_queries)
     import_fields(:dictionary_queries)
     import_fields(:declaration_queries)
     import_fields(:legal_entity_queries)
