@@ -1,5 +1,5 @@
-defmodule GraphQLWeb.ScopeAuthorizationMiddlewareTest do
-  use GraphQLWeb.ConnCase, async: true
+defmodule GraphQL.ScopeAuthorizationMiddlewareTest do
+  use GraphQL.ConnCase, async: true
 
   @query """
     {

@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.CapidationContractRequestResolverTest do
+defmodule GraphQL.CapidationContractRequestResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Man, only: [template: 0]

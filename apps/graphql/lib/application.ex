@@ -9,7 +9,7 @@ defmodule GraphQL.Application do
     import Supervisor.Spec
 
     children = [
-      supervisor(GraphQLWeb.Endpoint, [])
+      supervisor(GraphQL.Endpoint, [])
     ]
 
     children =
@@ -27,7 +27,7 @@ defmodule GraphQL.Application do
   end
 
   def config_change(changed, _new, removed) do
-    GraphQLWeb.Endpoint.config_change(changed, removed)
+    GraphQL.Endpoint.config_change(changed, removed)
     :ok
   end
 end

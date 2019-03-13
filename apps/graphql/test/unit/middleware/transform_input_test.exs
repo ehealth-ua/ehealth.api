@@ -4,7 +4,7 @@ defmodule GraphQL.Unit.Middleware.TransformInputTest do
   use ExUnit.Case, async: true
 
   alias Ecto.UUID
-  alias GraphQLWeb.Middleware.TransformInput
+  alias GraphQL.Middleware.TransformInput
 
   @query """
     query UserQuery($filter: UserFilter){

@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.LegalEntityMergeJobResolverTest do
+defmodule GraphQL.LegalEntityMergeJobResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Expectations.Signature
   import Core.Factories

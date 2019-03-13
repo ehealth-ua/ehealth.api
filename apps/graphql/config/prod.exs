@@ -1,6 +1,6 @@
 use Mix.Config
 
-config :graphql, GraphQLWeb.Endpoint,
+config :graphql, GraphQL.Endpoint,
   load_from_system_env: true,
   http: [port: {:system, "PORT", "80"}],
   url: [

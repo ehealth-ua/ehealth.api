@@ -3,7 +3,7 @@ defmodule GraphQL.Unit.Middleware.FilteringTest do
 
   use ExUnit.Case, async: true
 
-  alias GraphQLWeb.Middleware.Filtering
+  alias GraphQL.Middleware.Filtering
 
   @query """
     query UserQuery($first: Int, $filter: UserFilter) {

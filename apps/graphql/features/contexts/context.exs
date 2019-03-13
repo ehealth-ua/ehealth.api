@@ -29,7 +29,7 @@ defmodule GraphQL.Features.Context do
   @consumer_metadata_header "x-consumer-metadata"
   @drfo_header "drfo"
 
-  @endpoint GraphQLWeb.Endpoint
+  @endpoint GraphQL.Endpoint
 
   @graphql_path "/graphql"
 

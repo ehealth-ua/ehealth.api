@@ -1,5 +1,5 @@
-defmodule GraphQLWeb.DatabaseIDsMiddlewareTest do
-  use GraphQLWeb.ConnCase, async: true
+defmodule GraphQL.DatabaseIDsMiddlewareTest do
+  use GraphQL.ConnCase, async: true
 
   import Core.Factories
 

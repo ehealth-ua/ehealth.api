@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.LegalEntityDeactivationJobResolverTest do
+defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Factories
   import Mox

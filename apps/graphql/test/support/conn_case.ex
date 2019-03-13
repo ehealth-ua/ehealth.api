@@ -1,4 +1,4 @@
-defmodule GraphQLWeb.ConnCase do
+defmodule GraphQL.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -26,7 +26,7 @@ defmodule GraphQLWeb.ConnCase do
       use Phoenix.ConnTest
 
       # The default endpoint for testing
-      @endpoint GraphQLWeb.Endpoint
+      @endpoint GraphQL.Endpoint
 
       @graphql_path "/graphql"
 

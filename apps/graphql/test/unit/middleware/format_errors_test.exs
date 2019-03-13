@@ -3,7 +3,7 @@ defmodule GraphQL.Unit.Middleware.FormatErrorsTest do
 
   use ExUnit.Case, async: true
 
-  alias GraphQLWeb.Middleware.FormatErrors
+  alias GraphQL.Middleware.FormatErrors
   alias Ecto.UUID
 
   @query """

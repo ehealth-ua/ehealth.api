@@ -6,12 +6,12 @@ config :graphql,
   namespace: GraphQL
 
 # Configures the endpoint
-config :graphql, GraphQLWeb.Endpoint,
+config :graphql, GraphQL.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "CYmgC8ImSRDRzR8UuogkPi3LY9xnvdta6S4pJmKDSQPnqRF9p5PNNS11eE7a2Uc5",
   debug_errors: false,
   render_errors: [
-    view: GraphQLWeb.Resolvers.Helpers.ErrorView,
+    view: GraphQL.Resolvers.Helpers.ErrorView,
     accepts: ~w(json)
   ],
   instrumenters: [LoggerJSON.Phoenix.Instruments]

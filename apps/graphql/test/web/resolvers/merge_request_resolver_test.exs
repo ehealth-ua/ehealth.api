@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.MergeRequestResolverTest do
+defmodule GraphQL.MergeRequestResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Expectations.Mithril, only: [nhs: 1, search_user_roles: 1]
   import Core.Factories

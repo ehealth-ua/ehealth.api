@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.ContractResolverTest do
+defmodule GraphQL.ContractResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3]
   import Core.Expectations.Mithril

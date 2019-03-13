@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.DictionaryResolverTest do
+defmodule GraphQL.DictionaryResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: true
+  use GraphQL.ConnCase, async: true
 
   import Core.Factories
 

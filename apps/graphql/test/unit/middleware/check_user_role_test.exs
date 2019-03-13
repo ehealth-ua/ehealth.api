@@ -6,7 +6,7 @@ defmodule GraphQL.Unit.Middleware.CheckUserRoleTest do
   import Mox
 
   alias Ecto.UUID
-  alias GraphQLWeb.Middleware.{CheckUserRole, FormatErrors}
+  alias GraphQL.Middleware.{CheckUserRole, FormatErrors}
 
   @query """
     query ResourceQuery {

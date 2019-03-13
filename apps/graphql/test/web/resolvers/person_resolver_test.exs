@@ -1,7 +1,7 @@
-defmodule GraphQLWeb.PersonResolverTest do
+defmodule GraphQL.PersonResolverTest do
   @moduledoc false
 
-  use GraphQLWeb.ConnCase, async: false
+  use GraphQL.ConnCase, async: false
 
   import Core.Factories
   import Mox
