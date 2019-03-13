@@ -90,6 +90,8 @@ defmodule Core.EmployeeRequests.Validator do
     end)
   end
 
+  defp validate_qualification_type(nil, _), do: :ok
+
   defp validate_qualification_type(qualifications, employee_type) do
     allowed_types = Confex.fetch_env!(:core, :employee_qualification_types)[String.to_atom(employee_type)]
 
