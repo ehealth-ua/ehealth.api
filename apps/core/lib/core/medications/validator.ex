@@ -63,9 +63,7 @@ defmodule Core.Medications.Validator do
     end
   end
 
-  def validate_program_medication_is_active(changeset) do
-    changeset
-  end
+  def validate_program_medication_is_active(changeset), do: changeset
 
   def validate_program_medication_requests_allowed(%{changes: %{medication_request_allowed: true}} = changeset) do
     err_msg = "To allow medication request firstly enable program medication"
@@ -76,9 +74,18 @@ defmodule Core.Medications.Validator do
     end
   end
 
-  def validate_program_medication_requests_allowed(changeset) do
-    changeset
+  def validate_program_medication_requests_allowed(changeset), do: changeset
+
+  def validate_program_medication_reimbursement(%{changes: %{reimbursement: %{action: :update}}} = changeset) do
+    err_msg = "To update reimbursement firstly enable program medication"
+
+    case get_field(changeset, :is_active) do
+      false -> add_error(changeset, :reimbursement, err_msg)
+      _ -> changeset
+    end
   end
+
+  def validate_program_medication_reimbursement(changeset), do: changeset
 
   defp validate_ingredients_fk(changeset) do
     validate_change(changeset, :ingredients, fn :ingredients, ingredients ->

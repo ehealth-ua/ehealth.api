@@ -19,7 +19,7 @@ Feature: Update program medication
       | "86208c0d-d743-4fb3-8141-70f638d56cd7" | medicationRequestAllowed | false      | true       | true                       |
       | "979f42bd-86e6-4e62-9a23-20a234531aee" | medicationRequestAllowed | true       | true       | false                      |
 
-  Scenario Outline: Direct fields transition to wrong state
+  Scenario Outline: Direct fields transition to incorrect state
     Given the following program medications exist:
       | databaseId    | isActive    | medicationRequestAllowed     |
       | <database_id> | <is_active> | <medication_request_allowed> |
@@ -51,7 +51,7 @@ Feature: Update program medication
       | database_id                            | field         | nested_field        | next_value |
       | "ad3b3681-0183-4c47-9cf4-4d5390587b96" | reimbursement | reimbursementAmount | 15.0       |
 
-  Scenario Outline: Update nested fields with wrong values
+  Scenario Outline: Update nested fields with incorrect values
     Given the following program medications exist:
       | databaseId    | isActive | reimbursement                                  |
       | <database_id> | true     | {"type": "FIXED", "reimbursement_amount": 5.0} |
@@ -65,6 +65,21 @@ Feature: Update program medication
     Examples:
       | database_id                            | field         | nested_field        | next_value |
       | "f9972677-060b-4763-b552-59c69d38d726" | reimbursement | reimbursementAmount | -1.0       |
+
+  Scenario Outline: Update nested fields when program medication inactive
+    Given the following program medications exist:
+      | databaseId    | isActive | medicationRequestAllowed | reimbursement                                  |
+      | <database_id> | false    | false                    | {"type": "FIXED", "reimbursement_amount": 5.0} |
+    And my scope is "program_medication:write"
+    And my client type is "NHS"
+    And my consumer ID is "df5b47a8-8cd8-4167-910b-75b15e012d57"
+    When I update the <nested_field> of the <field> with <next_value> in the program medication where databaseId is <database_id>
+    Then the "UNPROCESSABLE_ENTITY" error should be returned
+    And I should not receive requested item
+
+    Examples:
+      | database_id                            | field         | nested_field        | next_value |
+      | "4fcfadac-7e3a-4916-ba2e-aceb60e81f6c" | reimbursement | reimbursementAmount | 15.0       |
 
   Scenario: Update with incorrect scope
     Given the following program medications exist:

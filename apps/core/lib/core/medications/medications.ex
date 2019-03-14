@@ -527,8 +527,10 @@ defmodule Core.Medications do
     |> foreign_key_constraint(:medication_id)
     |> foreign_key_constraint(:medical_program_id)
     |> unique_constraint(:medication_id, opts)
+    # TODO: these validations should go outside of changeset and fail with CONFLICT errors
     |> Validator.validate_program_medication_is_active()
     |> Validator.validate_program_medication_requests_allowed()
+    |> Validator.validate_program_medication_reimbursement()
     |> Validator.validate_medication_is_active()
     |> Validator.validate_medical_program_is_active()
   end
