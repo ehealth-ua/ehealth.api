@@ -1,24 +1,5 @@
 Feature: Update program medication
 
-  Scenario: Update with wrong scope
-    Given the following program medications exist:
-      | databaseId                             | isActive | medicationRequestAllowed |
-      | "a05b4108-df83-4cc9-86e4-5a8e26ab02b6" | true     | false                    |
-    And my scope is "program_medication:read"
-    When I update the isActive with false in the program medication where databaseId is "a05b4108-df83-4cc9-86e4-5a8e26ab02b6"
-    Then the "FORBIDDEN" error should be returned
-    And I should not receive requested item
-
-  Scenario: Update with wrong client type
-    Given the following program medications exist:
-      | databaseId                             | isActive | medicationRequestAllowed |
-      | "f562def7-e1af-41e5-bece-4544af25d5b1" | true     | false                    |
-    And my scope is "program_medication:write"
-    And my client type is "MIS"
-    When I update the isActive with false in the program medication where databaseId is "f562def7-e1af-41e5-bece-4544af25d5b1"
-    Then the "FORBIDDEN" error should be returned
-    And I should not receive requested item
-
   Scenario Outline: Successful direct fields update
     Given the following program medications exist:
       | databaseId    | isActive    | medicationRequestAllowed     |
@@ -84,3 +65,22 @@ Feature: Update program medication
     Examples:
       | database_id                            | field         | nested_field        | next_value |
       | "f9972677-060b-4763-b552-59c69d38d726" | reimbursement | reimbursementAmount | -1.0       |
+
+  Scenario: Update with incorrect scope
+    Given the following program medications exist:
+      | databaseId                             | isActive | medicationRequestAllowed |
+      | "a05b4108-df83-4cc9-86e4-5a8e26ab02b6" | true     | false                    |
+    And my scope is "program_medication:read"
+    When I update the isActive with false in the program medication where databaseId is "a05b4108-df83-4cc9-86e4-5a8e26ab02b6"
+    Then the "FORBIDDEN" error should be returned
+    And I should not receive requested item
+
+  Scenario: Update with incorrect client
+    Given the following program medications exist:
+      | databaseId                             | isActive | medicationRequestAllowed |
+      | "f562def7-e1af-41e5-bece-4544af25d5b1" | true     | false                    |
+    And my scope is "program_medication:write"
+    And my client type is "MIS"
+    When I update the isActive with false in the program medication where databaseId is "f562def7-e1af-41e5-bece-4544af25d5b1"
+    Then the "FORBIDDEN" error should be returned
+    And I should not receive requested item
