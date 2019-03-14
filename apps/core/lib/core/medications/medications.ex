@@ -546,14 +546,12 @@ defmodule Core.Medications do
   def get_innm!(id), do: @read_prm_repo.get!(INNM, id)
 
   @doc false
-  def create_innm(attrs, headers) do
+  def create_innm(actor_id, attrs) do
     case JsonSchema.validate(:innm, attrs) do
       :ok ->
-        consumer_id = get_consumer_id(headers)
-
         %INNM{}
-        |> changeset(put_consumer_id(attrs, headers))
-        |> PRMRepo.insert_and_log(consumer_id)
+        |> changeset(Map.merge(attrs, %{"inserted_by" => actor_id, "updated_by" => actor_id}))
+        |> PRMRepo.insert_and_log(actor_id)
 
       err ->
         err
@@ -666,12 +664,5 @@ defmodule Core.Medications do
 
   def preload_references(entity) do
     entity
-  end
-
-  # helpers
-
-  defp put_consumer_id(attrs, headers) do
-    consumer_id = get_consumer_id(headers)
-    Map.merge(attrs, %{"inserted_by" => consumer_id, "updated_by" => consumer_id})
   end
 end

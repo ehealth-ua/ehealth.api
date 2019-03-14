@@ -1543,7 +1543,6 @@ defmodule GraphQL.Features.Context do
   when_(
     ~r/^I request first (?<count>\d+) INNM dosages$/,
     fn %{conn: conn}, %{count: count} ->
-
       query = """
         query ListINNMDosages($first: Int!) {
           innmDosages(first: $first) {
@@ -1800,7 +1799,6 @@ defmodule GraphQL.Features.Context do
     end
   )
 
-
   when_(
     ~r/^I request INNM dosage with INNM where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
@@ -2047,6 +2045,13 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I create (?<entity>\w+) with attributes:$/,
+    fn %{conn: conn}, %{entity: entity, table_data: [row]} ->
+      call_create_entity_mutation(conn, entity, row)
+    end
+  )
+
+  when_(
     ~r/^I create medical program with name "(?<name>[^"]+)"$/,
     fn %{conn: conn}, %{name: name} ->
       query = """
@@ -2107,7 +2112,8 @@ defmodule GraphQL.Features.Context do
     end
   )
 
-  when_(~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
+  when_(
+    ~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, contract_type: contract_type} ->
       query = """
       mutation SuspendContract($input: SuspendContractInput!) {
@@ -2123,10 +2129,11 @@ defmodule GraphQL.Features.Context do
       }
       """
 
-      contract_type = case contract_type do
-        "capitation" -> "CapitationContract"
-        "reimbursement" -> "ReimbursementContract"
-      end
+      contract_type =
+        case contract_type do
+          "capitation" -> "CapitationContract"
+          "reimbursement" -> "ReimbursementContract"
+        end
 
       variables = %{
         input: %{
@@ -2145,7 +2152,8 @@ defmodule GraphQL.Features.Context do
       resp_entity = get_in(resp_body, ~w(data suspendContract contract))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
-  end)
+    end
+  )
 
   when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
@@ -2286,7 +2294,8 @@ defmodule GraphQL.Features.Context do
       assert event
 
       {:ok, state}
-  end)
+    end
+  )
 
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]
@@ -2307,11 +2316,10 @@ defmodule GraphQL.Features.Context do
   )
 
   then_("request id should be returned", fn %{resp_body: resp_body} = state ->
-      assert %{"extensions" => %{"requestId" => _}} = resp_body
+    assert %{"extensions" => %{"requestId" => _}} = resp_body
 
-      {:ok, state}
-    end
-  )
+    {:ok, state}
+  end)
 
   then_(
     ~r/^I should receive collection with (?<count>\d+) items?$/,
@@ -2413,6 +2421,17 @@ defmodule GraphQL.Features.Context do
     post(conn, @graphql_path, %{query: query, variables: variables})
   end
 
+  def prepare_input_attrs(attrs), do: Enum.map(attrs, &prepare_input_field/1)
+
+  defp prepare_input_field({field, ""}), do: {field, ""}
+
+  defp prepare_input_field({field, value}) do
+    case Jason.decode(value) do
+      {:ok, decoded_value} -> {field, decoded_value}
+      _ -> raise "Unable to parse \"#{value}\" as value for field \"#{field}\"."
+    end
+  end
+
   def prepare_attrs(queryable \\ nil, attrs)
 
   def prepare_attrs(queryable, attrs) when is_map(attrs) do
@@ -2484,5 +2503,29 @@ defmodule GraphQL.Features.Context do
       |> String.upcase()
 
     Enum.join([field, direction], "_")
+  end
+
+  defp call_create_entity_mutation(conn, "INNM", input_attrs) do
+    input_attrs = prepare_input_attrs(input_attrs)
+    return_fields = input_attrs |> Keyword.keys() |> Enum.join(",")
+
+    query = """
+    mutation CreateINNM($input: CreateINNMInput!) {
+      createInnm(input: $input) {
+        INNM {
+          #{return_fields}
+        }
+      }
+    }
+    """
+
+    resp_body =
+      conn
+      |> post_query(query, %{input: input_attrs})
+      |> json_response(200)
+
+    resp_entity = get_in(resp_body, ~w(data createInnm INNM))
+
+    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
   end
 end

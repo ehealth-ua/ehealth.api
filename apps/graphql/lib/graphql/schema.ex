@@ -90,6 +90,7 @@ defmodule GraphQL.Schema do
     import_fields(:contract_request_mutations)
     import_fields(:declaration_mutations)
     import_fields(:dictionary_mutations)
+    import_fields(:innm_mutations)
     import_fields(:legal_entity_mutations)
     import_fields(:legal_entity_merge_job_mutations)
     import_fields(:legal_entity_deactivation_job_mutations)

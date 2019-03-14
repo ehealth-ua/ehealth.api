@@ -6,6 +6,7 @@ defmodule GraphQL.Schema.INNMTypes do
 
   import GraphQL.Resolvers.Helpers.Load, only: [load_by_args: 2]
 
+  alias Absinthe.Relay.Mutation
   alias Absinthe.Relay.Node.ParseIDs
   alias Core.Medications.INNM
   alias GraphQL.Loaders.PRM
@@ -75,6 +76,29 @@ defmodule GraphQL.Schema.INNMTypes do
     field(:node, :innm)
     @desc "A cursor for use in pagination"
     field(:cursor, non_null(:string))
+  end
+
+  object :innm_mutations do
+    field(:create_innm, :create_innm_payload) do
+      meta(:scope, ~w(innm:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      arg(:input, :create_innm_input)
+
+      middleware(Mutation)
+      resolve(&INNMResolver.create/2)
+    end
+  end
+
+  input_object :create_innm_input, name: "CreateINNMInput" do
+    field(:name, non_null(:string))
+    field(:name_original, non_null(:string))
+    field(:sctid, :string)
+  end
+
+  object :create_innm_payload, name: "CreateINNMPayload" do
+    field(:innm, :innm)
   end
 
   node object(:innm, name: "INNM") do
