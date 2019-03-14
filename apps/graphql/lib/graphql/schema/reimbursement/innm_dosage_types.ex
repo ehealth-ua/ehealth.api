@@ -65,6 +65,29 @@ defmodule GraphQL.Schema.INNMDosageTypes do
     value(:inserted_at_desc)
   end
 
+  object :innm_dosage_mutations do
+    field(:deactivate_innm_dosage, :deactivate_innm_dosage_payload) do
+      meta(:scope, ~w(innm_dosage:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      arg(:input, :deactivate_innm_dosage_input)
+
+      middleware(Absinthe.Relay.Mutation)
+      middleware(ParseIDs, id: :innm_dosage)
+
+      resolve(&INNMDosageResolver.deactivate/2)
+    end
+  end
+
+  input_object :deactivate_innm_dosage_input, name: "DeactivateINNMDosageInput" do
+    field(:id, non_null(:id))
+  end
+
+  object :deactivate_innm_dosage_payload, name: "DeactivateINNMDosagePayload" do
+    field(:innm_dosage, :innm_dosage)
+  end
+
   node object(:innm_dosage, name: "INNMDosage") do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
@@ -76,7 +99,7 @@ defmodule GraphQL.Schema.INNMDosageTypes do
     field(:updated_at, non_null(:datetime))
   end
 
-  object(:innm_dosage_ingredient) do
+  object(:innm_dosage_ingredient, name: "INNMDosageIngredient") do
     interface(:ingredient)
 
     field(:dosage, non_null(:dosage))

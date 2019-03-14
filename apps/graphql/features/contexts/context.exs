@@ -964,7 +964,7 @@ defmodule GraphQL.Features.Context do
           }
         }
       """
-      
+
       variables = %{
         first: Jason.decode!(count),
         filter: filter_argument(field, Jason.decode!(value))
@@ -2208,6 +2208,37 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data updateProgramMedication programMedication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I deactivate INNM dosage where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+      mutation DeactivateINNMDosage($input: DeactivateINNMDosageInput!) {
+        deactivateInnmDosage(input: $input) {
+          innmDosage {
+            databaseId
+            isActive
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("INNMDosage", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateInnmDosage innmDosage))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end

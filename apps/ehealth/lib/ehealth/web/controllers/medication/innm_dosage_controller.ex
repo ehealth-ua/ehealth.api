@@ -31,8 +31,9 @@ defmodule EHealth.Web.INNMDosageController do
 
   def deactivate(conn, %{"id" => id}) do
     innm_dosage = API.get_innm_dosage_by_id!(id)
+    actor_id = get_consumer_id(conn.req_headers)
 
-    with {:ok, %INNMDosage{} = innm_dosage} <- API.deactivate_innm_dosage(innm_dosage, conn.req_headers) do
+    with {:ok, %INNMDosage{} = innm_dosage} <- API.deactivate_innm_dosage(innm_dosage, actor_id) do
       render(conn, "show.json", innm_dosage: innm_dosage)
     end
   end

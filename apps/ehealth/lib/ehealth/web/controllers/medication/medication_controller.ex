@@ -36,8 +36,9 @@ defmodule EHealth.Web.MedicationController do
 
   def deactivate(conn, %{"id" => id}) do
     medication = API.get_medication_by_id!(id)
+    actor_id = get_consumer_id(conn.req_headers)
 
-    with {:ok, %Medication{} = medication} <- API.deactivate_medication(medication, conn.req_headers) do
+    with {:ok, %Medication{} = medication} <- API.deactivate_medication(medication, actor_id) do
       render(conn, "show.json", medication: medication)
     end
   end

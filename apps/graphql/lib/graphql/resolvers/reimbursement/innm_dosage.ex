@@ -5,6 +5,7 @@ defmodule GraphQL.Resolvers.INNMDosage do
   import Ecto.Query, only: [order_by: 2]
 
   alias Absinthe.Relay.Connection
+  alias Core.Medications
   alias Core.Medications.INNMDosage
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -14,5 +15,12 @@ defmodule GraphQL.Resolvers.INNMDosage do
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)
+  end
+
+  def deactivate(%{id: id}, %{context: %{consumer_id: consumer_id}}) do
+    with {:ok, innm_dosage} <- Medications.fetch_innm_dosage_by_id(id),
+         {:ok, innm_dosage} <- Medications.deactivate_innm_dosage(innm_dosage, consumer_id) do
+      {:ok, %{innm_dosage: innm_dosage}}
+    end
   end
 end

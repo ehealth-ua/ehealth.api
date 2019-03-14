@@ -70,19 +70,19 @@ defmodule GraphQL.Schema do
     import_fields(:capitation_contract_request_queries)
     import_fields(:reimbursement_contract_request_queries)
     import_fields(:employee_queries)
-    import_fields(:innm_queries)
-    import_fields(:innm_dosage_queries)
     import_fields(:dictionary_queries)
     import_fields(:declaration_queries)
     import_fields(:legal_entity_queries)
     import_fields(:legal_entity_merge_job_queries)
     import_fields(:legal_entity_deactivation_job_queries)
     import_fields(:medical_program_queries)
-    import_fields(:medication_queries)
-    import_fields(:merge_request_queries)
-    import_fields(:person_queries)
-    import_fields(:settlement_queries)
     import_fields(:program_medication_queries)
+    import_fields(:medication_queries)
+    import_fields(:innm_dosage_queries)
+    import_fields(:innm_queries)
+    import_fields(:person_queries)
+    import_fields(:merge_request_queries)
+    import_fields(:settlement_queries)
   end
 
   mutation do
@@ -94,9 +94,10 @@ defmodule GraphQL.Schema do
     import_fields(:legal_entity_merge_job_mutations)
     import_fields(:legal_entity_deactivation_job_mutations)
     import_fields(:medical_program_mutations)
-    import_fields(:merge_request_mutations)
-    import_fields(:person_mutations)
     import_fields(:program_medication_mutations)
+    import_fields(:innm_dosage_mutations)
+    import_fields(:person_mutations)
+    import_fields(:merge_request_mutations)
   end
 
   node interface do

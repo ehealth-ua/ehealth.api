@@ -313,6 +313,8 @@ defmodule Core.Medications do
 
   def get_medication_by_id(id), do: get_medication_entity_by_id(Medication, id)
 
+  def fetch_innm_dosage_by_id(id), do: fetch_medication_entity_by_id(INNMDosage, id)
+
   defp get_medication_entity_by_id(entity, id) do
     entity
     |> join(:left, [e], i in assoc(e, :ingredients))
@@ -321,6 +323,13 @@ defmodule Core.Medications do
     |> join(:left, [e, i, id, idi], innm in assoc(idi, :innm))
     |> preload([e, i, id, idi, innm], ingredients: {i, innm_dosage: {id, ingredients: {idi, innm: innm}}})
     |> @read_prm_repo.get_by(id: id, type: entity.type())
+  end
+
+  def fetch_medication_entity_by_id(entity, id) do
+    case get_medication_entity_by_id(entity, id) do
+      %{__struct__: ^entity} = item -> {:ok, item}
+      _ -> {:error, {:not_found, "Medication entity not found"}}
+    end
   end
 
   def get_innm_dosage_by_id!(id), do: get_medication_entity_by_id!(INNMDosage, id)
@@ -441,7 +450,7 @@ defmodule Core.Medications do
   # Update
 
   @doc "Deactivate INNM dosage when it has no active medication"
-  def deactivate_innm_dosage(%INNMDosage{} = entity, headers) do
+  def deactivate_innm_dosage(%INNMDosage{} = entity, actor_id) do
     INNMDosage
     |> where([i], i.id == ^entity.id)
     |> join(:inner, [id], i in assoc(id, :ingredients_medication))
@@ -451,30 +460,28 @@ defmodule Core.Medications do
     |> select([..., m], count(m.id))
     |> @read_prm_repo.one()
     |> case do
-      0 -> deactivate_medication_entity(entity, headers)
+      0 -> deactivate_medication_entity(entity, actor_id)
       _ -> {:error, {:conflict, "INNM Dosage has active Medications"}}
     end
   end
 
-  def deactivate_medication(%Medication{id: id} = entity, headers) do
+  def deactivate_medication(%Medication{id: id} = entity, actor_id) do
     case count_active_program_medications_by(medication_id: id) do
-      0 -> deactivate_medication_entity(entity, headers)
+      0 -> deactivate_medication_entity(entity, actor_id)
       _ -> {:error, {:conflict, "Medication is participant of an active Medical Program"}}
     end
   end
 
   @doc false
-  defp deactivate_medication_entity(entity, headers) do
-    consumer_id = get_consumer_id(headers)
-
+  defp deactivate_medication_entity(entity, actor_id) do
     attrs = %{
       is_active: false,
-      updated_by: consumer_id
+      updated_by: actor_id
     }
 
     entity
     |> changeset(attrs)
-    |> PRMRepo.update_and_log(consumer_id)
+    |> PRMRepo.update_and_log(actor_id)
     |> preload_references()
   end
 
