@@ -315,6 +315,8 @@ defmodule Core.Medications do
 
   def fetch_innm_dosage_by_id(id), do: fetch_medication_entity_by_id(INNMDosage, id)
 
+  def fetch_medication_by_id(id), do: fetch_medication_entity_by_id(Medication, id)
+
   defp get_medication_entity_by_id(entity, id) do
     entity
     |> join(:left, [e], i in assoc(e, :ingredients))

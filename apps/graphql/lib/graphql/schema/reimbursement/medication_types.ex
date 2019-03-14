@@ -75,6 +75,25 @@ defmodule GraphQL.Schema.MedicationTypes do
     edge(do: nil)
   end
 
+  object :medication_mutations do
+    payload field(:deactivate_medication) do
+      meta(:scope, ~w(medication:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:medication, :medication)
+      end
+
+      middleware(ParseIDs, id: :medication)
+      resolve(&MedicationResolver.deactivate/2)
+    end
+  end
+
   node object(:medication) do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))

@@ -95,6 +95,7 @@ defmodule GraphQL.Schema do
     import_fields(:legal_entity_deactivation_job_mutations)
     import_fields(:medical_program_mutations)
     import_fields(:program_medication_mutations)
+    import_fields(:medication_mutations)
     import_fields(:innm_dosage_mutations)
     import_fields(:person_mutations)
     import_fields(:merge_request_mutations)

@@ -2214,6 +2214,37 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I deactivate medication where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+      mutation DeactivateMedication($input: DeactivateMedicationInput!) {
+        deactivateMedication(input: $input) {
+          medication {
+            databaseId
+            isActive
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("Medication", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateMedication medication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I deactivate INNM dosage where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
       query = """
