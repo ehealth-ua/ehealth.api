@@ -42,6 +42,7 @@ before_install:
   - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/install-mongodb.sh -o install-mongodb.sh; sudo sh ./install-mongodb.sh
   - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/init-kafka.sh -o init-kafka.sh; sudo sh ./init-kafka.sh
   - kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic merge_legal_entities
+  - kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic deactivate_legal_entity_event
 jobs:
   include:
     - stage: "test and build"
