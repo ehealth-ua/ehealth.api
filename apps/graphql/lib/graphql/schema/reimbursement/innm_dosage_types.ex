@@ -22,7 +22,23 @@ defmodule GraphQL.Schema.INNMDosageTypes do
       arg(:filter, :innm_dosage_filter)
       arg(:order_by, :innm_dosage_order_by, default_value: :inserted_at_desc)
 
-      middleware(Filtering, database_id: :equal, name: :like)
+      middleware(Filtering,
+        database_id: :equal,
+        name: :like,
+        is_active: :equal,
+        form: :equal,
+        ingredients: [
+          is_primary: :equal,
+          innm: [
+            database_id: :equal,
+            name: :like,
+            is_active: :equal,
+            name_original: :like,
+            sctid: :equal
+          ]
+        ]
+      )
+
       middleware(OrderByArgument, order_by_arg: :order_by)
 
       resolve(&INNMDosageResolver.list_innm_dosages/2)
@@ -58,6 +74,14 @@ defmodule GraphQL.Schema.INNMDosageTypes do
   input_object :innm_dosage_filter, name: "INNMDosageFilter" do
     field(:database_id, :uuid)
     field(:name, :string)
+    field(:is_active, :boolean)
+    field(:form, :medication_form)
+    field(:ingredients, :innm_dosage_ingredient_filter)
+  end
+
+  input_object :innm_dosage_ingredient_filter, name: "INNMDosageIngredientFilter" do
+    field(:is_primary, :boolean)
+    field(:innm, :innm_filter)
   end
 
   enum :innm_dosage_order_by, name: "INNMDosageOrderBy" do

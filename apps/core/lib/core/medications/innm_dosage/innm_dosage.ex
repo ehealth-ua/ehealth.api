@@ -19,6 +19,7 @@ defmodule Core.Medications.INNMDosage do
 
     has_many(:ingredients, INNMDosageIngredient, foreign_key: :parent_id)
     has_many(:ingredients_medication, MedicationIngredient, foreign_key: :medication_child_id)
+    has_many(:innm, through: [:ingredients, :innm])
 
     timestamps(type: :utc_datetime)
   end

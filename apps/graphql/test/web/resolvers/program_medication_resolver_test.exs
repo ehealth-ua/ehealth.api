@@ -165,7 +165,8 @@ defmodule GraphQL.ProgramMedicationResolverTest do
             is_active: true,
             form: "COATED_TABLET",
             innm_dosages: %{
-              name: "Dosage 1"
+              name: "Dosage 1",
+              is_active: true
             }
           }
         }

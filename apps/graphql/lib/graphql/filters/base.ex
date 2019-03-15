@@ -4,7 +4,6 @@ defmodule GraphQL.Filters.Base do
   use EctoFilter
   use EctoFilter.Operators.JSON
 
-  alias Core.Medications.INNMDosage
   alias Core.Parties.Party
 
   def apply(query, {_, nil, []}, :map, _), do: query
@@ -31,12 +30,6 @@ defmodule GraphQL.Filters.Base do
         ^value
       )
     )
-  end
-
-  def apply(query, condition, type, INNMDosage = context) do
-    query
-    |> where([..., r], r.is_active == true)
-    |> super(condition, type, context)
   end
 
   def apply(query, operation, type, context), do: super(query, operation, type, context)

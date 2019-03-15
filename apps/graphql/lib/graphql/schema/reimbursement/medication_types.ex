@@ -27,7 +27,12 @@ defmodule GraphQL.Schema.MedicationTypes do
         name: :like,
         is_active: :equal,
         form: :equal,
-        innm_dosages: [database_id: :equal, name: :like],
+        innm_dosages: [
+          database_id: :equal,
+          name: :like,
+          is_active: :equal,
+          form: :equal
+        ],
         manufacturer: [name: :like]
       )
 
