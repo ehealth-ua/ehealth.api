@@ -55,7 +55,7 @@ defmodule GraphQL.Resolvers.LegalEntity do
       Map.merge(args, %{
         first: 1,
         order_by: [desc: :updated_at],
-        filter: [{:employee_type, :equal, Employee.type(:owner)}]
+        filter: [{:employee_type, :in, [Employee.type(:owner), Employee.type(:pharmacy_owner)]}]
       })
 
     loader

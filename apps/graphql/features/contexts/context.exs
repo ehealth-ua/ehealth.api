@@ -1990,6 +1990,32 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the legal entity where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetLegalEntityQuery($id: ID!) {
+          legalEntity(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("LegalEntity", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data legalEntity))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
@@ -2040,6 +2066,34 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data medication))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the legal entity where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetLegalEntityQuery($id: ID!) {
+          legalEntity(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("LegalEntity", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data legalEntity))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
