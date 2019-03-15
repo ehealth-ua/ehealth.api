@@ -18,14 +18,14 @@ defmodule GraphQL.Resolvers.MedicalProgram do
   end
 
   def create(args, %{context: %{consumer_id: consumer_id}}) do
-    with {:ok, medical_program} <- MedicalPrograms.create(consumer_id, args) do
+    with {:ok, medical_program} <- MedicalPrograms.create(args, consumer_id) do
       {:ok, %{medical_program: medical_program}}
     end
   end
 
   def deactivate(%{id: id}, %{context: %{consumer_id: consumer_id}}) do
     with {:ok, medical_program} <- MedicalPrograms.fetch_by_id(id),
-         {:ok, medical_program} <- MedicalPrograms.deactivate(consumer_id, medical_program) do
+         {:ok, medical_program} <- MedicalPrograms.deactivate(medical_program, consumer_id) do
       {:ok, %{medical_program: medical_program}}
     end
   end

@@ -396,14 +396,14 @@ defmodule Core.Medications do
 
   # Create
 
-  def create_innm_dosage(attrs, headers), do: create_medication_entity(INNMDosage, attrs, headers)
+  def create_innm_dosage(attrs, actor_id), do: create_medication_entity(INNMDosage, attrs, actor_id)
 
-  def create_medication(attrs, headers) do
+  def create_medication(attrs, actor_id) do
     code_atc = Map.get(attrs, "code_atc")
 
     case check_duplicates_in_list(code_atc, "code_atc", "atc codes are duplicated") do
       :ok ->
-        create_medication_entity(Medication, attrs, headers)
+        create_medication_entity(Medication, attrs, actor_id)
 
       err ->
         err
@@ -420,7 +420,7 @@ defmodule Core.Medications do
 
   defp check_duplicates_in_list(_, _, _), do: :ok
 
-  defp create_medication_entity(entity, attrs, headers) do
+  defp create_medication_entity(entity, attrs, actor_id) do
     schema_type =
       case entity.type() do
         @type_innm_dosage -> :innm_dosage
@@ -429,19 +429,17 @@ defmodule Core.Medications do
 
     case JsonSchema.validate(schema_type, attrs) do
       :ok ->
-        consumer_id = get_consumer_id(headers)
-
         attrs =
           Map.merge(attrs, %{
             "type" => entity.type(),
-            "inserted_by" => consumer_id,
-            "updated_by" => consumer_id
+            "inserted_by" => actor_id,
+            "updated_by" => actor_id
           })
 
         entity
         |> struct()
         |> changeset(attrs)
-        |> PRMRepo.insert_and_log(consumer_id)
+        |> PRMRepo.insert_and_log(actor_id)
         |> preload_references()
 
       err ->
@@ -548,7 +546,7 @@ defmodule Core.Medications do
   def get_innm!(id), do: @read_prm_repo.get!(INNM, id)
 
   @doc false
-  def create_innm(actor_id, attrs) do
+  def create_innm(attrs, actor_id) do
     case JsonSchema.validate(:innm, attrs) do
       :ok ->
         %INNM{}
@@ -624,23 +622,23 @@ defmodule Core.Medications do
     |> @read_prm_repo.one()
   end
 
-  def create_program_medication(%{} = params, consumer_id) when is_binary(consumer_id) do
+  def create_program_medication(%{} = params, actor_id) when is_binary(actor_id) do
     with :ok <- JsonSchema.validate(:program_medication, params) do
       %ProgramMedication{}
-      |> changeset(Map.merge(params, %{"inserted_by" => consumer_id, "updated_by" => consumer_id}))
-      |> PRMRepo.insert_and_log(consumer_id)
+      |> changeset(Map.merge(params, %{"inserted_by" => actor_id, "updated_by" => actor_id}))
+      |> PRMRepo.insert_and_log(actor_id)
     end
   end
 
-  def update_program_medication(%ProgramMedication{} = program_medication, %{} = attrs, consumer_id)
-      when is_binary(consumer_id) do
+  def update_program_medication(%ProgramMedication{} = program_medication, %{} = attrs, actor_id)
+      when is_binary(actor_id) do
     case JsonSchema.validate(:program_medication_update, attrs) do
       :ok ->
-        attrs = Map.put(attrs, "updated_by", consumer_id)
+        attrs = Map.put(attrs, "updated_by", actor_id)
 
         program_medication
         |> changeset(attrs)
-        |> PRMRepo.update_and_log(consumer_id)
+        |> PRMRepo.update_and_log(actor_id)
         |> preload_references()
 
       err ->

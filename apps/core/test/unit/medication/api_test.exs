@@ -61,7 +61,7 @@ defmodule Core.Medication.APITest do
 
   describe "create_innm_dosage/1" do
     test "invalid foreign keys" do
-      assert {:error, error} = API.create_innm_dosage(@create_innm_dosage_attrs, get_headers_with_consumer_id())
+      assert {:error, error} = API.create_innm_dosage(@create_innm_dosage_attrs, UUID.generate())
       assert [ingredients: {"Invalid foreign keys", []}], error.errors
     end
 
@@ -70,7 +70,7 @@ defmodule Core.Medication.APITest do
       ingredient = Map.put(@ingredient, "id", innm_id)
       attrs = Map.put(@create_innm_dosage_attrs, "ingredients", [ingredient])
 
-      assert {:ok, %INNMDosage{} = innm_dosage} = API.create_innm_dosage(attrs, get_headers_with_consumer_id())
+      assert {:ok, %INNMDosage{} = innm_dosage} = API.create_innm_dosage(attrs, UUID.generate())
 
       assert innm_dosage.name == "some name"
       assert innm_dosage.form == "some form"
@@ -79,7 +79,7 @@ defmodule Core.Medication.APITest do
     end
 
     test "with invalid data returns error changeset" do
-      assert {:error, _} = API.create_medication(@invalid_attrs, get_headers_with_consumer_id())
+      assert {:error, _} = API.create_medication(@invalid_attrs, UUID.generate())
     end
   end
 end

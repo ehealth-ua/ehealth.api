@@ -2045,7 +2045,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I create (?<entity>\w+) with attributes:$/,
+    ~r/^I create (?<entity>(\w+\s?)+) with attributes:$/,
     fn %{conn: conn}, %{entity: entity, table_data: [row]} ->
       call_create_entity_mutation(conn, entity, row)
     end
@@ -2510,13 +2510,13 @@ defmodule GraphQL.Features.Context do
     return_fields = input_attrs |> Keyword.keys() |> Enum.join(",")
 
     query = """
-    mutation CreateINNM($input: CreateINNMInput!) {
-      createInnm(input: $input) {
-        INNM {
-          #{return_fields}
+      mutation CreateINNM($input: CreateINNMInput!) {
+        createInnm(input: $input) {
+          INNM {
+            #{return_fields}
+          }
         }
       }
-    }
     """
 
     resp_body =
@@ -2525,6 +2525,35 @@ defmodule GraphQL.Features.Context do
       |> json_response(200)
 
     resp_entity = get_in(resp_body, ~w(data createInnm INNM))
+
+    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+  end
+
+  defp call_create_entity_mutation(conn, "INNM dosage", input_attrs) do
+    input_attrs = prepare_input_attrs(input_attrs)
+
+    fields =
+      input_attrs
+      |> Enum.reject(fn {_, val} -> is_list(val) end)
+      |> Keyword.keys()
+      |> Enum.join(" ")
+
+    query = """
+      mutation CreateINNMDosage($input: CreateINNMDosageInput!) {
+        createInnmDosage(input: $input) {
+          INNMDosage {
+            #{fields}
+          }
+        }
+      }
+    """
+
+    resp_body =
+      conn
+      |> post_query(query, %{input: input_attrs})
+      |> json_response(200)
+
+    resp_entity = get_in(resp_body, ~w(data createInnmDosage INNMDosage))
 
     {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
   end

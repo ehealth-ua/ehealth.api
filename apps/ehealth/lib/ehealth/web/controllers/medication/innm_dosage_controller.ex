@@ -16,7 +16,9 @@ defmodule EHealth.Web.INNMDosageController do
   end
 
   def create(conn, innm_dosage_params) do
-    with {:ok, %INNMDosage{} = innm_dosage} <- API.create_innm_dosage(innm_dosage_params, conn.req_headers) do
+    consumer_id = get_consumer_id(conn.req_headers)
+
+    with {:ok, %INNMDosage{} = innm_dosage} <- API.create_innm_dosage(innm_dosage_params, consumer_id) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", innm_dosage_path(conn, :show, innm_dosage))

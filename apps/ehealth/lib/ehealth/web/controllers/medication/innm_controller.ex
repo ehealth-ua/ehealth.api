@@ -17,7 +17,7 @@ defmodule EHealth.Web.INNMController do
   def create(conn, innm_params) do
     actor_id = get_consumer_id(conn.req_headers)
 
-    with {:ok, %INNM{} = innm} <- API.create_innm(actor_id, innm_params) do
+    with {:ok, %INNM{} = innm} <- API.create_innm(innm_params, actor_id) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", innm_path(conn, :show, innm))

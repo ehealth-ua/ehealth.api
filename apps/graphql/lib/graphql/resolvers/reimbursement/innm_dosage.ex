@@ -1,8 +1,9 @@
 defmodule GraphQL.Resolvers.INNMDosage do
   @moduledoc false
 
-  import GraphQL.Filters.Base, only: [filter: 2]
+  import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
   import Ecto.Query, only: [order_by: 2]
+  import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Medications
@@ -15,6 +16,15 @@ defmodule GraphQL.Resolvers.INNMDosage do
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)
+  end
+
+  def create(args, %{context: %{consumer_id: consumer_id}}) do
+    ingredients = Enum.map(args.ingredients, &(&1 |> Map.put(:id, &1.innm_id) |> Map.delete(:innm_id)))
+    args = atoms_to_strings(%{args | ingredients: ingredients})
+
+    with {:ok, innm_dosage} <- Medications.create_innm_dosage(args, consumer_id) do
+      {:ok, %{innm_dosage: innm_dosage}}
+    end
   end
 
   def deactivate(%{id: id}, %{context: %{consumer_id: consumer_id}}) do

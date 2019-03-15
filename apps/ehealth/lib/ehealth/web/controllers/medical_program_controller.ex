@@ -16,10 +16,10 @@ defmodule EHealth.Web.MedicalProgramController do
   end
 
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
-    user_id = get_consumer_id(headers)
+    consumer_id = get_consumer_id(headers)
 
     with :ok <- JsonSchema.validate(:medical_program, params),
-         {:ok, medical_program} <- MedicalPrograms.create(user_id, params) do
+         {:ok, medical_program} <- MedicalPrograms.create(params, consumer_id) do
       conn
       |> put_status(:created)
       |> render("show.json", medical_program: medical_program)
@@ -33,10 +33,10 @@ defmodule EHealth.Web.MedicalProgramController do
   end
 
   def deactivate(%Plug.Conn{req_headers: headers} = conn, %{"id" => id}) do
-    user_id = get_consumer_id(headers)
+    consumer_id = get_consumer_id(headers)
     medical_program = MedicalPrograms.get_by_id!(id)
 
-    with {:ok, medical_program} <- MedicalPrograms.deactivate(user_id, medical_program) do
+    with {:ok, medical_program} <- MedicalPrograms.deactivate(medical_program, consumer_id) do
       render(conn, "show.json", medical_program: medical_program)
     end
   end

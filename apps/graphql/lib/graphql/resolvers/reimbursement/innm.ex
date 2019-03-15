@@ -19,7 +19,7 @@ defmodule GraphQL.Resolvers.INNM do
   end
 
   def create(args, %{context: %{consumer_id: consumer_id}}) do
-    with {:ok, innm} <- Medications.create_innm(consumer_id, atoms_to_strings(args)) do
+    with {:ok, innm} <- Medications.create_innm(atoms_to_strings(args), consumer_id) do
       {:ok, %{innm: innm}}
     end
   end

@@ -44,25 +44,26 @@ defmodule Core.MedicalPrograms do
 
   def get_by!(params), do: @read_prm_repo.get_by!(MedicalProgram, params)
 
-  def create(user_id, params) do
+  def create(params, actor_id) do
     %MedicalProgram{}
     |> changeset(params)
-    |> put_change(:inserted_by, user_id)
-    |> put_change(:updated_by, user_id)
-    |> PRMRepo.insert_and_log(user_id)
+    |> put_change(:inserted_by, actor_id)
+    |> put_change(:updated_by, actor_id)
+    |> PRMRepo.insert_and_log(actor_id)
   end
 
-  def deactivate(updated_by, %MedicalProgram{id: id} = medical_program) do
-    err_msg = "This program has active participants. Only medical programs without participants can be deactivated"
+  def deactivate(%MedicalProgram{id: id} = medical_program, actor_id) do
+    error_message =
+      "This program has active participants. Only medical programs without participants can be deactivated"
 
     case Medications.count_active_program_medications_by(medical_program_id: id) do
       0 ->
         medical_program
-        |> changeset(%{is_active: false, updated_by: updated_by})
-        |> PRMRepo.update_and_log(updated_by)
+        |> changeset(%{is_active: false, updated_by: actor_id})
+        |> PRMRepo.update_and_log(actor_id)
 
       _ ->
-        {:error, {:conflict, err_msg}}
+        {:error, {:conflict, error_message}}
     end
   end
 

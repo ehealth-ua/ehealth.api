@@ -66,6 +66,19 @@ defmodule GraphQL.Schema.INNMDosageTypes do
   end
 
   object :innm_dosage_mutations do
+    field(:create_innm_dosage, :create_innm_dosage_payload) do
+      meta(:scope, ~w(innm_dosage:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      arg(:input, :create_innm_dosage_input)
+
+      middleware(Absinthe.Relay.Mutation)
+      middleware(ParseIDs, ingredients: [innm_id: :innm])
+
+      resolve(&INNMDosageResolver.create/2)
+    end
+
     field(:deactivate_innm_dosage, :deactivate_innm_dosage_payload) do
       meta(:scope, ~w(innm_dosage:write))
       meta(:client_metadata, ~w(consumer_id client_type)a)
@@ -78,6 +91,22 @@ defmodule GraphQL.Schema.INNMDosageTypes do
 
       resolve(&INNMDosageResolver.deactivate/2)
     end
+  end
+
+  input_object :create_innm_dosage_input, name: "CreateINNMDosageInput" do
+    field(:name, non_null(:string))
+    field(:form, non_null(:medication_form))
+    field(:ingredients, non_null(list_of(:create_innm_dosage_ingredient_input)))
+  end
+
+  input_object :create_innm_dosage_ingredient_input, name: "CreateINNMDosageIngredientInput" do
+    field(:dosage, non_null(:create_dosage_input))
+    field(:is_primary, non_null(:boolean))
+    field(:innm_id, non_null(:id))
+  end
+
+  object :create_innm_dosage_payload, name: "CreateINNMDosagePayload" do
+    field(:innm_dosage, :innm_dosage)
   end
 
   input_object :deactivate_innm_dosage_input, name: "DeactivateINNMDosageInput" do

@@ -137,6 +137,13 @@ defmodule GraphQL.Schema.MedicationTypes do
     field(:denumerator_value, non_null(:string))
   end
 
+  input_object :create_dosage_input do
+    field(:numerator_unit, non_null(:medication_unit))
+    field(:numerator_value, non_null(:integer))
+    field(:denumerator_unit, non_null(:medication_unit))
+    field(:denumerator_value, non_null(:integer))
+  end
+
   object :medication_ingredient do
     interface(:ingredient)
 
