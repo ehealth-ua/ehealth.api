@@ -62,14 +62,7 @@ defmodule Core.DeclarationRequests.API.Approve do
     {:ok, %{"data" => %{"secret_url" => url}} = result} =
       @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, [])
 
-    Logger.info(fn ->
-      Jason.encode!(%{
-        "log_type" => "microservice_response",
-        "microservice" => "ael",
-        "result" => result,
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.info("Microservice ael response: #{result}")
 
     case @media_storage_api.verify_uploaded_file(url, resource_name) do
       {:ok, resp} ->
@@ -82,15 +75,7 @@ defmodule Core.DeclarationRequests.API.Approve do
         end
 
       {:error, reason} ->
-        Logger.info(fn ->
-          Jason.encode!(%{
-            "log_type" => "microservice_response",
-            "microservice" => "ael",
-            "result" => reason,
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
+        Logger.info("Microservice ael response: #{reason}")
         {:error, {:ael_bad_response, reason}}
     end
   end

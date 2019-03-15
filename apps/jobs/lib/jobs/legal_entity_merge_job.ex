@@ -13,7 +13,6 @@ defmodule Jobs.LegalEntityMergeJob do
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Validator, as: LegalEntitiesValidator
-  alias Core.Log
   alias Core.Utils.TypesConverter
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature
@@ -48,24 +47,24 @@ defmodule Jobs.LegalEntityMergeJob do
             end)
           end)
 
-        Log.error("Failed to merge legal entities with: #{inspect(errors)}")
+        Logger.error("Failed to merge legal entities with: #{inspect(errors)}")
         TasKafkaJobs.failed(job.job_id, errors)
 
       {:error, reason} ->
-        Log.error("Failed to merge legal entities with: #{inspect(reason)}")
+        Logger.error("Failed to merge legal entities with: #{inspect(reason)}")
         TasKafkaJobs.failed(job.job_id, reason)
     end
 
     :ok
   rescue
     e ->
-      Log.error("Failed to merge legal entities with: #{inspect(e)}")
+      Logger.error("Failed to merge legal entities with: #{inspect(e)}")
       TasKafkaJobs.failed(job.job_id, "raised an exception: #{inspect(e)}")
       :ok
   end
 
   def consume(value) do
-    Log.warn("Unknown kafka event: #{inspect(value)}")
+    Logger.warn("Unknown kafka event: #{inspect(value)}")
     :ok
   end
 
@@ -217,13 +216,7 @@ defmodule Jobs.LegalEntityMergeJob do
   end
 
   defp log_deactivate_employee_error(error, id) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Failed to deactivate employee with id \"#{id}\". Reason: #{inspect(error)}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.error("Failed to deactivate employee with id \"#{id}\". Reason: #{inspect(error)}")
   end
 
   defp update_client_type(legal_entity_id, headers) do

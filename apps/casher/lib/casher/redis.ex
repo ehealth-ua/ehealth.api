@@ -4,8 +4,8 @@ defmodule Casher.Redis do
   Serializes and stores data using Erlang `term_to_binary`
   """
 
+  require Logger
   use Confex, otp_app: :casher
-  alias Core.Log
 
   @spec get(binary) :: {:ok, term} | {:error, binary}
   def get(key) when is_binary(key) do
@@ -17,7 +17,7 @@ defmodule Casher.Redis do
       end
     else
       {:error, reason} = err ->
-        Log.error("[#{__MODULE__}] Fail to get value by key (#{key}) with error #{inspect(reason)}")
+        Logger.error("Failed to get value by key (#{key}) with error #{inspect(reason)}")
         err
     end
   end
@@ -36,7 +36,7 @@ defmodule Casher.Redis do
         :ok
 
       {:error, reason} = err ->
-        Log.error("[#{__MODULE__}] Fail to set with params #{inspect(params)} with error #{inspect(reason)}")
+        Logger.error("Failed to set with params #{inspect(params)} with error #{inspect(reason)}")
         err
     end
   end

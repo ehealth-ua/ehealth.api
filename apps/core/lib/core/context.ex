@@ -21,14 +21,7 @@ defmodule Core.Context do
         %{}
 
       true ->
-        Logger.error(fn ->
-          Jason.encode!(%{
-            "log_type" => "error",
-            "message" => "Undefined client type name #{client_type} for context request.",
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
+        Logger.error("Undefined client type name #{client_type} for context request.")
         %{context_param_name => client_id}
     end
   end
@@ -48,14 +41,7 @@ defmodule Core.Context do
         %{}
 
       true ->
-        Logger.error(fn ->
-          Jason.encode!(%{
-            "log_type" => "error",
-            "message" => "Undefined client type name #{client_type} for context request.",
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
+        Logger.error("Undefined client type name #{client_type} for context request.")
         %{context_param_name => client_id}
     end
   end
@@ -75,14 +61,7 @@ defmodule Core.Context do
         :ok
 
       true ->
-        Logger.error(fn ->
-          Jason.encode!(%{
-            "log_type" => "error",
-            "message" => "Undefined client type name #{client_type} for context request.",
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
-
+        Logger.error("Undefined client type name #{client_type} for context request.")
         {:error, :forbidden}
     end
   end

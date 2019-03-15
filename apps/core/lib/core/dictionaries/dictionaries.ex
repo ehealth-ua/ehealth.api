@@ -3,12 +3,12 @@ defmodule Core.Dictionaries do
   The boundary for the Dictionaries system.
   """
 
+  require Logger
   import Ecto.{Query, Changeset}, warn: false
 
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.Dictionaries.DictionarySearch
-  alias Core.Log
   alias Core.Repo
 
   @read_repo Application.get_env(:core, :repos)[:read_repo]
@@ -43,7 +43,7 @@ defmodule Core.Dictionaries do
         {:ok, dictionary}
 
       _ ->
-        Log.error("Dictionary with name: #{inspect(name)} not found")
+        Logger.error("Dictionary with name: #{inspect(name)} not found")
         {:error, {:internal_server_error, "Dictionary error"}}
     end
   end

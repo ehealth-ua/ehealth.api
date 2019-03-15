@@ -215,14 +215,7 @@ defmodule Core.Cabinet.API do
     :ok
   rescue
     e ->
-      Logger.error(fn ->
-        Jason.encode!(%{
-          "log_type" => "error",
-          "message" => e.message,
-          "request_id" => Logger.metadata()[:request_id]
-        })
-      end)
-
+      Logger.error(e.message)
       {:error, {:internal_error, "Cannot send email. Try later"}}
   end
 

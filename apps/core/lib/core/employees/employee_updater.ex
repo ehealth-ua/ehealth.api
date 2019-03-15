@@ -162,12 +162,6 @@ defmodule Core.Employees.EmployeeUpdater do
   end
 
   defp log_error(id, message) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect(message)}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.error("Failed to revoke user roles with user_id \"#{id}\". Reason: #{inspect(message)}")
   end
 end

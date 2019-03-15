@@ -63,17 +63,7 @@ defmodule Core.Validators.Signature do
   end
 
   defp log_drfo(drfo, tax_id, process) do
-    Logger.info(fn ->
-      Jason.encode!(%{
-        "log_type" => "debug",
-        "process" => process,
-        "details" => %{
-          "drfo" => drfo,
-          "tax_id" => tax_id
-        },
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.info("Process: #{process}, drfo: #{drfo}, tax_id: #{tax_id}")
   end
 
   def check_last_name(%{"surname" => surname}, user_id) do

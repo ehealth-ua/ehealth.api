@@ -23,17 +23,7 @@ defmodule Core.Validators.Content do
 
       _ ->
         mismatches = do_compare_with_db(db_content, content)
-
-        Logger.info(fn ->
-          Jason.encode!(%{
-            "log_type" => "debug",
-            "process" => process_name,
-            "details" => %{
-              "mismatches" => mismatches
-            },
-            "request_id" => Logger.metadata()[:request_id]
-          })
-        end)
+        Logger.info("Process: #{process_name}, details: #{Jason.encode!(mismatches)}")
 
         Error.dump(%ValidationError{
           description: "Signed content does not match the previously created content",

@@ -1,11 +1,11 @@
 defmodule Core.Bamboo.Emails.Sender do
   @moduledoc false
 
+  require Logger
   use Confex, otp_app: :core
   import Bamboo.Email
 
   alias Core.Email.Postmark
-  alias Core.Log
 
   def send_email(to, body, from, subject) do
     new_email()
@@ -24,7 +24,7 @@ defmodule Core.Bamboo.Emails.Sender do
       {:ok, mail_entity}
     rescue
       err ->
-        Log.error(%{"message" => "[#{__MODULE__}] Failed to send email with error: #{inspect(err)}"})
+        Logger.error("Failed to send email with error: #{inspect(err)}")
 
         with true <- should_activate_email?(err, attempts),
              {:ok, _} <- Postmark.activate_email(to) do

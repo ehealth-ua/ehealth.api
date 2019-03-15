@@ -1,6 +1,8 @@
 defmodule Core.EmployeeRequests do
   @moduledoc false
 
+  require Logger
+
   import Core.API.Helpers.Connection
   import Ecto.Query
   import Ecto.Changeset
@@ -17,7 +19,6 @@ defmodule Core.EmployeeRequests do
   alias Core.GlobalParameters
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Log
   alias Core.Man.Templates.EmployeeCreatedNotification, as: EmployeeCreatedNotificationTemplate
   alias Core.Man.Templates.EmployeeRequestInvitation, as: EmployeeRequestInvitationTemplate
   alias Core.Man.Templates.EmployeeRequestUpdateInvitation, as: EmployeeUpdateInvitationTemplate
@@ -512,7 +513,7 @@ defmodule Core.EmployeeRequests do
         |> get_in(["party", "email"])
         |> Sender.send_email(body, email_config[:from], email_config[:subject])
       rescue
-        error -> Log.error(%{"message" => error.message})
+        error -> Logger.error(error.message)
       end
 
       {:ok, employee_request}

@@ -204,13 +204,7 @@ defmodule EHealth.Web.FallbackController do
   end
 
   def call(conn, {:error, {:empty_body, code}}) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Proxied response with empty body. Status code: #{code}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.error("Proxied response with empty body. Status code: #{code}")
 
     conn
     |> put_status(code)
@@ -219,13 +213,7 @@ defmodule EHealth.Web.FallbackController do
   end
 
   def call(conn, {:error, {:response_json_decoder, reason}}) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Cannot decode HTTP JSON response: #{inspect(reason)}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.error("Cannot decode HTTP JSON response: #{inspect(reason)}")
 
     conn
     |> put_status(:failed_dependency)
@@ -234,13 +222,7 @@ defmodule EHealth.Web.FallbackController do
   end
 
   def call(conn, params) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect(params)}",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
+    Logger.error("No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect(params)}")
 
     conn
     |> put_status(:not_implemented)

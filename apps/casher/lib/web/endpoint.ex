@@ -5,7 +5,7 @@ defmodule Casher.Web.Endpoint do
   alias Confex.Resolver
 
   plug(Plug.RequestId)
-  plug(LoggerJSON.Plug, level: Logger.level())
+  plug(EhealthLogger.Plug, level: Logger.level())
 
   plug(
     Plug.Parsers,

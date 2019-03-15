@@ -27,17 +27,8 @@ defmodule Core.API.Man do
         Map.put_new(map, k, v)
       end)
 
-    Logger.info(fn ->
-      Jason.encode!(%{
-        "log_type" => "microservice_request",
-        "microservice" => config()[:endpoint],
-        "action" => "POST",
-        "path" => Enum.join([config()[:endpoint], path]),
-        "request_id" => Logger.metadata()[:request_id],
-        "body" => data,
-        "headers" => processed_request_headers
-      })
-    end)
+    Logger.info("Microservice POST request to #{config()[:endpoint]} on #{Enum.join([config()[:endpoint], path])}.
+      Body: #{data} and headers: #{processed_request_headers}")
 
     path
     |> post!(Jason.encode!(data), headers, config()[:hackney_options])
@@ -49,15 +40,7 @@ defmodule Core.API.Man do
   end
 
   defp process_template(%HTTPoison.Response{body: body}) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "microservice_response",
-        "microservice" => config()[:endpoint],
-        "response" => body,
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
-
+    Logger.error("Microservice #{config()[:endpoint]} response: #{body}")
     {:error, body}
   end
 end

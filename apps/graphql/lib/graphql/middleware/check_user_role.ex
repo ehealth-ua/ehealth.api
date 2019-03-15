@@ -3,12 +3,13 @@ defmodule GraphQL.Middleware.CheckUserRole do
   Checks if user has provided role by `client_id`
   """
 
+  require Logger
+
   @behaviour Absinthe.Middleware
 
   import Core.Users.Validator, only: [user_has_role: 3]
 
   alias Absinthe.Resolution
-  alias Core.Log
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
 
@@ -37,7 +38,7 @@ defmodule GraphQL.Middleware.CheckUserRole do
       {:ok, roles}
     else
       error ->
-        Log.error("#{__MODULE__}: Fail to search_user_roles with error: #{inspect(error)}")
+        Logger.error("Failed to search_user_roles with error: #{inspect(error)}")
         {:error, :internal_server_error}
     end
   end

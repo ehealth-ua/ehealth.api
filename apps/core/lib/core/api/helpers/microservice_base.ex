@@ -34,14 +34,7 @@ defmodule Core.API.Helpers.MicroserviceBase do
           response = super(method, url, body, headers, options)
 
           if response.status_code >= 300 do
-            Logger.error(fn ->
-              Jason.encode!(%{
-                "log_type" => "microservice_response",
-                "microservice" => config()[:endpoint],
-                "response" => body,
-                "request_id" => Logger.metadata()[:request_id]
-              })
-            end)
+            Logger.error("Failed microservice #{method} request to #{config()[:endpoint]} with response: #{body}")
           end
 
           ResponseDecoder.check_response(response)
@@ -52,17 +45,10 @@ defmodule Core.API.Helpers.MicroserviceBase do
         with {:ok, params} <- check_params(options) do
           query_string = if Enum.empty?(params), do: "", else: "?#{URI.encode_query(params)}"
 
-          Logger.info(fn ->
-            Jason.encode!(%{
-              "log_type" => "microservice_request",
-              "microservice" => config()[:endpoint],
-              "action" => method,
-              "path" => Enum.join([process_url(url), query_string]),
-              "request_id" => Logger.metadata()[:request_id],
-              "body" => body,
-              "headers" => process_log_headers(headers)
-            })
-          end)
+          Logger.info(
+            "Microservice #{method} request to #{config()[:endpoint]} on #{Enum.join([process_url(url), query_string])}.
+            Body: #{body} and headers: #{process_log_headers(headers)}"
+          )
 
           super(method, url, body, headers, options)
         end

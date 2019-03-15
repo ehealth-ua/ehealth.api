@@ -12,7 +12,7 @@ defmodule GraphQL.Endpoint do
   @scope_header "x-consumer-scope"
 
   plug(Plug.RequestId)
-  plug(LoggerJSON.Plug, level: Logger.level())
+  plug(EhealthLogger.Plug, level: Logger.level())
 
   plug(
     Plug.Parsers,

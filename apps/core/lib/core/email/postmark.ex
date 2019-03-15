@@ -1,26 +1,26 @@
 defmodule Core.Email.Postmark do
   @moduledoc false
 
-  alias Core.Log
+  require Logger
 
   @postmark Application.get_env(:core, :api_resolvers)[:postmark]
 
   @spec activate_email(binary) :: {:ok, binary} | {:error, binary}
   def activate_email(email) do
-    Log.info("[PostmarkClient]: Attempting to activate #{email}")
+    Logger.info("[PostmarkClient]: Attempting to activate #{email}")
 
     with {:ok, bounce_id} <- get_bounce_id(email),
          {:ok, _} <- activate_bounce(bounce_id) do
-      Log.info("[PostmarkClient]: Email '#{email}' was activated")
+      Logger.info("[PostmarkClient]: Email '#{email}' was activated")
 
       {:ok, bounce_id}
     else
       {:error, error} = error_result ->
-        Log.error(%{"message" => "[PostmarkClient]: #{error}"})
+        Logger.error("[PostmarkClient]: #{error}")
         error_result
 
       error ->
-        Log.error(%{"message" => "[PostmarkClient]: error happened #{inspect(error)}"})
+        Logger.error("[PostmarkClient]: error happened #{inspect(error)}")
         error
     end
   end
@@ -53,12 +53,12 @@ defmodule Core.Email.Postmark do
   end
 
   defp parse_response_body({:error, %HTTPoison.Error{reason: reason}}) do
-    Log.error(%{"message" => "[PostmarkClient]: postmark api error with reason '#{reason}'"})
+    Logger.error("[PostmarkClient]: postmark api error with reason '#{reason}'")
     %{}
   end
 
   defp parse_response_body(error) do
-    Log.error(%{"message" => "[PostmarkClient]: postmark api error: '#{inspect(error)}'"})
+    Logger.error("[PostmarkClient]: postmark api error: '#{inspect(error)}'")
     %{}
   end
 end

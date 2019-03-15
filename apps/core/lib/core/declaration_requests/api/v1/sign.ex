@@ -140,12 +140,6 @@ defmodule Core.DeclarationRequests.API.Sign do
   end
 
   def store_signed_content(%DeclarationRequest{} = declaration_request, input, headers) do
-    Logger.info(fn ->
-      """
-      db_data: #{inspect(declaration_request)}
-      """
-    end)
-
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(
@@ -237,14 +231,7 @@ defmodule Core.DeclarationRequests.API.Sign do
     end
   rescue
     error ->
-      Logger.warn(fn ->
-        Jason.encode!(%{
-          "log_type" => "warn",
-          "message" => "Failed to save cache #{inspect(error)}",
-          "request_id" => Logger.metadata()[:request_id]
-        })
-      end)
-
+      Logger.warn("Failed to save cache #{inspect(error)}")
       :ok
   end
 
@@ -272,14 +259,7 @@ defmodule Core.DeclarationRequests.API.Sign do
   defp get_status(%{"type" => @auth_na}, _), do: "pending_verification"
 
   defp get_status(_, _) do
-    Logger.error(fn ->
-      Jason.encode!(%{
-        "log_type" => "error",
-        "message" => "Unknown authentication_method_current.type",
-        "request_id" => Logger.metadata()[:request_id]
-      })
-    end)
-
+    Logger.error("Unknown authentication_method_current.type")
     ""
   end
 
