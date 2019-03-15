@@ -94,7 +94,7 @@ defmodule GraphQL.DeclarationResolverTest do
     }
   """
 
-  @terminare_declaration_query """
+  @terminate_declaration_query """
     mutation TerminateDeclarationMutation($input: TerminateDeclarationInput!) {
       terminateDeclaration(input: $input) {
         declaration {
@@ -407,7 +407,7 @@ defmodule GraphQL.DeclarationResolverTest do
         conn
         |> put_client_id(client_id)
         |> put_consumer_id(consumer_id)
-        |> post_query(@terminare_declaration_query, variables)
+        |> post_query(@terminate_declaration_query, variables)
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data terminateDeclaration declaration))

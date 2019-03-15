@@ -2560,18 +2560,13 @@ defmodule GraphQL.Features.Context do
 
   defp call_create_entity_mutation(conn, "INNM dosage", input_attrs) do
     input_attrs = prepare_input_attrs(input_attrs)
-
-    fields =
-      input_attrs
-      |> Enum.reject(fn {_, val} -> is_list(val) end)
-      |> Keyword.keys()
-      |> Enum.join(" ")
+    return_fields = prepare_return_fields(input_attrs)
 
     query = """
       mutation CreateINNMDosage($input: CreateINNMDosageInput!) {
         createInnmDosage(input: $input) {
           INNMDosage {
-            #{fields}
+            #{return_fields}
           }
         }
       }
@@ -2586,4 +2581,43 @@ defmodule GraphQL.Features.Context do
 
     {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
   end
+
+  defp call_create_entity_mutation(conn, entity, input_attrs) do
+    input_attrs = prepare_input_attrs(input_attrs)
+    return_fields = prepare_return_fields(input_attrs)
+    capitalized = String.capitalize(entity)
+    downcased = String.downcase(entity)
+
+    query = """
+    mutation Create#{capitalized}($input: Create#{capitalized}Input!) {
+      create#{capitalized}(input: $input) {
+        #{downcased} {
+          #{return_fields}
+        }
+      }
+    }
+    """
+
+    resp_body =
+      conn
+      |> post_query(query, %{input: input_attrs})
+      |> json_response(200)
+
+    resp_entity = get_in(resp_body, ["data", "create#{capitalized}", downcased])
+
+    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+  end
+
+  defp prepare_return_fields(input_attrs),
+    do:
+      input_attrs
+      |> Enum.reduce([], &prepare_return_fields/2)
+      |> Enum.join(",")
+
+  # ToDo: map nested fields
+  defp prepare_return_fields({_field, value}, acc) when is_map(value), do: acc
+  # ToDo: map list with map
+  defp prepare_return_fields({_field, value}, acc) when is_list(value), do: acc
+
+  defp prepare_return_fields({field, _value}, acc), do: [field | acc]
 end

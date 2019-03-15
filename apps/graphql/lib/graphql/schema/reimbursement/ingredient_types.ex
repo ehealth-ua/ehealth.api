@@ -21,6 +21,7 @@ defmodule GraphQL.Schema.IngredientTypes do
     field(:denumerator_value, non_null(:string))
   end
 
+  # ToDo: remove or get values from dictionaries
   enum :medication_unit do
     value(:aerosol, as: "AEROSOL")
     value(:ampoule, as: "AMPOULE")

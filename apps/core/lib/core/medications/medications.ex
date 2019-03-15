@@ -5,7 +5,6 @@ defmodule Core.Medications do
 
   use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Changeset
   import Ecto.Query, warn: false
 

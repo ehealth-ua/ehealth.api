@@ -81,6 +81,32 @@ defmodule GraphQL.Schema.MedicationTypes do
   end
 
   object :medication_mutations do
+    payload field(:create_medication) do
+      meta(:scope, ~w(medication:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:atc_codes, non_null(list_of(:string)))
+        field(:certificate, non_null(:string))
+        field(:certificate_expired_at, non_null(:date))
+        field(:container, non_null(:container_input))
+        field(:daily_dosage, :float)
+        field(:form, non_null(:string))
+        field(:ingredients, non_null(list_of(:medication_ingredient_input)))
+        field(:manufacturer, :manufacturer_input)
+        field(:name, non_null(:string))
+        field(:package_min_qty, :integer)
+        field(:package_qty, non_null(:integer))
+      end
+
+      output do
+        field(:medication, :medication)
+      end
+
+      resolve(&MedicationResolver.create/2)
+    end
+
     payload field(:deactivate_medication) do
       meta(:scope, ~w(medication:write))
       meta(:client_metadata, ~w(consumer_id client_type)a)
@@ -99,19 +125,38 @@ defmodule GraphQL.Schema.MedicationTypes do
     end
   end
 
+  input_object :container_input do
+    field(:numerator_unit, non_null(:medication_unit))
+    field(:numerator_value, non_null(:integer))
+    field(:denumerator_unit, non_null(:medication_unit))
+    field(:denumerator_value, non_null(:integer))
+  end
+
+  input_object :medication_ingredient_input do
+    field(:dosage, non_null(:container_input))
+    field(:is_primary, non_null(:boolean))
+    field(:innm_dosage_id, non_null(:id))
+  end
+
+  input_object :manufacturer_input do
+    field(:name, non_null(:string))
+    field(:country, non_null(:string))
+  end
+
   node object(:medication) do
     field(:database_id, non_null(:uuid))
-    field(:name, non_null(:string))
-    field(:manufacturer, :manufacturer)
     field(:atc_codes, non_null(list_of(:string)), resolve: fn _, res -> {:ok, res.source.code_atc} end)
-    field(:form, :medication_form)
-    field(:container, non_null(:container))
-    field(:package_qty, :integer)
-    field(:package_min_qty, :integer)
     field(:certificate, :string)
     field(:certificate_expired_at, :date)
+    field(:container, non_null(:container))
+    field(:daily_dosage, :float)
+    field(:form, :medication_form)
     field(:ingredients, non_null(list_of(:medication_ingredient)), resolve: dataloader(PRM))
     field(:is_active, non_null(:boolean))
+    field(:manufacturer, :manufacturer)
+    field(:name, non_null(:string))
+    field(:package_min_qty, :integer)
+    field(:package_qty, :integer)
     field(:type, :medication_type)
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
@@ -122,6 +167,7 @@ defmodule GraphQL.Schema.MedicationTypes do
     field(:country, non_null(:string))
   end
 
+  # ToDo: remove or get values from dictionaries
   enum :medication_form do
     value(:aerosol_for_inhalation, as: "AEROSOL_FOR_INHALATION")
     value(:aerosol_for_inhalation_dosed, as: "AEROSOL_FOR_INHALATION_DOSED")
