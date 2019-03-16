@@ -82,12 +82,7 @@ defmodule GraphQL.Dataloader.RPC do
     def fetch(%{results: results}, batch_key, item) do
       item_key = resolve_item_key(batch_key)
       item_id = Map.get(item, item_key)
-
-      batch =
-        Enum.find(results, fn
-          {{^batch_key, _item_ids}, {:ok, value}} -> value
-          _ -> %{}
-        end)
+      batch = Enum.find(results, &match?({{^batch_key, _item_ids}, {:ok, _value}}, &1))
 
       case batch do
         {{^batch_key, _item_ids}, {:ok, %{^item_id => result}}} -> {:ok, result}
