@@ -12,7 +12,7 @@ defmodule Core.PRMFactories.EmployeeFactory do
 
         %Employee{
           is_active: true,
-          position: "some position",
+          position: "P1",
           status: "APPROVED",
           employee_type: "DOCTOR",
           end_date: ~D[2012-04-17],

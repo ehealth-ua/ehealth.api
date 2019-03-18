@@ -361,11 +361,11 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       nhs()
       template()
       template()
-
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      insert(:il, :dictionary, name: "POSITION", values: %{"P1" => "Генеральний директор"})
 
       client_id = UUID.generate()
       nhs_signer = insert(:prm, :employee)
@@ -938,6 +938,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      insert(:il, :dictionary, name: "POSITION", values: %{})
+
       nhs()
       template()
 

@@ -655,6 +655,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       nhs()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -736,6 +737,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       nhs()
 
       %{
@@ -826,6 +828,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       nhs()
 
       %{

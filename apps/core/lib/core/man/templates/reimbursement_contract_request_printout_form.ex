@@ -6,7 +6,7 @@ defmodule Core.Man.Templates.ReimbursementContractRequestPrintoutForm do
   import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
 
   import Core.Man.Templates.CapitationContractRequestPrintoutForm,
-    only: [format_price: 2, format_date: 2, prepare_employee: 1, prepare_contractor_legal_entity: 3]
+    only: [format_price: 2, format_date: 2, prepare_employee: 2, prepare_contractor_legal_entity: 3]
 
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Dictionaries
@@ -41,8 +41,8 @@ defmodule Core.Man.Templates.ReimbursementContractRequestPrintoutForm do
     |> format_date(~w(nhs_signed_date))
     |> format_price("nhs_contract_price")
     |> Map.merge(%{
-      "nhs_signer" => prepare_employee(nhs_signer),
-      "contractor_owner" => prepare_employee(contractor_owner),
+      "nhs_signer" => prepare_employee(nhs_signer, dictionaries),
+      "contractor_owner" => prepare_employee(contractor_owner, dictionaries),
       "contractor_legal_entity" => prepare_contractor_legal_entity(data, references, dictionaries)
     })
   end

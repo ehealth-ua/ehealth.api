@@ -73,9 +73,9 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     |> format_date(~w(end_date))
     |> format_date(~w(nhs_signed_date))
     |> format_price("nhs_contract_price")
-    |> Map.put("nhs_signer", prepare_employee(nhs_signer))
+    |> Map.put("nhs_signer", prepare_employee(nhs_signer, dictionaries))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references, dictionaries))
-    |> Map.put("contractor_owner", prepare_employee(contractor_owner))
+    |> Map.put("contractor_owner", prepare_employee(contractor_owner, dictionaries))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references, dictionaries))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references, dictionaries))
     |> Map.put("external_contractors", prepare_external_contractors(data, references, dictionaries))
@@ -104,9 +104,15 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     end
   end
 
-  def prepare_employee(employee) do
+  def prepare_employee(employee, dictionaries) do
+    %Dictionary{values: positions} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "POSITION" end)
+
     party = Map.get(employee, :party) || %{}
-    %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
+
+    %{
+      "party" => Map.take(party, ~w(first_name last_name second_name)a),
+      "position" => Map.get(positions, Map.get(employee, :position))
+    }
   end
 
   def prepare_contractor_legal_entity(data, references, dictionaries) do

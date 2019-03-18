@@ -3670,6 +3670,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "content doesn't match", %{conn: conn} do
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -4044,6 +4045,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "failed to save signed content", %{conn: conn} do
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -4108,6 +4110,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "success to sign contract_request", %{conn: conn} do
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -5772,6 +5775,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
   describe "get printout_form" do
     test "success get printout_form", %{conn: conn} do
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})

@@ -3,7 +3,7 @@ defmodule GraphQL.CapitationContractResolverTest do
 
   use GraphQL.ConnCase, async: true
 
-  import Core.Factories, only: [insert: 2, insert: 3, insert_list: 3, build: 2]
+  import Core.Factories, only: [insert: 2, insert: 3, build: 2]
   import Core.Expectations.Mithril
   import Core.Expectations.Signature, only: [edrpou_signed_content: 2]
   import Mox

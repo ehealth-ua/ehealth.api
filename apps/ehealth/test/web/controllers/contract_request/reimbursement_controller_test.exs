@@ -1822,6 +1822,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "success get printout_form", %{conn: conn} do
       nhs()
       template()
+      insert(:il, :dictionary, name: "POSITION", values: %{})
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
