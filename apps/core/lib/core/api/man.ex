@@ -22,13 +22,8 @@ defmodule Core.API.Man do
       |> Kernel.++([{"content-type", "application/json"}])
       |> Kernel.++([{"accept", "text/html"}])
 
-    processed_request_headers =
-      Enum.reduce(headers, %{}, fn {k, v}, map ->
-        Map.put_new(map, k, v)
-      end)
-
     Logger.info("Microservice POST request to #{config()[:endpoint]} on #{Enum.join([config()[:endpoint], path])}.
-      Body: #{data} and headers: #{processed_request_headers}")
+      Body: #{data}")
 
     path
     |> post!(Jason.encode!(data), headers, config()[:hackney_options])
