@@ -14769,5 +14769,43 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "eHealth/diagnostic_report_categories",
+    "values":{
+      "LAB": "laboratory",
+      "MB": "Microbiology"
+
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/LOINC/diagnostic_report_codes",
+    "values":{
+      "10217-8": "Surgical operation note indications [Interpretation] Narrative",
+      "10226-9": "Oxygen content in Intravascular space"
+
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+  {
+    "name": "eHealth/SNOMED/clinical_findings",
+    "values":{
+      "109006": "Anxiety disorder of childhood OR adolescence"
+
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
 ]
