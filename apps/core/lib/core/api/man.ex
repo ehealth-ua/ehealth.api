@@ -23,7 +23,7 @@ defmodule Core.API.Man do
       |> Kernel.++([{"accept", "text/html"}])
 
     Logger.info("Microservice POST request to #{config()[:endpoint]} on #{Enum.join([config()[:endpoint], path])}.
-      Body: #{data}")
+      Body: #{inspect(data)}")
 
     path
     |> post!(Jason.encode!(data), headers, config()[:hackney_options])
