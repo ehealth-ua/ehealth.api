@@ -1927,15 +1927,15 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "search by medical_program_id", %{conn: conn} do
       nhs()
-      medical_program_id = UUID.generate()
-      insert_list(2, :prm, :reimbursement_contract, medical_program_id: medical_program_id)
+      medical_program = insert(:prm, :medical_program)
+      insert_list(2, :prm, :reimbursement_contract, medical_program: medical_program)
       insert_list(4, :prm, :reimbursement_contract)
       insert_list(8, :prm, :capitation_contract)
 
       assert resp_data =
                conn
                |> put_client_id_header()
-               |> get(contract_path(conn, :index, @reimbursement), %{medical_program_id: medical_program_id})
+               |> get(contract_path(conn, :index, @reimbursement), %{medical_program_id: medical_program.id})
                |> json_response(200)
                |> Map.get("data")
 

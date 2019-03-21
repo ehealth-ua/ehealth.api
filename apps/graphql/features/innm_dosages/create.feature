@@ -1,12 +1,12 @@
 Feature: Create INNM Dosage
 
   Scenario Outline: Successful creation
-    Given my scope is "innm_dosage:write"
-    And my client type is "NHS"
-    And my consumer ID is "1820f96c-7565-4afa-8705-869439785822"
-    And the following INNMs exist:
+    Given the following INNMs exist:
       | databaseId |
       | <innm_id>  |
+    And my scope is "innm_dosage:write"
+    And my client type is "NHS"
+    And my consumer ID is "1820f96c-7565-4afa-8705-869439785822"
     When I create INNM dosage with attributes:
       | name   | form   | ingredients   |
       | <name> | <form> | <ingredients> |

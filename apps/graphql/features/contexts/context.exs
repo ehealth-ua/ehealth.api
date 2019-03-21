@@ -12,10 +12,11 @@ defmodule GraphQL.Features.Context do
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
   alias Core.Dictionaries.Dictionary
+  alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
-  alias Core.Medications.{INNMDosage, Medication}
+  alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
@@ -41,7 +42,7 @@ defmodule GraphQL.Features.Context do
     Mox.Server.verify_on_exit(self())
     Mox.Server.set_mode(self(), :global)
 
-    %{conn: ConnTest.build_conn()}
+    %{existing: %{}, conn: ConnTest.build_conn()}
   end)
 
   scenario_finalize(fn status, state ->
@@ -55,348 +56,109 @@ defmodule GraphQL.Features.Context do
     state
   end)
 
-  given_(~r/^my scope is "(?<scope>[^"]+)"$/, fn %{conn: conn}, %{scope: scope} ->
-    {:ok, %{conn: put_scope(conn, scope)}}
+  given_(~r/^my scope is "(?<scope>[^"]+)"$/, fn %{conn: conn} = state, %{scope: scope} ->
+    {:ok, %{state | conn: put_scope(conn, scope)}}
   end)
 
-  given_(~r/^my consumer ID is "(?<id>[^"]+)"$/, fn %{conn: conn}, %{id: id} ->
-    {:ok, %{conn: put_consumer_id(conn, id)}}
+  given_(~r/^my consumer ID is "(?<id>[^"]+)"$/, fn %{conn: conn} = state, %{id: id} ->
+    {:ok, %{state | conn: put_consumer_id(conn, id)}}
   end)
 
-  given_(~r/^my client type is "(?<name>[^"]+)"$/, fn %{conn: conn}, %{name: name} ->
+  given_(~r/^my client type is "(?<name>[^"]+)"$/, fn %{conn: conn} = state, %{name: name} ->
     get_client_type_name(name)
 
-    {:ok, %{conn: put_client_id(conn)}}
+    {:ok, %{state | conn: put_client_id(conn)}}
   end)
 
-  given_(~r/^my client ID is "(?<id>[^"]+)"$/, fn %{conn: conn}, %{id: id} ->
-    {:ok, %{conn: put_client_id(conn, id)}}
+  given_(~r/^my client ID is "(?<id>[^"]+)"$/, fn %{conn: conn} = state, %{id: id} ->
+    {:ok, %{state | conn: put_client_id(conn, id)}}
   end)
 
   given_(
-    ~r/^there are (?<count>\d+) capitation contract requests exist$/,
-    fn state, %{count: count} ->
+    ~r/^there are (?<count>\d+) (?<entity_name>(\w+\s?)+) exist$/,
+    fn %{existing: existing} = state, %{count: count, entity_name: entity_name} ->
       count = Jason.decode!(count)
-      insert_list(count, :il, :capitation_contract_request)
+      entity_name = Inflex.singularize(entity_name)
+      model = entity_name_to_model(entity_name)
 
-      {:ok, state}
-    end
-  )
+      items =
+        case entity_name_to_factory_args(entity_name) do
+          {nil, factory_name} ->
+            build_list(count, factory_name)
 
-  given_(
-    ~r/^there are (?<count>\d+) reimbursement contract requests exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :il, :reimbursement_contract_request)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) capitation contracts exist$/,
-    fn state, %{count: count} ->
-      count = String.to_integer(count)
-      insert_list(count, :prm, :capitation_contract)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) reimbursement contracts exist$/,
-    fn state, %{count: count} ->
-      count = String.to_integer(count)
-      insert_list(count, :prm, :reimbursement_contract)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) medical programs exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :prm, :medical_program)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) INNMs exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :prm, :innm)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) employees exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :prm, :employee)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) settlements exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      settlements = build_list(count, :settlement)
-      state = Map.put(state, :settlements, settlements)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^there are (?<count>\d+) INNM dosages exist$/,
-    fn state, %{count: count} ->
-      count = Jason.decode!(count)
-      insert_list(count, :prm, :innm_dosage)
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following capitation contract requests exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(CapitationContractRequest, row)
-        insert(:il, :capitation_contract_request, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following reimbursement contract requests exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(ReimbursementContractRequest, row)
-        insert(:il, :reimbursement_contract_request, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following capitation contracts exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(CapitationContract, row)
-
-        # FIXME: There are should be better way to set foreign keys
-        insert(:prm, :capitation_contract, [
-          {:contractor_legal_entity, nil},
-          {:contractor_legal_entity_id, UUID.generate()} | attrs
-        ])
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following reimbursement contracts exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(ReimbursementContract, row)
-
-        # FIXME: There are should be better way to set foreign keys
-        insert(:prm, :reimbursement_contract, [
-          {:contractor_legal_entity, nil},
-          {:contractor_legal_entity_id, UUID.generate()} | attrs
-        ])
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following employees exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Employee, row)
-        # FIXME: There are should be better way to set foreign keys
-        insert(:prm, :employee, [{:party, nil} | attrs])
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following legal entities exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(LegalEntity, row)
-        insert(:prm, :legal_entity, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following dictionaries exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Dictionary, row)
-        insert(:il, :dictionary, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following medical programs exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(MedicalProgram, row)
-        insert(:prm, :medical_program, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following medications exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Medication, row)
-        insert(:prm, :medication, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following INNMs exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Medication, row)
-        insert(:prm, :innm, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following program medications exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(ProgramMedication, row)
-        insert(:prm, :program_medication, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following medication ingredients exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Medication.Ingredient, row)
-        insert(:prm, :ingredient_medication, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following INNM dosage ingredients exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(INNMDosage.Ingredient, row)
-        insert(:prm, :ingredient_innm_dosage, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following INNM dosages exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(INNMDosage, row)
-        insert(:prm, :innm_dosage, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following parties exist:$/,
-    fn state, %{table_data: table_data} ->
-      for row <- table_data do
-        attrs = prepare_attrs(Party, row)
-        insert(:prm, :party, attrs)
-      end
-
-      {:ok, state}
-    end
-  )
-
-  given_(
-    ~r/^the following regions exist:$/,
-    fn state, %{table_data: table_data} ->
-      regions =
-        for row <- table_data do
-          attrs = prepare_attrs(Region, row)
-          build(:region, attrs)
+          {repo_name, factory_name} ->
+            insert_list(count, repo_name, factory_name)
         end
 
-      state = Map.put(state, :regions, regions)
-
-      {:ok, state}
+      {:ok, %{state | existing: Map.put(existing, model, items)}}
     end
   )
 
   given_(
-    ~r/^the following districts exist:$/,
-    fn state, %{table_data: table_data} ->
-      districts =
-        for row <- table_data do
-          attrs = prepare_attrs(District, row)
-          build(:district, attrs)
+    ~r/^the following (?<entity_name>(\w+\s?)+) exist:$/,
+    fn %{existing: existing} = state, %{entity_name: entity_name, table_data: table_data} ->
+      entity_name = Inflex.singularize(entity_name)
+      model = entity_name_to_model(entity_name)
+
+      items =
+        case entity_name_to_factory_args(entity_name) do
+          {nil, factory_name} ->
+            for row <- table_data do
+              attrs = prepare_attrs(model, row)
+              build(factory_name, attrs)
+            end
+
+          {repo_name, factory_name} ->
+            for row <- table_data do
+              attrs = prepare_attrs(model, row)
+              insert(repo_name, factory_name, attrs)
+            end
         end
 
-      state = Map.put(state, :districts, districts)
-
-      {:ok, state}
+      {:ok, %{state | existing: Map.put(existing, model, items)}}
     end
   )
 
   given_(
-    ~r/^the following settlements exist:$/,
-    fn state, %{table_data: table_data} ->
-      settlements =
-        for row <- table_data do
-          attrs = prepare_attrs(Settlement, row)
-          build(:settlement, attrs)
+    ~r/^the following (?<entity_name>[\w\s]+) are associated with (?<assoc_entity_name>[\w\s]+) accordingly:$/,
+    fn %{existing: existing} = state,
+       %{entity_name: entity_name, assoc_entity_name: assoc_entity_name, table_data: table_data} ->
+      entity_name = Inflex.singularize(entity_name)
+      assoc_entity_name = Inflex.singularize(assoc_entity_name)
+
+      model = entity_name_to_model(entity_name)
+      assoc_model = entity_name_to_model(assoc_entity_name)
+      assoc_items = existing[assoc_model]
+
+      if length(table_data) != length(assoc_items) do
+        raise "Items count should match with associated items count"
+      end
+
+      assoc_field =
+        model.__schema__(:associations)
+        |> Enum.map(&model.__schema__(:association, &1))
+        |> Enum.find(fn
+          %{related: related} -> assoc_model == related
+          _ -> false
+        end)
+        |> Map.get(:field)
+
+      items =
+        case entity_name_to_factory_args(entity_name) do
+          {nil, factory_name} ->
+            for {row, assoc_item} <- Enum.zip(table_data, assoc_items) do
+              attrs = prepare_attrs(model, row)
+              build(factory_name, [{assoc_field, assoc_item} | attrs])
+            end
+
+          {repo_name, factory_name} ->
+            for {row, assoc_item} <- Enum.zip(table_data, assoc_items) do
+              attrs = prepare_attrs(model, row)
+              insert(repo_name, factory_name, [{assoc_field, assoc_item} | attrs])
+            end
         end
 
-      state = Map.put(state, :settlements, settlements)
-
-      {:ok, state}
+      {:ok, %{state | existing: Map.put(existing, model, items)}}
     end
   )
 
@@ -591,9 +353,9 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) settlements$/,
-    fn %{settlements: settlements, conn: conn}, %{count: count} ->
+    fn %{existing: existing, conn: conn}, %{count: count} ->
       expect(RPCWorkerMock, :run, fn
-        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, settlements}
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, existing[Settlement]}
       end)
 
       query = """
@@ -622,20 +384,20 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the first (?<count>\d+) settlements$/,
-    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, count: count} ->
+    fn %{existing: existing, conn: conn}, %{nested_field: nested_field, field: field, count: count} ->
       expect(RPCWorkerMock, :run, fn
-        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, state[:settlements]}
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, existing[Settlement]}
       end)
 
-      expect(RPCWorkerMock, :run, length(state[:settlements]), fn
+      expect(RPCWorkerMock, :run, length(existing[Settlement]), fn
         _, Uaddresses.Rpc, :search_regions, _ ->
-          {:ok, state[:regions]}
+          {:ok, existing[Region]}
 
         _, Uaddresses.Rpc, :search_districts, _ ->
-          {:ok, state[:districts]}
+          {:ok, existing[District]}
 
         _, Uaddresses.Rpc, :search_settlements, _ ->
-          {:ok, state[:settlements]}
+          {:ok, existing[Settlement]}
       end)
 
       query = """
@@ -1012,9 +774,9 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{settlements: settlements, conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{existing: existing, conn: conn}, %{count: count, field: field, value: value} ->
       expect(RPCWorkerMock, :run, fn
-        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, tl(settlements)}
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, tl(existing[Settlement])}
       end)
 
       query = """
@@ -1664,9 +1426,9 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) settlements sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{settlements: settlements, conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{existing: existing, conn: conn}, %{count: count, field: field, direction: direction} ->
       expect(RPCWorkerMock, :run, fn
-        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, Enum.reverse(settlements)}
+        _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, Enum.reverse(existing[Settlement])}
       end)
 
       query = """
@@ -2503,6 +2265,54 @@ defmodule GraphQL.Features.Context do
   def post_query(conn, query, variables \\ %{}) do
     post(conn, @graphql_path, %{query: query, variables: variables})
   end
+
+  @spec entity_name_to_model(entity_name :: string) :: module
+  def entity_name_to_model(entity_name)
+
+  def entity_name_to_model("dictionary"), do: Dictionary
+  def entity_name_to_model("legal entity"), do: LegalEntity
+  def entity_name_to_model("division"), do: Division
+  def entity_name_to_model("employee"), do: Employee
+  def entity_name_to_model("party"), do: Party
+  def entity_name_to_model("capitation contract request"), do: CapitationContractRequest
+  def entity_name_to_model("reimbursement contract request"), do: ReimbursementContractRequest
+  def entity_name_to_model("capitation contract"), do: CapitationContract
+  def entity_name_to_model("reimbursement contract"), do: ReimbursementContract
+  def entity_name_to_model("medical program"), do: MedicalProgram
+  def entity_name_to_model("program medication"), do: ProgramMedication
+  def entity_name_to_model("medication"), do: Medication
+  def entity_name_to_model("medication ingredient"), do: Medication.Ingredient
+  def entity_name_to_model("INNM dosage"), do: INNMDosage
+  def entity_name_to_model("INNM dosage ingredient"), do: INNMDosage.Ingredient
+  def entity_name_to_model("INNM"), do: INNM
+  def entity_name_to_model("region"), do: Region
+  def entity_name_to_model("district"), do: District
+  def entity_name_to_model("settlement"), do: Settlement
+  def entity_name_to_model(entity_name), do: raise("Model not found for #{inspect(entity_name)}")
+
+  @spec entity_name_to_model(entity_name :: string) :: {repo :: atom, factory_name :: atom}
+  def entity_name_to_factory_args(entity_name)
+
+  def entity_name_to_factory_args("dictionary"), do: {:il, :dictionary}
+  def entity_name_to_factory_args("legal entity"), do: {:prm, :legal_entity}
+  def entity_name_to_factory_args("division"), do: {:prm, :division}
+  def entity_name_to_factory_args("employee"), do: {:prm, :employee}
+  def entity_name_to_factory_args("party"), do: {:prm, :party}
+  def entity_name_to_factory_args("capitation contract request"), do: {:il, :capitation_contract_request}
+  def entity_name_to_factory_args("reimbursement contract request"), do: {:il, :reimbursement_contract_request}
+  def entity_name_to_factory_args("capitation contract"), do: {:prm, :capitation_contract}
+  def entity_name_to_factory_args("reimbursement contract"), do: {:prm, :reimbursement_contract}
+  def entity_name_to_factory_args("medical program"), do: {:prm, :medical_program}
+  def entity_name_to_factory_args("program medication"), do: {:prm, :program_medication}
+  def entity_name_to_factory_args("medication"), do: {:prm, :medication}
+  def entity_name_to_factory_args("medication ingredient"), do: {:prm, :ingredient_medication}
+  def entity_name_to_factory_args("INNM dosage"), do: {:prm, :innm_dosage}
+  def entity_name_to_factory_args("INNM dosage ingredient"), do: {:prm, :ingredient_innm_dosage}
+  def entity_name_to_factory_args("INNM"), do: {:prm, :innm}
+  def entity_name_to_factory_args("region"), do: {nil, :region}
+  def entity_name_to_factory_args("district"), do: {nil, :district}
+  def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
+  def entity_name_to_factory_args(entity_name), do: raise("Factory not found for #{inspect(entity_name)}")
 
   def prepare_input_attrs(attrs), do: Enum.map(attrs, &prepare_input_field/1)
 

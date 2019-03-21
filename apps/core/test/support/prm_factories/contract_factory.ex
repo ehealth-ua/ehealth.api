@@ -39,12 +39,10 @@ defmodule Core.PRMFactories.ContractFactory do
       end
 
       def reimbursement_contract_factory do
-        %{id: medical_program_id} = insert(:prm, :medical_program)
-
         data =
           Map.merge(generic_contract_data(), %{
             type: ReimbursementContract.type(),
-            medical_program_id: medical_program_id
+            medical_program: build(:medical_program)
           })
 
         struct(%ReimbursementContract{}, data)

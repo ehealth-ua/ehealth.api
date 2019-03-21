@@ -144,7 +144,7 @@ defmodule GraphQL.ReimbursementContractResolverTest do
       nhs()
 
       insert_contract =
-        &insert(:prm, :reimbursement_contract, medical_program_id: insert(:prm, :medical_program, name: &1).id)
+        &insert(:prm, :reimbursement_contract, medical_program: insert(:prm, :medical_program, name: &1))
 
       medical_programs_name = ["Unknown program 3", "Available medications 1", "Free medications 2"]
 
@@ -179,8 +179,8 @@ defmodule GraphQL.ReimbursementContractResolverTest do
     test "filter by medical_program attributes", %{conn: conn} do
       nhs()
 
-      insert_medical_program = &insert(:prm, :medical_program, is_active: &1, name: &2).id
-      insert_contract = &insert(:prm, :reimbursement_contract, medical_program_id: insert_medical_program.(&1, &2))
+      insert_medical_program = &insert(:prm, :medical_program, is_active: &1, name: &2)
+      insert_contract = &insert(:prm, :reimbursement_contract, medical_program: insert_medical_program.(&1, &2))
 
       insert_contract.(true, "Medical program")
       insert_contract.(true, "Available program")
@@ -402,7 +402,7 @@ defmodule GraphQL.ReimbursementContractResolverTest do
       contractor_employee_division = insert(:prm, :division, name: "Та Ви не хворійте!")
 
       contract_request = insert(:il, :reimbursement_contract_request)
-      %{id: medical_program_id} = insert(:prm, :medical_program)
+      medical_program = insert(:prm, :medical_program)
 
       contract =
         insert(
@@ -414,7 +414,7 @@ defmodule GraphQL.ReimbursementContractResolverTest do
           nhs_signer: nhs_signer,
           nhs_legal_entity: nhs_legal_entity,
           contract_request_id: contract_request.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(
@@ -502,7 +502,7 @@ defmodule GraphQL.ReimbursementContractResolverTest do
       assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
       assert contract_request.id == resp_entity["contractRequest"]["databaseId"]
 
-      assert medical_program_id == resp_entity["medicalProgram"]["databaseId"]
+      assert medical_program.id == resp_entity["medicalProgram"]["databaseId"]
 
       assert contractor_legal_entity.id == resp_entity["contractorLegalEntity"]["databaseId"]
       assert contractor_owner.id == resp_entity["contractorOwner"]["databaseId"]

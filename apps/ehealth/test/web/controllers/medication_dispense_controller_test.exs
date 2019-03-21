@@ -523,14 +523,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       {medication_request, _} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -543,7 +543,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -562,7 +562,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense:
             new_dispense_params(%{
               division_id: division_id,
-              medical_program_id: medical_program_id,
+              medical_program_id: medical_program.id,
               dispense_details: [
                 %{
                   medication_id: UUID.generate(),
@@ -588,14 +588,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{id: division_id} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
 
       %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       {medication_request, _} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -607,7 +607,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
         contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
+        medical_program: medical_program
       )
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
@@ -615,7 +615,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       end)
 
       request_data = %{
-        medication_dispense: new_dispense_params(%{division_id: division_id, medical_program_id: medical_program_id})
+        medication_dispense: new_dispense_params(%{division_id: division_id, medical_program_id: medical_program.id})
       }
 
       resp =
@@ -644,14 +644,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       {medication_request, _} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -664,7 +664,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -683,7 +683,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense:
             new_dispense_params(%{
               division_id: division_id,
-              medical_program_id: medical_program_id
+              medical_program_id: medical_program.id
             })
         )
 
@@ -708,14 +708,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       {medication_request, _} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -728,7 +728,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -747,7 +747,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense:
             new_dispense_params(%{
               division_id: division_id,
-              medical_program_id: medical_program_id,
+              medical_program_id: medical_program.id,
               dispense_details: [
                 %{
                   medication_id: medication_id,
@@ -781,13 +781,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       insert(
         :prm,
         :program_medication,
         medication_id: medication_id,
-        medical_program_id: medical_program_id,
+        medical_program_id: medical_program.id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
@@ -796,7 +796,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -809,7 +809,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -828,7 +828,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense:
             new_dispense_params(%{
               division_id: division_id,
-              medical_program_id: medical_program_id,
+              medical_program_id: medical_program.id,
               dispense_details: [
                 %{
                   medication_id: medication_id,
@@ -861,13 +861,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       insert(
         :prm,
         :program_medication,
         medication_id: medication_id,
-        medical_program_id: medical_program_id
+        medical_program_id: medical_program.id
       )
 
       {medication_request, _} =
@@ -875,7 +875,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -888,7 +888,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -908,7 +908,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_dispense:
             new_dispense_params(%{
               division_id: division_id,
-              medical_program_id: medical_program_id,
+              medical_program_id: medical_program.id,
               dispense_details: [
                 %{
                   medication_id: medication_id,
@@ -983,13 +983,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       insert(
         :prm,
         :program_medication,
         medication_id: medication_id,
-        medical_program_id: medical_program_id,
+        medical_program_id: medical_program.id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
@@ -998,7 +998,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -1023,7 +1023,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -1053,7 +1053,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         medication_dispense:
           new_dispense_params(%{
             division_id: division_id,
-            medical_program_id: medical_program_id,
+            medical_program_id: medical_program.id,
             dispense_details: [
               %{
                 medication_id: medication_id,
@@ -1091,13 +1091,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       insert(
         :prm,
         :program_medication,
         medication_id: medication_id,
-        medical_program_id: medical_program_id,
+        medical_program_id: medical_program.id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
@@ -1106,7 +1106,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           legal_entity_id: legal_entity.id,
           division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program_id,
+          medical_program_id: medical_program.id,
           medication_id: innm_dosage_id,
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
@@ -1131,7 +1131,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
           contractor_legal_entity_id: legal_entity.id,
-          medical_program_id: medical_program_id
+          medical_program: medical_program
         )
 
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
@@ -1161,7 +1161,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         medication_dispense:
           new_dispense_params(%{
             division_id: division_id,
-            medical_program_id: medical_program_id,
+            medical_program_id: medical_program.id,
             dispense_details: [
               %{
                 medication_id: medication_id,
@@ -1199,13 +1199,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medication_id} = insert_medication(innm_dosage_id)
-      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+      medical_program = insert(:prm, :medical_program, is_active: true)
 
       insert(
         :prm,
         :program_medication,
         medication_id: medication_id,
-        medical_program_id: medical_program_id,
+        medical_program_id: medical_program.id,
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
@@ -1240,7 +1240,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
         contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
+        medical_program: medical_program
       )
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->

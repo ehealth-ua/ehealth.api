@@ -78,9 +78,9 @@ Feature: Get specific employee
     Given the following <association_entity> exist:
       | databaseId       |
       | <association_id> |
-    And the following employees exist:
-      | databaseId    | <association_field>Id |
-      | <database_id> | <association_id>      |
+    And the following employees are associated with <association_entity> accordingly:
+      | databaseId    |
+      | <database_id> |
     And my scope is "employee:read"
     And my client type is "NHS"
     When I request databaseId of the <association_field> of the employee where databaseId is <database_id>

@@ -56,7 +56,8 @@ defmodule GraphQL.Mixfile do
       {:jason, "~> 1.1"},
       {:phoenix, "~> 1.4.0", override: true},
       {:plug_cowboy, "~> 2.0"},
-      {:white_bread, "~> 4.5", only: [:dev, :test]}
+      {:white_bread, "~> 4.5", only: [:dev, :test]},
+      {:inflex, "~> 1.10", only: [:test]}
     ]
   end
 
