@@ -1,11 +1,13 @@
 defmodule Core.MedicationDispense.API do
   @moduledoc false
 
+  use Confex, otp_app: :core
+
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
   import Ecto.Changeset, only: [cast: 3]
   import Ecto.Query
-  require Logger
 
+  alias Core.Contracts.ContractDivision
   alias Core.Contracts.ReimbursementContract
   alias Core.Divisions
   alias Core.Divisions.Division
@@ -33,7 +35,7 @@ defmodule Core.MedicationDispense.API do
   alias Core.Validators.Reference
   alias Core.Validators.Signature, as: SignatureValidator
 
-  use Confex, otp_app: :core
+  require Logger
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
@@ -127,7 +129,7 @@ defmodule Core.MedicationDispense.API do
          :ok <- validate_employee(party_user, legal_entity_id),
          {:ok, division} <- validate_division(params["division_id"], legal_entity_id),
          {:ok, medical_program} <-
-           validate_medical_program(params["medical_program_id"], medication_request, legal_entity_id),
+           validate_medical_program(params["medical_program_id"], medication_request, legal_entity_id, division.id),
          details <- params["dispense_details"],
          {:ok, dispense_details, medications} <- validate_medications(details, medical_program),
          :ok <- validate_code(code, medication_request),
@@ -297,21 +299,14 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
-  defp validate_medical_program(nil, _, _), do: {:ok, nil}
+  defp validate_medical_program(nil, _, _, _), do: {:ok, nil}
 
-  defp validate_medical_program(id, medication_request, legal_entity_id) do
-    is_active = fn medical_program ->
-      {:is_active, medical_program.is_active}
-    end
-
-    is_matched = fn medical_program ->
-      {:is_matched, medical_program.id == Map.get(medication_request, "medical_program_id")}
-    end
-
-    with {:ok, medical_program} <- Reference.validate(:medical_program, id),
-         {:is_active, true} <- is_active.(medical_program),
-         {:is_matched, true} <- is_matched.(medical_program),
-         :ok <- validate_contract(id, legal_entity_id) do
+  defp validate_medical_program(medical_program_id, medication_request, legal_entity_id, division_id) do
+    with {:ok, medical_program} <- Reference.validate(:medical_program, medical_program_id),
+         {_, true} <- {:is_active, medical_program.is_active},
+         {_, true} <- {:is_matched, medical_program.id == Map.get(medication_request, "medical_program_id")},
+         {:ok, contract} <- validate_contract(medical_program_id, legal_entity_id),
+         :ok <- validate_contract_division(contract.id, division_id) do
       {:ok, medical_program}
     else
       {:is_active, false} ->
@@ -328,9 +323,19 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
+  defp validate_contract_division(contract_id, division_id) do
+    ContractDivision
+    |> where(division_id: ^division_id, contract_id: ^contract_id)
+    |> @read_prm_repo.aggregate(:count, :id)
+    |> case do
+      1 -> :ok
+      _ -> {:error, {:conflict, "Division should be participant of a contract to create dispense"}}
+    end
+  end
+
   defp validate_contract(medical_program_id, legal_entity_id) do
     case get_valid_reimbursement_contract(medical_program_id, legal_entity_id) do
-      %ReimbursementContract{} -> :ok
+      %ReimbursementContract{} = contract -> {:ok, contract}
       _ -> {:conflict, "Program cannot be used - no active contract exists"}
     end
   end

@@ -538,12 +538,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -574,6 +577,55 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
+    end
+
+    test "division is not belong to contract", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+
+      {medication_request, _} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          }
+        })
+
+      insert(:prm, :reimbursement_contract,
+        status: ReimbursementContract.status(:verified),
+        contractor_legal_entity: legal_entity,
+        contractor_legal_entity_id: legal_entity.id,
+        medical_program_id: medical_program_id
+      )
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      request_data = %{
+        medication_dispense: new_dispense_params(%{division_id: division_id, medical_program_id: medical_program_id})
+      }
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> post(medication_dispense_path(conn, :create), request_data)
+        |> json_response(409)
+
+      assert %{"error" => %{"type" => "request_conflict"}} = resp
     end
 
     test "medication is not active", %{conn: conn} do
@@ -607,12 +659,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -668,12 +723,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -746,12 +804,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -822,12 +883,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -870,6 +934,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       %{id: innm_dosage_id} = insert_innm_dosage()
       %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      contract = insert(:prm, :reimbursement_contract)
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       {medication_request, _} =
         build_resp(%{
@@ -951,12 +1018,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
@@ -1056,12 +1126,15 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      insert(:prm, :reimbursement_contract,
-        status: ReimbursementContract.status(:verified),
-        contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
-        medical_program_id: medical_program_id
-      )
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          contractor_legal_entity_id: legal_entity.id,
+          medical_program_id: medical_program_id
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
 
       expect(OPSMock, :get_medication_requests, fn _params, _headers ->
         {:ok, %{"data" => [medication_request]}}
