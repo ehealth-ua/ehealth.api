@@ -262,6 +262,8 @@ legal_entity_id | uuid | not null
 location | geometry
 status | varchar | not null
 working_hours | jsonb
+dls_id | varchar
+dls_verified | boolean | not null
 is_active | boolean | not null
 
 [employees]
@@ -332,6 +334,7 @@ email | varchar | not null
 is_active | boolean
 mis_verified | boolean
 nhs_verified | boolean
+edr_verified | boolean
 website | varchar
 beneficiary | varchar
 receiver_funds_code | varchar
@@ -418,6 +421,15 @@ inserted_at | timestamp | not null
 inserted_by | uuid | not null
 updated_at | timestamp | not null
 updated_by | uuid | not null
+
+[edr_verifications]
+id | uuid | not null
+legal_entity_id | uuid | not null
+status_code | varchar | not null
+edr_status | varchar | not null
+edr_data | jsonb | not null
+legal_entity_data | jsonb | not null
+inserted_at | timestamp | not null
 
 [ukr_med_registries]
 id | uuid | not null
@@ -631,7 +643,7 @@ process_disclosure_data_consent | boolean | not null
 authentication_methods | json | not null
 preferred_way_communication | enum('email', 'phone')
 merged_persons  | json
-master_persons  | json 
+master_persons  | json
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null
