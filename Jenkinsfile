@@ -99,7 +99,7 @@ spec:
         memory: "2048Mi"
         cpu: "1000m"
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -116,7 +116,7 @@ spec:
     - containerPort: 6379
     tty: true
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -185,7 +185,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -226,7 +226,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -250,7 +250,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -329,7 +329,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -377,7 +377,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -401,7 +401,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -480,7 +480,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -528,7 +528,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -552,7 +552,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -631,7 +631,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -679,7 +679,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -703,7 +703,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -785,7 +785,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -833,7 +833,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -857,7 +857,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -939,7 +939,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: docker
-    image: liubenokvlad/docker:18.09-alpine-elixir-1.8.1
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
     env:
     - name: POD_IP
       valueFrom:
@@ -980,7 +980,7 @@ spec:
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
   - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
+    image: edenlabllc/alpine-mongo:4.0.1-0
     ports:
     - containerPort: 27017
     tty: true
@@ -1004,7 +1004,7 @@ spec:
         memory: "256Mi"
         cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper:2.1.0
+    image: edenlabllc/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -1087,7 +1087,7 @@ spec:
     effect: "NoSchedule"
   containers:
   - name: kubectl
-    image: lachlanevenson/k8s-kubectl:v1.13.2
+    image: edenlabllc/k8s-kubectl:v1.13.2
     command:
     - cat
     tty: true
