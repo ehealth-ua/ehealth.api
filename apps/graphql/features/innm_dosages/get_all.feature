@@ -72,6 +72,10 @@ Feature: Get all INNMDosages
     And the <field> of the first item in the collection should be <expected_value>
 
     Examples:
-      | field        | direction  | expected_value                | alternate_value               |
-      | insertedAt   | ascending  | "2017-07-14T19:25:38.000000Z" | "2018-09-27T18:22:20.000000Z" |
-      | insertedAt   | descending | "2018-09-27T18:22:20.000000Z" | "2017-07-14T19:25:38.000000Z" |
+      | field        | direction  | expected_value                | alternate_value                |
+      | insertedAt   | ascending  | "2017-07-14T19:25:38.000000Z" | "2018-09-27T18:22:20.000000Z"  |
+      | insertedAt   | descending | "2018-09-27T18:22:20.000000Z" | "2017-07-14T19:25:38.000000Z"  |
+      | name         | ascending  | "Амлодипін"                   | "Фуросемід"                    |
+      | name         | descending | "Сальбутамол"                 | "Бісопролол"                   |
+      | form         | ascending  | "AEROSOL_FOR_INHALATION"      | "PRESSURISED_INHALATION"       |
+      | form         | descending | "SUBLINGVAL_TABLET"           | "AEROSOL_FOR_INHALATION_DOSED" |

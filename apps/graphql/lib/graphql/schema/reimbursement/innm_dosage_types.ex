@@ -85,8 +85,12 @@ defmodule GraphQL.Schema.INNMDosageTypes do
   end
 
   enum :innm_dosage_order_by, name: "INNMDosageOrderBy" do
+    value(:form_asc)
+    value(:form_desc)
     value(:inserted_at_asc)
     value(:inserted_at_desc)
+    value(:name_asc)
+    value(:name_desc)
   end
 
   object :innm_dosage_mutations do
