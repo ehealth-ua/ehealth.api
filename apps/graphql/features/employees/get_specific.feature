@@ -90,5 +90,6 @@ Feature: Get specific employee
 
     Examples:
       | database_id                            | association_entity | association_field | association_id                         |
-      | "1e712d60-b74b-4cf9-839b-6c895b88deb4" | legal entities     | legalEntity       | "a0bcbe09-b71f-4a0a-97fe-282a7fa8eed3" |
       | "0292ec5e-71f2-413c-9665-0588af353c78" | parties            | party             | "3c90c22e-363b-40e3-b2af-06e0d1edb6d0" |
+      | "9cb9fef7-449b-4a29-bccc-c9b6cfc858a5" | divisions          | division          | "1528b040-f293-430f-9429-3ac2ebe1b355" |
+      | "1e712d60-b74b-4cf9-839b-6c895b88deb4" | legal entities     | legalEntity       | "a0bcbe09-b71f-4a0a-97fe-282a7fa8eed3" |

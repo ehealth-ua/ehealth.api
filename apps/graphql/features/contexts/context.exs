@@ -1425,6 +1425,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) of the associated (?<association_field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, association_field: association_field, direction: direction} ->
+      query = """
+        query ListEmployeesWithOrderBy(
+          $first: Int!
+          $order_by: EmployeeOrderBy!
+        ) {
+          employees(first: $first, order_by: $order_by) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(association_field, field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) settlements sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{existing: existing, conn: conn}, %{count: count, field: field, direction: direction} ->
       expect(RPCWorkerMock, :run, fn
@@ -2385,6 +2417,8 @@ defmodule GraphQL.Features.Context do
   def filter_argument(field, value), do: %{field => value}
   def filter_argument(assoc, field, value), do: %{assoc => %{field => value}}
   def filter_argument(assoc, nested_assoc, field, value), do: %{assoc => %{nested_assoc => %{field => value}}}
+
+  def order_by_argument(assoc, field, direction), do: order_by_argument(assoc <> Inflex.camelize(field), direction)
 
   def order_by_argument(field, "ascending"), do: order_by_argument(field, "ASC")
   def order_by_argument(field, "descending"), do: order_by_argument(field, "DESC")

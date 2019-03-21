@@ -18,6 +18,10 @@ defmodule GraphQL.Schema.DivisionTypes do
   @type_drugstore Division.type(:drugstore)
   @type_drugstore_point Division.type(:drugstore_point)
 
+  input_object :division_filter do
+    field(:name, :string)
+  end
+
   connection node_type: :division do
     field :nodes, list_of(:division) do
       resolve(fn

@@ -3,6 +3,7 @@ defmodule GraphQL.Filters.Base do
 
   use EctoFilter
   use EctoFilter.Operators.JSON
+  use GraphQL.Operators.RangeInclusion
 
   alias Core.Parties.Party
 

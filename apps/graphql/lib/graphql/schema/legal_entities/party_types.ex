@@ -6,6 +6,7 @@ defmodule GraphQL.Schema.PartyTypes do
 
   input_object :party_filter do
     field(:full_name, :string)
+    field(:no_tax_id, :boolean)
   end
 
   node object(:party) do
@@ -15,6 +16,8 @@ defmodule GraphQL.Schema.PartyTypes do
     field(:second_name, :string)
     field(:birth_date, non_null(:string))
     field(:gender, non_null(:gender))
+    field(:tax_id, :string)
+    field(:no_tax_id, :boolean)
     field(:phones, list_of(:phone))
   end
 

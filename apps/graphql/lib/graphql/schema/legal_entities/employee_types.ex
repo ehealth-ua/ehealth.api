@@ -38,16 +38,23 @@ defmodule GraphQL.Schema.EmployeeTypes do
       middleware(Filtering,
         database_id: :equal,
         employee_type: :in,
+        position: :in,
+        start_date: :in,
         status: :equal,
         is_active: :equal,
+        party: [
+          full_name: :full_text_search,
+          no_tax_id: :equal
+        ],
+        division: [name: :like],
         legal_entity: [
           database_id: :equal,
           edrpou: :equal,
+          name: :like,
           nhs_verified: :equal,
           nhs_reviewed: :equal,
           type: :equal
-        ],
-        party: [full_name: :full_text_search]
+        ]
       )
 
       resolve(&EmployeeResolver.list_employees/2)
@@ -73,17 +80,26 @@ defmodule GraphQL.Schema.EmployeeTypes do
   input_object :employee_filter do
     field(:database_id, :uuid)
     field(:employee_type, list_of(:employee_type))
+    field(:position, list_of(:string))
+    field(:start_date, :date_interval)
     field(:status, :employee_status)
     field(:is_active, :boolean)
-    field(:legal_entity, :legal_entity_filter)
     field(:party, :party_filter)
+    field(:division, :division_filter)
+    field(:legal_entity, :legal_entity_filter)
   end
 
   enum :employee_order_by do
+    value(:division_name_asc)
+    value(:division_name_desc)
     value(:employee_type_asc)
     value(:employee_type_desc)
     value(:inserted_at_asc)
     value(:inserted_at_desc)
+    value(:legal_entity_name_asc)
+    value(:legal_entity_name_desc)
+    value(:party_full_name_asc)
+    value(:party_full_name_desc)
     value(:status_asc)
     value(:status_desc)
   end
@@ -101,8 +117,8 @@ defmodule GraphQL.Schema.EmployeeTypes do
   node object(:employee) do
     field(:database_id, non_null(:uuid))
     field(:position, non_null(:string))
-    field(:start_date, non_null(:string))
-    field(:end_date, :string)
+    field(:start_date, non_null(:date))
+    field(:end_date, :date)
     field(:is_active, :boolean)
 
     # enums
