@@ -2,7 +2,7 @@ defmodule GraphQL.Resolvers.INNMDosage do
   @moduledoc false
 
   import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
-  import Ecto.Query, only: [order_by: 2]
+  import Ecto.Query, only: [order_by: 2, where: 2]
   import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
@@ -13,6 +13,7 @@ defmodule GraphQL.Resolvers.INNMDosage do
 
   def list_innm_dosages(%{filter: filter, order_by: order_by} = args, _) do
     INNMDosage
+    |> where(type: ^INNMDosage.type())
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)

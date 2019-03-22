@@ -13,8 +13,9 @@ defmodule Core.PRMFactories.MedicationFactory do
       alias Ecto.UUID
 
       def program_medication_factory do
-        med_id = insert(:prm, :medication, type: "INNM_DOSAGE").id
-        insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: med_id)
+        medication_id = insert(:prm, :medication).id
+        innm_dosage_id = insert(:prm, :innm_dosage).id
+        insert(:prm, :ingredient_medication, parent_id: medication_id, medication_child_id: innm_dosage_id)
 
         %ProgramMedication{
           reimbursement: build(:reimbursement),
@@ -26,7 +27,7 @@ defmodule Core.PRMFactories.MedicationFactory do
           estimated_payment_amount: random_price(1, 50),
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
-          medication_id: med_id,
+          medication_id: medication_id,
           medical_program_id: insert(:prm, :medical_program).id
         }
       end

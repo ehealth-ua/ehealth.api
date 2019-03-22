@@ -8,6 +8,7 @@ defmodule GraphQL.Loaders.PRM do
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
   alias Core.Employees.Employee
+  alias Core.Medications.{INNMDosage, Medication}
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
@@ -24,6 +25,9 @@ defmodule GraphQL.Loaders.PRM do
   def query(Employee, %{client_type: "MSP", client_id: client_id}) do
     where(Employee, legal_entity_id: ^client_id)
   end
+
+  def query(INNMDosage, _args), do: where(INNMDosage, type: ^INNMDosage.type())
+  def query(Medication, _args), do: where(Medication, type: ^Medication.type())
 
   def query(queryable, %{filter: filter, order_by: order_by} = args) do
     with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
