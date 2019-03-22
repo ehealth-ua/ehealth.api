@@ -913,6 +913,160 @@ spec:
           //   }
           // }
         }
+        stage('Build edr-verification-consumer') {
+          environment {
+            APPS = '[{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"}]'
+            DOCKER_CREDENTIALS = 'credentials("20c2924a-6114-46dc-8e39-bfadd1cf8acf")'
+            POSTGRES_USER = 'postgres'
+            POSTGRES_PASSWORD = 'postgres'
+            POSTGRES_DB = 'postgres'
+          }
+          agent {
+            kubernetes {
+              label "edr-verification-consumer-build-$NAME"
+              defaultContainer 'jnlp'
+              yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    stage: build
+spec:
+  tolerations:
+  - key: "ci"
+    operator: "Equal"
+    value: "$RD_CROP"
+    effect: "NoSchedule"
+  containers:
+  - name: docker
+    image: edenlabllc/docker:18.09-alpine-elixir-1.8.1
+    env:
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: DOCKER_HOST 
+      value: tcp://localhost:2375 
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "1048Mi"
+        cpu: "2000m"
+  - name: postgres
+    image: edenlabllc/alpine-postgre:pglogical-gis-1.1
+    ports:
+    - containerPort: 5432
+    tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "2000m"
+  - name: dind
+    image: docker:18.09.2-dind
+    securityContext: 
+        privileged: true 
+    ports:
+    - containerPort: 2375
+    tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "3048Mi"
+        cpu: "3000m"
+    volumeMounts: 
+    - name: docker-graph-storage 
+      mountPath: /var/lib/docker
+  - name: mongo
+    image: edenlabllc/alpine-mongo:4.0.1-0
+    ports:
+    - containerPort: 27017
+    tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
+  - name: redis
+    image: redis:4-alpine3.9
+    ports:
+    - containerPort: 6379
+    tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
+  - name: kafkazookeeper
+    image: edenlabllc/kafka-zookeeper:2.1.0
+    ports:
+    - containerPort: 2181
+    - containerPort: 9092
+    env:
+    - name: ADVERTISED_HOST
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+  nodeSelector:
+    node: "$RD_CROP"
+  volumes: 
+    - name: docker-graph-storage 
+      emptyDir: {}
+"""
+            }
+          }
+          steps {
+            container(name: 'kafkazookeeper', shell: '/bin/sh') {
+              sh 'cd /opt/kafka_2.12-2.1.0/bin && ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic edr_verification_events'
+            }
+            container(name: 'postgres', shell: '/bin/sh') {
+              sh '''
+              sleep 15;
+              psql -U postgres -c "create database ehealth";
+              psql -U postgres -c "create database prm_dev";
+              psql -U postgres -c "create database fraud_dev";
+              psql -U postgres -c "create database event_manager_dev";
+              '''
+            }
+            container(name: 'docker', shell: '/bin/sh') {
+              sh 'echo -----Build Docker container for DeactivateLegalEntities consumer-------'
+              sh 'apk update && apk add --no-cache jq curl bash elixir git ncurses-libs zlib ca-certificates openssl erlang-crypto make erlang-runtime-tools;'
+              sh 'echo " ---- step: Build docker image ---- ";'
+              sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/build-container.sh -o build-container.sh; bash ./build-container.sh'
+              sh 'echo " ---- step: Start docker container ---- ";'
+              sh 'mix local.rebar --force'
+              sh 'mix local.hex --force'
+              sh 'mix deps.get'
+              sh 'sed -i "s/travis/${POD_IP}/g" .env'
+              sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
+              withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                sh 'echo " ---- step: Push docker image ---- ";'
+                sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh; bash ./push-changes.sh'
+              }
+            }
+          }
+          // post {
+          //   always {
+          //     container(name: 'docker', shell: '/bin/sh') {
+          //       sh 'echo " ---- step: Remove docker image from host ---- ";'
+          //       sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/remove-containers.sh -o remove-containers.sh; bash ./remove-containers.sh'
+          //     }
+          //   }
+          // }
+        }
         stage('Build ehealth-scheduler') {
           environment {
             APPS='[{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
@@ -1067,7 +1221,7 @@ spec:
         }
       }
       environment {
-        APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"},{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"},{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"},{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"},{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"},{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
+        APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"},{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"},{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"},{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"},{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"},{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"},{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"}]'
       }
       agent {
         kubernetes {
