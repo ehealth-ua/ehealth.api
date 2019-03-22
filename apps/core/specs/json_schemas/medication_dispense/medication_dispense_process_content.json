@@ -100,7 +100,7 @@
               "type": "string"
             },
             "external_id": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "location": {
               "type": ["object", "null"],
