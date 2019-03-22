@@ -6,9 +6,10 @@ config :ehealth_scheduler, EHealthScheduler.Worker,
   medication_request_request_autotermination_schedule:
     {:system, :string, "MEDICATION_REQUEST_REQUEST_AUTOTERMINATION_SCHEDULE", "* * * * *"},
   declaration_request_autotermination:
-    {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "* 0-4 * * *"},
-  employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0-4 * * *"},
-  contract_autotermination: {:system, :string, "CONTRACT_AUTOTERMINATION_SCHEDULE", "0-4 * * *"}
+    {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
+  employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
+  contract_autotermination: {:system, :string, "CONTRACT_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
+  edr_validator_schedule: {:system, :string, "EDR_VALIDATOR_SCHEDULE", "0 0 * * *"}
 
 config :ehealth_scheduler, EHealthScheduler.Jobs.ContractRequestsTerminator,
   contract_request_termination_batch_size: {:system, :integer, "CONTRACT_REQUEST_AUTOTERMINATION_BATCH_SIZE", 100}

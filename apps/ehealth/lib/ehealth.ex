@@ -9,7 +9,7 @@ defmodule EHealth do
   def start(_type, _args) do
     # Define workers and child supervisors to be supervised
     children = [
-      {EHealth.Web.Endpoint, []}
+      {Endpoint, []}
     ]
 
     children =

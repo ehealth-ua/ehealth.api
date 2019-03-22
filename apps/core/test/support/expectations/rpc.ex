@@ -3,6 +3,24 @@ defmodule Core.Expectations.RPC do
 
   import Mox
 
+  def expect_settlement_by_id(response, times \\ 1) do
+    expect(RPCWorkerMock, :run, times, fn _, _, :settlement_by_id, _ ->
+      response
+    end)
+  end
+
+  def expect_edr_by_code(response, times \\ 1) do
+    expect(RPCWorkerMock, :run, times, fn _, _, :legal_entity_by_code, _ ->
+      response
+    end)
+  end
+
+  def expect_edr_by_passport(response, times \\ 1) do
+    expect(RPCWorkerMock, :run, times, fn _, _, :legal_entity_by_passport, _ ->
+      response
+    end)
+  end
+
   def expect_encounter_status(status, times \\ 1)
 
   def expect_encounter_status(nil, times) do

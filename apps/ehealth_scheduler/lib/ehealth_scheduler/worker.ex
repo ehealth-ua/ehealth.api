@@ -9,6 +9,7 @@ defmodule EHealthScheduler.Worker do
   alias EHealthScheduler.Contracts.Terminator, as: ContractsTerminator
   alias EHealthScheduler.DeclarationRequests.Terminator, as: DeclarationRequestsTerminator
   alias EHealthScheduler.Jobs.ContractRequestsTerminator
+  alias EHealthScheduler.Jobs.EdrValidator
   alias Quantum.Job
   alias Quantum.RunStrategy.Local
 
@@ -45,6 +46,11 @@ defmodule EHealthScheduler.Worker do
     create_job(
       &MedicationRequestRequests.autoterminate/0,
       :medication_request_request_autotermination_schedule
+    )
+
+    create_job(
+      &EdrValidator.run/0,
+      :edr_validator_schedule
     )
   end
 end

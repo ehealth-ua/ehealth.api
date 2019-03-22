@@ -3,9 +3,9 @@ defmodule Core.PRMFactories.LegalEntityFactory do
 
   defmacro __using__(_opts) do
     quote do
-      alias Ecto.UUID
       alias Core.LegalEntities.LegalEntity
       alias Core.LegalEntities.RelatedLegalEntity
+      alias Ecto.UUID
 
       def legal_entity_factory do
         %LegalEntity{

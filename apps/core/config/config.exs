@@ -374,7 +374,7 @@ config :core, Core.Rpc.Worker, max_attempts: {:system, :integer, "RPC_MAX_ATTEMP
 config :kaffe,
   producer: [
     endpoints: [localhost: 9092],
-    topics: ["deactivate_declaration_events", "merge_legal_entities"]
+    topics: ["deactivate_declaration_events", "merge_legal_entities", "edr_verification_events"]
   ]
 
 import_config "#{Mix.env()}.exs"

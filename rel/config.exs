@@ -76,6 +76,18 @@ release :deactivate_legal_entity_consumer do
   set(config_providers: [ConfexConfigProvider])
 end
 
+release :edr_validations_consumer do
+  set(version: current_version(:edr_validations_consumer))
+
+  set(
+    applications: [
+      edr_validations_consumer: :permanent
+    ]
+  )
+
+  set(config_providers: [ConfexConfigProvider])
+end
+
 release :ehealth_scheduler do
   set(version: current_version(:ehealth_scheduler))
 
