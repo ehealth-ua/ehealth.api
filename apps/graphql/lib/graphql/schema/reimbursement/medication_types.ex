@@ -174,9 +174,11 @@ defmodule GraphQL.Schema.MedicationTypes do
     value(:coated_tablet, as: "COATED_TABLET")
     value(:film_coated_tablet, as: "FILM_COATED_TABLET")
     value(:inhalation_powder, as: "INHALATION_POWDER")
-    value(:modifiedrelease_tablet, as: "MODIFIEDRELEASE_TABLET")
+    value(:injection_solution, as: "INJECTION_SOLUTION")
+    value(:modifiedrelease_tablet, as: "MODIFIED-RELEASE_TABLET")
     value(:nebuliser_suspension, as: "NEBULISER_SUSPENSION")
     value(:pressurised_inhalation, as: "PRESSURISED_INHALATION")
+    value(:pressurised_inhalation_suspension, as: "PRESSURISED_INHALATION_SUSPENSION")
     value(:sublingval_tablet, as: "SUBLINGVAL_TABLET")
     value(:tablet, as: "TABLET")
   end
