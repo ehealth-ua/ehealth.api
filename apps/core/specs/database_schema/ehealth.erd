@@ -263,7 +263,7 @@ location | geometry
 status | varchar | not null
 working_hours | jsonb
 dls_id | varchar
-dls_verified | boolean | not null
+dls_status | boolean | not null
 is_active | boolean | not null
 
 [employees]
