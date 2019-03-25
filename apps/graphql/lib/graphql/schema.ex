@@ -26,7 +26,7 @@ defmodule GraphQL.Schema do
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
-  alias GraphQL.Loaders.{IL, MPI, OPS, PRM, Uaddresses}
+  alias GraphQL.Loaders.{IL, ManualMerger, MPI, OPS, PRM, Uaddresses}
   alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
@@ -134,6 +134,7 @@ defmodule GraphQL.Schema do
       |> Dataloader.add_source(OPS, OPS.data())
       |> Dataloader.add_source(MPI, MPI.data())
       |> Dataloader.add_source(Uaddresses, Uaddresses.data())
+      |> Dataloader.add_source(ManualMerger, ManualMerger.data())
 
     Map.put(ctx, :loader, loader)
   end

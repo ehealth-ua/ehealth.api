@@ -40,6 +40,16 @@ config :graphql,
         kubernetes_namespace: "mpi",
         polling_interval: 10_000
       ]
+    ],
+    k8s_manual_merger: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "manual_merger",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "mpi",
+        polling_interval: 10_000
+      ]
     ]
   ]
 
