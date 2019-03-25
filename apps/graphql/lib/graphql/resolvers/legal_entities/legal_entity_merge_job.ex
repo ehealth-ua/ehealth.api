@@ -23,22 +23,16 @@ defmodule GraphQL.Resolvers.LegalEntityMergeJob do
   end
 
   def list_jobs(%{filter: filter, order_by: order_by} = args, _resolution) do
-    {:ok, :forward, limit} = Connection.limit(args)
+    with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
+      records =
+        filter
+        |> Jobs.list(limit, offset, order_by, @type_merge_legal_entities)
+        |> job_view()
 
-    offset =
-      case Connection.offset(args) do
-        {:ok, offset} when is_integer(offset) -> offset
-        _ -> 0
-      end
+      opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
-    records =
-      filter
-      |> Jobs.list(limit, offset, order_by, @type_merge_legal_entities)
-      |> job_view()
-
-    opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
-
-    Connection.from_slice(Enum.take(records, limit), offset, opts)
+      Connection.from_slice(Enum.take(records, limit), offset, opts)
+    end
   end
 
   def get_by_id(_parent, %{id: id}, _resolution) do

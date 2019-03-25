@@ -664,6 +664,100 @@ defmodule GraphQL.LegalEntityResolverTest do
       assert match?(%{"area" => _, "region" => _}, hd(division_from_resp["addresses"]))
     end
 
+    test "divisions with cursor pagination", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity)
+      insert_list(10, :prm, :division, legal_entity: legal_entity)
+
+      id = Node.to_global_id("LegalEntity", legal_entity.id)
+
+      # get first 2 divisions
+
+      query = """
+        query GetLegalEntityQuery($id: ID) {
+          legalEntity(id: $id) {
+            databaseId
+            divisions(first: 2){
+              pageInfo {
+                startCursor
+                endCursor
+              }
+              nodes {
+                databaseId
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{id: id}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      refute resp["errors"]
+
+      end_cursor = get_in(resp, ~w(data legalEntity divisions pageInfo endCursor))
+
+      # get next 2 divisions
+
+      query = """
+        query GetLegalEntityQuery($id: ID, $after: String) {
+          legalEntity(id: $id) {
+            databaseId
+            divisions(first: 2, after: $after){
+              pageInfo {
+                startCursor
+                endCursor
+              }
+              nodes {
+                databaseId
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{id: id, after: end_cursor}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      refute resp["errors"]
+      start_cursor = get_in(resp, ~w(data legalEntity divisions pageInfo startCursor))
+
+      # get previous 2 divisions
+
+      query = """
+        query GetLegalEntityQuery($id: ID, $before: String) {
+          legalEntity(id: $id) {
+            databaseId
+            divisions(last: 10, before: $before){
+              pageInfo {
+                startCursor
+                endCursor
+              }
+              nodes {
+                databaseId
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{id: id, before: start_cursor}
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      refute resp["errors"]
+    end
+
     test "get owner", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: @owner, is_active: false)

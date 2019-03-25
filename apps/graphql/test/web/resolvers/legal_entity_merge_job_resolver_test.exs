@@ -332,6 +332,32 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
       assert resp["pageInfo"]["hasPreviousPage"]
     end
 
+    test "argument `first` not set", %{conn: conn} do
+      merged_to = insert(:prm, :legal_entity)
+      {:ok, job_id1, _} = create_job(insert(:prm, :legal_entity), merged_to)
+
+      query = """
+        query ListLegalEntitiesQuery($after: String!){
+          legalEntityMergeJobs(after: $after) {
+            nodes {
+              id
+            }
+          }
+        }
+      """
+
+      variables = %{
+        after: "some-cursor"
+      }
+
+      resp =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      assert Enum.any?(resp["errors"], &match?(%{"message" => "You must either supply `:first` or `:last`"}, &1))
+    end
+
     test "order_by", %{conn: conn} do
       merged_to = insert(:prm, :legal_entity)
       {:ok, job_id_first, _} = create_job(insert(:prm, :legal_entity), merged_to)
