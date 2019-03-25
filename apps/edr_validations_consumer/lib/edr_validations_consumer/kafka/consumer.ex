@@ -7,8 +7,11 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
   alias Ecto.Changeset
+  import Ecto.Changeset
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
+  @edr_status_ok EdrVerification.status(:verified)
+  @edr_status_error EdrVerification.status(:error)
 
   def handle_message(%{offset: offset, value: message}) do
     value = :erlang.binary_to_term(message)
@@ -20,8 +23,23 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
   def consume(%{"legal_entity_id" => id}) do
     changes = %EdrVerification{legal_entity_id: id}
 
-    with {:ok, legal_entity} <- get_legal_entity(id, changes),
-         {:ok, edr_legal_entity} <- get_edr_legal_entity(legal_entity, changes),
+    case get_legal_entity(id, changes) do
+      {:ok, legal_entity} ->
+        do_consume(legal_entity, changes)
+        :ok
+
+      %Changeset{} = changeset ->
+        insert_edr_validation(changeset)
+    end
+  end
+
+  def consume(value) do
+    Logger.warn("Invalid message #{inspect(value)}")
+    :ok
+  end
+
+  defp do_consume(%LegalEntity{} = legal_entity, changes) do
+    with {:ok, edr_legal_entity} <- get_edr_legal_entity(legal_entity, changes),
          edr_data <- get_edr_data(edr_legal_entity),
          changes <- EdrVerification.changeset(changes, %{"status_code" => 200, "edr_data" => edr_data}),
          registration_address <- Enum.find(legal_entity.addresses, &(Map.get(&1, "type") == "REGISTRATION")) || %{},
@@ -34,24 +52,15 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
 
       changes
       |> EdrVerification.changeset(%{
-        "status_code" => 200,
         "edr_state" => edr_legal_entity["state"],
         "edr_status" => get_edr_status(edr_legal_entity, edr_data, legal_entity_data),
-        "edr_data" => edr_data,
         "legal_entity_data" => legal_entity_data
       })
-      |> insert_edr_validation()
+      |> insert_edr_validation(legal_entity)
     else
       %Changeset{} = changeset ->
-        insert_edr_validation(changeset)
+        insert_edr_validation(changeset, legal_entity)
     end
-
-    :ok
-  end
-
-  def consume(value) do
-    Logger.warn("Invalid message #{inspect(value)}")
-    :ok
   end
 
   defp get_legal_entity(id, changes) do
@@ -107,6 +116,32 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
     end
   end
 
+  defp insert_edr_validation(changeset, legal_entity) do
+    transaction =
+      PRMRepo.transaction(fn ->
+        edr_verified =
+          case get_change(changeset, :edr_status) do
+            @edr_status_ok -> true
+            @edr_status_error -> false
+            _ -> nil
+          end
+
+        if get_change(changeset, :edr_status) do
+          legal_entity
+          |> cast(%{"edr_verified" => edr_verified}, ~w(edr_verified)a)
+          |> PRMRepo.update!()
+
+          PRMRepo.insert!(changeset)
+        else
+          PRMRepo.insert!(changeset)
+        end
+      end)
+
+    with {:ok, _} <- transaction do
+      :ok
+    end
+  end
+
   defp get_edr_legal_entity(%LegalEntity{edrpou: edrpou}, changes) do
     cond do
       Regex.match?(~r/^[0-9]{8,10}$/, edrpou) ->
@@ -141,10 +176,17 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
     })
   end
 
+  defp process_edr_response({:error, %{"status_code" => 400, "body" => body}}, changes) do
+    EdrVerification.changeset(changes, %{
+      "status_code" => 400,
+      "edr_status" => EdrVerification.status(:error),
+      "error_message" => body
+    })
+  end
+
   defp process_edr_response({:error, %{"status_code" => status_code, "body" => body}}, changes) do
     EdrVerification.changeset(changes, %{
       "status_code" => status_code,
-      "edr_status" => EdrVerification.status(:error),
       "error_message" => body
     })
   end

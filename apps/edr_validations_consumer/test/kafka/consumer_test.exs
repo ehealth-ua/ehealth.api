@@ -3,6 +3,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
 
   use Core.ConnCase, async: false
   alias Core.LegalEntities.EdrVerification
+  alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
   alias Ecto.UUID
   alias EdrValidationsConsumer.Kafka.Consumer
@@ -73,7 +74,6 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                %EdrVerification{
                  error_message: ^error_message,
                  status_code: 404,
-                 edr_status: @status_error,
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
@@ -89,7 +89,6 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                %EdrVerification{
                  error_message: ^error_message,
                  status_code: 401,
-                 edr_status: @status_error,
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
@@ -105,7 +104,6 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                %EdrVerification{
                  error_message: ^error_message,
                  status_code: 404,
-                 edr_status: @status_error,
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
@@ -155,6 +153,8 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
+
+      [%LegalEntity{edr_verified: false}] = PRMRepo.all(LegalEntity)
     end
 
     test "edr fields doesn't match" do
@@ -185,6 +185,8 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
+
+      [%LegalEntity{edr_verified: false}] = PRMRepo.all(LegalEntity)
     end
 
     test "success verification" do
@@ -224,6 +226,8 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
                  legal_entity_id: ^legal_entity_id
                }
              ] = PRMRepo.all(EdrVerification)
+
+      [%LegalEntity{edr_verified: true}] = PRMRepo.all(LegalEntity)
     end
   end
 end
