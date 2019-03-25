@@ -32,6 +32,7 @@ defmodule EHealth.Web.LegalEntityView do
     website
     beneficiary
     receiver_funds_code
+    edr_verified
     inserted_at
     inserted_by
     updated_at

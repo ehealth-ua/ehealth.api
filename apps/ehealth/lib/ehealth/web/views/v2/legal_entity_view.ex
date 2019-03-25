@@ -33,6 +33,7 @@ defmodule EHealth.Web.V2.LegalEntityView do
     updated_by
     kveds
     type
+    edr_verified
   )a
 
   def render("show.json", %{legal_entity: legal_entity}) do
