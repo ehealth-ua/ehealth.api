@@ -20,6 +20,8 @@ defmodule Core.LegalEntities.Validator do
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)
 
+  @rpc_worker Application.get_env(:core, :rpc_worker)
+
   def decode_and_validate(params, headers) do
     with :ok <- JsonSchema.validate(:legal_entity_sign, params),
          {_, {:ok, %{"content" => content, "signers" => [signer]}}} <-
@@ -39,7 +41,8 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_state_registry_number(content, signer) do
+         {:ok, legal_entity_code} <- validate_state_registry_number(content, signer),
+         :ok <- validate_edr(content, legal_entity_code) do
       {:ok, content}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
@@ -144,7 +147,7 @@ defmodule Core.LegalEntities.Validator do
     {data, types}
     |> cast(%{"drfo" => content_edrpou(content)}, Map.keys(types))
     |> validate_required(Map.keys(types))
-    |> validate_format(:drfo, ~r/^[0-9]{9,10}$/ui)
+    |> validate_format(:drfo, ~r/^[0-9]{9,10}$|^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$/ui)
     |> validate_inclusion(:drfo, [drfo], message: "DRFO does not match signer drfo")
     |> is_valid_content(content)
   end
@@ -165,9 +168,79 @@ defmodule Core.LegalEntities.Validator do
   defp legal_entity_edrpou(%{"edrpou" => edrpou}), do: edrpou
   defp legal_entity_edrpou(%LegalEntity{edrpou: edrpou}), do: edrpou
 
-  defp is_valid_content(%Ecto.Changeset{valid?: true}, _), do: :ok
+  defp is_valid_content(%Ecto.Changeset{valid?: true, changes: changes}, _), do: {:ok, changes}
 
   defp is_valid_content(changeset, _content), do: {:error, changeset}
+
+  def validate_edr(content, %{edrpou: value}) do
+    "edr_api"
+    |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_code, [value])
+    |> do_validate_edr(content)
+  end
+
+  def validate_edr(content, %{drfo: value}) do
+    "edr_api"
+    |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [value])
+    |> do_validate_edr(content)
+  end
+
+  defp do_validate_edr({:ok, edr_data}, content) do
+    with :ok <- validate_legal_entity_status(edr_data),
+         :ok <- validate_legal_entity_attrs(edr_data, content) do
+      :ok
+    end
+  end
+
+  defp do_validate_edr({:error, _}, _), do: {:error, {:conflict, "Legal Entity not found in EDR"}}
+
+  defp validate_legal_entity_status(%{"state" => 1}), do: :ok
+  defp validate_legal_entity_status(_), do: {:error, {:conflict, "Invalid Legal Entity status in EDR"}}
+
+  defp validate_legal_entity_attrs(edr_data, content) do
+    with true <- content["name"] == edr_data["names"]["display"],
+         true <- content["legal_form"] == edr_data["olf_code"],
+         :ok <- validate_legal_entity_address(edr_data, content) do
+      :ok
+    else
+      false -> {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+      error -> error
+    end
+  end
+
+  defp validate_legal_entity_address(edr_data, content) do
+    case content
+         |> Map.get("addresses")
+         |> Enum.find(fn address -> address["type"] == "REGISTRATION" end) do
+      nil ->
+        {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+
+      address ->
+        case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :settlement_by_id, [address["settlement_id"]]) do
+          {:ok, settlement_data} -> validate_legal_entity_address_koatu(settlement_data, edr_data)
+          _ -> {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+        end
+    end
+  end
+
+  defp validate_legal_entity_address_koatu(%{koatuu: nil}, %{
+         "address" => %{"parts" => %{"atu_code" => ""}}
+       }) do
+    :ok
+  end
+
+  defp validate_legal_entity_address_koatu(%{koatuu: nil}, _) do
+    {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+  end
+
+  defp validate_legal_entity_address_koatu(%{koatuu: settlement_koatuu}, %{
+         "address" => %{"parts" => %{"atu_code" => edr_koatuu}}
+       }) do
+    if String.starts_with?(edr_koatuu, String.replace_trailing(settlement_koatuu, "0", "")) do
+      :ok
+    else
+      {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+    end
+  end
 
   def validate_owner_birth_date(content) do
     content

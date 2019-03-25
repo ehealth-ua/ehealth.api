@@ -4,9 +4,10 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   use EHealth.Web.ConnCase, async: false
 
   import Mox
-  import Core.Expectations.Signature
   import Core.Expectations.Man
   import Core.Expectations.Mithril
+  import Core.Expectations.RPC
+  import Core.Expectations.Signature
 
   alias Ecto.UUID
   alias Core.PRMRepo
@@ -156,6 +157,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       resp =
         conn
         |> put_req_header("content-type", "application/json")
@@ -180,6 +193,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp =
         conn
@@ -207,6 +232,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
+      expect_edr_by_passport(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       resp =
         conn
         |> put_req_header("content-type", "application/json")
@@ -230,6 +267,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect_edr_by_passport(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:ok,
@@ -268,6 +317,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect_edr_by_passport(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:ok,
@@ -308,6 +369,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => edrpou})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      expect_edr_by_passport(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:ok,
@@ -401,6 +474,132 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                "type" => "validation_failed"
              } = resp["error"]
     end
+
+    test "fail to create legal entity when get EDR API error", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code({:error, :timeout})
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Legal Entity not found in EDR"
+    end
+
+    test "fail to create legal entity when EDR API returns response with invalid legal entity status", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code({:ok, %{"state" => 0}})
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Invalid Legal Entity status in EDR"
+    end
+
+    test "fail to create legal entity when EDR API returns response with invalid legal entity attrs", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => "TEST"},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Provided data doesn't match with EDR data"
+    end
+
+    test "fail to create legal entity when EDR API returns response with invalid legal address", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
+
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
+
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6010100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(409)
+
+      assert get_in(resp, ~w(error message)) == "Provided data doesn't match with EDR data"
+    end
   end
 
   describe "contract suspend on update legal entity" do
@@ -408,7 +607,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
-      validate_addresses(2)
+      validate_addresses()
       template(2)
 
       insert_dictionaries()
@@ -416,6 +615,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp1 =
         conn
@@ -439,6 +650,20 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      validate_addresses()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -508,6 +733,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       employee_request_id =
         conn
         |> put_req_header("content-type", "application/json")
@@ -535,7 +772,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
-      validate_addresses(2)
+      validate_addresses()
       template(2)
 
       insert_dictionaries()
@@ -543,6 +780,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp1 =
         conn
@@ -557,6 +806,20 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      validate_addresses()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp2 =
         conn
@@ -575,7 +838,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_client_type_by_name(2)
       put_client(2)
       upsert_client_connection(2)
-      validate_addresses(2)
+      validate_addresses()
       template(2)
 
       insert_dictionaries()
@@ -583,6 +846,18 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp1 =
         conn
@@ -603,6 +878,20 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.put(legal_entity_params, "addresses", addresses)
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      validate_addresses()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => legal_entity_params["name"]},
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
       resp2 =
         conn

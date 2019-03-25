@@ -77,7 +77,7 @@ defmodule Jobs.LegalEntityMergeJob do
          :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),
-         :ok <- LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer),
+         {:ok, _} <- LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer),
          :ok <- validate_merged_id(content["merged_from_legal_entity"]["id"], content["merged_to_legal_entity"]["id"]),
          :ok <- validate_is_merged(:from, content),
          :ok <- validate_is_merged(:to, content),

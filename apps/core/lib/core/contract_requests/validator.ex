@@ -116,8 +116,12 @@ defmodule Core.ContractRequests.Validator do
 
   def validate_legal_entity_edrpou(_legal_entity, nil), do: :ok
 
-  def validate_legal_entity_edrpou(legal_entity, signer),
-    do: LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer)
+  def validate_legal_entity_edrpou(legal_entity, signer) do
+    case LegalEntitiesValidator.validate_state_registry_number(legal_entity, signer) do
+      {:ok, _} -> :ok
+      error -> error
+    end
+  end
 
   defp validate_external_legal_entity(errors, %{"legal_entity_id" => legal_entity_id}, index)
        when not is_nil(legal_entity_id) do

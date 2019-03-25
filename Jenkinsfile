@@ -191,8 +191,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
-      value: tcp://localhost:2375 
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     command:
     - cat
     tty: true
@@ -210,8 +210,8 @@ spec:
         cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -222,8 +222,8 @@ spec:
       limits:
         memory: "4048Mi"
         cpu: "8000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0
@@ -261,8 +261,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -335,8 +335,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
-      value: tcp://localhost:2375 
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     command:
     - cat
     tty: true
@@ -361,8 +361,8 @@ spec:
         cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -373,8 +373,8 @@ spec:
       limits:
         memory: "4048Mi"
         cpu: "8000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0
@@ -412,8 +412,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -486,8 +486,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
-      value: tcp://localhost:2375 
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     command:
     - cat
     tty: true
@@ -512,8 +512,8 @@ spec:
         cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -524,8 +524,8 @@ spec:
       limits:
         memory: "2048Mi"
         cpu: "4000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0
@@ -563,8 +563,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -637,8 +637,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
-      value: tcp://localhost:2375 
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     command:
     - cat
     tty: true
@@ -663,8 +663,8 @@ spec:
         cpu: "2000m"
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -675,8 +675,8 @@ spec:
       limits:
         memory: "4048Mi"
         cpu: "4000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0
@@ -714,8 +714,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -791,8 +791,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
-      value: tcp://localhost:2375 
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     command:
     - cat
     tty: true
@@ -817,8 +817,8 @@ spec:
         cpu: "2000m"
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -829,8 +829,8 @@ spec:
       limits:
         memory: "4048Mi"
         cpu: "4000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0
@@ -868,8 +868,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -1022,8 +1022,8 @@ spec:
           fieldPath: status.podIP
   nodeSelector:
     node: "$RD_CROP"
-  volumes: 
-    - name: docker-graph-storage 
+  volumes:
+    - name: docker-graph-storage
       emptyDir: {}
 """
             }
@@ -1099,7 +1099,7 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: status.podIP
-    - name: DOCKER_HOST 
+    - name: DOCKER_HOST
       value: tcp://localhost:2375
     command:
     - cat
@@ -1118,8 +1118,8 @@ spec:
     tty: true
   - name: dind
     image: docker:18.09.2-dind
-    securityContext: 
-        privileged: true 
+    securityContext:
+        privileged: true
     ports:
     - containerPort: 2375
     tty: true
@@ -1130,8 +1130,8 @@ spec:
       limits:
         memory: "4048Mi"
         cpu: "2000m"
-    volumeMounts: 
-    - name: docker-graph-storage 
+    volumeMounts:
+    - name: docker-graph-storage
       mountPath: /var/lib/docker
   - name: mongo
     image: edenlabllc/alpine-mongo:4.0.1-0

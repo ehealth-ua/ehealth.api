@@ -36,7 +36,8 @@ defmodule Core.V2.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         :ok <- validate_state_registry_number(content, signer) do
+         {:ok, legal_entity_code} <- validate_state_registry_number(content, signer),
+         :ok <- validate_edr(content, legal_entity_code) do
       {:ok, content}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
@@ -135,4 +136,5 @@ defmodule Core.V2.LegalEntities.Validator do
   defdelegate validate_json_objects(content), to: Validator
   defdelegate validate_owner_position(content), to: Validator
   defdelegate lowercase_emails(content), to: Validator
+  defdelegate validate_edr(content, legal_entity_code), to: Validator
 end

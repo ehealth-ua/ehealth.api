@@ -35,6 +35,18 @@ defmodule Core.Unit.LegalEntityTest do
       edrpou_signed_content(content, "38782323")
       expect_uaddresses_validate()
 
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => content["name"]},
+           "olf_code" => content["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, _} =
                Validator.decode_and_validate(
                  %{
@@ -122,7 +134,7 @@ defmodule Core.Unit.LegalEntityTest do
     test "validate legal entity EDRPOU" do
       content = get_legal_entity_data()
       signer = %{"edrpou" => "37367387"}
-      assert :ok = Validator.validate_state_registry_number(content, signer)
+      assert {:ok, %{edrpou: "37367387"}} = Validator.validate_state_registry_number(content, signer)
     end
 
     test "validate legal entity DRFO int" do
@@ -130,7 +142,7 @@ defmodule Core.Unit.LegalEntityTest do
       drfo = "2856209537"
       signer = %{"drfo" => drfo}
 
-      assert :ok =
+      assert {:ok, %{drfo: drfo}} =
                content
                |> Map.put("edrpou", drfo)
                |> Validator.validate_state_registry_number(signer)
@@ -221,6 +233,19 @@ defmodule Core.Unit.LegalEntityTest do
 
       expect_uaddresses_validate()
       upsert_client_connection()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => data["name"]},
+           "olf_code" => data["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
       # test legal entity data
@@ -261,6 +286,19 @@ defmodule Core.Unit.LegalEntityTest do
       insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
 
       upsert_client_connection()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => data["name"]},
+           "olf_code" => data["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
       # test legal entity data
       assert "edenlab" == legal_entity.short_name
@@ -308,6 +346,19 @@ defmodule Core.Unit.LegalEntityTest do
 
       expect_uaddresses_validate()
       upsert_client_connection()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => update_data["name"]},
+           "olf_code" => update_data["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "37367387" == legal_entity.edrpou
@@ -343,6 +394,19 @@ defmodule Core.Unit.LegalEntityTest do
       data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
       expect_uaddresses_validate()
       upsert_client_connection()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => data["name"]},
+           "olf_code" => data["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
     end
@@ -352,7 +416,22 @@ defmodule Core.Unit.LegalEntityTest do
     insert_dictionaries()
     insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
     expect_uaddresses_validate()
-    assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(get_legal_entity_data())
+
+    data = get_legal_entity_data()
+
+    expect_edr_by_code(
+      {:ok,
+       %{
+         "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+         "names" => %{"display" => data["name"]},
+         "olf_code" => data["legal_form"],
+         "state" => 1
+       }}
+    )
+
+    expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+    assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(data)
   end
 
   describe "update Legal Entity with OPS contract suspend" do
@@ -371,6 +450,19 @@ defmodule Core.Unit.LegalEntityTest do
       update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
       expect_uaddresses_validate()
       upsert_client_connection()
+
+      expect_edr_by_code(
+        {:ok,
+         %{
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"display" => update_data["name"]},
+           "olf_code" => update_data["legal_form"],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
       assert "Нова" == legal_entity.name
