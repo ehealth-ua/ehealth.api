@@ -17,6 +17,8 @@ defmodule Core.Divisions.Renderer do
           legal_entity_id
           status
           working_hours
+          dls_id
+          dls_verified
         )a)
     |> Map.merge(%{
       location: to_coordinates(division.location),

@@ -26,7 +26,9 @@ defmodule Core.PRMFactories.DivisionFactory do
           status: Division.status(:active),
           mountain_group: false,
           location: %Geo.Point{coordinates: {50, 20}},
-          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]}
+          working_hours: %{fri: [["08.00", "12.00"], ["14.00", "16.00"]]},
+          dls_id: nil,
+          dls_verified: nil
         }
       end
 

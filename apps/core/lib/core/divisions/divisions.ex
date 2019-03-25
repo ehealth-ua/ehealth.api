@@ -40,6 +40,8 @@ defmodule Core.Divisions do
     is_active
     location
     working_hours
+    dls_id
+    dls_verified
   )a
 
   @fields_required ~w(

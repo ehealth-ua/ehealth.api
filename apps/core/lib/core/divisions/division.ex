@@ -38,6 +38,8 @@ defmodule Core.Divisions.Division do
     field(:is_active, :boolean, default: false)
     field(:location, Geo.Geometry)
     field(:working_hours, :map)
+    field(:dls_id, :string)
+    field(:dls_verified, :boolean)
 
     belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
     has_many(:addresses, DivisionAddress, foreign_key: :division_id, on_replace: :delete)

@@ -72,6 +72,13 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
       assert Map.has_key?(resp, "data")
       assert 2 == Enum.count(resp["data"])
+
+      Enum.each(resp["data"], fn entity ->
+        Enum.each(~w(dls_id dls_verified), fn dls_field ->
+          assert Map.has_key?(entity, dls_field)
+          refute Map.get(entity, dls_field)
+        end)
+      end)
     end
 
     test "get divisions by invalid ids", %{conn: conn} do
@@ -164,13 +171,15 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "get division by id", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division, legal_entity: legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test", dls_verified: true)
     conn = put_client_id_header(conn, legal_entity.id)
 
     conn = get(conn, division_path(conn, :show, division.id))
     resp = json_response(conn, 200)["data"]
 
     assert division.id == resp["id"]
+    assert division.dls_id == resp["dls_id"]
+    assert division.dls_verified == resp["dls_verified"]
   end
 
   test "get divisions with client_id that does not match legal entity id", %{conn: conn} do
@@ -262,10 +271,16 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
     uaddresses_mock_expect(params)
 
-    conn = put_client_id_header(conn, legal_entity.id)
-    conn = post(conn, division_path(conn, :create), division_params)
+    assert resp =
+             conn
+             |> put_client_id_header(legal_entity.id)
+             |> post(division_path(conn, :create), division_params)
+             |> json_response(201)
 
-    refute %{} == json_response(conn, 201)["data"]
+    Enum.each(~w(dls_id dls_verified), fn dls_field ->
+      assert Map.has_key?(resp["data"], dls_field)
+      refute Map.get(resp["data"], dls_field)
+    end)
   end
 
   test "create division without RESIDENCE address", %{conn: conn, address: address} do
@@ -341,9 +356,53 @@ defmodule EHealth.Web.DivisionsControllerTest do
     assert json_response(conn4, 422)
   end
 
+  test "create division with invalid request params", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    division_params = Map.merge(get_division(), %{"dls_id" => "test", "dls_verified" => true})
+
+    assert resp =
+             conn
+             |> put_client_id_header(legal_entity.id)
+             |> post(division_path(conn, :create), division_params)
+             |> json_response(422)
+
+    assert %{
+             "invalid" => [
+               %{
+                 "entry" => "$.dls_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "schema does not allow additional properties",
+                     "params" => %{
+                       "properties" => %{"dls_id" => "test", "dls_verified" => true}
+                     },
+                     "raw_description" => "schema does not allow additional properties",
+                     "rule" => "schema"
+                   }
+                 ]
+               },
+               %{
+                 "entry" => "$.dls_verified",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "schema does not allow additional properties",
+                     "params" => %{
+                       "properties" => %{"dls_id" => "test", "dls_verified" => true}
+                     },
+                     "raw_description" => "schema does not allow additional properties",
+                     "rule" => "schema"
+                   }
+                 ]
+               }
+             ]
+           } = resp["error"]
+  end
+
   test "update division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division, legal_entity: legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test", dls_verified: true)
 
     params =
       division
@@ -355,10 +414,14 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
     uaddresses_mock_expect(params)
 
-    conn = put_client_id_header(conn, legal_entity.id)
-    conn = put(conn, division_path(conn, :update, division.id), get_division())
+    assert resp =
+             conn
+             |> put_client_id_header(legal_entity.id)
+             |> put(division_path(conn, :update, division.id), get_division())
+             |> json_response(200)
 
-    assert json_response(conn, 200)
+    assert resp["data"]["dls_id"] == "test"
+    assert resp["data"]["dls_verified"] == true
   end
 
   test "update division with wrong legal_entity_id", %{conn: conn} do
@@ -379,6 +442,51 @@ defmodule EHealth.Web.DivisionsControllerTest do
     conn = put(conn, division_path(conn, :update, division.id), get_division())
 
     assert 403 == json_response(conn, 403)["meta"]["code"]
+  end
+
+  test "update division with invalid request params", %{conn: conn} do
+    legal_entity = insert(:prm, :legal_entity)
+    division = insert(:prm, :division, legal_entity: legal_entity)
+    division_params = Map.merge(get_division(), %{"dls_id" => "test", "dls_verified" => true})
+
+    assert resp =
+             conn
+             |> put_client_id_header(legal_entity.id)
+             |> put(division_path(conn, :update, division.id), division_params)
+             |> json_response(422)
+
+    assert %{
+             "invalid" => [
+               %{
+                 "entry" => "$.dls_id",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "schema does not allow additional properties",
+                     "params" => %{
+                       "properties" => %{"dls_id" => "test", "dls_verified" => true}
+                     },
+                     "raw_description" => "schema does not allow additional properties",
+                     "rule" => "schema"
+                   }
+                 ]
+               },
+               %{
+                 "entry" => "$.dls_verified",
+                 "entry_type" => "json_data_property",
+                 "rules" => [
+                   %{
+                     "description" => "schema does not allow additional properties",
+                     "params" => %{
+                       "properties" => %{"dls_id" => "test", "dls_verified" => true}
+                     },
+                     "raw_description" => "schema does not allow additional properties",
+                     "rule" => "schema"
+                   }
+                 ]
+               }
+             ]
+           } = resp["error"]
   end
 
   test "activate division", %{conn: conn} do
