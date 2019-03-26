@@ -543,48 +543,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              } = resp["error"]
     end
 
-    test "invalid treatment preriod", %{conn: conn} do
-      expect_mpi_get_person()
-      {medication_id, pm} = create_medications_structure()
-
-      medication_dispense_period =
-        GlobalParameters.get_values()
-        |> Map.get("medication_dispense_period")
-        |> String.to_integer()
-
-      test_request =
-        test_request(%{
-          "medication_id" => medication_id,
-          "medical_program_id" => pm.medical_program_id,
-          "created_at" => Date.utc_today() |> to_string(),
-          "started_at" => Date.utc_today() |> to_string(),
-          "ended_at" => Date.utc_today() |> Date.add(medication_dispense_period - 1) |> Date.to_string()
-        })
-
-      resp =
-        conn
-        |> post(medication_request_request_path(conn, :create),
-          medication_request_request: test_request
-        )
-        |> json_response(422)
-
-      assert %{
-               "invalid" => [
-                 %{
-                   "entry" => "$.data.ended_at",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" => "Treatment period cannot be less than MR expiration period",
-                       "params" => [],
-                       "rule" => "invalid"
-                     }
-                   ]
-                 }
-               ]
-             } = resp["error"]
-    end
-
     test "render medication_request_request when PLAN data does not contain medical_program_id", %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()

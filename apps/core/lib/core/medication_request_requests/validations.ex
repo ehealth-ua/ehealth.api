@@ -262,31 +262,6 @@ defmodule Core.MedicationRequestRequest.Validations do
 
   def validate_dispense_valid_to(operation, _attrs), do: {:ok, operation}
 
-  def validate_treatment_period(
-        %{
-          changeset: %{
-            changes: %{
-              started_at: started_at,
-              ended_at: ended_at,
-              dispense_valid_from: dispense_valid_from,
-              dispense_valid_to: dispense_valid_to
-            }
-          }
-        },
-        %{"intent" => @intent_order}
-      ) do
-    treatment_period = Timex.diff(ended_at, started_at, :days)
-    medication_dispense_period = Timex.diff(dispense_valid_to, dispense_valid_from, :days)
-
-    if treatment_period < medication_dispense_period do
-      {:invalid_period, nil}
-    else
-      {:ok, nil}
-    end
-  end
-
-  def validate_treatment_period(_operation, _attrs), do: {:ok, nil}
-
   def validate_existing_medication_requests(_data, nil), do: {:ok, nil}
 
   def validate_existing_medication_requests(%{"intent" => @intent_order} = data, medical_program_id) do

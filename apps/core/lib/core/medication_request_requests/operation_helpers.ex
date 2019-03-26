@@ -85,10 +85,6 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
     Validations.validate_dispense_valid_to(operation, attrs)
   end
 
-  def validate_treatment_period(operation, attrs) do
-    Validations.validate_treatment_period(operation, attrs)
-  end
-
   def validate_existing_medication_requests(_operation, data) do
     Validations.validate_existing_medication_requests(data, data["medical_program_id"])
   end

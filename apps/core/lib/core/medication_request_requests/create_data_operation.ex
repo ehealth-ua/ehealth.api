@@ -43,7 +43,6 @@ defmodule Core.MedicationRequestRequest.CreateDataOperation do
     |> validate_data(data, &validate_dispense_valid_from/2)
     |> validate_data(data, &validate_dispense_valid_to/2)
     |> validate_data(data, &validate_dates/2)
-    |> validate_data(data, &validate_treatment_period/2)
     |> validate_data(data, &validate_declaration_existance/2)
     |> validate_data(data, &validate_existing_medication_requests/2)
     |> validate_data(data, &validate_medication_id/2)
