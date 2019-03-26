@@ -3,6 +3,7 @@ defmodule EHealthScheduler.Worker do
 
   use Quantum.Scheduler, otp_app: :ehealth_scheduler
 
+  alias Core.DLS
   alias Core.EmployeeRequests
   alias Core.MedicationRequestRequests
   alias Crontab.CronExpression.Parser
@@ -52,5 +53,7 @@ defmodule EHealthScheduler.Worker do
       &EdrValidator.run/0,
       :edr_validator_schedule
     )
+
+    create_job(&DLS.validate_divisions/0, :dls_validator_schedule)
   end
 end

@@ -214,16 +214,16 @@ defmodule Core.Divisions do
     end
   end
 
-  defp changeset(
-         %Division{} = division,
-         %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs
-       ) do
+  def changeset(
+        %Division{} = division,
+        %{"location" => %{"longitude" => lng, "latitude" => lat}} = attrs
+      ) do
     division
     |> changeset(Map.put(attrs, "location", %Geo.Point{coordinates: {lng, lat}}))
     |> cast_assoc(:addresses)
   end
 
-  defp changeset(%Division{} = division, attrs) do
+  def changeset(%Division{} = division, attrs) do
     division
     |> cast(attrs, @fields_optional ++ @fields_required)
     |> validate_required(@fields_required)
@@ -231,7 +231,7 @@ defmodule Core.Divisions do
     |> cast_assoc(:addresses)
   end
 
-  defp changeset(%Search{} = division, attrs) do
+  def changeset(%Search{} = division, attrs) do
     cast(division, attrs, @search_fields)
   end
 
