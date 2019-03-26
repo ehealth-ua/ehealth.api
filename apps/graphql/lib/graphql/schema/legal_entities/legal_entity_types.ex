@@ -50,7 +50,8 @@ defmodule GraphQL.Schema.LegalEntityTypes do
 
   input_object :legal_entity_filter do
     field(:database_id, :uuid)
-    field(:type, list_of(:legal_entity_type))
+    # Dictionary: LEGAL_ENTITY_TYPE
+    field(:type, list_of(:string))
     field(:edrpou, :string)
     field(:name, :string)
     field(:nhs_verified, :boolean)
@@ -150,7 +151,9 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:nhs_comment, :string)
 
     # enums
-    field(:type, non_null(:legal_entity_type))
+
+    # Dictionary: LEGAL_ENTITY_TYPE
+    field(:type, non_null(:string))
     field(:status, non_null(:legal_entity_status))
     field(:mis_verified, non_null(:legal_entity_mis_verified))
 
@@ -256,13 +259,6 @@ defmodule GraphQL.Schema.LegalEntityTypes do
   end
 
   # enum
-
-  enum :legal_entity_type do
-    value(:nhs, as: "NHS")
-    value(:msp, as: "MSP")
-    value(:pharmacy, as: "PHARMACY")
-    value(:msp_pharmacy, as: "MSP_PHARMACY")
-  end
 
   enum :legal_entity_status do
     value(:active, as: "ACTIVE")

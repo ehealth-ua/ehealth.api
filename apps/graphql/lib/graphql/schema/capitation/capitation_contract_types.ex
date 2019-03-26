@@ -136,7 +136,8 @@ defmodule GraphQL.Schema.CapitationContractTypes do
     field(:nhs_signer, :employee, resolve: dataloader(PRM))
     field(:nhs_legal_entity, :legal_entity, resolve: dataloader(PRM))
     field(:nhs_signer_base, :string)
-    field(:nhs_payment_method, :nhs_payment_method)
+    # Dictionary: CONTRACT_PAYMENT_METHOD
+    field(:nhs_payment_method, :string)
 
     field(:attached_documents, non_null(list_of(:contract_document)),
       resolve: &CapitationContractResolver.get_attached_documents/3

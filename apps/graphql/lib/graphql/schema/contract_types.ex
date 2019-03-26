@@ -23,7 +23,8 @@ defmodule GraphQL.Schema.ContractTypes do
       input do
         field(:id, non_null(:id))
         field(:reason, :string)
-        field(:status_reason, non_null(:contract_status_reason))
+        # Dictionary: CONTRACT_STATUS_REASON
+        field(:status_reason, non_null(:string))
       end
 
       output do
@@ -61,7 +62,8 @@ defmodule GraphQL.Schema.ContractTypes do
         field(:id, non_null(:id))
         field(:is_suspended, non_null(:boolean))
         field(:reason, :string)
-        field(:status_reason, non_null(:contract_status_reason))
+        # Dictionary: CONTRACT_STATUS_REASON
+        field(:status_reason, non_null(:string))
       end
 
       output do
@@ -95,7 +97,8 @@ defmodule GraphQL.Schema.ContractTypes do
     field(:nhs_signer, :employee)
     field(:nhs_legal_entity, :legal_entity)
     field(:nhs_signer_base, :string)
-    field(:nhs_payment_method, :nhs_payment_method)
+    # Dictionary: CONTRACT_PAYMENT_METHOD
+    field(:nhs_payment_method, :string)
     field(:attached_documents, non_null(list_of(:contract_document)))
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
@@ -115,11 +118,5 @@ defmodule GraphQL.Schema.ContractTypes do
   enum :contract_status do
     value(:terminated, as: @contract_status_terminated)
     value(:verified, as: @contract_status_verified)
-  end
-
-  enum :contract_status_reason do
-    value(:auto_deactivation_legal_entity, as: "AUTO_DEACTIVATION_LEGAL_ENTITY")
-    value(:auto_expired, as: "AUTO_EXPIRED")
-    value(:default, as: "DEFAULT")
   end
 end

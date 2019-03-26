@@ -134,7 +134,8 @@ defmodule GraphQL.Schema.CapitationContractRequestTypes do
     field(:nhs_signer, :employee, resolve: load_by_parent(PRM, Employee))
     field(:nhs_legal_entity, :legal_entity, resolve: load_by_parent(PRM, LegalEntity))
     field(:nhs_signer_base, :string)
-    field(:nhs_payment_method, :nhs_payment_method)
+    # Dictionary: CONTRACT_PAYMENT_METHOD
+    field(:nhs_payment_method, :string)
 
     field(
       :attached_documents,

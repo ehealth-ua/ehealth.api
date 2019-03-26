@@ -9,22 +9,19 @@ defmodule GraphQL.Schema.AddressTypes do
   end
 
   object :address do
-    field(:type, non_null(:address_type))
+    # Dictionary: ADDRESS_TYPE
+    field(:type, non_null(:string))
     field(:country, non_null(:string))
     field(:area, non_null(:string))
     field(:region, :string)
     field(:settlement, non_null(:string))
     field(:settlement_type, non_null(:string))
     field(:settlement_id, non_null(:id))
+    # Dictionary: STREET_TYPE
     field(:street_type, :string)
     field(:street, :string)
     field(:building, :string)
     field(:apartment, :string)
     field(:zip, :string)
-  end
-
-  enum :address_type do
-    value(:residence, as: "RESIDENCE")
-    value(:registration, as: "REGISTRATION")
   end
 end

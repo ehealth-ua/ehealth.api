@@ -78,19 +78,9 @@ defmodule GraphQL.Schema.PersonTypes do
   end
 
   input_object :person_document_filter do
-    field(:type, non_null(:person_document_type))
+    # Dictionary: DOCUMENT_TYPE
+    field(:type, non_null(:string))
     field(:number, non_null(:string))
-  end
-
-  enum :person_document_type do
-    value(:birth_certificate, as: "BIRTH_CERTIFICATE")
-    value(:complementary_protection_certificate, as: "COMPLEMENTARY_PROTECTION_CERTIFICATE")
-    value(:national_id, as: "NATIONAL_ID")
-    value(:passport, as: "PASSPORT")
-    value(:permanent_residence_permit, as: "PERMANENT_RESIDENCE_PERMIT")
-    value(:refugee_certificate, as: "REFUGEE_CERTIFICATE")
-    value(:temporary_certificate, as: "TEMPORARY_CERTIFICATE")
-    value(:temporary_passport, as: "TEMPORARY_PASSPORT")
   end
 
   enum :person_order_by do
@@ -140,7 +130,8 @@ defmodule GraphQL.Schema.PersonTypes do
     field(:second_name, :string)
     field(:birth_date, non_null(:date))
     field(:email, :string)
-    field(:gender, non_null(:person_gender), resolve: PersonResolver.resolve_upcased(:gender))
+    # Dictionary: GENDER
+    field(:gender, non_null(:string), resolve: PersonResolver.resolve_upcased(:gender))
     field(:status, non_null(:person_status), resolve: PersonResolver.resolve_upcased(:status))
     field(:birth_country, non_null(:string))
     field(:birth_settlement, non_null(:string))
@@ -175,25 +166,15 @@ defmodule GraphQL.Schema.PersonTypes do
     value(:inactive, as: "INACTIVE")
   end
 
-  enum :person_gender do
-    value(:female, as: "FEMALE")
-    value(:male, as: "MALE")
-  end
-
   enum :person_preferred_way_communication do
     value(:email, as: "EMAIL")
     value(:phone, as: "PHONE")
   end
 
   object :person_authentication_method do
-    field(:type, non_null(:person_authentication_method_type))
+    # Dictionary: AUTHENTICATION_METHOD
+    field(:type, non_null(:string))
     field(:phone_number, :string)
-  end
-
-  enum :person_authentication_method_type do
-    value(:na, as: "NA")
-    value(:offline, as: "OFFLINE")
-    value(:otp, as: "OTP")
   end
 
   object :person_document do
@@ -214,7 +195,8 @@ defmodule GraphQL.Schema.PersonTypes do
   end
 
   object :confidant_person do
-    field(:relation_type, non_null(:confidant_person_relation_type))
+    # Dictionary: CONFIDANT_PERSON_TYPE
+    field(:relation_type, non_null(:string))
     field(:first_name, non_null(:string))
     field(:last_name, non_null(:string))
     field(:second_name, :string)
@@ -222,7 +204,8 @@ defmodule GraphQL.Schema.PersonTypes do
     field(:birth_date, :string)
     field(:birth_country, non_null(:string))
     field(:birth_settlement, non_null(:string))
-    field(:gender, non_null(:person_gender))
+    # Dictionary: GENDER
+    field(:gender, non_null(:string))
     field(:unzr, :string)
     field(:tax_id, :string)
     field(:email, :string)
@@ -240,11 +223,6 @@ defmodule GraphQL.Schema.PersonTypes do
     )
 
     field(:phones, list_of(:phone))
-  end
-
-  enum :confidant_person_relation_type do
-    value(:primary, as: "PRIMARY")
-    value(:secondary, as: "SECONDARY")
   end
 
   defp validate_persons_query_input(%{arguments: %{filter: filter}} = resolution, _) do

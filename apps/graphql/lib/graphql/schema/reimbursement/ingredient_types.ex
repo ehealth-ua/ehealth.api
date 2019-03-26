@@ -15,24 +15,11 @@ defmodule GraphQL.Schema.IngredientTypes do
   end
 
   object :dosage do
-    field(:numerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:numerator_unit, non_null(:string))
     field(:numerator_value, non_null(:string))
-    field(:denumerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:denumerator_unit, non_null(:string))
     field(:denumerator_value, non_null(:string))
-  end
-
-  # ToDo: remove or get values from dictionaries
-  enum :medication_unit do
-    value(:aerosol, as: "AEROSOL")
-    value(:ampoule, as: "AMPOULE")
-    value(:bottle, as: "BOTTLE")
-    value(:container, as: "CONTAINER")
-    value(:dose, as: "DOSE")
-    value(:ie, as: "IE")
-    value(:mg, as: "MG")
-    value(:mkg, as: "MKG")
-    value(:ml, as: "ML")
-    value(:pill, as: "PILL")
-    value(:vial, as: "VIAL")
   end
 end

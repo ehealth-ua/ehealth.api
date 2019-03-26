@@ -21,9 +21,6 @@ defmodule GraphQL.Schema.ContractRequestTypes do
   @status_signed CapitationContractRequest.status(:signed)
   @status_terminated CapitationContractRequest.status(:terminated)
 
-  @nhs_payment_method_backward CapitationContractRequest.nhs_payment_method(:backward)
-  @nhs_payment_method_forward CapitationContractRequest.nhs_payment_method(:forward)
-
   object :contract_request_mutations do
     payload field(:update_contract_request) do
       meta(:scope, ~w(contract_request:update))
@@ -40,7 +37,8 @@ defmodule GraphQL.Schema.ContractRequestTypes do
         field(:nhs_contract_price, :float)
         field(:issue_city, :string)
         field(:miscellaneous, :string)
-        field(:nhs_payment_method, :nhs_payment_method)
+        # Dictionary: CONTRACT_PAYMENT_METHOD
+        field(:nhs_payment_method, :string)
       end
 
       output do
@@ -139,7 +137,8 @@ defmodule GraphQL.Schema.ContractRequestTypes do
     field(:nhs_signer, :employee)
     field(:nhs_legal_entity, :legal_entity)
     field(:nhs_signer_base, :string)
-    field(:nhs_payment_method, :nhs_payment_method)
+    # Dictionary: CONTRACT_PAYMENT_METHOD
+    field(:nhs_payment_method, :string)
     field(:attached_documents, non_null(list_of(:contract_document)))
     field(:miscellaneous, :string)
     field(:to_approve_content, :json)
@@ -172,19 +171,9 @@ defmodule GraphQL.Schema.ContractRequestTypes do
     field(:payer_account, non_null(:string))
   end
 
-  enum :nhs_payment_method do
-    value(:backward, as: @nhs_payment_method_backward)
-    value(:forward, as: @nhs_payment_method_forward)
-  end
-
   object :contract_document do
-    field(:type, non_null(:contract_documents_type))
+    # Dictionary: CONTRACT_DOCUMENT
+    field(:type, non_null(:string))
     field(:url, non_null(:string))
-  end
-
-  enum :contract_documents_type do
-    value(:contract_request_additional_document, as: "CONTRACT_REQUEST_ADDITIONAL_DOCUMENT")
-    value(:contract_request_statute, as: "CONTRACT_REQUEST_STATUTE")
-    value(:signed_content, as: "SIGNED_CONTENT")
   end
 end

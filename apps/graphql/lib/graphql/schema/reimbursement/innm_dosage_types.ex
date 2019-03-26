@@ -75,7 +75,8 @@ defmodule GraphQL.Schema.INNMDosageTypes do
     field(:database_id, :uuid)
     field(:name, :string)
     field(:is_active, :boolean)
-    field(:form, :medication_form)
+    # Dictionary: MEDICATION_FORM
+    field(:form, :string)
     field(:ingredients, :innm_dosage_ingredient_filter)
   end
 
@@ -123,7 +124,8 @@ defmodule GraphQL.Schema.INNMDosageTypes do
 
   input_object :create_innm_dosage_input, name: "CreateINNMDosageInput" do
     field(:name, non_null(:string))
-    field(:form, non_null(:medication_form))
+    # Dictionary: MEDICATION_FORM
+    field(:form, non_null(:string))
     field(:ingredients, non_null(list_of(:create_innm_dosage_ingredient_input)))
   end
 
@@ -148,7 +150,8 @@ defmodule GraphQL.Schema.INNMDosageTypes do
   node object(:innm_dosage, name: "INNMDosage") do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
-    field(:form, non_null(:medication_form))
+    # Dictionary: MEDICATION_FORM
+    field(:form, non_null(:string))
     field(:ingredients, non_null(list_of(:innm_dosage_ingredient)), resolve: dataloader(PRM))
     field(:is_active, non_null(:boolean))
 

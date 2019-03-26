@@ -15,14 +15,10 @@ defmodule GraphQL.Schema.PartyTypes do
     field(:last_name, non_null(:string))
     field(:second_name, :string)
     field(:birth_date, non_null(:string))
-    field(:gender, non_null(:gender))
+    # Dictionary: GENDER
+    field(:gender, non_null(:string))
     field(:tax_id, :string)
     field(:no_tax_id, :boolean)
     field(:phones, list_of(:phone))
-  end
-
-  enum :gender do
-    value(:male, as: "MALE")
-    value(:female, as: "FEMALE")
   end
 end

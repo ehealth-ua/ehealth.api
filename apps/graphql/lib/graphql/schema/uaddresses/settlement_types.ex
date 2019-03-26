@@ -49,7 +49,8 @@ defmodule GraphQL.Schema.SettlementTypes do
     field(:name, non_null(:string))
     field(:koatuu, non_null(:string))
     field(:mountain_group, non_null(:boolean))
-    field(:type, non_null(:settlement_type))
+    # Dictionary: SETTLEMENT_TYPE
+    field(:type, non_null(:string))
     field(:region, non_null(:region), resolve: dataloader(Uaddresses, {:search_regions, :one, :region_id, :id}))
     field(:district, :district, resolve: dataloader(Uaddresses, {:search_districts, :one, :district_id, :id}))
 
@@ -59,12 +60,5 @@ defmodule GraphQL.Schema.SettlementTypes do
 
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
-  end
-
-  enum :settlement_type do
-    value(:city, as: "CITY")
-    value(:settlement, as: "SETTLEMENT")
-    value(:township, as: "TOWNSHIP")
-    value(:village, as: "VILLAGE")
   end
 end

@@ -126,9 +126,11 @@ defmodule GraphQL.Schema.MedicationTypes do
   end
 
   input_object :container_input do
-    field(:numerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:numerator_unit, non_null(:string))
     field(:numerator_value, non_null(:integer))
-    field(:denumerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:denumerator_unit, non_null(:string))
     field(:denumerator_value, non_null(:integer))
   end
 
@@ -150,7 +152,8 @@ defmodule GraphQL.Schema.MedicationTypes do
     field(:certificate_expired_at, :date)
     field(:container, non_null(:container))
     field(:daily_dosage, :float)
-    field(:form, :medication_form)
+    # Dictionary: MEDICATION_FORM
+    field(:form, :string)
     field(:ingredients, non_null(list_of(:medication_ingredient)), resolve: dataloader(PRM))
     field(:is_active, non_null(:boolean))
     field(:manufacturer, :manufacturer)
@@ -167,33 +170,21 @@ defmodule GraphQL.Schema.MedicationTypes do
     field(:country, non_null(:string))
   end
 
-  # ToDo: remove or get values from dictionaries
-  enum :medication_form do
-    value(:aerosol_for_inhalation, as: "AEROSOL_FOR_INHALATION")
-    value(:aerosol_for_inhalation_dosed, as: "AEROSOL_FOR_INHALATION_DOSED")
-    value(:coated_tablet, as: "COATED_TABLET")
-    value(:film_coated_tablet, as: "FILM_COATED_TABLET")
-    value(:inhalation_powder, as: "INHALATION_POWDER")
-    value(:injection_solution, as: "INJECTION_SOLUTION")
-    value(:modifiedrelease_tablet, as: "MODIFIED-RELEASE_TABLET")
-    value(:nebuliser_suspension, as: "NEBULISER_SUSPENSION")
-    value(:pressurised_inhalation, as: "PRESSURISED_INHALATION")
-    value(:pressurised_inhalation_suspension, as: "PRESSURISED_INHALATION_SUSPENSION")
-    value(:sublingval_tablet, as: "SUBLINGVAL_TABLET")
-    value(:tablet, as: "TABLET")
-  end
-
   object :container do
-    field(:numerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:numerator_unit, non_null(:string))
     field(:numerator_value, non_null(:string))
-    field(:denumerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:denumerator_unit, non_null(:string))
     field(:denumerator_value, non_null(:string))
   end
 
   input_object :create_dosage_input do
-    field(:numerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:numerator_unit, non_null(:string))
     field(:numerator_value, non_null(:integer))
-    field(:denumerator_unit, non_null(:medication_unit))
+    # Dictionary: MEDICATION_UNIT
+    field(:denumerator_unit, non_null(:string))
     field(:denumerator_value, non_null(:integer))
   end
 

@@ -4,12 +4,8 @@ defmodule GraphQL.Schema.PhoneTypes do
   use Absinthe.Schema.Notation
 
   object :phone do
-    field(:type, non_null(:phone_type))
+    # Dictionary: PHONE_TYPE
+    field(:type, non_null(:string))
     field(:number, non_null(:string))
-  end
-
-  enum :phone_type do
-    value(:mobile, as: "MOBILE")
-    value(:land_line, as: "LAND_LINE")
   end
 end

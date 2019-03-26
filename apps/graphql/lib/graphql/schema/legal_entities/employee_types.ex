@@ -22,10 +22,6 @@ defmodule GraphQL.Schema.EmployeeTypes do
   @type_pharmacist Employee.type(:pharmacist)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
 
-  @status_approved Employee.status(:approved)
-  @status_dismissed Employee.status(:dismissed)
-  @status_new Employee.status(:new)
-
   object :employee_queries do
     connection field(:employees, node_type: :employee) do
       meta(:scope, ~w(employee:read))
@@ -82,7 +78,8 @@ defmodule GraphQL.Schema.EmployeeTypes do
     field(:employee_type, list_of(:employee_type))
     field(:position, list_of(:string))
     field(:start_date, :date_interval)
-    field(:status, :employee_status)
+    # Dictionary: EMPLOYEE_STATUS
+    field(:status, :string)
     field(:is_active, :boolean)
     field(:party, :party_filter)
     field(:division, :division_filter)
@@ -123,7 +120,8 @@ defmodule GraphQL.Schema.EmployeeTypes do
 
     # enums
     field(:employee_type, non_null(:employee_type))
-    field(:status, non_null(:employee_status))
+    # Dictionary: EMPLOYEE_STATUS
+    field(:status, non_null(:string))
 
     # embed
     field(:additional_info, :employee_additional_info)
@@ -165,11 +163,5 @@ defmodule GraphQL.Schema.EmployeeTypes do
     value(:owner, as: @type_owner)
     value(:pharmacist, as: @type_pharmacist)
     value(:pharmacy_owner, as: @type_pharmacy_owner)
-  end
-
-  enum :employee_status do
-    value(:approved, as: @status_approved)
-    value(:dismissed, as: @status_dismissed)
-    value(:new, as: @status_new)
   end
 end
