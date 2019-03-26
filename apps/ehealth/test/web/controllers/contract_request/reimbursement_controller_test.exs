@@ -10,6 +10,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts.ContractDivision
   alias Core.Contracts.ReimbursementContract
+  alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.EventManagerRepo
   alias Core.EventManager.Event
@@ -1548,7 +1549,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           party: party_user.party
         )
 
-      insert(:prm, :division, legal_entity: legal_entity)
+      insert(:prm, :division, type: Division.type(:drugstore), legal_entity: legal_entity)
 
       contract_request =
         insert(
@@ -1639,7 +1640,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         )
 
       division =
-        insert(:prm, :division, legal_entity: legal_entity, phones: [%{"type" => "MOBILE", "number" => "+380631111111"}])
+        insert(:prm, :division,
+          type: Division.type(:drugstore),
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
 
       %{
         conn: conn,
@@ -1750,6 +1755,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         insert(
           :prm,
           :division,
+          type: Division.type(:drugstore),
           legal_entity: legal_entity,
           phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
@@ -1787,6 +1793,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         insert(
           :prm,
           :division,
+          type: Division.type(:drugstore),
           legal_entity: legal_entity,
           phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
@@ -1944,6 +1951,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         :prm,
         :division,
         legal_entity: legal_entity,
+        type: Division.type(:drugstore),
         phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
       )
 

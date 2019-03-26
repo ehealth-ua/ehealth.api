@@ -1430,6 +1430,135 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
   end
 
+  describe "create contract request by MSP_PHARMACY" do
+    setup %{conn: conn} do
+      msp_pharmacy()
+
+      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      stub(MediaStorageMock, :get_signed_content, fn _ -> {:ok, %{body: ""}} end)
+      stub(MediaStorageMock, :save_file, fn _, _, _, _, _ -> {:ok, nil} end)
+      stub(MediaStorageMock, :delete_file, fn _ -> {:ok, nil} end)
+
+      stub(MediaStorageMock, :verify_uploaded_file, fn _, resource ->
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      %{
+        legal_entity: legal_entity,
+        employee: employee,
+        owner: owner,
+        user_id: user_id,
+        party_user: party_user
+      } = prepare_data()
+
+      start_date = contract_start_date()
+
+      params = %{
+        "contractor_owner_id" => owner.id,
+        "start_date" => Date.to_iso8601(start_date),
+        "end_date" => Date.to_iso8601(Date.add(start_date, 30))
+      }
+
+      conn =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+
+      {:ok,
+       %{
+         conn: conn,
+         start_date: start_date,
+         legal_entity: legal_entity,
+         party_user: party_user,
+         params: params,
+         employee: employee
+       }}
+    end
+
+    test "success", context do
+      %{
+        conn: conn,
+        start_date: start_date,
+        legal_entity: legal_entity,
+        party_user: party_user,
+        params: params,
+        employee: employee
+      } = context
+
+      division =
+        insert(:prm, :division,
+          type: Division.type(:ambulant_clinic),
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      params =
+        division
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> Map.merge(params)
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      conn
+      |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+        "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(201)
+      |> Map.get("data")
+      |> assert_show_response_schema("contract_request/capitation", "contract_request")
+    end
+
+    test "invalid division type", context do
+      %{
+        conn: conn,
+        start_date: start_date,
+        legal_entity: legal_entity,
+        party_user: party_user,
+        params: params,
+        employee: employee
+      } = context
+
+      division =
+        insert(:prm, :division,
+          type: Division.type(:drugstore),
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      params =
+        division
+        |> prepare_capitation_params(employee, Date.to_iso8601(Date.add(start_date, 1)))
+        |> Map.merge(params)
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      resp =
+        conn
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+        |> Map.get("error")
+
+      assert "validation_failed" == resp["type"]
+      assert [%{"entry" => "$.contractor_divisions[0]"}] = resp["invalid"]
+    end
+  end
+
   describe "update contract_request" do
     test "user is not NHS ADMIN SIGNER", %{conn: conn} do
       msp()

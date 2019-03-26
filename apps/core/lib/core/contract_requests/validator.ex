@@ -32,6 +32,7 @@ defmodule Core.ContractRequests.Validator do
   @msp LegalEntity.type(:msp)
   @nhs LegalEntity.type(:nhs)
   @pharmacy LegalEntity.type(:pharmacy)
+  @msp_pharmacy LegalEntity.type(:msp_pharmacy)
 
   @allowed_types [@capitation, @reimbursement]
 
@@ -55,6 +56,7 @@ defmodule Core.ContractRequests.Validator do
 
   def validate_contract_request_type(@capitation, %{type: @msp}), do: :ok
   def validate_contract_request_type(@reimbursement, %{type: @pharmacy}), do: :ok
+  def validate_contract_request_type(type, %{type: @msp_pharmacy}) when type in @allowed_types, do: :ok
 
   def validate_contract_request_type(type, %{type: legal_entity_type}) when type in @allowed_types do
     reason = "Contract type \"#{type}\" is not allowed for legal_entity with type \"#{legal_entity_type}\""
@@ -159,15 +161,22 @@ defmodule Core.ContractRequests.Validator do
 
   # Division
 
-  defp check_division(
-         %Division{status: "ACTIVE", legal_entity_id: legal_entity_id},
-         contractor_legal_entity_id,
-         _
-       )
-       when legal_entity_id == contractor_legal_entity_id,
-       do: :ok
+  defp check_division(type, %Division{status: "ACTIVE", legal_entity_id: id} = division, id, error) do
+    atom_type = type |> String.downcase() |> String.to_atom()
 
-  defp check_division(_, _, error) do
+    case division.type in Confex.fetch_env!(:core, :contracts_division_types)[atom_type] do
+      true ->
+        :ok
+
+      _ ->
+        Error.dump(%ValidationError{
+          description: "Invalid division type `#{division.type}` for #{type} contract",
+          path: error
+        })
+    end
+  end
+
+  defp check_division(_, _, _, error) do
     Error.dump(%ValidationError{description: "Division must be active and within current legal_entity", path: error})
   end
 
@@ -395,17 +404,17 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_contractor_divisions(%{
+  def validate_contractor_divisions(type, %{
         contractor_divisions: contractor_divisions,
         contractor_legal_entity_id: contractor_legal_entity_id
       }) do
-    validate_contractor_divisions(%{
+    validate_contractor_divisions(type, %{
       "contractor_divisions" => contractor_divisions,
       "contractor_legal_entity_id" => contractor_legal_entity_id
     })
   end
 
-  def validate_contractor_divisions(%{
+  def validate_contractor_divisions(type, %{
         "contractor_divisions" => contractor_divisions,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do
@@ -415,7 +424,7 @@ defmodule Core.ContractRequests.Validator do
       |> Enum.reduce([], fn {division_id, i}, acc ->
         result =
           with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
-            check_division(division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
+            check_division(type, division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
           end
 
         case result do

@@ -8,6 +8,7 @@ defmodule Core.Expectations.Mithril do
   def mis(n \\ 1), do: get_client_type_name("MIS", n)
   def nhs(n \\ 1), do: get_client_type_name("NHS", n)
   def msp(n \\ 1), do: get_client_type_name("MSP", n)
+  def msp_pharmacy(n \\ 1), do: get_client_type_name("MSP_PHARMACY", n)
   def pharmacy(n \\ 1), do: get_client_type_name("PHARMACY", n)
   def cabinet(n \\ 1), do: get_client_type_name("CABINET", n)
   defdelegate admin(n \\ 1), to: __MODULE__, as: :nhs

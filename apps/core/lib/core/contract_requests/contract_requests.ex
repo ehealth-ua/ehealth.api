@@ -113,7 +113,7 @@ defmodule Core.ContractRequests do
 
   defdelegate gen_relevant_get_links(id, type, status), to: Storage, as: :gen_relevant_get_links
 
-  def create(headers, %{"id" => id, "type" => type} = params) do
+  def create(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
@@ -124,12 +124,12 @@ defmodule Core.ContractRequests do
          :ok <- JsonSchema.validate(:contract_request_sign, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
-         :ok <- validate_contract_request_type(type, legal_entity),
-         :ok <- validate_create_content_schema(type, content),
+         :ok <- validate_contract_request_type(pack.type, legal_entity),
+         :ok <- validate_create_content_schema(pack.type, content),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
-         {:ok, content, contract} <- validate_contract_number(type, content, headers),
+         {:ok, content, contract} <- validate_contract_number(pack.type, content, headers),
          :ok <- validate_contractor_legal_entity_id(client_id, contract),
          pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_previous_request(pack, client_id),
@@ -138,13 +138,13 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_decoded_content(pack, content),
          {:ok, contract_request} <- validate_contract_request_content(:create, pack, client_id),
          :ok <- validate_unique_contractor_divisions(content),
-         :ok <- validate_contractor_divisions(content),
+         :ok <- validate_contractor_divisions(pack.type, content),
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
-         :ok <- create_validate_contractor_owner_id(type, content),
+         :ok <- create_validate_contractor_owner_id(pack.type, content),
          :ok <- validate_documents(pack, headers),
          :ok <- move_uploaded_documents(pack, headers),
-         _ <- terminate_pending_contracts(type, content),
+         _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
              "status" => CapitationContractRequest.status(:new),
@@ -237,7 +237,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
-         :ok <- validate_contractor_divisions(contract_request),
+         :ok <- validate_contractor_divisions(pack.type, contract_request),
          :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          update_params <-
@@ -260,14 +260,15 @@ defmodule Core.ContractRequests do
     client_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
     update_params = %{"updated_by" => user_id, "status" => @pending_nhs_sign}
+    pack = RequestPack.new(params)
 
-    with %{__struct__: _} = contract_request <- get_by_id(RequestPack.new(params)),
+    with %{__struct__: _} = contract_request <- get_by_id(pack),
          {_, true} <- {:client_id, client_id == contract_request.contractor_legal_entity_id},
          :ok <- validate_status(contract_request, @approved),
          :ok <- validate_contractor_legal_entity(contract_request.contractor_legal_entity_id),
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
-         :ok <- validate_contractor_divisions(contract_request),
+         :ok <- validate_contractor_divisions(pack.type, contract_request),
          :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),

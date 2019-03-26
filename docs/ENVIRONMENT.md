@@ -164,3 +164,10 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | -------------------------------------------- | ------------- | ----------- |
 | LEGAL_ENTITY_MSP_EMPLOYEE_TYPES              | not set       | List of available Employee types in Legal Entity
 | LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES         | not set       | List of available Pharmacy Employee types in Legal Entity
+ored
+
+# Legal Entity division types for contracts
+| VAR_NAME                                     | Default Value                      | Description |
+| -------------------------------------------- | ---------------------------------- | ----------- |
+| CAPITATION_CONTRACT_DIVISION_TYPES           | "CLINIC", "AMBULANT_CLINIC", "FAP" | List of allowed Division types for Capitation Contract Request creation
+| REIMBURSEMENT_CONTRACT_DIVISION_TYPES        | "DRUGSTORE", "DRUGSTORE_POINT"     | List of allowed Division types for Reimbursement Contract Request creation

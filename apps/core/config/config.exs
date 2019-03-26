@@ -264,6 +264,10 @@ config :core, :legal_entity_division_types,
     {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
      ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]}
 
+config :core, :contracts_division_types,
+  capitation: {:system, :list, "CAPITATION_CONTRACT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
+  reimbursement: {:system, :list, "REIMBURSEMENT_CONTRACT_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}
+
 config :core, :employee_speciality_types,
   doctor: {:system, :list, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
   pharmacist:

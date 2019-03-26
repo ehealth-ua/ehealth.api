@@ -11,6 +11,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
 
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.ReimbursementContractRequest
+  alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.Contracts.CapitationContract
   alias Ecto.UUID
@@ -495,6 +496,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
         insert(
           :prm,
           :division,
+          type: Division.type(:drugstore),
           legal_entity: legal_entity,
           phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
         )
@@ -919,7 +921,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
           party: party_user.party
         )
 
-      insert(:prm, :division, legal_entity: legal_entity)
+      insert(:prm, :division, type: Division.type(:drugstore), legal_entity: legal_entity)
 
       contract_request =
         insert(
@@ -1005,6 +1007,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       insert(
         :prm,
         :division,
+        type: Division.type(:drugstore),
         legal_entity: legal_entity,
         phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
       )
