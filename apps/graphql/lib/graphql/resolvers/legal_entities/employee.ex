@@ -5,7 +5,8 @@ defmodule GraphQL.Resolvers.Employee do
   import GraphQL.Filters.Base, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
-  alias Core.Employees.Employee
+  alias Core.Employees
+  alias Core.Employees.{Employee, EmployeeUpdater}
   alias Ecto.Query
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -23,6 +24,13 @@ defmodule GraphQL.Resolvers.Employee do
     |> filter(filter)
     |> order_by(order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)
+  end
+
+  def deactivate_employee(%{id: id}, %{context: %{headers: headers}}) do
+    with {:ok, employee} <- Employees.fetch_by_id(id),
+         {:ok, employee} <- EmployeeUpdater.deactivate(employee, "manual_employee_deactivate", headers) do
+      {:ok, %{employee: employee}}
+    end
   end
 
   defp order_by(query, [{direction, :party_full_name}]) do

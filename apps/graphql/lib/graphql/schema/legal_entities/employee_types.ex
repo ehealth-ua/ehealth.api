@@ -103,6 +103,25 @@ defmodule GraphQL.Schema.EmployeeTypes do
     edge(do: nil)
   end
 
+  object :employee_mutations do
+    payload field(:deactivate_employee) do
+      meta(:scope, ~w(employee:write))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:employee, :employee)
+      end
+
+      middleware(ParseIDs, id: :employee)
+      resolve(&EmployeeResolver.deactivate_employee/2)
+    end
+  end
+
   node object(:employee) do
     field(:database_id, non_null(:uuid))
     field(:position, non_null(:string))

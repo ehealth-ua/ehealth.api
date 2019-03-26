@@ -89,6 +89,7 @@ defmodule GraphQL.Schema do
   mutation do
     import_fields(:contract_mutations)
     import_fields(:contract_request_mutations)
+    import_fields(:employee_mutations)
     import_fields(:declaration_mutations)
     import_fields(:dictionary_mutations)
     import_fields(:innm_mutations)

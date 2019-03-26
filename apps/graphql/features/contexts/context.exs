@@ -2227,6 +2227,41 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I create employee request with signed content$/,
+    fn %{conn: conn, signed_content: signed_content}, _ ->
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      query = """
+        mutation CreateEmployeeRequest($input: CreateEmployeeRequestInput!) {
+          createEmployeeRequest(input: $input) {
+            employeeRequest {
+              databaseId
+              status
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{signedContent: signed_content}
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data createEmployeeRequest employeeRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I create contract request with signed content and attributes:$/,
     fn %{conn: conn, signed_content: signed_content}, %{table_data: [row]} ->
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -2292,89 +2327,6 @@ defmodule GraphQL.Features.Context do
       resp_entity = get_in(resp_body, ~w(data createMedicalProgram medicalProgram))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  when_(
-    ~r/^I deactivate medical program where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
-      query = """
-      mutation DeactivateMedicalProgram($input: DeactivateMedicalProgramInput!) {
-        deactivateMedicalProgram(input: $input) {
-          medicalProgram {
-            databaseId
-            isActive
-          }
-        }
-      }
-      """
-
-      variables = %{
-        input: %{
-          id: Node.to_global_id("MedicalProgram", database_id)
-        }
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data deactivateMedicalProgram medicalProgram))
-
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  when_(
-    ~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id, contract_type: contract_type} ->
-      query = """
-      mutation SuspendContract($input: SuspendContractInput!) {
-        suspendContract(input: $input) {
-          contract {
-            id
-            databaseId
-            isSuspended
-            statusReason
-            reason
-          }
-        }
-      }
-      """
-
-      contract_type =
-        case contract_type do
-          "capitation" -> "CapitationContract"
-          "reimbursement" -> "ReimbursementContract"
-        end
-
-      variables = %{
-        input: %{
-          id: Node.to_global_id(contract_type, database_id),
-          is_suspended: true,
-          status_reason: "DEFAULT",
-          reason: "Custom reason"
-        }
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data suspendContract contract))
-
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  then_(
-    ~r/^event would be published to event manager$/,
-    fn state, _ ->
-      expect(KafkaMock, :publish_to_event_manager, fn _event -> :ok end)
-
-      {:ok, state}
     end
   )
 
@@ -2445,6 +2397,68 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I deactivate employee where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+      mutation DeactivateEmployee($input: DeactivateEmployeeInput!) {
+        deactivateEmployee(input: $input) {
+          employee {
+            databaseId
+            status
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("Employee", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateEmployee employee))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I deactivate medical program where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+      mutation DeactivateMedicalProgram($input: DeactivateMedicalProgramInput!) {
+        deactivateMedicalProgram(input: $input) {
+          medicalProgram {
+            databaseId
+            isActive
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("MedicalProgram", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateMedicalProgram medicalProgram))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I deactivate medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id} ->
       query = """
@@ -2507,27 +2521,35 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I create employee request with signed content$/,
-    fn %{conn: conn, signed_content: signed_content}, _ ->
-      template()
-
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
-        {:ok, "success"}
-      end)
-
+    ~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id, contract_type: contract_type} ->
       query = """
-        mutation CreateEmployeeRequest($input: CreateEmployeeRequestInput!) {
-          createEmployeeRequest(input: $input) {
-            employeeRequest {
-              databaseId
-              status
-            }
+      mutation SuspendContract($input: SuspendContractInput!) {
+        suspendContract(input: $input) {
+          contract {
+            id
+            databaseId
+            isSuspended
+            statusReason
+            reason
           }
         }
+      }
       """
 
+      contract_type =
+        case contract_type do
+          "capitation" -> "CapitationContract"
+          "reimbursement" -> "ReimbursementContract"
+        end
+
       variables = %{
-        input: %{signedContent: signed_content}
+        input: %{
+          id: Node.to_global_id(contract_type, database_id),
+          is_suspended: true,
+          status_reason: "DEFAULT",
+          reason: "Custom reason"
+        }
       }
 
       resp_body =
@@ -2535,9 +2557,18 @@ defmodule GraphQL.Features.Context do
         |> post_query(query, variables)
         |> json_response(200)
 
-      resp_entity = get_in(resp_body, ~w(data createEmployeeRequest employeeRequest))
+      resp_entity = get_in(resp_body, ~w(data suspendContract contract))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  then_(
+    ~r/^event would be published to event manager$/,
+    fn state, _ ->
+      expect(KafkaMock, :publish_to_event_manager, fn _event -> :ok end)
+
+      {:ok, state}
     end
   )
 
