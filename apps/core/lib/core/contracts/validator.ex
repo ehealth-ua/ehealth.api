@@ -29,7 +29,7 @@ defmodule Core.Contracts.Validator do
            |> @read_prm_repo.one() do
       :ok
     else
-      _ -> Error.dump("Contract for this legal entity must be resign with standard procedure")
+      _ -> {:error, {:conflict, "Contract for this legal entity must be resign with standard procedure"}}
     end
   end
 

@@ -23,7 +23,7 @@ defmodule Core.EventManager do
       }
     }
 
-    Repo.insert(create_event(entity, user_id, properties))
+    Repo.insert(create_event(entity, user_id, properties, "StateChangeEvent"))
   end
 
   def insert_change_status(%EmployeeRequest{employee_id: employee_id} = entity, new_status, user_id) do
@@ -44,7 +44,7 @@ defmodule Core.EventManager do
     Repo.insert(create_event(entity, user_id, properties))
   end
 
-  defp create_event(entity, user_id, properties) do
+  defp create_event(entity, user_id, properties, event_type \\ @type_change_status) do
     entity_type =
       entity.__struct__
       |> to_string()
@@ -52,7 +52,7 @@ defmodule Core.EventManager do
       |> List.last()
 
     %Event{
-      event_type: @type_change_status,
+      event_type: event_type,
       entity_type: entity_type,
       entity_id: entity.id,
       properties: properties,

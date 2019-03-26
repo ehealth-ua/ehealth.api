@@ -620,7 +620,7 @@ defmodule EHealth.Web.ContractControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_path(conn, :prolongate, @capitation, contract.id), %{"end_date" => end_date})
-        |> json_response(422)
+        |> json_response(409)
 
       assert "Contract for this legal entity must be resign with standard procedure" == resp["error"]["message"]
     end
@@ -643,7 +643,7 @@ defmodule EHealth.Web.ContractControllerTest do
         conn
         |> put_client_id_header(legal_entity.id)
         |> patch(contract_path(conn, :prolongate, @capitation, contract.id), %{"end_date" => end_date})
-        |> json_response(422)
+        |> json_response(409)
 
       assert "Contract for this legal entity must be resign with standard procedure" == resp["error"]["message"]
     end
