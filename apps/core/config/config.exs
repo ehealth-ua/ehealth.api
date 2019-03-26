@@ -42,7 +42,8 @@ config :core,
   kafka: [
     producer: Core.Kafka.Producer
   ],
-  sms_provider: {:system, :string, "SMS_PROVIDER", "mouth_sms2ip"}
+  sms_provider: {:system, :string, "SMS_PROVIDER", "mouth_sms2ip"},
+  legal_entity_edr_verify: {:system, :boolean, "LEGAL_ENTITY_EDR_VERIFY", false}
 
 # Configures Legal Entities token permission
 config :core, Core.Context,
