@@ -455,6 +455,7 @@ defmodule Core.MedicationDispense.API do
   end
 
   defp validate_code(nil, %{"verification_code" => nil}), do: :ok
+  defp validate_code("0000", %{"verification_code" => nil}), do: :ok
   defp validate_code(_, %{"verification_code" => nil}), do: {:error, {:access_denied, "Incorrect code"}}
 
   defp validate_code(code, %{"verification_code" => verification_code}) do
