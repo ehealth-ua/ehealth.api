@@ -547,6 +547,24 @@
       },
       "oneOf": [
         {
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "as_needed_boolean"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "as_needed_codeable_concept"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "type": "object",
           "properties": {
             "as_needed_boolean": {
