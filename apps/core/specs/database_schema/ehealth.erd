@@ -263,7 +263,7 @@ location | geometry
 status | varchar | not null
 working_hours | jsonb
 dls_id | varchar
-dls_status | boolean | not null
+dls_verified | boolean
 is_active | boolean | not null
 
 [employees]
@@ -425,11 +425,12 @@ updated_by | uuid | not null
 [edr_verifications]
 id | uuid | not null
 legal_entity_id | uuid | not null
-status_code | varchar | not null
-edr_status | varchar | not null
-edr_data | jsonb | not null
-legal_entity_data | jsonb | not null
+status_code | varchar
+edr_status | varchar
+edr_data | jsonb
+legal_entity_data | jsonb
 inserted_at | timestamp | not null
+error_message | text
 
 [ukr_med_registries]
 id | uuid | not null
