@@ -1992,7 +1992,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "type mismatch. Expected string but got integer",
+                       "description" => "type mismatch. Expected string, null but got integer",
                        "rule" => "cast"
                      }
                    ]

@@ -469,7 +469,10 @@
       }
     },
     "payment_id": {
-      "type": "string",
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "receipt number for the paid medications"
     },
     "payment_amount": {
