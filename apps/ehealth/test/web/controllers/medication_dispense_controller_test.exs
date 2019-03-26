@@ -244,6 +244,50 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert %{"error" => %{"type" => "request_conflict", "message" => "Division is not active"}} = resp
     end
 
+    test "invalid division dls status", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity, dls_verified: nil)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medical_program_id} = insert(:prm, :medical_program, is_active: true)
+
+      {medication_request, _} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          }
+        })
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      conn = put_client_id_header(conn, legal_entity.id)
+      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
+
+      conn =
+        post(
+          conn,
+          medication_dispense_path(conn, :create),
+          medication_dispense:
+            new_dispense_params(%{
+              division_id: division_id
+            })
+        )
+
+      resp = json_response(conn, 409)
+      assert %{"error" => %{"type" => "request_conflict", "message" => "Invalid division dls status"}} = resp
+    end
+
     test "invalid medical program", %{conn: conn} do
       expect_mpi_get_person()
 
@@ -585,7 +629,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      %{id: division_id} = insert(:prm, :division, is_active: true, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
 
       %{id: innm_dosage_id} = insert_innm_dosage()
       medical_program = insert(:prm, :medical_program, is_active: true)
@@ -1650,6 +1694,118 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert payment_amount == resp["payment_amount"]
     end
 
+    test "invalid division dls status", %{conn: conn} do
+      msp(2)
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      party_user = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity, dls_verified: nil)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      medication = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {_, medication_dispense} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          },
+          medication_dispense_params: %{
+            party_id: party_user.party.id
+          },
+          medication_dispense_details_params: %{
+            medication_id: medication.id,
+            medication: medication,
+            division_id: division_id,
+            medication_qty: 10,
+            sell_price: 18.65,
+            sell_amount: 186.5,
+            discount_amount: 50
+          }
+        })
+
+      expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      payment_id = "12345"
+      payment_amount = 20
+
+      content =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(medication_dispense_path(conn, :show, medication_dispense["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "payment_id" => payment_id,
+          "payment_amount" => payment_amount
+        })
+
+      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" => [
+               %{
+                 "is_valid" => true,
+                 "is_stamp" => false,
+                 "signer" => %{
+                   "edrpou" => legal_entity.edrpou,
+                   "drfo" => party_user.party.tax_id,
+                   "surname" => party_user.party.last_name
+                 }
+               }
+             ]
+           }
+         }}
+      end)
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(party_user.user_id)
+        |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
+          "signed_medication_dispense" =>
+            content
+            |> Jason.encode!()
+            |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
+
+      assert "Invalid division dls status" == resp["error"]["message"]
+    end
+
     test "fail to find medication dispense", %{conn: conn} do
       msp()
 
@@ -1968,7 +2124,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         endpoint_call.(
           content
           |> Map.merge(%{
-            "payment_id" => 12345,
+            "payment_id" => 12_345,
             "payment_amount" => "test"
           })
           |> Jason.encode!()
@@ -2463,12 +2619,12 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
-      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       %{id: innm_dosage_id} = insert_innm_dosage()
       medication = insert_medication(innm_dosage_id)
       %{id: medical_program_id} = insert(:prm, :medical_program)
 
       legal_entity_action = insert(:prm, :legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity_action)
 
       insert(
         :prm,

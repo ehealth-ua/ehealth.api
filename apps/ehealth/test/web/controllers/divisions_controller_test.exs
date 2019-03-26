@@ -74,10 +74,10 @@ defmodule EHealth.Web.DivisionsControllerTest do
       assert 2 == Enum.count(resp["data"])
 
       Enum.each(resp["data"], fn entity ->
-        Enum.each(~w(dls_id dls_verified), fn dls_field ->
-          assert Map.has_key?(entity, dls_field)
-          refute Map.get(entity, dls_field)
-        end)
+        assert Map.has_key?(entity, "dls_id")
+        assert Map.has_key?(entity, "dls_verified")
+        refute Map.get(entity, "dls_id")
+        assert Map.get(entity, "dls_verified")
       end)
     end
 
@@ -139,7 +139,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
     test "get INACTIVE divisions", %{conn: conn} do
       msp(2)
-      %{legal_entity_id: id} = insert(:prm, :division, status: "ACTIVE", is_active: true)
+      %{legal_entity_id: id} = insert(:prm, :division)
       conn = put_client_id_header(conn, id)
 
       conn1 = get(conn, division_path(conn, :index, status: "INACTIVE"))
@@ -171,7 +171,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "get division by id", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test", dls_verified: true)
+    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test")
     conn = put_client_id_header(conn, legal_entity.id)
 
     conn = get(conn, division_path(conn, :show, division.id))
@@ -402,7 +402,7 @@ defmodule EHealth.Web.DivisionsControllerTest do
 
   test "update division", %{conn: conn} do
     legal_entity = insert(:prm, :legal_entity)
-    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test", dls_verified: true)
+    division = insert(:prm, :division, legal_entity: legal_entity, dls_id: "test")
 
     params =
       division

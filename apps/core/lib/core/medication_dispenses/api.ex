@@ -173,6 +173,7 @@ defmodule Core.MedicationDispense.API do
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
          :ok <- SignatureValidator.check_last_name(signer, user_id),
          :ok <- SignatureValidator.check_legal_entity_edrpou(signer, legal_entity_id),
+         {:ok, _} <- validate_division(medication_dispense["division_id"], legal_entity_id),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
          :ok <- JsonSchema.validate(:medication_dispense_process_content, content),
          :ok <- compare_with_db(content, medication_dispense, references),
@@ -291,10 +292,12 @@ defmodule Core.MedicationDispense.API do
 
   defp validate_division(id, legal_entity_id) do
     with {:ok, division} <- Reference.validate(:division, id),
-         true <- is_active_division(division) && division.legal_entity_id == legal_entity_id do
+         {_, true} <- {:active, is_active_division(division) && division.legal_entity_id == legal_entity_id},
+         {_, true} <- {:dls_status, division.dls_verified == true} do
       {:ok, division}
     else
-      false -> {:conflict, "Division is not active"}
+      {:active, false} -> {:conflict, "Division is not active"}
+      {:dls_status, false} -> {:conflict, "Invalid division dls status"}
       err -> err
     end
   end
