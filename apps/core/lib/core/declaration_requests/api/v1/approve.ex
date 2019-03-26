@@ -62,7 +62,7 @@ defmodule Core.DeclarationRequests.API.Approve do
     {:ok, %{"data" => %{"secret_url" => url}} = result} =
       @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, [])
 
-    Logger.info("Microservice ael response: #{result}")
+    Logger.info("Microservice ael response: #{inspect(result)}")
 
     case @media_storage_api.verify_uploaded_file(url, resource_name) do
       {:ok, resp} ->
