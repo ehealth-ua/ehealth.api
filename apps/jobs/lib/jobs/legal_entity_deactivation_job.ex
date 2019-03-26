@@ -25,6 +25,8 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   @status_active LegalEntity.status(:active)
   @status_closed LegalEntity.status(:closed)
+
+  @status_reason "AUTO_DEACTIVATION_LEGAL_ENTITY"
   @legal_entity_deactivation_type Jobs.type(:legal_entity_deactivation)
 
   def consume(%__MODULE__{job_id: job_id, actor_id: actor_id, records: [record | records]}) do
@@ -70,12 +72,12 @@ defmodule Jobs.LegalEntityDeactivationJob do
   end
 
   defp process_record(%{record: record, schema: "employee"}, actor_id) do
-    with {:ok, _} <- EmployeeUpdater.do_deactivate(record, "auto_deactivation_legal_entity", [], actor_id, true),
+    with {:ok, _} <- EmployeeUpdater.do_deactivate(record, @status_reason, [], actor_id, true),
          do: :ok
   end
 
   defp process_record(%{record: record, schema: "contract"}, actor_id) do
-    with {:ok, _} <- Contracts.do_terminate(actor_id, record, %{"status_reason" => "auto_deactivation_legal_entity"}),
+    with {:ok, _} <- Contracts.do_terminate(actor_id, record, %{"status_reason" => @status_reason}),
          do: :ok
   end
 

@@ -74,7 +74,7 @@ defmodule EHealthScheduler.Contracts.Terminator do
         [
           set: [
             status: terminated,
-            status_reason: "auto_expired",
+            status_reason: "AUTO_EXPIRED",
             updated_by: user_id,
             updated_at: NaiveDateTime.utc_now()
           ]

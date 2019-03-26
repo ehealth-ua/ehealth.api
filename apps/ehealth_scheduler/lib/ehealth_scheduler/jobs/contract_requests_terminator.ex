@@ -48,7 +48,7 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminator do
 
     updates = [
       status: new_status,
-      status_reason: "auto_expired",
+      status_reason: "AUTO_EXPIRED",
       updated_by: author_id,
       updated_at: DateTime.utc_now()
     ]

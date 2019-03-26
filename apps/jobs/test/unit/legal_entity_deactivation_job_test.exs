@@ -72,7 +72,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
 
       employee = Employees.get_by_id(employee.id)
       assert Employee.status(:dismissed) == employee.status
-      assert employee.status_reason == "auto_deactivation_legal_entity"
+      assert employee.status_reason == "AUTO_DEACTIVATION_LEGAL_ENTITY"
       assert actor_id == employee.updated_by
     end
 
