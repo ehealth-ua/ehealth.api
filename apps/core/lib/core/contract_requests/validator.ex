@@ -47,6 +47,10 @@ defmodule Core.ContractRequests.Validator do
     "additional_document_md5" => "media/upload_contract_request_additional_document.pdf"
   }
 
+  @admin Employee.type(:admin)
+  @owner Employee.type(:owner)
+  @pharmacy_owner Employee.type(:pharmacy_owner)
+
   # Contract Request
 
   def validate_contract_request_id(id, id), do: :ok
@@ -370,10 +374,9 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def allowed_contractor_owner_employee_type(@capitation), do: [Employee.type(:owner), Employee.type(:admin)]
+  def allowed_contractor_owner_employee_type(@capitation), do: [@owner, @admin]
 
-  def allowed_contractor_owner_employee_type(@reimbursement),
-    do: [Employee.type(:pharmacy_owner), Employee.type(:admin)]
+  def allowed_contractor_owner_employee_type(@reimbursement), do: [@pharmacy_owner, @owner, @admin]
 
   defp validate_unique_contractor_employee_divisions(%{
          "contractor_employee_divisions" => employee_divisions
