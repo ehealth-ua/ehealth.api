@@ -46,7 +46,7 @@ config :graphql,
       config: [
         mode: :dns,
         kubernetes_node_basename: "manual_merger",
-        kubernetes_selector: "app=api",
+        kubernetes_selector: "app=manual-merger",
         kubernetes_namespace: "mpi",
         polling_interval: 10_000
       ]
