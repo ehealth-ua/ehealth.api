@@ -173,7 +173,7 @@ defmodule Core.LegalEntities.Validator do
   defp is_valid_content(changeset, _content), do: {:error, changeset}
 
   def validate_edr(content, %{edrpou: value}) do
-    if Confex.fetch_env(:core, :legal_entity_edr_verify) do
+    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
       "edr_api"
       |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_code, [value])
       |> do_validate_edr(content)
@@ -183,7 +183,7 @@ defmodule Core.LegalEntities.Validator do
   end
 
   def validate_edr(content, %{drfo: value}) do
-    if Confex.fetch_env(:core, :legal_entity_edr_verify) do
+    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
       "edr_api"
       |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [value])
       |> do_validate_edr(content)
