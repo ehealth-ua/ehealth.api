@@ -291,9 +291,11 @@ defmodule Core.MedicationDispense.API do
   end
 
   defp validate_division(id, legal_entity_id) do
+    dls_verify? = Confex.fetch_env!(:core, :dispense_division_dls_verify)
+
     with {:ok, division} <- Reference.validate(:division, id),
          {_, true} <- {:active, is_active_division(division) && division.legal_entity_id == legal_entity_id},
-         {_, true} <- {:dls_status, division.dls_verified == true} do
+         {_, true} <- {:dls_status, validate_division_dls_status(dls_verify?, division)} do
       {:ok, division}
     else
       {:active, false} -> {:conflict, "Division is not active"}
@@ -301,6 +303,10 @@ defmodule Core.MedicationDispense.API do
       err -> err
     end
   end
+
+  defp validate_division_dls_status(true, %{dls_verified: true}), do: true
+  defp validate_division_dls_status(true, _), do: false
+  defp validate_division_dls_status(false, _), do: true
 
   defp validate_medical_program(nil, _, _, _), do: {:ok, nil}
 

@@ -26,7 +26,8 @@ config :core,
   kafka: [
     producer: KafkaMock
   ],
-  legal_entity_edr_verify: true
+  legal_entity_edr_verify: true,
+  dispense_division_dls_verify: true
 
 # Configures PRM API
 config :core, Core.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
