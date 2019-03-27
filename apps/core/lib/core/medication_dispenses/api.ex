@@ -308,7 +308,14 @@ defmodule Core.MedicationDispense.API do
   defp validate_division_dls_status(true, _), do: false
   defp validate_division_dls_status(false, _), do: true
 
-  defp validate_medical_program(nil, _, _, _), do: {:ok, nil}
+  defp validate_medical_program(nil, %{"medical_program_id" => nil}, _, _), do: {:ok, nil}
+
+  defp validate_medical_program(nil, _, _, _) do
+    Error.dump(%ValidationError{
+      description: "Medical program in dispense doesn't match the one in medication request",
+      path: "$.medical_program_id"
+    })
+  end
 
   defp validate_medical_program(medical_program_id, medication_request, legal_entity_id, division_id) do
     with {:ok, medical_program} <- Reference.validate(:medical_program, medical_program_id),
