@@ -28,6 +28,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
         name: :like,
         nhs_verified: :equal,
         nhs_reviewed: :equal,
+        edr_verified: :equal,
         addresses: [
           type: :equal,
           settlement_id: :equal
@@ -56,6 +57,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:name, :string)
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
+    field(:edr_verified, :boolean)
     field(:addresses, :address_filter)
   end
 
@@ -149,6 +151,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
     field(:nhs_comment, :string)
+    field(:edr_verified, :boolean)
 
     # enums
 
@@ -196,7 +199,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
       middleware(Filtering,
         database_id: :equal,
         name: :like,
-        is_active: :equal
+        dls_verified: :equal
       )
 
       resolve(&LegalEntityResolver.load_divisions/3)

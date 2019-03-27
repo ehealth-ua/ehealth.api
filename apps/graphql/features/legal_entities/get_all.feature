@@ -42,3 +42,4 @@ Feature: Get all legal entities
       | name        | "acme"                                 | "Acme Corporation"                     | "Ajax LLC"                             |
       | nhsVerified | true                                   | true                                   | false                                  |
       | nhsReviewed | false                                  | false                                  | true                                   |
+      | edrVerified | true                                   | true                                   | false                                  | 

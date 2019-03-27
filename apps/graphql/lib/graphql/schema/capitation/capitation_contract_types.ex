@@ -127,7 +127,7 @@ defmodule GraphQL.Schema.CapitationContractTypes do
       middleware(Filtering,
         database_id: :equal,
         name: :like,
-        is_active: :equal
+        dls_verified: :equal
       )
 
       resolve(&CapitationContractResolver.load_contract_divisions/3)

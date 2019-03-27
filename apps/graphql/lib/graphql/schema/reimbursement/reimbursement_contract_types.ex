@@ -139,7 +139,7 @@ defmodule GraphQL.Schema.ReimbursementContractTypes do
       middleware(Filtering,
         database_id: :equal,
         name: :like,
-        is_active: :equal
+        dls_verified: :equal
       )
 
       resolve(&ReimbursementContractResolver.load_contract_divisions/3)

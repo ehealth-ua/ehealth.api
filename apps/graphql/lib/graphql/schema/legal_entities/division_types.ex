@@ -7,6 +7,19 @@ defmodule GraphQL.Schema.DivisionTypes do
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
   alias GraphQL.Loaders.PRM
 
+  input_object :division_filter do
+    field(:database_id, :uuid)
+    field(:name, :string)
+    field(:dls_verified, :boolean)
+  end
+
+  enum :division_order_by do
+    value(:inserted_at_asc)
+    value(:inserted_at_desc)
+    value(:name_asc)
+    value(:name_desc)
+  end
+
   connection node_type: :division do
     field :nodes, list_of(:division) do
       resolve(fn
@@ -15,18 +28,6 @@ defmodule GraphQL.Schema.DivisionTypes do
     end
 
     edge(do: nil)
-  end
-
-  input_object :division_filter do
-    field(:database_id, :uuid)
-    field(:name, :string)
-  end
-
-  enum :division_order_by do
-    value(:inserted_at_asc)
-    value(:inserted_at_desc)
-    value(:name_asc)
-    value(:name_desc)
   end
 
   node object(:division) do
@@ -40,6 +41,8 @@ defmodule GraphQL.Schema.DivisionTypes do
     field(:type, non_null(:string))
     # Dictionary: DIVISION_STATUS
     field(:status, non_null(:string))
+    field(:dls_verified, :boolean)
+    field(:dls_id, :uuid)
 
     # embed
     field(:phones, non_null(list_of(:phone)))
