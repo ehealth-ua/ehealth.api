@@ -17,8 +17,19 @@ defmodule GraphQL.Schema.PartyTypes do
     field(:birth_date, non_null(:string))
     # Dictionary: GENDER
     field(:gender, non_null(:string))
-    field(:tax_id, :string)
+    field(:tax_id, non_null(:string))
     field(:no_tax_id, :boolean)
-    field(:phones, list_of(:phone))
+    field(:email, non_null(:phone))
+    field(:phones, list_of(non_null(:phone)))
+    field(:documents, list_of(non_null(:party_document)))
+    field(:about_myself, :string)
+    field(:working_experience, :integer)
+  end
+
+  object :party_document do
+    field(:type, non_null(:string))
+    field(:number, non_null(:string))
+    field(:issued_by, :string)
+    field(:issued_at, :date)
   end
 end

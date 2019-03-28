@@ -140,6 +140,9 @@ defmodule GraphQL.Schema.EmployeeTypes do
 
   object :employee_additional_info do
     field(:specialities, list_of(:speciality))
+    field(:educations, list_of(:education))
+    field(:qualifications, list_of(:qualification))
+    field(:science_degree, list_of(:science_degree))
   end
 
   object :speciality do
@@ -151,6 +154,37 @@ defmodule GraphQL.Schema.EmployeeTypes do
     field(:attestation_date, non_null(:string))
     field(:certificate_number, non_null(:string))
     field(:valid_to_date, :string)
+  end
+
+  object :education do
+    field(:city, non_null(:string))
+    field(:country, non_null(:string))
+    field(:degree, non_null(:string))
+    field(:diploma_number, non_null(:string))
+    field(:institution_name, non_null(:string))
+    # TODO: Should be date type
+    field(:issued_date, :string)
+    field(:speciality, non_null(:string))
+  end
+
+  object :qualification do
+    field(:certificate_number, :string)
+    field(:institution_name, non_null(:string))
+    # TODO: Should be date type
+    field(:issued_date, :string)
+    field(:speciality, non_null(:string))
+    field(:type, non_null(:string))
+  end
+
+  object :science_degree do
+    field(:city, non_null(:string))
+    field(:country, non_null(:string))
+    field(:degree, non_null(:string))
+    field(:diploma_number, non_null(:string))
+    field(:institution_name, non_null(:string))
+    # TODO: Should be date type
+    field(:issued_date, :string)
+    field(:speciality, non_null(:string))
   end
 
   # enum
