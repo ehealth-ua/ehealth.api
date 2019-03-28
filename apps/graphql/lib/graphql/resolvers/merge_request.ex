@@ -29,7 +29,7 @@ defmodule GraphQL.Resolvers.MergeRequest do
   def get_merge_request_by_id(_parent, %{id: id}, %{context: %{consumer_id: consumer_id}}) do
     filter = get_filter_conditions(consumer_id, [{:id, :equal, id}])
 
-    with {:ok, [merge_request]} <- @rpc_worker.run(@rpc_pod, MPI.Rpc, :search_manual_merge_requests, [filter]) do
+    with {:ok, [merge_request]} <- @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :search_manual_merge_requests, [filter]) do
       {:ok, response_to_ecto_struct(ManualMergeRequest, merge_request)}
     else
       _ -> {:ok, nil}
@@ -37,13 +37,15 @@ defmodule GraphQL.Resolvers.MergeRequest do
   end
 
   def resolve_can_assign_new(_, %{context: %{consumer_id: consumer_id}}) do
-    with {:ok, result} <- @rpc_worker.run(@rpc_pod, MPI.Rpc, :can_assign_new_manual_merge_request, [consumer_id]) do
+    with {:ok, result} <-
+           @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :can_assign_new_manual_merge_request, [consumer_id]) do
       {:ok, result}
     end
   end
 
   def assign_merge_candidate(_, %{context: %{consumer_id: consumer_id}}) do
-    with {:ok, merge_request} <- @rpc_worker.run(@rpc_pod, MPI.Rpc, :assign_manual_merge_candidate, [consumer_id]) do
+    with {:ok, merge_request} <-
+           @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :assign_manual_merge_candidate, [consumer_id]) do
       {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
     else
       {:error, %Changeset{} = changeset} -> {:error, {:conflict, changeset_to_message(changeset)}}
@@ -54,7 +56,7 @@ defmodule GraphQL.Resolvers.MergeRequest do
   def update_merge_request(%{id: id, status: status} = args, %{context: %{consumer_id: consumer_id}}) do
     args = [id, status, consumer_id, Map.get(args, :comment, nil)]
 
-    with {:ok, merge_request} <- @rpc_worker.run(@rpc_pod, MPI.Rpc, :process_manual_merge_request, args) do
+    with {:ok, merge_request} <- @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :process_manual_merge_request, args) do
       {:ok, %{merge_request: response_to_ecto_struct(ManualMergeRequest, merge_request)}}
     end
   end
