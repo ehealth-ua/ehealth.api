@@ -69,5 +69,6 @@ defmodule Core.Contracts.ReimbursementContract do
     |> cast(attrs, @fields_required ++ @fields_optional)
     |> cast_assoc(:contract_divisions)
     |> validate_required(@fields_required)
+    |> unique_constraint(:contract_request_id)
   end
 end

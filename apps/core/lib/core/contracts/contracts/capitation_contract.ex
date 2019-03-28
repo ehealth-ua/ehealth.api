@@ -98,5 +98,6 @@ defmodule Core.Contracts.CapitationContract do
     |> cast_assoc(:contract_employees)
     |> cast_assoc(:contract_divisions)
     |> validate_required(@fields_required)
+    |> unique_constraint(:contract_request_id)
   end
 end
