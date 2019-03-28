@@ -607,19 +607,9 @@ resource_id | uuid | not null
 changeset | jsonb | not null
 inserted_at | timeatamp | not null
 
-[merge_candidates]
-id | uuid | not null
-person_id | uuid | not null
-master_person_id | uuid | not null
-status | varchar | not null
-inserted_at | timestamp | not null
-updated_at | timestamp | not null
-config | jsonb
-details | jsonb
-
 [persons]
 id | uuid | not null
-version | varchar | not null
+version | varchar 
 last_name | varchar | not null
 first_name | varchar | not null
 second_name | varchar
@@ -629,13 +619,10 @@ birth_settlement | varchar | not null
 gender | varchar | not null
 email | varchar
 tax_id | varchar
+unzr | varchar
 invalid_tax_id | boolean
-national_id | varchar
 death_date | date
 is_active | boolean | not null
-documents | json | not null
-addresses | json | not null
-phones | json
 secret | varchar
 emergency_contact | json | not null
 confidant_person | json
@@ -643,13 +630,91 @@ patient_signed | boolean | not null
 process_disclosure_data_consent | boolean | not null
 authentication_methods | json | not null
 preferred_way_communication | enum('email', 'phone')
-merged_persons  | json
-master_persons  | json
+no_tax_id | boolean
 status | varchar | not null
 inserted_at | timestamp | not null
 inserted_by | varchar | not null
 updated_at | timestamp | not null
 updated_by | varchar | not null
+
+[merge_candidates]
+id | uuid | not null
+person_id | uuid | not null
+master_person_id | uuid | not null
+status | varchar
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+config | jsonb
+details | jsonb
+score | double
+
+[merged_pairs]
+id | uuid | not null
+master_person_id | uuid | not null
+merge_person_id | uuid | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[person_addresses]
+id | uuid | not null
+person_id | uuid | not null
+type | varchar
+country | text
+area | text
+region | text
+settlement | text
+settlement_type | text
+settlement_id | varchar | not null
+street_type | text
+street | text
+building | text
+apartment | text
+zip | text
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[person_documents]
+id | uuid | not null
+person_id | uuid | not null
+type | text
+number | text
+issued_at | varchar
+expiration_date | varchar
+issued_by | text
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[person_phones]
+id | uuid | not null
+person_id | uuid | not null
+type | varchar
+number | varchar
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[person_inserts]
+id | serial | not null
+person_id | uuid | not null
+status | varchar
+updated_by | uuid | not null
+updated_at | timestamp | not null
+
+[person_updates]
+id | serial | not null
+person_id | uuid | not null
+status | varchar
+updated_by | uuid | not null
+updated_at | timestamp | not null
+
+[verified_ts]
+id | bigserial | not null
+inserted_at | timestamp | not null
+updated_at | timestamp | not null
+
+[verifying_ids]
+id | uuid | not null
+is_complete | boolean
+
 
 [audit_log_em]
 id | uuid | not null
@@ -763,6 +828,14 @@ medication_requests_status_hstr
 audit_log_mpi
 merge_candidates
 persons
+merged_pairs
+person_addresses
+person_documents
+person_phones
+person_inserts
+person_updates
+verified_ts
+verifying_ids
 
 (em)
 audit_log_em
@@ -813,6 +886,12 @@ medication_dispenses 1--* medication_dispense_details
 medication_dispenses *--1 medical_programs
 medication_dispense_details 1--1 medications
 persons 1--* merge_candidates
+persons 1--* person_addresses
+persons 1--* person_documents
+persons 1--* person_phones
+persons 1--* person_inserts
+persons 1--* person_updates
+persons 1--* merged_pairs
 declarations *--1 persons
 credentials_recovery_requests *--1 users
 declaration_requests 1--? declarations
