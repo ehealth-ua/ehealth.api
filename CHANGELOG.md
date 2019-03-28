@@ -5,6 +5,17 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [8.13.2](https://github.com/edenlabllc/ehealth.api/compare/8.13.1...8.13.2) (2019-3-28)
+
+
+
+
+### Bug Fixes:
+
+* topologies (#4596)
+
+* create dispense without a program (#4588)
+
 ## [8.13.1](https://github.com/edenlabllc/ehealth.api/compare/8.13.1...8.13.1) (2019-3-27)
 
 

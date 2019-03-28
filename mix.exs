@@ -3,7 +3,7 @@ defmodule Ehealth.MixProject do
 
   use Mix.Project
 
-  @version "8.13.1"
+  @version "8.13.2"
   def project do
     [
       apps_path: "apps",
@@ -28,7 +28,7 @@ defmodule Ehealth.MixProject do
       {:excoveralls, "~> 0.10", only: [:dev, :test]},
       {:ex_doc, "~> 0.19.2", only: :dev, runtime: false},
       {:credo, "~> 1.0", only: [:dev, :test]},
-      {:git_ops, "~> 0.6.0", only: [:dev]}
+      {:git_ops, git: "https://github.com/AlexKovalevych/git_ops.git", branch: "fix_version_compare", only: [:dev]}
     ]
   end
 end
