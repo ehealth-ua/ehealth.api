@@ -71,8 +71,6 @@
           "required": [
             "id",
             "name",
-            "short_name",
-            "public_name",
             "type",
             "edrpou",
             "status"
@@ -324,8 +322,6 @@
       "required": [
         "id",
         "name",
-        "short_name",
-        "public_name",
         "type",
         "edrpou",
         "status"
