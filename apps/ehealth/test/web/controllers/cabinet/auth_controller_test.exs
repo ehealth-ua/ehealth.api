@@ -370,13 +370,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
                                      _,
                                      :search_persons,
                                      [%{"tax_id" => "3126509816", "status" => "active", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [%{id: person_id}],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, [%{id: person_id}]}
       end)
 
       expect(MPIMock, :update_person, fn ^person_id, params, _headers ->
@@ -420,13 +414,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [%{id: UUID.generate()}, %{id: UUID.generate()}],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, [%{id: UUID.generate()}, %{id: UUID.generate()}]}
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
@@ -469,13 +457,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, []}
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
@@ -529,13 +511,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [%{id: person_id}],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, [%{id: person_id}]}
       end)
 
       expect(MPIMock, :update_person, fn ^person_id, params, headers ->
@@ -599,13 +575,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, []}
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->

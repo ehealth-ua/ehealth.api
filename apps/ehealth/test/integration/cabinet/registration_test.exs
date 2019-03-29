@@ -45,13 +45,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        %Scrivener.Page{
-          entries: [],
-          page_number: 1,
-          page_size: 1,
-          total_entries: 1,
-          total_pages: 1
-        }
+        {:ok, []}
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->

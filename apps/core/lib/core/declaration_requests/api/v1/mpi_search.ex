@@ -4,7 +4,6 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
   """
 
   alias Core.DeclarationRequests.API.V1.Persons
-  alias Scrivener.Page
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
@@ -25,8 +24,8 @@ defmodule Core.DeclarationRequests.API.V1.MpiSearch do
     end
   end
 
-  defp search_result(%Page{entries: entries}, :all), do: {:ok, entries}
-  defp search_result(%Page{entries: [%{} = person]}, :one), do: {:ok, person}
-  defp search_result(%Page{entries: _}, :one), do: {:ok, nil}
+  defp search_result({:ok, entries}, :all), do: {:ok, entries}
+  defp search_result({:ok, [%{} = person]}, :one), do: {:ok, person}
+  defp search_result({:ok, _}, :one), do: {:ok, nil}
   defp search_result(error, _), do: error
 end

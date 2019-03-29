@@ -65,33 +65,22 @@ defmodule Core.Expectations.RPC do
 
   def expect_persons_search_result(records, times) when is_list(records) do
     expect(RPCWorkerMock, :run, times, fn _, _, :search_persons, _ ->
-      %Scrivener.Page{
-        entries:
-          Enum.map(records, fn record ->
-            Map.merge(record, %{id: record[:id] || Ecto.UUID.generate()})
-          end),
-        page_number: 1,
-        page_size: Enum.count(records),
-        total_entries: Enum.count(records),
-        total_pages: 1
-      }
+      {:ok,
+       Enum.map(records, fn record ->
+         Map.merge(record, %{id: record[:id] || Ecto.UUID.generate()})
+       end)}
     end)
   end
 
   def expect_persons_search_result(params, times) do
     expect(RPCWorkerMock, :run, times, fn _, _, :search_persons, [search_params] ->
-      %Scrivener.Page{
-        entries: [
-          search_params
-          |> convert_string_keys_to_atoms
-          |> Map.merge(params)
-          |> Map.merge(%{id: params[:id] || Ecto.UUID.generate()})
-        ],
-        page_number: 1,
-        page_size: 1,
-        total_entries: 1,
-        total_pages: 1
-      }
+      {:ok,
+       [
+         search_params
+         |> convert_string_keys_to_atoms
+         |> Map.merge(params)
+         |> Map.merge(%{id: params[:id] || Ecto.UUID.generate()})
+       ]}
     end)
   end
 

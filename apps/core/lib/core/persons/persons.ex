@@ -98,6 +98,14 @@ defmodule Core.Persons do
     end
   end
 
+  def search_persons_paginated(params, fields) do
+    with {:ok, persons} <- @rpc_worker.run("mpi", MPI.Rpc, :search_persons_paginated, [params, fields]) do
+      {:ok, persons}
+    else
+      _ -> {:error, {:not_found, "Persons not found"}}
+    end
+  end
+
   def list(filter, order_by \\ [], cursor \\ nil) do
     with {:ok, persons} <- @rpc_worker.run("mpi", MPI.Rpc, :search_persons, [filter, order_by, cursor]) do
       {:ok, persons}
