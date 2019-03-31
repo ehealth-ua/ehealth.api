@@ -52,10 +52,10 @@
               "type": "string"
             },
             "short_name": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "public_name": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "type": {
               "type": "string"
@@ -303,10 +303,10 @@
           "type": "string"
         },
         "short_name": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "public_name": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "type": {
           "type": "string"
