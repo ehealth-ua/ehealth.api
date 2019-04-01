@@ -9,13 +9,10 @@ defmodule Core.FraudRepo.Migrations.DropPartiesFields do
       remove(:first_name)
       remove(:second_name)
       remove(:last_name)
-      remove(:birth_date)
-      remove(:tax_id)
       remove(:passport_number)
       remove(:national_id_number)
       remove(:temporary_certificate_number)
       remove(:birth_certificate_number)
-      remove(:documents)
     end
 
     execute("""

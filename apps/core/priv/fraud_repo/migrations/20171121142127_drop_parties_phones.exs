@@ -7,7 +7,6 @@ defmodule Core.FraudRepo.Migrations.DropPartiesPhones do
     execute("DROP FUNCTION IF EXISTS set_party_documents_phones();")
 
     alter table(:parties) do
-      remove(:phones)
       remove(:mobile_phone)
       remove(:land_line_phone)
     end
