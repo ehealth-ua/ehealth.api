@@ -670,12 +670,6 @@
         "name": {
           "type": "string"
         },
-        "short_name": {
-          "type": "string"
-        },
-        "public_name": {
-          "type": "string"
-        },
         "type": {
           "type": "string"
         },
@@ -693,8 +687,6 @@
       "required": [
         "id",
         "name",
-        "short_name",
-        "public_name",
         "type",
         "edrpou",
         "status"
