@@ -65,8 +65,8 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     {:ok, dictionaries} = Dictionaries.list_dictionaries()
     references = preload_references(data)
     nhs_signer = Map.get(references.employee, Map.get(data, "nhs_signer_id")) || %{}
-
     contractor_owner = Map.get(references.employee, Map.get(data, "contractor_owner_id")) || %{}
+    contractor_legal_entity = Map.get(references.legal_entity, Map.get(data, "contractor_legal_entity_id")) || %{}
 
     data
     |> format_date(~w(start_date))
@@ -75,7 +75,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     |> format_price("nhs_contract_price")
     |> Map.put("nhs_signer", prepare_employee(nhs_signer, dictionaries))
     |> Map.put("contractor_legal_entity", prepare_contractor_legal_entity(data, references, dictionaries))
-    |> Map.put("contractor_owner", prepare_employee(contractor_owner, dictionaries))
+    |> Map.put("contractor_owner", prepare_employee(contractor_owner, dictionaries, contractor_legal_entity))
     |> Map.put("contractor_divisions", prepare_contractor_divisions(data, references, dictionaries))
     |> Map.put("contractor_employee_divisions", prepare_contractor_employee_divisions(data, references, dictionaries))
     |> Map.put("external_contractors", prepare_external_contractors(data, references, dictionaries))
@@ -113,6 +113,20 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
       "party" => Map.take(party, ~w(first_name last_name second_name)a),
       "position" => Map.get(positions, Map.get(employee, :position))
     }
+  end
+
+  def prepare_employee(employee, dictionaries, %{}), do: prepare_employee(employee, dictionaries)
+
+  def prepare_employee(employee, dictionaries, contractor_legal_entity) do
+    party = Map.get(employee, :party) || %{}
+    data = %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
+
+    if Regex.match?(~r/^[0-9]{8}$/, contractor_legal_entity.edrpou) do
+      %Dictionary{values: positions} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "POSITION" end)
+      Map.put(data, "position", Map.get(positions, Map.get(employee, :position)))
+    else
+      data
+    end
   end
 
   def prepare_contractor_legal_entity(data, references, dictionaries) do
