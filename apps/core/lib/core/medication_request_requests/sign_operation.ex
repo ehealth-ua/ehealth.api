@@ -7,6 +7,8 @@ defmodule Core.MedicationRequestRequest.SignOperation do
   alias Core.API.MediaStorage
   alias Core.MedicationRequestRequest.Operation
   alias Core.MedicationRequestRequest.Validations
+  alias Core.Validators.Error
+  require Logger
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
 
@@ -84,6 +86,11 @@ defmodule Core.MedicationRequestRequest.SignOperation do
     else
       {:error, %{"type" => "internal_error"}}
     end
+  end
+
+  def validate_ops_resp({_, {:error, %{"error" => error}}}, _) do
+    Logger.warn(inspect(error))
+    Error.dump("Duplicated request")
   end
 
   def validate_ops_resp(_), do: {:error, %{"type" => "internal_error"}}
