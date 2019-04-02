@@ -34,7 +34,7 @@ defmodule Core.API.Helpers.MicroserviceBase do
           response = super(method, url, body, headers, options)
 
           if response.status_code >= 300 do
-            Logger.error("Failed microservice #{method} request to #{config()[:endpoint]} with response: #{body}")
+            Logger.warn("Failed microservice #{method} request to #{config()[:endpoint]} with response: #{body}")
           end
 
           ResponseDecoder.check_response(response)

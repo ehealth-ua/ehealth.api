@@ -80,7 +80,7 @@ defmodule Core.API.MediaStorage do
         result
 
       {:ok, %{body: body}} ->
-        Logger.error("Failed to get signed_content, details: #{inspect(body)}")
+        Logger.warn("Failed to get signed_content, details: #{inspect(body)}")
         {:error, {:conflict, "Failed to get signed_content"}}
 
       err ->

@@ -79,7 +79,7 @@ defmodule EHealth.Web.DeclarationRequestController do
         |> send_resp(422, errors)
 
       error ->
-        Logger.error("Failed to sign Declaration Request \"#{params["id"]}\". Reason: #{inspect(error)}")
+        Logger.warn("Failed to sign Declaration Request \"#{params["id"]}\". Reason: #{inspect(error)}")
         error
     end
   end
