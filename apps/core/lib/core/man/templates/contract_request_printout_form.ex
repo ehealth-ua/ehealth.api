@@ -9,6 +9,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
   alias Core.Contracts.CapitationContract
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
+  alias Core.LegalEntities.LegalEntity
   alias Core.Validators.Preload
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -115,9 +116,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     }
   end
 
-  def prepare_employee(employee, dictionaries, %{}), do: prepare_employee(employee, dictionaries)
-
-  def prepare_employee(employee, dictionaries, contractor_legal_entity) do
+  def prepare_employee(employee, dictionaries, %LegalEntity{} = contractor_legal_entity) do
     party = Map.get(employee, :party) || %{}
     data = %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
 
@@ -128,6 +127,8 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
       data
     end
   end
+
+  def prepare_employee(employee, dictionaries, _), do: prepare_employee(employee, dictionaries)
 
   def prepare_contractor_legal_entity(data, references, dictionaries) do
     contractor_legal_entity = Map.get(references.legal_entity, Map.get(data, "contractor_legal_entity_id")) || %{}
