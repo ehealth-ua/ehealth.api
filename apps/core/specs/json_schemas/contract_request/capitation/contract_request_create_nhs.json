@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})$",
+      "description": "ISO 8601 date and time in UTC timezone."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!.*[ЫЪЭЁыъэё@%&$^#])[a-zA-ZА-ЯҐЇІЄа-яґїіє0-9№\\\"!\\^\\*)\\]\\[(._-].*$"
+    },
+    "MFO": {
+      "type": "string",
+      "pattern": "^[0-9]{6}$",
+      "minLength": 6
+    },
+    "payer_account": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "contractor_owner_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "person which represent legal entity"
+    },
+    "contractor_legal_entity_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "legal entity participant of a contract"
+    },
+    "contractor_base": {
+      "type": "string",
+      "$ref": "#/definitions/name",
+      "description": "documents which allows to represent clinic",
+      "minLength": 1
+    },
+    "contractor_payment_details": {
+      "type": "object",
+      "properties": {
+        "bank_name": {
+          "type": "string",
+          "$ref": "#/definitions/name",
+          "description": "bank name",
+          "minLength": 1
+        },
+        "MFO": {
+          "type": "string",
+          "$ref": "#/definitions/MFO",
+          "description": "bank code"
+        },
+        "payer_account": {
+          "type": "string",
+          "$ref": "#/definitions/payer_account",
+          "description": "Номер банківського рахунку"
+        }
+      },
+      "required": [
+        "bank_name",
+        "MFO",
+        "payer_account"
+      ],
+      "additionalProperties": false
+    },
+    "contractor_rmsp_amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "the amount of population which were served by this MSP"
+    },
+    "external_contractor_flag": {
+      "type": "boolean",
+      "description": "the existence of second appendix"
+    },
+    "external_contractors": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "legal_entity_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "external_contractor ID"
+          },
+          "contract": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "$ref": "#/definitions/name",
+                "description": "number of contract with sub contractor"
+              },
+              "issued_at": {
+                "type": "string",
+                "$ref": "#/definitions/date",
+                "description": "issue date of contract with sub contractor"
+              },
+              "expires_at": {
+                "type": "string",
+                "$ref": "#/definitions/date",
+                "description": "expiry date of contract with sub contractor"
+              }
+            },
+            "required": [
+              "number",
+              "issued_at",
+              "expires_at"
+            ]
+          },
+          "divisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "$ref": "#/definitions/uuid"
+                },
+                "medical_service": {
+                  "type": "string",
+                  "description": "Dictionary: MEDICAL_SERVICE"
+                }
+              },
+              "required": [
+                "id",
+                "medical_service"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "legal_entity_id",
+          "contract",
+          "divisions"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "contractor_employee_divisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "employee ID"
+          },
+          "staff_units": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "declaration_limit": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "declaration limit for current employee within the contract"
+          },
+          "division_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "division ID"
+          }
+        },
+        "required": [
+          "employee_id",
+          "staff_units",
+          "declaration_limit",
+          "division_id"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "contractor_divisions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "$ref": "#/definitions/uuid",
+        "description": "division ID"
+      },
+      "minItems": 1
+    },
+    "start_date": {
+      "type": "string",
+      "$ref": "#/definitions/date",
+      "description": "contract start date"
+    },
+    "end_date": {
+      "type": "string",
+      "$ref": "#/definitions/date",
+      "description": "contract end date"
+    },
+    "id_form": {
+      "type": "string",
+      "description": "Dictionary: CONTRACT_TYPE"
+    },
+    "contract_number": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{4}-[\\dAEHKMPTX]{4}-[\\dAEHKMPTX]{4}$"
+    },
+    "nhs_signer_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "id of signer from nhs side"
+    },
+    "nhs_legal_entity_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "id of NHS legal entity"
+    },
+    "nhs_signer_base": {
+      "type": "string",
+      "minLength": 1,
+      "description": "documents which allows to represent nhs"
+    },
+    "contractor_signed": {
+      "type": "boolean",
+      "enum": [
+                false
+              ],
+      "description": "flag if contract is signed by nhs"
+    },
+    "nhs_contract_price": {
+      "type": "number",
+      "minimum": 0,
+      "description": "contract price"
+    },
+    "nhs_payment_method": {
+      "type": "string",
+      "description": "payment method for contract Dictionary: CONTRACT_PAYMENT_METHOD"
+    },
+    "issue_city": {
+      "type": "string",
+      "minLength": 1,
+      "description": "place of contract request"
+    },
+    "misc": { 
+      "type": "string"
+    },
+    "consent_text": {
+      "type": "string",
+      "pattern": "^Цією заявою Заявник висловлює бажання укласти договір про медичне обслуговування населення за програмою державних гарантій медичного обслуговування населення \\(далі – Договір\\) на умовах, визначених в оголошенні про укладення договорів про медичне обслуговування населення \\(далі – Оголошення\\)\\. Заявник підтверджує, що: 1\\. на момент подання цієї заяви Заявник має чинну ліцензію на провадження господарської діяльності з медичної практики та відповідає ліцензійним умовам з медичної практики; 2\\. Заявник надає медичні послуги, пов’язані з первинною медичною допомогою \\(далі – ПМД\\); 3\\. Заявник зареєстрований в електронній системі охорони здоров’я \\(далі – Система\\); 4\\. уповноважені особи та медичні працівники, які будуть залучені до виконання Договору, зареєстровані в Системі та отримали електронний цифровий підпис \\(далі – ЕЦП\\); 5\\. в кожному місці надання медичних послуг Заявника наявне матеріально-технічне оснащення, передбачене розділом І Примірного табелю матеріально-технічного оснащення закладів охорони здоров’я та фізичних осіб – підприємців, які надають ПМД, затвердженого наказом Міністерства охорони здоров’я України від 26 січня 2018 року № 148; 6\\. установчими або іншими документами не обмежено право керівника Заявника підписувати договори від імені Заявника без попереднього погодження власника\\. Якщо таке право обмежено, у тому числі щодо укладання договорів, ціна яких перевищує встановлену суму, Заявник повідомить про це Національну службу здоров’я та отримає необхідні погодження від власника до моменту підписання договору зі сторони Заявника; 7\\. інформація, зазначена Заявником у цій Заяві та доданих до неї документах, а також інформація, внесена Заявником \\(його уповноваженими особами\\) до Системи, є повною та достовірною\\. Заявник усвідомлює, що у разі зміни інформації, зазначеної Заявником у цій заяві та \\(або\\) доданих до неї документах Заявник зобов’язаний повідомити про такі зміни НСЗУ протягом трьох робочих днів з дня настання таких змін шляхом надсилання інформації про такі зміни на електронну пошту dohovir@nszu\\.gov\\.ua, з одночасним внесенням таких змін в Систему\\. Заявник усвідомлює, що законодавством України передбачена відповідальність за подання недостовірної інформації органам державної влади\\.$"
+    },
+    "status_reason":{
+      "type":["string", "null"]
+    }
+  },
+  "required": [
+    "contractor_owner_id",
+    "contractor_legal_entity_id",
+    "contractor_base",
+    "contractor_payment_details",
+    "contractor_rmsp_amount",
+    "contractor_divisions",
+    "contractor_employee_divisions",
+    "id_form",
+    "consent_text",
+    "start_date",
+    "end_date",
+    "contract_number",
+    "nhs_signer_id",
+    "nhs_legal_entity_id",
+    "nhs_signer_base",
+    "nhs_contract_price",
+    "nhs_payment_method",
+    "issue_city"
+  ],
+  "additionalProperties": false
+}
