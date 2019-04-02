@@ -2161,7 +2161,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           content
           |> Map.merge(%{
             "payment_id" => "12345",
-            "payment_amount" => 0
+            "payment_amount" => -1
           })
           |> Jason.encode!()
           |> Base.encode64()
@@ -2174,8 +2174,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "expected the value to be > 0",
-                       "params" => %{"greater_than" => 0},
+                       "description" => "expected the value to be >= 0",
+                       "params" => %{"greater_than_or_equal_to" => 0},
+                       "raw_description" => "expected the value to be >= %{greater_than_or_equal_to}",
                        "rule" => "number"
                      }
                    ]

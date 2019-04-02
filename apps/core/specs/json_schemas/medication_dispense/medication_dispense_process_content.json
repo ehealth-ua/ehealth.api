@@ -15,7 +15,12 @@
         },
         "status": {
           "type": "string",
-          "enum": ["ACTIVE", "COMPLETED", "REJECTED", "EXPIRED"],
+          "enum": [
+            "ACTIVE",
+            "COMPLETED",
+            "REJECTED",
+            "EXPIRED"
+          ],
           "description": "Medication Request status. Find available **statuses** on State Charts wiki page"
         },
         "request_number": {
@@ -52,10 +57,16 @@
               "type": "string"
             },
             "short_name": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "public_name": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "type": {
               "type": "string"
@@ -65,7 +76,10 @@
             },
             "status": {
               "type": "string",
-              "enum": ["ACTIVE", "CLOSED"]
+              "enum": [
+                "ACTIVE",
+                "CLOSED"
+              ]
             }
           },
           "required": [
@@ -98,10 +112,16 @@
               "type": "string"
             },
             "external_id": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "location": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "properties": {
                 "latitude": {
                   "type": "number"
@@ -110,10 +130,20 @@
                   "type": "number"
                 }
               },
-              "required": ["latitude", "longitude"]
+              "required": [
+                "latitude",
+                "longitude"
+              ]
             }
           },
-          "required": ["id", "name", "addresses", "phones", "email", "type"]
+          "required": [
+            "id",
+            "name",
+            "addresses",
+            "phones",
+            "email",
+            "type"
+          ]
         },
         "employee": {
           "type": "object",
@@ -153,10 +183,17 @@
                   "not": {}
                 }
               },
-              "required": ["id", "first_name", "last_name"]
+              "required": [
+                "id",
+                "first_name",
+                "last_name"
+              ]
             }
           },
-          "required": ["id", "position"]
+          "required": [
+            "id",
+            "position"
+          ]
         },
         "person": {
           "type": "object",
@@ -172,7 +209,11 @@
               "description": "Full years between birth date and medication request date"
             }
           },
-          "required": ["id", "short_name", "age"],
+          "required": [
+            "id",
+            "short_name",
+            "age"
+          ],
           "additionalProperties": false
         },
         "medication_info": {
@@ -235,7 +276,12 @@
               "description": "Medication quantity isuued by the doctor"
             }
           },
-          "required": ["medication_id", "form", "dosage", "medication_qty"]
+          "required": [
+            "medication_id",
+            "form",
+            "dosage",
+            "medication_qty"
+          ]
         },
         "medical_program": {
           "type": "object",
@@ -249,7 +295,10 @@
               "description": "`Medical program name`"
             }
           },
-          "required": ["id", "name"]
+          "required": [
+            "id",
+            "name"
+          ]
         }
       },
       "required": [
@@ -291,7 +340,11 @@
           "type": "string"
         }
       },
-      "required": ["id", "first_name", "last_name"]
+      "required": [
+        "id",
+        "first_name",
+        "last_name"
+      ]
     },
     "legal_entity": {
       "type": "object",
@@ -303,10 +356,16 @@
           "type": "string"
         },
         "short_name": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "public_name": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "type": {
           "type": "string"
@@ -316,7 +375,10 @@
         },
         "status": {
           "type": "string",
-          "enum": ["ACTIVE", "CLOSED"]
+          "enum": [
+            "ACTIVE",
+            "CLOSED"
+          ]
         }
       },
       "required": [
@@ -346,13 +408,21 @@
         },
         "status": {
           "type": "string",
-          "enum": ["ACTIVE", "INACTIVE"]
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
         },
         "mountain_group": {
           "type": "boolean"
         }
       },
-      "required": ["id", "name", "type", "status"],
+      "required": [
+        "id",
+        "name",
+        "type",
+        "status"
+      ],
       "description": "Active legal entity (Pharmacy) division which provides dispense Identifier"
     },
     "medical_program": {
@@ -367,7 +437,10 @@
           "description": "`Medical program name`"
         }
       },
-      "required": ["id", "name"],
+      "required": [
+        "id",
+        "name"
+      ],
       "description": "Active medical program within which medications are going to be provided"
     },
     "details": {
@@ -394,7 +467,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["name", "country"],
+                "required": [
+                  "name",
+                  "country"
+                ],
                 "additionalProperties": false
               },
               "form": {
@@ -428,7 +504,12 @@
                 "additionalProperties": false
               }
             },
-            "required": ["name", "type", "form", "container"],
+            "required": [
+              "name",
+              "type",
+              "form",
+              "container"
+            ],
             "additionalProperties": false,
             "description": "Identifier of brand medications"
           },
@@ -474,7 +555,6 @@
     "payment_amount": {
       "type": "number",
       "minimum": 0,
-      "exclusiveMinimum": true,
       "description": "amount for the paid medications"
     },
     "status": {
