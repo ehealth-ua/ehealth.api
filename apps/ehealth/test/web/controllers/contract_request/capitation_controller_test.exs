@@ -101,7 +101,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.contractor_divisions[0]",
+                   "entry" => "$.contractor_divisions.[0]",
                    "rules" => [
                      %{
                        "description" => "Division must be active and within current legal_entity",
@@ -111,7 +111,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_divisions[1]",
+                   "entry" => "$.contractor_divisions.[1]",
                    "rules" => [
                      %{
                        "description" => "Division not found",
@@ -397,7 +397,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       assert_error(
         resp,
-        "$.external_contractors[0].divisions[0].id",
+        "$.external_contractors.[0].divisions.[0].id",
         "The division is not belong to contractor_divisions"
       )
     end
@@ -471,20 +471,20 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.external_contractors[0].legal_entity_id",
+                   "entry" => "$.external_contractors.[0].legal_entity_id",
                    "rules" => [
                      %{
-                       "description" => "Active $external_contractors[0].legal_entity_id does not exist",
+                       "description" => "Active $external_contractors.[0].legal_entity_id does not exist",
                        "params" => [],
                        "rule" => "invalid"
                      }
                    ]
                  },
                  %{
-                   "entry" => "$.external_contractors[2].legal_entity_id",
+                   "entry" => "$.external_contractors.[2].legal_entity_id",
                    "rules" => [
                      %{
-                       "description" => "Active $external_contractors[2].legal_entity_id does not exist",
+                       "description" => "Active $external_contractors.[2].legal_entity_id does not exist",
                        "params" => [],
                        "rule" => "invalid"
                      }
@@ -541,7 +541,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       assert_error(
         resp,
-        "$.external_contractors[0].contract.expires_at",
+        "$.external_contractors.[0].contract.expires_at",
         "Expires date must be greater than contract start_date"
       )
     end
@@ -1374,7 +1374,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[1].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee must be active DOCTOR",
@@ -1384,7 +1384,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[1].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee should be active Doctor within current legal_entity_id",
@@ -1394,7 +1394,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[1].division_id",
+                   "entry" => "$.contractor_employee_divisions.[1].division_id",
                    "rules" => [
                      %{
                        "description" => "Division should be among contractor_divisions",
@@ -1404,7 +1404,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[2].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[2].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee not found",
@@ -1414,7 +1414,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "entry" => "$.contractor_employee_divisions.[2].division_id",
                    "rules" => [
                      %{
                        "description" => "Division should be among contractor_divisions",
@@ -1553,7 +1553,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> Map.get("error")
 
       assert "validation_failed" == resp["type"]
-      assert [%{"entry" => "$.contractor_divisions[0]"}] = resp["invalid"]
+      assert [%{"entry" => "$.contractor_divisions.[0]"}] = resp["invalid"]
     end
   end
 
@@ -2876,7 +2876,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.contractor_employee_divisions[0].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[0].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee must be active DOCTOR",
@@ -2886,7 +2886,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[1].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[1].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee not found",
@@ -2896,7 +2896,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[2].employee_id",
+                   "entry" => "$.contractor_employee_divisions.[2].employee_id",
                    "rules" => [
                      %{
                        "description" => "Employee not found",
@@ -2906,7 +2906,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.contractor_employee_divisions[2].division_id",
+                   "entry" => "$.contractor_employee_divisions.[2].division_id",
                    "rules" => [
                      %{
                        "description" => "Division should be among contractor_divisions",

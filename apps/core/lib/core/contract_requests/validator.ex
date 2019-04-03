@@ -135,7 +135,7 @@ defmodule Core.ContractRequests.Validator do
       Reference.validate(
         :legal_entity,
         legal_entity_id,
-        "$.external_contractors[#{index}].legal_entity_id"
+        "$.external_contractors.[#{index}].legal_entity_id"
       )
 
     case validation_result do
@@ -143,8 +143,8 @@ defmodule Core.ContractRequests.Validator do
         errors ++
           [
             %ValidationError{
-              description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-              path: "$.external_contractors[#{index}].legal_entity_id"
+              description: "Active $external_contractors.[#{index}].legal_entity_id does not exist",
+              path: "$.external_contractors.[#{index}].legal_entity_id"
             }
           ]
 
@@ -157,8 +157,8 @@ defmodule Core.ContractRequests.Validator do
     errors ++
       [
         %ValidationError{
-          description: "Active $external_contractors[#{index}].legal_entity_id does not exist",
-          path: "$.external_contractors[#{index}].legal_entity_id"
+          description: "Active $external_contractors.[#{index}].legal_entity_id does not exist",
+          path: "$.external_contractors.[#{index}].legal_entity_id"
         }
       ]
   end
@@ -192,7 +192,7 @@ defmodule Core.ContractRequests.Validator do
              validate_external_contractor_division(
                params["contractor_divisions"],
                contractor_division,
-               "$.external_contractors[#{i}].divisions[#{j}].id"
+               "$.external_contractors.[#{i}].divisions.[#{j}].id"
              ) do
         errors
       else
@@ -426,8 +426,8 @@ defmodule Core.ContractRequests.Validator do
       |> Enum.with_index()
       |> Enum.reduce([], fn {division_id, i}, acc ->
         result =
-          with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions[#{i}]") do
-            check_division(type, division, contractor_legal_entity_id, "$.contractor_divisions[#{i}]")
+          with {:ok, division} <- Reference.validate(:division, division_id, "$.contractor_divisions.[#{i}]") do
+            check_division(type, division, contractor_legal_entity_id, "$.contractor_divisions.[#{i}]")
           end
 
         case result do
@@ -474,7 +474,7 @@ defmodule Core.ContractRequests.Validator do
         errors_list
         |> validate_external_legal_entity(contractor, i)
         |> validate_divisions(params, contractor, i)
-        |> validate_external_contract(contractor, params, "$.external_contractors[#{i}].contract.expires_at")
+        |> validate_external_contract(contractor, params, "$.external_contractors.[#{i}].contract.expires_at")
       end)
 
     if length(errors) > 0 do
@@ -892,7 +892,7 @@ defmodule Core.ContractRequests.Validator do
       [
         %ValidationError{
           description: "Employee must be active DOCTOR",
-          path: "$.contractor_employee_divisions[#{index}].employee_id"
+          path: "$.contractor_employee_divisions.[#{index}].employee_id"
         }
       ]
   end
@@ -904,7 +904,7 @@ defmodule Core.ContractRequests.Validator do
       [
         %ValidationError{
           description: "Employee should be active Doctor within current legal_entity_id",
-          path: "$.contractor_employee_divisions[#{index}].employee_id"
+          path: "$.contractor_employee_divisions.[#{index}].employee_id"
         }
       ]
   end
@@ -914,7 +914,7 @@ defmodule Core.ContractRequests.Validator do
            Reference.validate(
              :employee,
              division["employee_id"],
-             "$.contractor_employee_divisions[#{index}].employee_id"
+             "$.contractor_employee_divisions.[#{index}].employee_id"
            ),
          :ok <- check_employee(employee, client_id, index) do
       errors
@@ -932,7 +932,7 @@ defmodule Core.ContractRequests.Validator do
         [
           %ValidationError{
             description: "Division should be among contractor_divisions",
-            path: "$.contractor_employee_divisions[#{index}].division_id"
+            path: "$.contractor_employee_divisions.[#{index}].division_id"
           }
         ]
     end
