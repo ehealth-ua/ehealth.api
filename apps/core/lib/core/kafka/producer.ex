@@ -15,7 +15,7 @@ defmodule Core.Kafka.Producer do
 
   def publish_verify_legal_entity(event), do: produce(@edr_verification_events_topic, event)
 
-  defp produce(topic, event, partition \\ 0, key \\ "") do
+  defp produce(topic, event) do
     case Kaffe.Producer.produce_sync(topic, 0, "", :erlang.term_to_binary(event)) do
       :ok ->
         :ok
