@@ -67,14 +67,12 @@ defmodule Core.MixProject do
         "ecto.create",
         "ecto.create --repo Core.FraudRepo",
         "ecto.create --repo Core.PRMRepo",
-        "ecto.create --repo Core.EventManagerRepo",
         "ecto.migrate"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: [
         "ecto.create --quiet",
         "ecto.create --quiet --repo Core.PRMRepo",
-        "ecto.create --quiet --repo Core.EventManagerRepo",
         "ecto.migrate",
         "test"
       ]

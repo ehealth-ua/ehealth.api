@@ -12,8 +12,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   alias Core.Contracts.ReimbursementContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
-  alias Core.EventManagerRepo
-  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
@@ -1401,6 +1399,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       id = UUID.generate()
 
       data = %{
@@ -1467,6 +1467,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
 
       id = UUID.generate()
 
@@ -1536,6 +1538,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -1599,18 +1603,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
-
-      contract_request_id = contract_request.id
-      contract_request_status = contract_request.status
-      assert event = EventManagerRepo.one(Event)
-
-      assert %Event{
-               entity_type: "ReimbursementContractRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^contract_request_id,
-               changed_by: ^user_id,
-               properties: %{"status" => %{"new_value" => ^contract_request_status}}
-             } = event
     end
   end
 
@@ -1657,6 +1649,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "success", %{conn: conn, legal_entity: legal_entity, party_user: party_user} = context do
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       contract_request =
         insert(
           :il,
@@ -1746,6 +1740,8 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   describe "approve contract_request by msp" do
     test "success", %{conn: conn} do
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
 
       employee_owner =
@@ -1875,6 +1871,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   describe "terminate contract_request" do
     test "success contract_request terminating", %{conn: conn} do
       pharmacy(4)
+      expect(KafkaMock, :publish_to_event_manager, 4, fn _ -> :ok end)
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)

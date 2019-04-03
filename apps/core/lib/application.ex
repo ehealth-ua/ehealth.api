@@ -10,7 +10,6 @@ defmodule Core.Application do
       {Core.ReadPRMRepo, []},
       {Core.PRMRepo, []},
       {Core.FraudRepo, []},
-      {Core.EventManagerRepo, []},
       {Core.Validators.Cache, []}
     ]
 

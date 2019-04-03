@@ -421,6 +421,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user)
       employee = insert(:prm, :employee, legal_entity: legal_entity, party: party_user.party)
@@ -524,6 +526,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{
         conn: conn,
@@ -652,7 +656,6 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
   describe "sign" do
     test "success", %{conn: conn} do
       template(1)
-
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -663,6 +666,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{
         user_id: user_id,
@@ -734,7 +739,6 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
 
     test "medical program not exist", %{conn: conn} do
       template(1)
-
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -825,7 +829,6 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
 
     test "medical program not active", %{conn: conn} do
       template(1)
-
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})
@@ -907,6 +910,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)

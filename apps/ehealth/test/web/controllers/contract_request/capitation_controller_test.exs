@@ -11,8 +11,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
   alias Core.Contracts.CapitationContract
   alias Core.Divisions.Division
   alias Core.Employees.Employee
-  alias Core.EventManagerRepo
-  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
@@ -1854,6 +1852,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       conn
       |> put_client_id_header(legal_entity.id)
       |> patch(contract_request_path(conn, :update_assignee, @capitation, contract_request.id), %{
@@ -3029,6 +3029,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
@@ -3128,6 +3130,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       employee_owner =
         insert(
           :prm,
@@ -3205,6 +3209,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
+
+      expect(KafkaMock, :publish_to_event_manager, 4, fn _ -> :ok end)
 
       employee_owner =
         insert(
@@ -3393,6 +3399,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       employee_owner =
         insert(
           :prm,
@@ -3422,27 +3430,13 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           ]
         )
 
-      conn =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> put_consumer_id_header(user_id)
-        |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
-          "status_reason" => "Неправильний період контракту"
-        })
-
-      assert json_response(conn, 200)
-
-      contract_request_id = contract_request.id
-      contract_request_status = CapitationContractRequest.status(:terminated)
-
-      assert event = EventManagerRepo.one(Event)
-
-      assert %Event{
-               entity_type: "CapitationContractRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^contract_request_id,
-               properties: %{"status" => %{"new_value" => ^contract_request_status}}
-             } = event
+      assert conn
+             |> put_client_id_header(legal_entity.id)
+             |> put_consumer_id_header(user_id)
+             |> patch(contract_request_path(conn, :terminate, @capitation, contract_request.id), %{
+               "status_reason" => "Неправильний період контракту"
+             })
+             |> json_response(200)
     end
   end
 
@@ -4251,6 +4245,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       id = UUID.generate()
 
       data = %{
@@ -4370,6 +4366,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       data = %{
         "id" => contract_request.id,
         "next_status" => "DECLINED",
@@ -4407,18 +4405,6 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
-
-      contract_request_id = contract_request.id
-      contract_request_status = contract_request.status
-      assert event = EventManagerRepo.one(Event)
-
-      assert %Event{
-               entity_type: "CapitationContractRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^contract_request_id,
-               changed_by: ^user_id,
-               properties: %{"status" => %{"new_value" => ^contract_request_status}}
-             } = event
     end
 
     test "legal entity edrpou does not match with signer drfo", context do
@@ -5678,6 +5664,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       id = UUID.generate()
 
       data = %{
@@ -5749,6 +5737,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
 
       id = UUID.generate()
 

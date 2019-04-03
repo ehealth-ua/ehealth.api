@@ -1,7 +1,7 @@
 defmodule Unit.LegalEntityDeactivationJobTest do
   @moduledoc false
 
-  use EHealth.Web.ConnCase, async: false
+  use Core.ConnCase, async: false
   import Mox
   alias Core.ContractRequests
   alias Core.ContractRequests.RequestPack
@@ -50,7 +50,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
       actor_id = Ecto.UUID.generate()
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity_id)
-
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       assert Employee.status(:approved) == employee.status
       refute employee.status_reason
       refute actor_id == employee.updated_by
@@ -79,7 +79,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
     test "deactivates capitation contract" do
       actor_id = Ecto.UUID.generate()
       contract = insert(:prm, :capitation_contract)
-
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       assert CapitationContract.status(:verified) == contract.status
       refute actor_id == contract.updated_by
 
@@ -102,7 +102,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
     test "deactivates reimbursement contract" do
       actor_id = Ecto.UUID.generate()
       contract = insert(:prm, :reimbursement_contract)
-
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       assert ReimbursementContract.status(:verified) == contract.status
       refute actor_id == contract.updated_by
 
@@ -125,7 +125,7 @@ defmodule Unit.LegalEntityDeactivationJobTest do
     test "deactivates capitation contract request" do
       actor_id = Ecto.UUID.generate()
       contract_request = insert(:il, :capitation_contract_request)
-
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       assert CapitationContractRequest.status(:new) == contract_request.status
       refute actor_id == contract_request.updated_by
 
@@ -155,6 +155,8 @@ defmodule Unit.LegalEntityDeactivationJobTest do
     test "deactivates reimbursement contract request" do
       actor_id = Ecto.UUID.generate()
       contract_request = insert(:il, :reimbursement_contract_request)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       assert ReimbursementContractRequest.status(:new) == contract_request.status
       refute actor_id == contract_request.updated_by

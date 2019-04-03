@@ -219,7 +219,7 @@ defmodule Core.Employees do
            employee
            |> changeset(params)
            |> PRMRepo.update_and_log(author_id),
-         _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
+         _ <- EventManager.publish_change_status(employee, old_status, employee.status, author_id) do
       {:ok, load_references(employee)}
     end
   end
@@ -229,7 +229,7 @@ defmodule Core.Employees do
       with %Changeset{valid?: true} = employee_changeset <- changeset(employee, params),
            {:ok, employee} <- EctoTrail.update_and_log(PRMRepo, employee_changeset, author_id),
            :ok <- suspend_by_contractor_owner_ids([employee_id]),
-           _ <- EventManager.insert_change_status(employee, old_status, employee.status, author_id) do
+           _ <- EventManager.publish_change_status(employee, old_status, employee.status, author_id) do
         load_references(employee)
       else
         %Changeset{} = changeset -> PRMRepo.rollback(changeset)

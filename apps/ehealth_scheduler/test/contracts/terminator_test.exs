@@ -2,11 +2,16 @@ defmodule EHealthScheduler.Contracts.TerminatorTest do
   @moduledoc false
 
   use Core.ConnCase, async: false
+  import Mox
   alias Core.Contracts.CapitationContract
   alias Core.PRMRepo
   import EHealthScheduler.Contracts.Terminator
 
+  setup :verify_on_exit!
+  setup :set_mox_global
+
   test "terminate outdated declaration_requests" do
+    expect(KafkaMock, :publish_to_event_manager, 9, fn _ -> :ok end)
     tomorrow = Date.add(Date.utc_today(), 1)
     yesterday = Date.add(Date.utc_today(), -1)
 

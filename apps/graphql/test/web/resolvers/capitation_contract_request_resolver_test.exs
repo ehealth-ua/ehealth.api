@@ -12,8 +12,6 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
   alias Absinthe.Relay.Node
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Employees.Employee
-  alias Core.EventManagerRepo
-  alias Core.EventManager.Event
   alias Core.Repo
   alias Ecto.UUID
 
@@ -687,6 +685,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
         {:ok, "success"}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       %{
         conn: conn,
         contract_request: contract_request,
@@ -842,6 +842,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       end)
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, "success"} end)
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
@@ -917,18 +918,6 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       assert contract_request.status_reason == "Не відповідає попереднім домовленостям"
       assert contract_request.nhs_signer_id == user_id
       assert contract_request.nhs_legal_entity_id == legal_entity.id
-
-      contract_request_id = contract_request.id
-      contract_request_status = contract_request.status
-      assert event = EventManagerRepo.one(Event)
-
-      assert %Event{
-               entity_type: "CapitationContractRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^contract_request_id,
-               changed_by: ^user_id,
-               properties: %{"status" => %{"new_value" => ^contract_request_status}}
-             } = event
     end
   end
 
@@ -946,6 +935,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       id = UUID.generate()
       user_id = UUID.generate()
@@ -1053,6 +1044,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       expect(MithrilMock, :search_user_roles, fn _, _ ->
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       legal_entity = insert(:prm, :legal_entity)
       party_user = insert(:prm, :party_user)

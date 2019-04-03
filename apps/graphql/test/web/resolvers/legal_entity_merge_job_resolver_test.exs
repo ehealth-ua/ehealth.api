@@ -334,7 +334,7 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
     test "argument `first` not set", %{conn: conn} do
       merged_to = insert(:prm, :legal_entity)
-      {:ok, job_id1, _} = create_job(insert(:prm, :legal_entity), merged_to)
+      create_job(insert(:prm, :legal_entity), merged_to)
 
       query = """
         query ListLegalEntitiesQuery($after: String!){

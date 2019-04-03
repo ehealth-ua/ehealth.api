@@ -4,7 +4,7 @@ config :core,
   namespace: Core,
   env: Mix.env(),
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
-  ecto_repos: [Core.Repo, Core.PRMRepo, Core.FraudRepo, Core.EventManagerRepo]
+  ecto_repos: [Core.Repo, Core.PRMRepo, Core.FraudRepo]
 
 config :ecto, json_library: Jason
 
@@ -380,7 +380,7 @@ config :core, Core.Rpc.Worker, max_attempts: {:system, :integer, "RPC_MAX_ATTEMP
 config :kaffe,
   producer: [
     endpoints: [localhost: 9092],
-    topics: ["deactivate_declaration_events", "merge_legal_entities", "edr_verification_events"]
+    topics: ["deactivate_declaration_events", "merge_legal_entities", "edr_verification_events", "event_manager_topic"]
   ]
 
 import_config "#{Mix.env()}.exs"

@@ -1207,6 +1207,8 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :employee, employee_type: Employee.type(:owner), legal_entity_id: legal_entity.id)
 

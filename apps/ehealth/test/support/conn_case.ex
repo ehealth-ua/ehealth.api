@@ -37,12 +37,10 @@ defmodule EHealth.Web.ConnCase do
   setup tags do
     :ok = Sandbox.checkout(Core.Repo)
     :ok = Sandbox.checkout(Core.PRMRepo)
-    :ok = Sandbox.checkout(Core.EventManagerRepo)
 
     unless tags[:async] do
       Sandbox.mode(Core.Repo, {:shared, self()})
       Sandbox.mode(Core.PRMRepo, {:shared, self()})
-      Sandbox.mode(Core.EventManagerRepo, {:shared, self()})
     end
 
     conn =

@@ -689,6 +689,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       get_roles_by_name()
       get_user_roles()
       create_user_role()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,

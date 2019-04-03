@@ -8,13 +8,12 @@ defmodule GraphQL.Features.Context do
   import Mox, only: [expect: 3, expect: 4]
 
   alias Absinthe.Relay.Node
-  alias Core.{Repo, PRMRepo, EventManagerRepo}
+  alias Core.{Repo, PRMRepo}
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
-  alias Core.EventManager.Event
   alias Core.LegalEntities.LegalEntity
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
@@ -37,7 +36,6 @@ defmodule GraphQL.Features.Context do
   scenario_starting_state(fn _ ->
     :ok = Sandbox.checkout(Repo)
     :ok = Sandbox.checkout(PRMRepo)
-    :ok = Sandbox.checkout(EventManagerRepo)
 
     Mox.Server.verify_on_exit(self())
     Mox.Server.set_mode(self(), :global)
@@ -48,7 +46,6 @@ defmodule GraphQL.Features.Context do
   scenario_finalize(fn status, state ->
     Sandbox.checkin(Repo)
     Sandbox.checkin(PRMRepo)
-    Sandbox.checkin(EventManagerRepo)
 
     with {:ok, _} <- status, do: Mox.verify!()
     Mox.Server.exit(self())
@@ -2032,6 +2029,15 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  then_(
+    ~r/^event would be published to event manager$/,
+    fn state, _ ->
+      expect(KafkaMock, :publish_to_event_manager, fn _event -> :ok end)
+
+      {:ok, state}
+    end
+  )
+
   when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
@@ -2160,20 +2166,6 @@ defmodule GraphQL.Features.Context do
     end
   )
 
-  then_(
-    ~r/^event manager has event for (?<entity_type>[^"]+) with ID "(?<entity_id>[^"]+)" and consumer ID "(?<updated_by>[^"]+)"$/,
-    fn state, %{entity_id: entity_id, entity_type: entity_type, updated_by: updated_by} ->
-      event =
-        Event
-        |> where(entity_id: ^entity_id, entity_type: ^entity_type, changed_by: ^updated_by)
-        |> EventManagerRepo.one()
-
-      assert event
-
-      {:ok, state}
-    end
-  )
-
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]
 
@@ -2298,7 +2290,7 @@ defmodule GraphQL.Features.Context do
     post(conn, @graphql_path, %{query: query, variables: variables})
   end
 
-  @spec entity_name_to_model(entity_name :: string) :: module
+  @spec entity_name_to_model(entity_name :: binary) :: module
   def entity_name_to_model(entity_name)
 
   def entity_name_to_model("dictionary"), do: Dictionary
@@ -2322,7 +2314,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("settlement"), do: Settlement
   def entity_name_to_model(entity_name), do: raise("Model not found for #{inspect(entity_name)}")
 
-  @spec entity_name_to_model(entity_name :: string) :: {repo :: atom, factory_name :: atom}
+  @spec entity_name_to_model(entity_name :: binary) :: {repo :: atom, factory_name :: atom}
   def entity_name_to_factory_args(entity_name)
 
   def entity_name_to_factory_args("dictionary"), do: {:il, :dictionary}

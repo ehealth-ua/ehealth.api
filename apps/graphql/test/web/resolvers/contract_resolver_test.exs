@@ -59,6 +59,7 @@ defmodule GraphQL.ContractResolverTest do
 
   describe "terminate" do
     test "legal entity terminates verified contract", %{conn: conn} do
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       msp()
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
@@ -102,6 +103,7 @@ defmodule GraphQL.ContractResolverTest do
 
     test "NHS terminate verified contract", %{conn: conn} do
       nhs()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -143,7 +145,7 @@ defmodule GraphQL.ContractResolverTest do
 
     test "success terminate reimbursement contract by NHS", %{conn: conn} do
       nhs()
-
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       contract_request = insert(:il, :reimbursement_contract_request, status: @contract_request_status_signed)
       contract = insert(:prm, :reimbursement_contract, contract_request_id: contract_request.id)
 

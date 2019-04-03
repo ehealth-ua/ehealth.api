@@ -205,7 +205,7 @@ defmodule Core.ContractRequests do
          },
          %Changeset{valid?: true} = changes <- update_assignee_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
@@ -251,7 +251,7 @@ defmodule Core.ContractRequests do
          data <- render_contract_request_data(changes),
          %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
@@ -273,7 +273,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_medical_program_is_active(contract_request),
          %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     else
       {:client_id, _} ->
@@ -324,7 +324,7 @@ defmodule Core.ContractRequests do
            },
          %Changeset{valid?: true} = changes <- decline_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
@@ -367,7 +367,7 @@ defmodule Core.ContractRequests do
       |> Repo.update()
 
     with {:ok, contract_request} <- update_result do
-      EventManager.insert_change_status(contract_request, contract_request.status, user_id)
+      EventManager.publish_change_status(contract_request, contract_request.status, user_id)
       update_result
     end
   end
@@ -428,7 +428,7 @@ defmodule Core.ContractRequests do
            }),
          %Ecto.Changeset{valid?: true} = changes <- nhs_signed_changeset(contract_request, update_params),
          {:ok, contract_request} <- Repo.update(changes),
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       {:ok, contract_request, preload_references(contract_request)}
     else
       {:client_id, _} -> {:error, {:forbidden, "Invalid client_id"}}
@@ -489,7 +489,7 @@ defmodule Core.ContractRequests do
          pack <- RequestPack.put_contract_request(pack, contract_request),
          {:create_contract, {:ok, contract}} <-
            {:create_contract, Contracts.create_from_contract_request(pack, user_id)},
-         _ <- EventManager.insert_change_status(contract_request, contract_request.status, user_id) do
+         _ <- EventManager.publish_change_status(contract_request, contract_request.status, user_id) do
       Contracts.load_contract_references(contract)
     else
       {:signed_nhs, false} ->
@@ -721,7 +721,7 @@ defmodule Core.ContractRequests do
     {_, contract_requests} = multi.contract_requests
 
     Enum.each(contract_requests, fn contract_request ->
-      EventManager.insert_change_status(contract_request, status, author_id)
+      EventManager.publish_change_status(contract_request, status, author_id)
     end)
 
     {:ok, contract_requests}

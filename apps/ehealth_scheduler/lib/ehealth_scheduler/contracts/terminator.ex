@@ -89,7 +89,7 @@ defmodule EHealthScheduler.Contracts.Terminator do
 
   def log_status_updates(contracts, new_status, user_id) do
     Enum.map(contracts, fn contract ->
-      with {:ok, event} <- EventManager.insert_change_status(contract, new_status, user_id) do
+      with {:ok, event} <- EventManager.publish_change_status(contract, new_status, user_id) do
         event
       end
     end)

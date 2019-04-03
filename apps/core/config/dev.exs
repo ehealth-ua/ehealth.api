@@ -111,11 +111,3 @@ config :core, Core.FraudRepo,
   hostname: "localhost",
   pool_size: 10,
   types: Core.Fraud.PostgresTypes
-
-config :core, Core.EventManagerRepo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "event_manager_dev",
-  hostname: "localhost",
-  pool_size: 10

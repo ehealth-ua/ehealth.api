@@ -10,6 +10,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
   alias Core.PRMRepo
   alias Core.Contracts.CapitationContract
 
+  setup :verify_on_exit!
+
   describe "list employees" do
     test "gets only employees that have legal_entity_id == client_id", %{conn: conn} do
       msp()
@@ -289,7 +291,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "employee is not active", %{conn: conn} do
-      msp()
       legal_entity = insert(:prm, :legal_entity, id: "7cc91a5d-c02f-41e9-b571-1ea4f2375552")
       employee = insert(:prm, :employee, legal_entity: legal_entity, is_active: false)
 
@@ -327,6 +328,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
         :ok
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
       msp()
       party = insert(:prm, :party)
       employee = insert(:prm, :employee, legal_entity: legal_entity, employee_type: "ADMIN", party: party)
@@ -350,6 +353,8 @@ defmodule EHealth.Web.EmployeesControllerTest do
       expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
         :ok
       end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       msp()
       employee = insert(:prm, :employee, legal_entity: legal_entity)
@@ -407,6 +412,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
       msp()
       set_mox_global()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
         {:ok, %{"data" => nil}}
@@ -434,6 +440,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     test "successful pharmacist", %{conn: conn, pharmacist: pharmacist, legal_entity: legal_entity} do
       msp()
       set_mox_global()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
         {:ok, %{"data" => nil}}

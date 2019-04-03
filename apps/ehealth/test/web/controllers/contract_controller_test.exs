@@ -18,11 +18,13 @@ defmodule EHealth.Web.ContractControllerTest do
   @contract_type_reimbursement ReimbursementContract.type()
   @contract_status_reason "DEFAULT"
 
+  setup :verify_on_exit!
+
   describe "show contract" do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
-      nhs(2)
+      nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
@@ -91,9 +93,9 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "contract employees are only with nil end_date", %{conn: conn} do
-      nhs(2)
+      nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
@@ -173,7 +175,7 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
@@ -795,6 +797,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "legal entity terminate verified contract", %{conn: conn} do
       msp()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -842,6 +845,7 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "NHS terminate verified contract", %{conn: conn} do
       nhs()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1979,10 +1983,6 @@ defmodule EHealth.Web.ContractControllerTest do
 
   describe "route without contract type works as capitation" do
     setup %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
-      end)
-
       legal_entity = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
 
@@ -2023,6 +2023,10 @@ defmodule EHealth.Web.ContractControllerTest do
 
     test "show contract", %{conn: conn, contract: contract} do
       nhs()
+
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      end)
 
       resp =
         conn

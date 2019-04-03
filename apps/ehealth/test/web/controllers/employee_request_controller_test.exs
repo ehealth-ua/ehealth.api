@@ -9,8 +9,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   alias Core.Contracts.CapitationContract
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.Employees.Employee
-  alias Core.EventManager.Event
-  alias Core.EventManagerRepo
   alias Core.LegalEntities.LegalEntity
   alias Core.PartyUsers.PartyUser
   alias Core.PRMRepo
@@ -18,6 +16,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   @moduletag :with_client_id
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+
+  setup :verify_on_exit!
 
   describe "create employee request" do
     setup %{conn: conn} do
@@ -582,7 +582,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with valid start_date", %{conn: conn} do
-      template(2)
+      template()
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -601,7 +601,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid start_date - wrong format", %{conn: conn} do
-      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -636,7 +635,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "with invalid start_date - date is not exist", %{conn: conn} do
-      template(2)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, tax_id: "3067305998")
       %{id: id} = insert(:prm, :employee, party: party)
@@ -671,7 +669,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "success doctor employee request", %{conn: conn} do
-      msp()
       template()
       legal_entity = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
@@ -687,8 +684,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "doctor employee request failed when division_id attribute is absent", %{conn: conn} do
-      msp()
-      template()
       legal_entity = insert(:prm, :legal_entity)
 
       employee_request_params = doctor_request()
@@ -705,7 +700,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "non-doctor employee request is successful when division_id attribute is absent", %{conn: conn} do
-      msp()
       template()
       legal_entity = insert(:prm, :legal_entity)
 
@@ -1141,24 +1135,22 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   end
 
   test "create user by employee request", %{conn: conn} do
-    msp()
-
     expect(MithrilMock, :create_user, fn _, _ ->
       {:ok, %{"data" => %{"email" => "test@user.com"}, "meta" => %{"code" => 201}}}
     end)
 
-    fixture_params =
-      employee_request_data()
-      |> put_in([:party, :email], "test@user.com")
-
+    fixture_params = put_in(employee_request_data(), [:party, :email], "test@user.com")
     %{id: id} = insert(:il, :employee_request, data: fixture_params)
-    conn = post(conn, employee_request_path(conn, :create_user, id), %{"password" => "123"})
-    resp = json_response(conn, 201)
+
+    resp =
+      conn
+      |> post(employee_request_path(conn, :create_user, id), %{"password" => "123"})
+      |> json_response(201)
+
     assert Map.has_key?(resp["data"], "email")
   end
 
   test "create user by employee request invalid params", %{conn: conn} do
-    msp()
     fixture_params = employee_request_data() |> put_in([:party, :email], "test@user.com")
     %{id: id} = insert(:il, :employee_request, data: fixture_params)
     conn = post(conn, employee_request_path(conn, :create_user, id), %{"passwords" => "123"})
@@ -1175,18 +1167,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
   describe "approve employee request" do
     setup %{conn: conn} do
-      template(2)
       %{conn: conn}
     end
 
     test "can approve employee request with employee_id with changed party.name", %{conn: conn} do
       msp()
       get_user(2)
-
-      expect(ReportMock, :get_declaration_count, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
+      template(2)
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       role_id = UUID.generate()
       user_id = UUID.generate()
 
@@ -1202,7 +1190,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
          }}
       end)
 
-      get_roles_by_name(3, role_id)
+      get_roles_by_name(2, role_id)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1242,16 +1230,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can approve employee request with employee_id and delete party.second_name", %{conn: conn} do
-      msp()
-      get_user(2)
-
-      expect(ReportMock, :get_declaration_count, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       role_id = UUID.generate()
 
-      expect(MithrilMock, :get_user_roles, 3, fn user_id, _, _ ->
+      template()
+      get_user()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      expect(MithrilMock, :get_user_roles, fn user_id, _, _ ->
         {:ok,
          %{
            "data" => [
@@ -1263,7 +1248,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
          }}
       end)
 
-      get_roles_by_name(3, role_id)
+      get_roles_by_name(1, role_id)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1292,6 +1277,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_roles_by_name()
       get_user_roles()
       create_user_role()
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       %{id: division_id} = insert(:prm, :division)
@@ -1322,7 +1309,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_roles_by_name()
       get_user_roles()
       create_user_role()
-
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
 
@@ -1343,18 +1331,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in([:legal_entity_id], legal_entity_id)
 
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
-      conn = post(conn, employee_request_path(conn, :approve, request_id))
-      assert [event] = EventManagerRepo.all(Event)
-
-      assert %Event{
-               entity_type: "EmployeeRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^request_id,
-               properties: %{"status" => %{"new_value" => "APPROVED"}}
-             } = event
-
-      resp = json_response(conn, 200)["data"]
-      assert "APPROVED" == resp["status"]
+      resp = conn |> post(employee_request_path(conn, :approve, request_id)) |> json_response(200)
+      assert "APPROVED" == resp["data"]["status"]
     end
 
     test "cannot approve employee request if email does not match", %{conn: conn} do
@@ -1389,6 +1367,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     test "can approve employee request if you created it'", %{conn: conn} do
       get_user()
       get_roles_by_name()
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483")
@@ -1428,7 +1408,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_roles_by_name()
       get_user_roles()
       create_user_role()
-
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       employee = insert(:prm, :employee)
       insert(:prm, :party, id: "01981ab9-904c-4c36-88ab-959a94087483", tax_id: "2222222225")
       %{id: division_id} = insert(:prm, :division)
@@ -1482,10 +1463,14 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
         |> put_in(~w(party email)a, "mis_bot_1493831618@user.com")
 
       %{id: id, data: data} = insert(:il, :employee_request, data: request_data)
-      conn = put_client_id_header(conn, data.legal_entity_id)
-      conn = Plug.Conn.put_req_header(conn, consumer_id_header(), user_id)
-      conn_resp = post(conn, employee_request_path(conn, :approve, id))
-      resp = json_response(conn_resp, 409)
+
+      resp =
+        conn
+        |> put_client_id_header(data.legal_entity_id)
+        |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+        |> post(employee_request_path(conn, :approve, id))
+        |> json_response(409)
+
       assert "Email is already used by another person" == resp["error"]["message"]
     end
 
@@ -1517,13 +1502,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
-
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
       birth_date = ~D[1991-08-19]
       tax_id = "3067305998"
 
@@ -1588,12 +1569,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -1658,9 +1636,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_user_roles()
       get_roles_by_name()
       get_user()
-      put_client()
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       birth_date = ~D[1991-08-19]
       tax_id = "3067305998"
@@ -1738,9 +1715,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       get_user_roles()
       get_roles_by_name()
       get_user()
-      put_client()
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
 
       party = insert(:prm, :party)
       division1 = insert(:prm, :division)
@@ -1806,13 +1782,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "approve non-existing employee, keep party credentials", %{conn: conn} do
-      create_user_role()
-      get_user_roles()
       get_roles_by_name()
       get_user()
-      put_client()
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       party = insert(:prm, :party)
       division1 = insert(:prm, :division)
@@ -1872,13 +1845,10 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "approve existing employee, keep party credentials", %{conn: conn} do
-      create_user_role()
-      get_user_roles()
       get_roles_by_name()
       get_user()
-      put_client()
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       party = insert(:prm, :party)
       division1 = insert(:prm, :division)
@@ -1945,12 +1915,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -2000,12 +1967,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -2055,12 +2019,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -2114,12 +2075,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -2169,13 +2127,9 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       create_user_role()
       get_user_roles()
       get_roles_by_name()
-
       get_user()
-      put_client()
-
-      get_client_type_by_name(2)
-      template(2)
-
+      template()
+      expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division)
       party = insert(:prm, :party)
@@ -2225,6 +2179,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
   describe "reject employee request" do
     test "can reject employee request if email matches", %{conn: conn} do
       get_user()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       fixture_params =
         employee_request_data()
@@ -2233,18 +2188,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       %{id: id} = insert(:il, :employee_request, data: fixture_params)
       insert(:prm, :legal_entity, id: fixture_params.legal_entity_id)
 
-      conn = post(conn, employee_request_path(conn, :reject, id))
-      resp = json_response(conn, 200)["data"]
-      assert [event] = EventManagerRepo.all(Event)
+      resp =
+        conn
+        |> post(employee_request_path(conn, :reject, id))
+        |> json_response(200)
 
-      assert %Event{
-               entity_type: "EmployeeRequest",
-               event_type: "StatusChangeEvent",
-               entity_id: ^id,
-               properties: %{"status" => %{"new_value" => "REJECTED"}}
-             } = event
-
-      assert "REJECTED" == resp["status"]
+      assert "REJECTED" == resp["data"]["status"]
     end
 
     test "cannot reject employee request if email doesnot match", %{conn: conn} do
@@ -2277,7 +2226,6 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "cannot reject employee request if you didn't create it'", %{conn: conn} do
-      msp()
       get_user()
       %{id: id} = insert(:il, :employee_request, data: employee_request_data())
       conn = post(conn, employee_request_path(conn, :reject, id))
@@ -2285,8 +2233,8 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
     end
 
     test "can reject employee request if you created it'", %{conn: conn} do
-      msp()
       get_user()
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       fixture_params =
         employee_request_data()

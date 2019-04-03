@@ -1,7 +1,7 @@
 pipeline {
   agent {
-    node { 
-      label 'ehealth-build-big' 
+    node {
+      label 'ehealth-build-big'
       }
   }
   environment {
@@ -81,7 +81,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
-              ./build-container.sh;  
+              ./build-container.sh;
             '''
           }
         }
@@ -96,7 +96,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
-              ./build-container.sh;  
+              ./build-container.sh;
             '''
           }
         }
@@ -142,7 +142,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
-              ./build-container.sh; 
+              ./build-container.sh;
             '''
           }
         }
@@ -188,7 +188,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -211,7 +211,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -234,7 +234,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -257,7 +257,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -280,7 +280,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -303,7 +303,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -326,7 +326,7 @@ pipeline {
       steps {
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-          chmod +x ./start-container.sh; 
+          chmod +x ./start-container.sh;
           ./start-container.sh;
         '''
         withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -360,4 +360,3 @@ pipeline {
     }
   }
 }
-

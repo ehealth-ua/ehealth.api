@@ -115,15 +115,6 @@ config :core, Core.FraudRepo,
   types: Core.Fraud.PostgresTypes,
   ownership_timeout: 120_000_000
 
-config :core, Core.EventManagerRepo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "event_manager_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  ownership_timeout: 120_000_000
-
 # employee request invitation
 # Configures employee request invitation template
 config :core, Core.Man.Templates.EmployeeRequestInvitation, id: {:system, "EMPLOYEE_REQUEST_INVITATION_TEMPLATE_ID", 1}

@@ -3,14 +3,16 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminatorTest do
 
   use Core.ConnCase
   import Ecto.Query
-  alias Core.EventManager.Event
-  alias Core.EventManagerRepo
+  import Mox
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.Repo
   alias EHealthScheduler.Jobs.ContractRequestsTerminator
 
+  setup :verify_on_exit!
+
   test "run/0" do
     start_date = ~D[2017-01-01]
+    expect(KafkaMock, :publish_to_event_manager, 340, fn _ -> :ok end)
 
     for _ <- 1..10,
         do:
@@ -85,20 +87,6 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminatorTest do
     assert 0 == count_by_status(CapitationContractRequest.status(:pending_nhs_sign))
     assert 15 == count_by_status(CapitationContractRequest.status(:declined))
     assert 350 == count_by_status(CapitationContractRequest.status(:terminated))
-
-    assert events = EventManagerRepo.all(Event)
-
-    assert 340 == Enum.count(events)
-
-    terminated_status = CapitationContractRequest.status(:terminated)
-
-    for event <- events do
-      assert %Event{
-               entity_type: "CapitationContractRequest",
-               event_type: "StatusChangeEvent",
-               properties: %{"status" => %{"new_value" => ^terminated_status}}
-             } = event
-    end
   end
 
   defp count_by_status(status) do

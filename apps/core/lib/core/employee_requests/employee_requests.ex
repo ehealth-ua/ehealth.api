@@ -275,7 +275,7 @@ defmodule Core.EmployeeRequests do
       |> Repo.update()
 
     with {:ok, employee_request} <- employee_request,
-         _ <- EventManager.insert_change_status(employee_request, status, user_id) do
+         _ <- EventManager.publish_change_status(employee_request, status, user_id) do
       {:ok, employee_request}
     end
   end
@@ -287,7 +287,7 @@ defmodule Core.EmployeeRequests do
       |> Repo.update()
 
     with {:ok, employee_request} <- employee_request,
-         _ <- EventManager.insert_change_status(employee_request, status, user_id) do
+         _ <- EventManager.publish_change_status(employee_request, status, user_id) do
       {:ok, employee_request}
     end
   end
@@ -371,7 +371,7 @@ defmodule Core.EmployeeRequests do
   end
 
   def insert_events(employee_request, [status: status], author_id) do
-    EventManager.insert_change_status(employee_request, status, author_id)
+    EventManager.publish_change_status(employee_request, status, author_id)
     {:ok, employee_request}
   end
 

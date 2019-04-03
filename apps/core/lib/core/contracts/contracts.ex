@@ -80,7 +80,7 @@ defmodule Core.Contracts do
                contract
                |> changeset(%{"status" => @status_terminated})
                |> PRMRepo.update() do
-          EventManager.insert_change_status(contract, @status_terminated, user_id)
+          EventManager.publish_change_status(contract, @status_terminated, user_id)
         end
 
         with {:ok, new_contract} <- do_create(schema, params) do
@@ -217,7 +217,7 @@ defmodule Core.Contracts do
       |> PRMRepo.update()
 
     with {:ok, contract} <- update_result do
-      EventManager.insert_change_status(contract, contract.status, user_id)
+      EventManager.publish_change_status(contract, contract.status, user_id)
       update_result
     end
   end
@@ -231,7 +231,7 @@ defmodule Core.Contracts do
          :ok <- validate_date_activeness(contract.end_date),
          :ok <- validate_status_reason(params.status_reason, dictionary),
          {:ok, updated_contract} <- contract |> changeset(params) |> PRMRepo.update() do
-      EventManager.insert_change_status(updated_contract, user_id)
+      EventManager.publish_change_status(updated_contract, user_id)
       {:ok, updated_contract}
     else
       {:status, _} -> {:error, {:conflict, "Incorrect status of contract to modify it"}}

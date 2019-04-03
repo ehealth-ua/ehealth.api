@@ -66,6 +66,8 @@ defmodule Unit.LegalEntityMergeJobTest do
         {:ok, %{"data" => params}}
       end)
 
+      expect(KafkaMock, :publish_to_event_manager, 3, fn _ -> :ok end)
+
       deactivate_client_tokens()
 
       expect(KafkaMock, :publish_deactivate_declaration_event, 3, fn %{
