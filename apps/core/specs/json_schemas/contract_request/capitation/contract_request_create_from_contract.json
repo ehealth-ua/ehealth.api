@@ -69,6 +69,118 @@
       ],
       "additionalProperties": false
     },
+    "contractor_rmsp_amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "the amount of population which were served by this MSP"
+    },
+    "external_contractor_flag": {
+      "type": "boolean",
+      "description": "the existence of second appendix"
+    },
+    "external_contractors": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "legal_entity_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "external_contractor ID"
+          },
+          "contract": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "$ref": "#/definitions/name",
+                "description": "number of contract with sub contractor"
+              },
+              "issued_at": {
+                "type": "string",
+                "$ref": "#/definitions/date",
+                "description": "issue date of contract with sub contractor"
+              },
+              "expires_at": {
+                "type": "string",
+                "$ref": "#/definitions/date",
+                "description": "expiry date of contract with sub contractor"
+              }
+            },
+            "required": [
+              "number",
+              "issued_at",
+              "expires_at"
+            ]
+          },
+          "divisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "$ref": "#/definitions/uuid"
+                },
+                "medical_service": {
+                  "type": "string",
+                  "description": "Dictionary: MEDICAL_SERVICE"
+                }
+              },
+              "required": [
+                "id",
+                "medical_service"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "legal_entity_id",
+          "contract",
+          "divisions"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "contractor_employee_divisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "employee ID"
+          },
+          "staff_units": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "declaration_limit": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "declaration limit for current employee within the contract"
+          },
+          "division_id": {
+            "type": "string",
+            "$ref": "#/definitions/uuid",
+            "description": "division ID"
+          }
+        },
+        "required": [
+          "employee_id",
+          "staff_units",
+          "declaration_limit",
+          "division_id"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
     "contractor_divisions": {
       "type": "array",
       "items": {
@@ -77,16 +189,6 @@
         "description": "division ID"
       },
       "minItems": 1
-    },
-    "start_date": {
-      "type": "string",
-      "$ref": "#/definitions/date",
-      "description": "contract start date"
-    },
-    "end_date": {
-      "type": "string",
-      "$ref": "#/definitions/date",
-      "description": "contract end date"
     },
     "id_form": {
       "type": "string",
@@ -135,7 +237,7 @@
       "minLength": 1,
       "description": "place of contract request"
     },
-    "misc": { 
+    "misc": {
       "type": "string"
     },
     "consent_text": {
@@ -144,30 +246,25 @@
     },
     "status_reason":{
       "type":["string", "null"]
-    },
-    "medical_program_id": {
-      "$ref": "#/definitions/uuid",
-      "description": "id of a medical program that is a subject of reimbursement contract"
-    },
+    }
   },
   "required": [
     "contractor_owner_id",
     "contractor_legal_entity_id",
     "contractor_base",
     "contractor_payment_details",
+    "contractor_rmsp_amount",
     "contractor_divisions",
+    "contractor_employee_divisions",
     "id_form",
     "consent_text",
-    "start_date",
-    "end_date",
     "contract_number",
     "nhs_signer_id",
     "nhs_legal_entity_id",
     "nhs_signer_base",
     "nhs_contract_price",
     "nhs_payment_method",
-    "issue_city",
-    "medical_program_id"
+    "issue_city"
   ],
   "additionalProperties": false
 }

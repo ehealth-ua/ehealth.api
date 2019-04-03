@@ -156,6 +156,47 @@ defmodule Core.ContractRequests do
     end
   end
 
+  def create_from_contract(headers, %{"assignee_id" => assignee_id} = params) do
+    user_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
+    pack = RequestPack.new(params)
+
+    with {:ok, %{decoded_content: content, signer: signer} = pack} <- decode_create_request(pack, headers),
+         :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
+         :ok <- validate_create_from_contract_content_schema(pack),
+         :ok <- validate_user_signer_last_name(user_id, signer),
+         contractor_legal_entity_id <- Map.get(content, "contractor_legal_entity_id"),
+         %LegalEntity{} = contractor_legal_entity <- LegalEntities.get_by_id(contractor_legal_entity_id),
+         :ok <- validate_contract_request_type(pack.type, contractor_legal_entity),
+         %LegalEntity{} = nhs_legal_entity <- LegalEntities.get_by_id(client_id),
+         :ok <- validate_legal_entity_edrpou(nhs_legal_entity, signer),
+         {:ok, content, contract} <- validate_contract_number(pack.type, content, headers),
+         pack <- RequestPack.put_decoded_content(pack, content),
+         :ok <- validate_contractor_legal_entity_id(contractor_legal_entity_id, contract),
+         :ok <- validate_previous_request(pack, contractor_legal_entity_id),
+         :ok <- validate_dates(content),
+         content <- set_dates(contract, content),
+         pack <- RequestPack.put_decoded_content(pack, content),
+         {:ok, contract_request} <- validate_contract_request_content(:create, pack, contractor_legal_entity_id),
+         :ok <- validate_unique_contractor_divisions(content),
+         :ok <- validate_contractor_divisions(pack.type, content),
+         :ok <- validate_start_date_year(content),
+         :ok <- validate_end_date(content),
+         :ok <- create_validate_contractor_owner_id(pack.type, content),
+         _ <- terminate_pending_contracts(pack.type, content),
+         insert_params <-
+           Map.merge(content, %{
+             "status" => @approved,
+             "assignee_id" => assignee_id,
+             "inserted_by" => user_id,
+             "updated_by" => user_id
+           }),
+         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
+         {:ok, contract_request} <- Repo.insert(changes) do
+      {:ok, contract_request, preload_references(contract_request)}
+    end
+  end
+
   defp validate_contract_request_uniqueness(pack) do
     case get_by_id(pack) do
       nil -> :ok

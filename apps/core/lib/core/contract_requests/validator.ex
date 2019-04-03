@@ -580,6 +580,14 @@ defmodule Core.ContractRequests.Validator do
     JsonSchema.validate(:reimbursement_contract_request_create_from_draft, content)
   end
 
+  def validate_create_from_contract_content_schema(%RequestPack{type: @capitation, decoded_content: content}) do
+    JsonSchema.validate(:capitation_contract_request_create_from_contract, content)
+  end
+
+  def validate_create_from_contract_content_schema(%RequestPack{type: @reimbursement, decoded_content: content}) do
+    JsonSchema.validate(:reimbursement_contract_request_create_from_contract, content)
+  end
+
   def validate_update_params(%RequestPack{type: @capitation} = pack) do
     JsonSchema.validate(:capitation_contract_request_update, pack.request_params)
   end
@@ -588,7 +596,11 @@ defmodule Core.ContractRequests.Validator do
     JsonSchema.validate(:reimbursement_contract_request_update, pack.request_params)
   end
 
-  def validate_contract_request_content(:create, %RequestPack{type: @capitation, decoded_content: content}, contractor_legal_entity_id) do
+  def validate_contract_request_content(
+        :create,
+        %RequestPack{type: @capitation, decoded_content: content},
+        contractor_legal_entity_id
+      ) do
     with :ok <- validate_unique_contractor_employee_divisions(content),
          :ok <- validate_employee_divisions(content, contractor_legal_entity_id),
          :ok <- validate_external_contractors(content),
