@@ -113,19 +113,17 @@ defmodule Core.ContractRequests do
 
   defdelegate gen_relevant_get_links(id, type, status), to: Storage, as: :gen_relevant_get_links
 
-  def create(headers, %{"id" => id} = params) do
+  def create_from_draft(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
-    params = pack.request_params
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
-         {:contract_request_exists, true} <- {:contract_request_exists, is_nil(get_by_id(pack))},
-         :ok <- JsonSchema.validate(:contract_request_sign, params),
-         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
+         :ok <- validate_contract_request_uniqueness(pack),
+         {:ok, %{decoded_content: content, signer: signer} = pack} <- decode_create_request(pack, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
          :ok <- validate_contract_request_type(pack.type, legal_entity),
-         :ok <- validate_create_content_schema(pack.type, content),
+         :ok <- validate_create_from_draft_content_schema(pack),
          :ok <- validate_legal_entity_edrpou(legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
          content <- Map.put(content, "contractor_legal_entity_id", client_id),
@@ -147,16 +145,28 @@ defmodule Core.ContractRequests do
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
-             "status" => CapitationContractRequest.status(:new),
+             "status" => @new,
+             "id" => id,
              "inserted_by" => user_id,
              "updated_by" => user_id
            }),
-         %Changeset{valid?: true} = changes <- changeset(%{contract_request | id: id}, insert_params),
+         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
-    else
-      {:contract_request_exists, false} -> {:error, {:conflict, "Invalid contract_request id"}}
-      error -> error
+    end
+  end
+
+  defp validate_contract_request_uniqueness(pack) do
+    case get_by_id(pack) do
+      nil -> :ok
+      _ -> {:error, {:conflict, "Invalid contract_request id"}}
+    end
+  end
+
+  defp decode_create_request(%RequestPack{request_params: params} = pack, headers) do
+    with :ok <- JsonSchema.validate(:contract_request_sign, params),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers) do
+      {:ok, %{pack | decoded_content: content, signer: signer}}
     end
   end
 

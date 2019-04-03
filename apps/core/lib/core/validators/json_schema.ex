@@ -84,8 +84,8 @@ defmodule Core.Validators.JsonSchema do
 
   # capitation contract requests
   use_schema(
-    :capitation_contract_request,
-    "specs/json_schemas/contract_request/capitation/contract_request_create.json"
+    :capitation_contract_request_create_from_draft,
+    "specs/json_schemas/contract_request/capitation/contract_request_create_from_draft.json"
   )
 
   use_schema(
@@ -96,8 +96,8 @@ defmodule Core.Validators.JsonSchema do
   # reimbursement contract requests
 
   use_schema(
-    :reimbursement_contract_request,
-    "specs/json_schemas/contract_request/reimbursement/contract_request_create.json"
+    :reimbursement_contract_request_create_from_draft,
+    "specs/json_schemas/contract_request/reimbursement/contract_request_create_from_draft.json"
   )
 
   use_schema(

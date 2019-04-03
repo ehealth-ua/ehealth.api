@@ -572,12 +572,12 @@ defmodule Core.ContractRequests.Validator do
 
   # content
 
-  def validate_create_content_schema(@capitation, content) do
-    JsonSchema.validate(:capitation_contract_request, content)
+  def validate_create_from_draft_content_schema(%RequestPack{type: @capitation, decoded_content: content}) do
+    JsonSchema.validate(:capitation_contract_request_create_from_draft, content)
   end
 
-  def validate_create_content_schema(@reimbursement, content) do
-    JsonSchema.validate(:reimbursement_contract_request, content)
+  def validate_create_from_draft_content_schema(%RequestPack{type: @reimbursement, decoded_content: content}) do
+    JsonSchema.validate(:reimbursement_contract_request_create_from_draft, content)
   end
 
   def validate_update_params(%RequestPack{type: @capitation} = pack) do
@@ -588,11 +588,11 @@ defmodule Core.ContractRequests.Validator do
     JsonSchema.validate(:reimbursement_contract_request_update, pack.request_params)
   end
 
-  def validate_contract_request_content(:create, %RequestPack{type: @capitation} = pack, client_id) do
-    with :ok <- validate_unique_contractor_employee_divisions(pack.decoded_content),
-         :ok <- validate_employee_divisions(pack.decoded_content, client_id),
-         :ok <- validate_external_contractors(pack.decoded_content),
-         :ok <- validate_external_contractor_flag(pack.decoded_content) do
+  def validate_contract_request_content(:create, %RequestPack{type: @capitation, decoded_content: content}, contractor_legal_entity_id) do
+    with :ok <- validate_unique_contractor_employee_divisions(content),
+         :ok <- validate_employee_divisions(content, contractor_legal_entity_id),
+         :ok <- validate_external_contractors(content),
+         :ok <- validate_external_contractor_flag(content) do
       {:ok, %CapitationContractRequest{}}
     end
   end
@@ -876,11 +876,11 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  defp check_employee(employee, client_id, index) do
+  defp check_employee(employee, legal_entity_id, index) do
     errors =
       []
       |> check_employee_type_and_status(employee, index)
-      |> check_employee_legal_entity(employee, client_id, index)
+      |> check_employee_legal_entity(employee, legal_entity_id, index)
 
     if length(errors) > 0, do: {:error, errors}, else: :ok
   end
@@ -909,14 +909,14 @@ defmodule Core.ContractRequests.Validator do
       ]
   end
 
-  defp validate_employee_division_employee(errors, division, client_id, index) do
+  defp validate_employee_division_employee(errors, division, legal_entity_id, index) do
     with {:ok, %Employee{} = employee} <-
            Reference.validate(
              :employee,
              division["employee_id"],
              "$.contractor_employee_divisions.[#{index}].employee_id"
            ),
-         :ok <- check_employee(employee, client_id, index) do
+         :ok <- check_employee(employee, legal_entity_id, index) do
       errors
     else
       {:error, error} when is_list(error) -> errors ++ error
@@ -938,16 +938,16 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_employee_divisions(%ReimbursementContractRequest{} = _contract_request, _client_id), do: :ok
+  def validate_employee_divisions(%ReimbursementContractRequest{}, _), do: :ok
 
-  def validate_employee_divisions(%CapitationContractRequest{} = contract_request, client_id) do
+  def validate_employee_divisions(%CapitationContractRequest{} = contract_request, contractor_legal_entity_id) do
     contract_request
     |> Jason.encode!()
     |> Jason.decode!()
-    |> validate_employee_divisions(client_id)
+    |> validate_employee_divisions(contractor_legal_entity_id)
   end
 
-  def validate_employee_divisions(params, client_id) do
+  def validate_employee_divisions(params, contractor_legal_entity_id) do
     contractor_divisions = params["contractor_divisions"]
     contractor_employee_divisions = params["contractor_employee_divisions"] || []
 
@@ -956,7 +956,7 @@ defmodule Core.ContractRequests.Validator do
       |> Enum.with_index()
       |> Enum.reduce([], fn {employee_division, i}, errors_list ->
         errors_list
-        |> validate_employee_division_employee(employee_division, client_id, i)
+        |> validate_employee_division_employee(employee_division, contractor_legal_entity_id, i)
         |> validate_employee_division_subset(contractor_divisions, employee_division, i)
       end)
 

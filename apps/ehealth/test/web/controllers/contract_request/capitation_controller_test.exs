@@ -71,7 +71,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       params =
@@ -134,7 +134,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -172,7 +172,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -223,7 +223,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -274,7 +274,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -306,7 +306,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -354,7 +354,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -510,7 +510,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -561,7 +561,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -608,7 +608,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -656,7 +656,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       now = Date.utc_today()
@@ -700,7 +700,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -749,7 +749,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -1076,7 +1076,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       conn =
@@ -1132,7 +1132,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
-        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"etag", resource}]}}
+        {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
       start_date = contract_start_date()

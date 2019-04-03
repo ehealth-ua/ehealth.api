@@ -413,10 +413,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       params =
         division
         |> prepare_reimbursement_params(medical_program)
-        |> Map.merge(%{
-          "contractor_owner_id" => owner.id,
-          "contractor_legal_entity_id" => legal_entity.id
-        })
+        |> Map.put("contractor_owner_id", owner.id)
         |> Map.drop(~w(start_date end_date))
 
       expect_signed_content(params, %{

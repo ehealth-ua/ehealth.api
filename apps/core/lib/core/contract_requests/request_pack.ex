@@ -14,6 +14,7 @@ defmodule Core.ContractRequests.RequestPack do
     provider
     request_params
     decoded_content
+    signer
     contract_request
     contract_request_id
   )a
