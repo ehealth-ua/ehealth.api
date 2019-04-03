@@ -6,11 +6,11 @@ defmodule Core.PRMFactories.EmployeeFactory do
       alias Core.Employees.Employee
       alias Ecto.UUID
 
-      def employee_factory do
+      def employee_factory(attrs) do
         division = build(:division)
         party = build(:party)
 
-        %Employee{
+        record = %Employee{
           is_active: true,
           position: "P1",
           status: "APPROVED",
@@ -25,6 +25,10 @@ defmodule Core.PRMFactories.EmployeeFactory do
           additional_info: doctor(),
           speciality: speciality()
         }
+
+        record
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
 
       def doctor do

@@ -9,7 +9,7 @@ defmodule Core.PRMFactories.ContractFactory do
 
   defmacro __using__(_opts) do
     quote do
-      def capitation_contract_factory do
+      def capitation_contract_factory(attrs) do
         data =
           Map.merge(generic_contract_data(), %{
             type: CapitationContract.type(),
@@ -35,17 +35,23 @@ defmodule Core.PRMFactories.ContractFactory do
             ]
           })
 
-        struct(%CapitationContract{}, data)
+        %CapitationContract{}
+        |> struct(data)
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
 
-      def reimbursement_contract_factory do
+      def reimbursement_contract_factory(attrs) do
         data =
           Map.merge(generic_contract_data(), %{
             type: ReimbursementContract.type(),
             medical_program: build(:medical_program)
           })
 
-        struct(%ReimbursementContract{}, data)
+        %ReimbursementContract{}
+        |> struct(data)
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
 
       def generic_contract_data do

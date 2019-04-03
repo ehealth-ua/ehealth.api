@@ -8,10 +8,10 @@ defmodule Core.PRMFactories.DivisionFactory do
     quote do
       alias Ecto.UUID
 
-      def division_factory do
+      def division_factory(attrs) do
         division_id = UUID.generate()
 
-        %Division{
+        record = %Division{
           id: division_id,
           legal_entity: build(:legal_entity),
           addresses: [
@@ -31,6 +31,10 @@ defmodule Core.PRMFactories.DivisionFactory do
           dls_id: nil,
           dls_verified: true
         }
+
+        record
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
 
       def division_address_factory do

@@ -10,7 +10,7 @@ defmodule GraphQL.Features.Context do
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo}
   alias Core.ContractRequests.{CapitationContractRequest, ReimbursementContractRequest}
-  alias Core.Contracts.{CapitationContract, ReimbursementContract}
+  alias Core.Contracts.{CapitationContract, ReimbursementContract, ContractDivision, ContractEmployee}
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
@@ -156,6 +156,25 @@ defmodule GraphQL.Features.Context do
         end
 
       {:ok, %{state | existing: Map.put(existing, model, items)}}
+    end
+  )
+
+  given_(
+    ~r/an? (?<entity_name>[\w\s]+) with the following fields exist:/,
+    fn %{existing: existing} = state, %{entity_name: entity_name, table_data: table_data} ->
+      entity_name = Inflex.singularize(entity_name)
+      model = entity_name_to_model(entity_name)
+
+      table_data = transpose_table(table_data)
+      attrs = prepare_attrs(model, table_data)
+
+      item =
+        case entity_name_to_factory_args(entity_name) do
+          {nil, factory_name} -> build(factory_name, attrs)
+          {repo_name, factory_name} -> insert(repo_name, factory_name, attrs)
+        end
+
+      {:ok, %{state | existing: Map.put(existing, model, [item])}}
     end
   )
 
@@ -1651,6 +1670,58 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the capitation contract where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetCapitationContractQuery($id: ID!) {
+          capitationContract(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("CapitationContract", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data capitationContract))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the reimbursement contract where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetReimbursementContractQuery($id: ID!) {
+          reimbursementContract(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ReimbursementContract", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data reimbursementContract))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{field: field, database_id: database_id} ->
       query = """
@@ -2275,6 +2346,18 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  then_(
+    ~r/^the (?<field>\w+) of the requested item should have the following fields:$/,
+    fn %{resp_entity: resp_entity} = state, %{field: field, table_data: table_data} ->
+      expected_value = for {key, value} <- transpose_table(table_data), do: {key, Jason.decode!(value)}, into: %{}
+      resp_value = resp_entity[field]
+
+      assert expected_value == resp_value
+
+      {:ok, state}
+    end
+  )
+
   def put_scope(conn, scope), do: put_req_header(conn, @endpoint.scope_header(), scope)
 
   def put_consumer_id(conn, id \\ UUID.generate()), do: put_req_header(conn, @consumer_id_header, id)
@@ -2302,6 +2385,8 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("reimbursement contract request"), do: ReimbursementContractRequest
   def entity_name_to_model("capitation contract"), do: CapitationContract
   def entity_name_to_model("reimbursement contract"), do: ReimbursementContract
+  def entity_name_to_model("contract division"), do: ContractDivision
+  def entity_name_to_model("contract employee"), do: ContractEmployee
   def entity_name_to_model("medical program"), do: MedicalProgram
   def entity_name_to_model("program medication"), do: ProgramMedication
   def entity_name_to_model("medication"), do: Medication
@@ -2326,6 +2411,8 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("reimbursement contract request"), do: {:il, :reimbursement_contract_request}
   def entity_name_to_factory_args("capitation contract"), do: {:prm, :capitation_contract}
   def entity_name_to_factory_args("reimbursement contract"), do: {:prm, :reimbursement_contract}
+  def entity_name_to_factory_args("contract division"), do: {:prm, :contract_division}
+  def entity_name_to_factory_args("contract employee"), do: {:prm, :contract_employee}
   def entity_name_to_factory_args("medical program"), do: {:prm, :medical_program}
   def entity_name_to_factory_args("program medication"), do: {:prm, :program_medication}
   def entity_name_to_factory_args("medication"), do: {:prm, :medication}
@@ -2337,6 +2424,10 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("district"), do: {nil, :district}
   def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
   def entity_name_to_factory_args(entity_name), do: raise("Factory not found for #{inspect(entity_name)}")
+
+  def transpose_table(table_data) do
+    Enum.into(table_data, %{}, &{&1.field, &1.value})
+  end
 
   def prepare_input_attrs(attrs), do: Enum.map(attrs, &prepare_input_field/1)
 
@@ -2367,15 +2458,19 @@ defmodule GraphQL.Features.Context do
   end
 
   defp prepare_field(:databaseId), do: :id
+  defp prepare_field("databaseId"), do: :id
 
   defp prepare_field(key) when is_atom(key) do
     key
     |> Atom.to_string()
     |> prepare_field()
-    |> String.to_atom()
   end
 
-  defp prepare_field(key), do: Macro.underscore(key)
+  defp prepare_field(key) when is_binary(key) do
+    key
+    |> Macro.underscore()
+    |> String.to_atom()
+  end
 
   defp prepare_value(nil, _, value), do: {:ok, value}
 

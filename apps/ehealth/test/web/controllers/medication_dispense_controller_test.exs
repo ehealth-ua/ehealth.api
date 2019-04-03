@@ -586,7 +586,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -650,7 +649,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert(:prm, :reimbursement_contract,
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
         medical_program: medical_program
       )
 
@@ -707,7 +705,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -771,7 +768,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -852,7 +848,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -931,7 +926,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -1066,7 +1060,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -1174,7 +1167,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         insert(:prm, :reimbursement_contract,
           status: ReimbursementContract.status(:verified),
           contractor_legal_entity: legal_entity,
-          contractor_legal_entity_id: legal_entity.id,
           medical_program: medical_program
         )
 
@@ -1283,7 +1275,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       insert(:prm, :reimbursement_contract,
         status: ReimbursementContract.status(:verified),
         contractor_legal_entity: legal_entity,
-        contractor_legal_entity_id: legal_entity.id,
         medical_program: medical_program
       )
 

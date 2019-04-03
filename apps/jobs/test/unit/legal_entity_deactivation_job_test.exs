@@ -48,9 +48,9 @@ defmodule Unit.LegalEntityDeactivationJobTest do
 
     test "deactivates employee" do
       actor_id = Ecto.UUID.generate()
-      %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      employee = insert(:prm, :employee, legal_entity_id: legal_entity_id)
-      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
+
       assert Employee.status(:approved) == employee.status
       refute employee.status_reason
       refute actor_id == employee.updated_by
@@ -60,9 +60,8 @@ defmodule Unit.LegalEntityDeactivationJobTest do
         record: employee
       }
 
-      expect(KafkaMock, :publish_deactivate_declaration_event, fn _ ->
-        :ok
-      end)
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn _ -> :ok end)
 
       assert :ok ==
                LegalEntityDeactivationJob.consume(%LegalEntityDeactivationJob{

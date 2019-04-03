@@ -163,6 +163,10 @@ defmodule GraphQL.Schema.CapitationContractTypes do
     field(:nhs_contract_price, :float)
     field(:contractor_rmsp_amount, non_null(:integer))
 
+    field(:to_create_request_content, non_null(:json),
+      resolve: &CapitationContractResolver.get_to_create_request_content/3
+    )
+
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
   end

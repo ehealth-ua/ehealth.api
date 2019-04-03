@@ -65,4 +65,16 @@ defmodule Core.Factories do
 
   defp repo_insert!(data, :il), do: Repo.insert!(data)
   defp repo_insert!(data, :prm), do: PRMRepo.insert!(data)
+
+  defp drop_overridden_fields(%{__struct__: model} = record, attrs) do
+    overridden_fields =
+      model.__schema__(:associations)
+      |> Enum.map(&model.__schema__(:association, &1))
+      |> Enum.filter(&(&1.relationship == :parent and Map.has_key?(attrs, &1.owner_key)))
+      |> Enum.map(& &1.field)
+
+    Map.drop(record, overridden_fields)
+  end
+
+  defp drop_overridden_fields(record, _), do: record
 end

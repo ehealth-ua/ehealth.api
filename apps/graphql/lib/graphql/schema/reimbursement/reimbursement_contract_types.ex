@@ -155,6 +155,10 @@ defmodule GraphQL.Schema.ReimbursementContractTypes do
       resolve: &ReimbursementContractResolver.get_attached_documents/3
     )
 
+    field(:to_create_request_content, non_null(:json),
+      resolve: &ReimbursementContractResolver.get_to_create_request_content/3
+    )
+
     field(:medical_program, :medical_program, resolve: dataloader(PRM))
 
     field(:inserted_at, non_null(:datetime))

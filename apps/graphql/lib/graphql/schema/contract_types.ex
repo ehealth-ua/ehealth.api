@@ -100,6 +100,7 @@ defmodule GraphQL.Schema.ContractTypes do
     # Dictionary: CONTRACT_PAYMENT_METHOD
     field(:nhs_payment_method, :string)
     field(:attached_documents, non_null(list_of(:contract_document)))
+    field(:to_create_request_content, non_null(:json))
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
 
