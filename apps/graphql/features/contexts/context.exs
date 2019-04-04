@@ -4,7 +4,7 @@ defmodule GraphQL.Features.Context do
 
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
-  import Core.Expectations.Signature, only: [drfo_signed_content: 2]
+  import Core.Expectations.Signature, only: [drfo_signed_content: 2, expect_signed_content: 2]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
   import Mox, only: [expect: 3, expect: 4]
 
@@ -177,6 +177,40 @@ defmodule GraphQL.Features.Context do
         end
 
       {:ok, %{state | existing: Map.put(existing, model, [item])}}
+    end
+  )
+
+  given_(
+    ~r/^I have a signed content with the following fields:$/,
+    fn state, %{table_data: table_data} ->
+      content =
+        table_data
+        |> transpose_table()
+        |> prepare_input_attrs()
+
+      encoded_content =
+        content
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      state =
+        Map.merge(state, %{
+          content: content,
+          signed_content: %{content: encoded_content, encoding: "BASE64"}
+        })
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^the following signatures was applied:$/,
+    fn %{content: content} = state, %{table_data: table_data} ->
+      signers = Enum.map(table_data, &prepare_input_attrs/1)
+
+      expect_signed_content(content, signers)
+
+      {:ok, state}
     end
   )
 
@@ -1999,6 +2033,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I create contract request with signed content and attributes:$/,
+    fn %{conn: conn, signed_content: signed_content}, %{table_data: [row]} ->
+      query = """
+        mutation CreateContractRequest($input: CreateContractRequestInput!) {
+          createContractRequest(input: $input) {
+            contractRequest {
+              databaseId
+              status
+            }
+          }
+        }
+      """
+
+      input =
+        row
+        |> prepare_input_attrs()
+        |> Map.put(:signedContent, signed_content)
+
+      variables = %{input: input}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data createContractRequest contractRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I create medical program with name "(?<name>[^"]+)"$/,
     fn %{conn: conn}, %{name: name} ->
       query = """
@@ -2474,7 +2540,7 @@ defmodule GraphQL.Features.Context do
     Enum.into(table_data, %{}, &{&1.field, &1.value})
   end
 
-  def prepare_input_attrs(attrs), do: Enum.map(attrs, &prepare_input_field/1)
+  def prepare_input_attrs(attrs), do: attrs |> Enum.map(&prepare_input_field/1) |> Map.new()
 
   defp prepare_input_field({field, ""}), do: {field, ""}
 
@@ -2566,7 +2632,7 @@ defmodule GraphQL.Features.Context do
 
   defp call_create_entity_mutation(conn, "INNM", input_attrs) do
     input_attrs = prepare_input_attrs(input_attrs)
-    return_fields = input_attrs |> Keyword.keys() |> Enum.join(",")
+    return_fields = input_attrs |> Map.keys() |> Enum.join(",")
 
     query = """
       mutation CreateINNM($input: CreateINNMInput!) {

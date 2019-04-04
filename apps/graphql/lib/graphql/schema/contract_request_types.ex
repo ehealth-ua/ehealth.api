@@ -22,6 +22,25 @@ defmodule GraphQL.Schema.ContractRequestTypes do
   @status_terminated CapitationContractRequest.status(:terminated)
 
   object :contract_request_mutations do
+    payload field(:create_contract_request) do
+      meta(:scope, ~w(contract_request:create))
+      meta(:client_metadata, ~w(client_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:type, non_null(:contract_request_type))
+        field(:assignee_id, non_null(:id))
+        field(:signed_content, non_null(:signed_content))
+      end
+
+      output do
+        field(:contract_request, :contract_request)
+      end
+
+      middleware(ParseIDs, id: :employee)
+      resolve(&ContractRequestResolver.create/2)
+    end
+
     payload field(:update_contract_request) do
       meta(:scope, ~w(contract_request:update))
 
@@ -115,6 +134,11 @@ defmodule GraphQL.Schema.ContractRequestTypes do
 
       resolve(&ContractRequestResolver.sign/2)
     end
+  end
+
+  enum :contract_request_type do
+    value(:capitation, as: @capitation_type)
+    value(:reimbursement, as: @reimbursement_type)
   end
 
   interface :contract_request do

@@ -124,6 +124,15 @@ defmodule GraphQL.Resolvers.ContractRequest do
 
   def get_to_sign_content(_, _, _), do: {:ok, nil}
 
+  def create(args, resolution) do
+    params = prepare_signed_content_params(args)
+
+    with {:ok, contract_request, references} <-
+           ContractRequests.create_from_contract(resolution.context.headers, params) do
+      {:ok, %{contract_request: Map.merge(contract_request, references)}}
+    end
+  end
+
   def update(args, resolution) do
     params = Enum.reduce(args, %{}, &prepare_update_param/2)
 
@@ -169,6 +178,15 @@ defmodule GraphQL.Resolvers.ContractRequest do
 
   defp prepare_update_param({:miscellaneous, value}, acc), do: Map.put(acc, "misc", value)
   defp prepare_update_param({key, value}, acc), do: Map.put(acc, to_string(key), value)
+
+  defp prepare_signed_content_params(%{signed_content: signed_content, type: type, assignee_id: assignee_id}) do
+    %{
+      "type" => type,
+      "assignee_id" => assignee_id,
+      "signed_content" => signed_content.content,
+      "signed_content_encoding" => to_string(signed_content.encoding)
+    }
+  end
 
   defp prepare_signed_content_params(%{signed_content: signed_content, id: %{id: id, type: type}}) do
     %{
