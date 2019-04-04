@@ -318,10 +318,13 @@ defmodule Core.MedicationDispense.API do
   end
 
   defp validate_medical_program(medical_program_id, medication_request, legal_entity_id, division_id) do
+    medication_request_program_id = medication_request["medical_program_id"]
+
     with {:ok, medical_program} <- Reference.validate(:medical_program, medical_program_id),
          {_, true} <- {:is_active, medical_program.is_active},
-         {_, true} <- {:is_matched, medical_program.id == Map.get(medication_request, "medical_program_id")},
-         {:ok, contract} <- validate_contract(medical_program_id, legal_entity_id),
+         {_, true} <-
+           {:is_matched, is_nil(medication_request_program_id) || medical_program.id == medication_request_program_id},
+         {:ok, contract} <- validate_contract(medical_program.id, legal_entity_id),
          :ok <- validate_contract_division(contract.id, division_id) do
       {:ok, medical_program}
     else
