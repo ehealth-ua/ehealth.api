@@ -165,7 +165,7 @@ defmodule Core.EmployeeRequests do
          :ok <- validate_type(legal_entity, employee_type),
          :ok <- check_is_user_blacklisted(params),
          {:ok, employee_request} <- insert_employee_request(params) do
-      {:ok, employee_request, preload_references(employee_request)}
+      {:ok, employee_request}
     end
   end
 
@@ -202,7 +202,7 @@ defmodule Core.EmployeeRequests do
     {:ok, Map.get(params, "division_id")}
   end
 
-  defp preload_references(%Request{} = employee_request) do
+  def preload_references(%Request{} = employee_request) do
     fields = [
       {[:data, "legal_entity_id"], :legal_entity}
     ]

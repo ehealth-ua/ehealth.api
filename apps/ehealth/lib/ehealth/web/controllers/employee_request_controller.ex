@@ -23,12 +23,12 @@ defmodule EHealth.Web.EmployeeRequestController do
   end
 
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
-    with {:ok, employee_request, references} <- API.create(params, headers) do
+    with {:ok, employee_request} <- API.create(params, headers) do
       render(
         conn,
         "show.json",
         employee_request: employee_request,
-        references: references
+        references: API.preload_references(employee_request)
       )
     end
   end

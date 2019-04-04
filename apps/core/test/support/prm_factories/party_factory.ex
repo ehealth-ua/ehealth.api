@@ -32,11 +32,15 @@ defmodule Core.PRMFactories.PartyFactory do
         }
       end
 
-      def party_user_factory do
-        %Core.PartyUsers.PartyUser{
+      def party_user_factory(attrs) do
+        record = %Core.PartyUsers.PartyUser{
           user_id: UUID.generate(),
           party: build(:party)
         }
+
+        record
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
 
       def random_tax_id, do: sequence(:tax_id, &(100_000_000 + &1)) |> to_string()

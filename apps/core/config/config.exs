@@ -254,6 +254,7 @@ config :core, Core.Man.Templates.CredentialsRecoveryRequest,
   locale: {:system, "CREDENTIALS_RECOVERY_REQUEST_INVITATION_TEMPLATE_LOCALE", "uk_UA"}
 
 config :core, :legal_entity_employee_types,
+  nhs: {:system, :list, "LEGAL_ENTITY_NHS_EMPLOYEE_TYPES", ["NHS ADMIN", "NHS ADMIN SIGNER", "NHS LE VERIFIER"]},
   msp: {:system, :list, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN"]},
   msp_pharmacy:
     {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "PHARMACIST"]},

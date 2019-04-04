@@ -2,9 +2,10 @@ defmodule GraphQL.Features.Context do
   use WhiteBread.Context
   use Phoenix.ConnTest
 
+  import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
+  import Core.Expectations.Signature, only: [drfo_signed_content: 2]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
-  import Ecto.Query, only: [where: 2]
   import Mox, only: [expect: 3, expect: 4]
 
   alias Absinthe.Relay.Node
@@ -19,6 +20,7 @@ defmodule GraphQL.Features.Context do
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
+  alias Core.PartyUsers.PartyUser
   alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
@@ -2237,6 +2239,47 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(
+    ~r/^I create employee request with taxId "(?<tax_id>[^"]+)" and attributes:$/,
+    fn %{conn: conn}, %{tax_id: tax_id, table_data: table_data} ->
+      request_params = Enum.into(table_data, %{}, &{Macro.underscore(&1.field), Jason.decode!(&1.value)})
+      employee_request_params = %{"employee_request" => request_params}
+
+      # TODO: Split expectations
+      drfo_signed_content(employee_request_params, tax_id)
+      template()
+
+      query = """
+        mutation CreateEmployeeRequest($input: CreateEmployeeRequestInput!) {
+          createEmployeeRequest(input: $input) {
+            employeeRequest {
+              databaseId
+              status
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          signedContent: %{
+            content: employee_request_params |> Jason.encode!() |> Base.encode64(),
+            encoding: "BASE64"
+          }
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data createEmployeeRequest employeeRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
   then_("no errors should be returned", fn %{resp_body: resp_body} = state ->
     refute resp_body["errors"]
 
@@ -2381,6 +2424,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("division"), do: Division
   def entity_name_to_model("employee"), do: Employee
   def entity_name_to_model("party"), do: Party
+  def entity_name_to_model("party user"), do: PartyUser
   def entity_name_to_model("capitation contract request"), do: CapitationContractRequest
   def entity_name_to_model("reimbursement contract request"), do: ReimbursementContractRequest
   def entity_name_to_model("capitation contract"), do: CapitationContract
@@ -2407,6 +2451,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("division"), do: {:prm, :division}
   def entity_name_to_factory_args("employee"), do: {:prm, :employee}
   def entity_name_to_factory_args("party"), do: {:prm, :party}
+  def entity_name_to_factory_args("party user"), do: {:prm, :party_user}
   def entity_name_to_factory_args("capitation contract request"), do: {:il, :capitation_contract_request}
   def entity_name_to_factory_args("reimbursement contract request"), do: {:il, :reimbursement_contract_request}
   def entity_name_to_factory_args("capitation contract"), do: {:prm, :capitation_contract}
