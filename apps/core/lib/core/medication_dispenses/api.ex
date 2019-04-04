@@ -497,11 +497,11 @@ defmodule Core.MedicationDispense.API do
         acc + Map.get(item, "medication_qty")
       end)
 
-    if request_qty <= Map.get(medication_request, "medication_qty") do
+    if request_qty == Map.get(medication_request, "medication_qty") do
       :ok
     else
       Error.dump(%ValidationError{
-        description: "dispensed medication quantity must be less or equal to medication quantity in Medication Request",
+        description: "dispensed medication quantity must be equal to medication quantity in Medication Request",
         path: "$.medication_request.medication_qty",
         rule: :required
       })

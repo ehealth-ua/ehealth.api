@@ -1004,6 +1004,126 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert get_in(resp, ~w(error message)) == "Medication request with intent PLAN cannot be dispensed"
     end
 
+    test "failed when medication dispense medication_qty is not equal medication request medication_qty", %{conn: conn} do
+      expect_mpi_get_person()
+
+      %{user_id: user_id, party: party} = insert(:prm, :party_user)
+      legal_entity = insert(:prm, :legal_entity)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      %{id: division_id} =
+        insert(
+          :prm,
+          :division,
+          is_active: true,
+          legal_entity: legal_entity
+        )
+
+      %{id: innm_dosage_id} = insert_innm_dosage()
+      %{id: medication_id} = insert_medication(innm_dosage_id)
+      medical_program = insert(:prm, :medical_program, is_active: true)
+
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication_id,
+        medical_program_id: medical_program.id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {medication_request, _} =
+        build_resp(%{
+          legal_entity_id: legal_entity.id,
+          division_id: division_id,
+          employee_id: employee_id,
+          medical_program_id: medical_program.id,
+          medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1),
+            medication_qty: 10,
+            verification_code: "1234"
+          },
+          medication_dispense_params: %{
+            party_id: party.id
+          },
+          medication_dispense_details_params: %{
+            medication_id: medication_id,
+            medication_qty: 9,
+            sell_price: 18.65,
+            sell_amount: 167.85,
+            discount_amount: 45
+          }
+        })
+
+      contract =
+        insert(:prm, :reimbursement_contract,
+          status: ReimbursementContract.status(:verified),
+          contractor_legal_entity: legal_entity,
+          medical_program: medical_program
+        )
+
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division_id)
+
+      expect(OPSMock, :get_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
+        {:ok, %{"data" => []}}
+      end)
+
+      expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_id]}}
+      end)
+
+      create_data = %{
+        code: "1234",
+        medication_dispense:
+          new_dispense_params(%{
+            division_id: division_id,
+            medical_program_id: medical_program.id,
+            dispense_details: [
+              %{
+                medication_id: medication_id,
+                medication_qty: 9,
+                sell_price: 18.65,
+                sell_amount: 167.85,
+                discount_amount: 45
+              }
+            ]
+          })
+      }
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
+        |> post(medication_dispense_path(conn, :create), create_data)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.medication_request.medication_qty",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" =>
+                         "dispensed medication quantity must be equal to medication quantity in Medication Request",
+                       "params" => [],
+                       "rule" => "required"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "success create medication dispense in devitaion koeficient", %{conn: conn} do
       expect_mpi_get_person()
 
@@ -1041,7 +1161,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           medication_request_params: %{
             dispense_valid_from: Date.utc_today() |> Date.add(-1),
             dispense_valid_to: Date.utc_today() |> Date.add(1),
-            medication_qty: 110,
+            medication_qty: 100,
             verification_code: "1234"
           },
           medication_dispense_params: %{
