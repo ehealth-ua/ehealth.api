@@ -443,9 +443,7 @@ defmodule Core.MedicationDispense.API do
     %{"medication_qty" => medication_qty, "discount_amount" => discount_amount} = details
 
     deviation = config()[:deviation]
-
-    coefficient =
-      Float.round(discount_amount / (Float.round(reimbursement_amount / medication.package_qty, 2) * medication_qty), 2)
+    coefficient = Float.round(discount_amount / (reimbursement_amount / medication.package_qty * medication_qty), 2)
 
     if 1 >= coefficient and coefficient >= 1 - deviation do
       :ok
