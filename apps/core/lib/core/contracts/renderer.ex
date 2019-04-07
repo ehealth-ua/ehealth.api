@@ -4,14 +4,14 @@ defmodule Core.Contracts.Renderer do
   alias Core.Contracts.{CapitationContract, ReimbursementContract}
 
   def render_create_request_content(%CapitationContract{} = contract, references) do
-    data = Map.take(contract, ~w(
+    contract
+    |> Map.take(~w(
       contract_number
       contractor_base
       contractor_legal_entity_id
       contractor_owner_id
       contractor_payment_details
       contractor_rmsp_amount
-      end_date
       external_contractor_flag
       external_contractors
       id_form
@@ -22,23 +22,22 @@ defmodule Core.Contracts.Renderer do
       nhs_payment_method
       nhs_signer_id
       nhs_signer_base
-      start_date
     )a)
-
-    Map.merge(data, %{
+    |> Map.merge(%{
+      consent_text: references.consent_text,
       contractor_divisions: render_association(:contractor_divisions, references),
       contractor_employee_divisions: render_association(:contractor_employee_divisions, references)
     })
   end
 
   def render_create_request_content(%ReimbursementContract{} = contract, references) do
-    data = Map.take(contract, ~w(
+    contract
+    |> Map.take(~w(
       contract_number
       contractor_base
       contractor_legal_entity_id
       contractor_owner_id
       contractor_payment_details
-      end_date
       id_form
       issue_city
       misc
@@ -47,10 +46,9 @@ defmodule Core.Contracts.Renderer do
       nhs_payment_method
       nhs_signer_id
       nhs_signer_base
-      start_date
     )a)
-
-    Map.merge(data, %{
+    |> Map.merge(%{
+      consent_text: references.consent_text,
       contractor_divisions: render_association(:contractor_divisions, references)
     })
   end
