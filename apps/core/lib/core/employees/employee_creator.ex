@@ -105,43 +105,44 @@ defmodule Core.Employees.EmployeeCreator do
 
   def create_employee(err, _, _), do: err
 
-  def deactivate_employee_owners(@type_owner = type, legal_entity_id, req_headers) do
-    do_deactivate_employee_owner(type, legal_entity_id, req_headers)
+  def deactivate_employee_owners(@type_owner, legal_entity_id, req_headers) do
+    do_deactivate_employee_owners(legal_entity_id, req_headers)
   end
 
-  def deactivate_employee_owners(@type_pharmacy_owner = type, legal_entity_id, req_headers) do
-    do_deactivate_employee_owner(type, legal_entity_id, req_headers)
+  def deactivate_employee_owners(@type_pharmacy_owner, legal_entity_id, req_headers) do
+    do_deactivate_employee_owners(legal_entity_id, req_headers)
   end
 
   def deactivate_employee_owners(_, _, _req_headers), do: :ok
 
-  defp do_deactivate_employee_owner(type, legal_entity_id, req_headers) do
-    employee =
+  defp do_deactivate_employee_owners(legal_entity_id, req_headers) do
+    employees =
       Employee
       |> where([e], e.is_active)
-      |> where([e], e.employee_type == ^type)
+      |> where([e], e.employee_type in ^[@type_owner, @type_pharmacy_owner])
       |> where([e], e.legal_entity_id == ^legal_entity_id)
-      |> @read_prm_repo.one()
+      |> @read_prm_repo.all()
 
-    suspend_contracts(employee)
-    deactivate_employee(employee, req_headers)
+    suspend_contracts(employees)
+    deactivate_employees(employees, req_headers)
   end
 
-  defp suspend_contracts(%Employee{id: id}) do
-    ContractSuspender.suspend_by_contractor_owner_ids([id])
+  defp suspend_contracts(employees) do
+    employee_ids = Enum.map(employees, &Map.get(&1, :id))
+    ContractSuspender.suspend_by_contractor_owner_ids(employee_ids)
   end
 
-  defp suspend_contracts(_), do: :ok
-
-  def deactivate_employee(%Employee{} = employee, headers) do
+  def deactivate_employees(employees, headers) do
     params = %{
       "updated_by" => get_consumer_id(headers),
       "is_active" => false
     }
 
-    with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, headers) do
-      Employees.update(employee, params, get_consumer_id(headers))
-    end
+    Enum.each(employees, fn employee ->
+      with :ok <- EmployeeUpdater.revoke_user_auth_data(employee, headers) do
+        Employees.update(employee, params, get_consumer_id(headers))
+      end
+    end)
   end
 
   def deactivate_employee(employee, _), do: {:ok, employee}

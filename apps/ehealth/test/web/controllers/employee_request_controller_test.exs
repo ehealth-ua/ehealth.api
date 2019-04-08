@@ -1379,11 +1379,13 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
           :employee,
           legal_entity: legal_entity,
           division: division,
-          party: party
+          party: party,
+          employee_type: Employee.type(:owner)
         )
 
       data =
         employee_request_data()
+        |> put_in([:employee_type], Employee.type(:pharmacy_owner))
         |> put_in([:party, :email], "mis_bot_1493831618@user.com")
         |> put_in([:legal_entity_id], legal_entity.id)
         |> put_in([:division_id], division.id)
@@ -1401,6 +1403,7 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       conn = post(conn, employee_request_path(conn, :approve, employee_request.id))
       resp = json_response(conn, 200)["data"]
       assert "APPROVED" == resp["status"]
+      refute Employee |> PRMRepo.get(employee.id) |> Map.get(:is_active)
     end
 
     test "can approve employee request with employee_id'", %{conn: conn} do
