@@ -227,7 +227,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   end
 
   describe "create_declaration_with_termination_logic/2" do
-    test "returns expected result" do
+    test "returns expected result when authentication_method_current.type == OTP" do
       expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
         {:ok, %{"data" => params}}
       end)
@@ -265,7 +265,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       assert declaration_request_data["seed"] == data["seed"]
       assert "active" == data["status"]
       assert data["is_active"]
-      assert data["reason"] == "offline"
+      refute data["reason"]
     end
 
     test "returns active status when authentication_method_current.type == NA" do
@@ -281,11 +281,38 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
           authentication_method_current: %{"type" => "NA"}
         )
 
+      declaration_request.data["person"]["authentication_methods"]
+
       person_data = %{"data" => %{"id" => ""}}
 
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
       assert "active" == data["status"]
+      assert "offline" == data["reason"]
+    end
+
+    test "returns active status when authentication_method_current.type == NA and person auth OTP" do
+      expect(OPSMock, :create_declaration_with_termination_logic, fn params, _headers ->
+        {:ok, %{"data" => params}}
+      end)
+
+      dr = build(:declaration_request)
+      person = %{dr.data["person"] | "authentication_methods" => [%{"type" => "OTP"}]}
+      data = %{dr.data | "person" => person}
+
+      declaration_request =
+        insert(:il, :declaration_request,
+          status: "ACTIVE",
+          authentication_method_current: %{"type" => "NA"},
+          data: data
+        )
+
+      person_data = %{"data" => %{"id" => ""}}
+
+      {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
+
+      assert "active" == data["status"]
+      refute data["reason"]
     end
 
     test "returns pending_validation status when authentication_method_current.type == OFFLINE" do
@@ -306,6 +333,8 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
       assert "pending_verification" == data["status"]
+      assert data["is_active"]
+      assert "offline" = data["reason"]
     end
 
     test "returns empty status when authentication_method_current.type is unknown" do

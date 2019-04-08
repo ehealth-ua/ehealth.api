@@ -191,6 +191,7 @@ defmodule Core.DeclarationRequests.API.Sign do
       ) do
     consumer_id = get_consumer_id(headers)
     person_no_tax_id = get_in(person, ~w(data no_tax_id)) || false
+    person_authentication_method = List.first(get_in(data, ~w(person authentication_methods)) || [])
 
     data
     |> Map.take(["start_date", "end_date", "scope", "seed"])
@@ -208,22 +209,15 @@ defmodule Core.DeclarationRequests.API.Sign do
       "declaration_request_id" => id,
       "overlimit" => overlimit,
       "declaration_number" => declaration_number,
-      "reason" => get_reason(data)
+      "reason" => get_reason(authentication_method_current, person_no_tax_id, person_authentication_method)
     })
     |> @ops_api.create_declaration_with_termination_logic(headers)
   end
 
-  defp get_reason(data) do
-    authentication_method = hd(data["person"]["authentication_methods"])
-    no_tax_id = data["person"]["no_tax_id"]
-
-    cond do
-      authentication_method["type"] == @auth_offline && no_tax_id -> "no_tax_id"
-      authentication_method["type"] == @auth_offline -> "offline"
-      no_tax_id -> "no_tax_id"
-      true -> nil
-    end
-  end
+  defp get_reason(_, true, _), do: "no_tax_id"
+  defp get_reason(%{"type" => @auth_offline}, _, _), do: "offline"
+  defp get_reason(%{"type" => @auth_na}, _, person_auth), do: get_reason(person_auth, nil, %{})
+  defp get_reason(_, _, _), do: nil
 
   defp update_casher_person_data(employee_id) do
     with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do

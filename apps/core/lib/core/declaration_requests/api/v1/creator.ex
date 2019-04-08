@@ -128,17 +128,17 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     end
   end
 
-  def prepare_auth_method_current(%{"type" => @auth_offline}), do: %{"type" => @auth_offline}
-  def prepare_auth_method_current(_), do: %{"type" => @auth_na}
+  defp prepare_auth_method_current(%{"type" => @auth_offline}), do: %{"type" => @auth_offline}
+  defp prepare_auth_method_current(_), do: %{"type" => @auth_na}
 
-  def prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}, _) do
+  defp prepare_auth_method_current(@auth_otp, %{"phone_number" => phone_number}, _) do
     %{
       "type" => @auth_otp,
       "number" => phone_number
     }
   end
 
-  def prepare_auth_method_current(@auth_na, _, req_auth_method) do
+  defp prepare_auth_method_current(@auth_na, _, req_auth_method) do
     auth_method = Map.take(req_auth_method, ["type"])
 
     case Map.has_key?(req_auth_method, "phone_number") do
@@ -147,7 +147,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     end
   end
 
-  def prepare_auth_method_current(type, _authentication_method, _), do: %{"type" => type}
+  defp prepare_auth_method_current(type, _authentication_method, _), do: %{"type" => type}
 
   defp fetch_users(result) do
     {:ok, Enum.map(result, &Map.get(&1, :user_id))}
