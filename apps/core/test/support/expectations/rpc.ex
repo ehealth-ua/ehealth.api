@@ -10,13 +10,13 @@ defmodule Core.Expectations.RPC do
   end
 
   def expect_edr_by_code(response, times \\ 1) do
-    expect(RPCWorkerMock, :run, times, fn _, _, :legal_entity_by_code, _ ->
+    expect(RPCEdrWorkerMock, :run, times, fn _, _, :legal_entity_by_code, _ ->
       response
     end)
   end
 
   def expect_edr_by_passport(response, times \\ 1) do
-    expect(RPCWorkerMock, :run, times, fn _, _, :legal_entity_by_passport, _ ->
+    expect(RPCEdrWorkerMock, :run, times, fn _, _, :legal_entity_by_passport, _ ->
       response
     end)
   end

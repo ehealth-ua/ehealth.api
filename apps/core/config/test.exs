@@ -19,6 +19,7 @@ config :core,
     validators: Core.Validators.CacheTest
   ],
   rpc_worker: RPCWorkerMock,
+  rpc_edr_worker: RPCEdrWorkerMock,
   repos: [
     read_repo: Core.Repo,
     read_prm_repo: Core.PRMRepo

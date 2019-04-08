@@ -10,6 +10,7 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
   import Ecto.Changeset
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
+  @rpc_edr_worker Application.get_env(:core, :rpc_edr_worker)
   @edr_status_ok EdrVerification.status(:verified)
   @edr_status_error EdrVerification.status(:error)
 
@@ -146,12 +147,12 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
     cond do
       Regex.match?(~r/^[0-9]{8,10}$/, edrpou) ->
         "edr_api"
-        |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_code, [edrpou])
+        |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_code, [edrpou])
         |> process_edr_response(changes)
 
       Regex.match?(~r/^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$/u, edrpou) ->
         "edr_api"
-        |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [edrpou])
+        |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [edrpou])
         |> process_edr_response(changes)
 
       true ->

@@ -21,6 +21,7 @@ defmodule Core.LegalEntities.Validator do
   @pharmacy LegalEntity.type(:pharmacy)
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
+  @rpc_edr_worker Application.get_env(:core, :rpc_edr_worker)
 
   def decode_and_validate(params, headers) do
     with :ok <- JsonSchema.validate(:legal_entity_sign, params),
@@ -178,7 +179,7 @@ defmodule Core.LegalEntities.Validator do
   def validate_edr(content, %{edrpou: value}) do
     if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
       "edr_api"
-      |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_code, [value])
+      |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_code, [value])
       |> do_validate_edr(content)
     else
       :ok
@@ -188,7 +189,7 @@ defmodule Core.LegalEntities.Validator do
   def validate_edr(content, %{drfo: value}) do
     if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
       "edr_api"
-      |> @rpc_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [value])
+      |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [value])
       |> do_validate_edr(content)
     else
       :ok
