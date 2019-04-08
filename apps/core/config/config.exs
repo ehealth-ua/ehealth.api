@@ -378,7 +378,7 @@ config :cipher,
   ivphrase: System.get_env("CIPHER_IVPHRASE") || "B((%(^(%V(CWBY(**(by(*YCBDYB#(Y(C#"
 
 config :core, Core.Rpc.Worker, max_attempts: {:system, :integer, "RPC_MAX_ATTEMPTS", 3}
-config :core, Core.Rpc.RpcWorker, timeout: {:system, :integer, "RPC_WORKER_TIMEOUT", 15_000}
+config :core, Core.Rpc.EdrWorker, timeout: {:system, :integer, "RPC_EDR_WORKER_TIMEOUT", 15_000}
 
 config :kaffe,
   producer: [
