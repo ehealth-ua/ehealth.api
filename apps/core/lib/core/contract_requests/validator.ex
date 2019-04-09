@@ -111,11 +111,17 @@ defmodule Core.ContractRequests.Validator do
 
   def validate_contract_request_client_access(@msp, id, %{type: @capitation, contractor_legal_entity_id: id}), do: :ok
 
-  def validate_contract_request_client_access(@pharmacy, id, %{type: @reimbursement, contractor_legal_entity_id: id}),
-    do: :ok
+  def validate_contract_request_client_access(@pharmacy, id, %{type: @reimbursement, contractor_legal_entity_id: id}) do
+    :ok
+  end
 
-  def validate_contract_request_client_access(_, _, _),
-    do: {:error, {:forbidden, "User is not allowed to perform this action"}}
+  def validate_contract_request_client_access(@msp_pharmacy, id, %{contractor_legal_entity_id: id}) do
+    :ok
+  end
+
+  def validate_contract_request_client_access(_, _, _) do
+    {:error, {:forbidden, "User is not allowed to perform this action"}}
+  end
 
   def validate_client_id(client_id, client_id, _), do: :ok
   def validate_client_id(_, _, :forbidden), do: {:error, {:forbidden, "Invalid client_id"}}
