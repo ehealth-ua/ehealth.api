@@ -13,15 +13,6 @@ defmodule GraphQL.Schema.EmployeeTypes do
   alias GraphQL.Middleware.Filtering
   alias GraphQL.Resolvers.Employee, as: EmployeeResolver
 
-  @type_admin Employee.type(:admin)
-  @type_doctor Employee.type(:doctor)
-  @type_hr Employee.type(:hr)
-  @type_nhs Employee.type(:nhs)
-  @type_nhs_signer Employee.type(:nhs_signer)
-  @type_owner Employee.type(:owner)
-  @type_pharmacist Employee.type(:pharmacist)
-  @type_pharmacy_owner Employee.type(:pharmacy_owner)
-
   object :employee_queries do
     connection field(:employees, node_type: :employee) do
       meta(:scope, ~w(employee:read))
@@ -75,7 +66,8 @@ defmodule GraphQL.Schema.EmployeeTypes do
 
   input_object :employee_filter do
     field(:database_id, :uuid)
-    field(:employee_type, list_of(:employee_type))
+    # Dictionary: EMPLOYEE_TYPE
+    field(:employee_type, list_of(:string))
     field(:position, list_of(:string))
     field(:start_date, :date_interval)
     # Dictionary: EMPLOYEE_STATUS
@@ -117,9 +109,8 @@ defmodule GraphQL.Schema.EmployeeTypes do
     field(:start_date, non_null(:date))
     field(:end_date, :date)
     field(:is_active, :boolean)
-
-    # enums
-    field(:employee_type, non_null(:employee_type))
+    # Dictionary: EMPLOYEE_TYPE
+    field(:employee_type, non_null(:string))
     # Dictionary: EMPLOYEE_STATUS
     field(:status, non_null(:string))
 
@@ -185,17 +176,5 @@ defmodule GraphQL.Schema.EmployeeTypes do
     # TODO: Should be date type
     field(:issued_date, :string)
     field(:speciality, non_null(:string))
-  end
-
-  # enum
-  enum :employee_type do
-    value(:admin, as: @type_admin)
-    value(:doctor, as: @type_doctor)
-    value(:hr, as: @type_hr)
-    value(:nhs, as: @type_nhs)
-    value(:nhs_signer, as: @type_nhs_signer)
-    value(:owner, as: @type_owner)
-    value(:pharmacist, as: @type_pharmacist)
-    value(:pharmacy_owner, as: @type_pharmacy_owner)
   end
 end
