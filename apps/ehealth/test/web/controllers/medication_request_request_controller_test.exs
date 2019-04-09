@@ -347,6 +347,22 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   describe "create medication_request_request" do
+    test "fails with addtional request params", %{conn: conn} do
+      test_request =
+        %{"medication_id" => UUID.generate(), "medical_program_id" => UUID.generate()}
+        |> test_request()
+        |> Map.put("programs", %{id: UUID.generate()})
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(422)
+
+      assert [%{"entry" => "$.programs"}] = resp["error"]["invalid"]
+    end
+
     test "render medication_request_request when data is valid", %{conn: conn} do
       expect_ops_get_declarations()
       person = string_params_for(:person)

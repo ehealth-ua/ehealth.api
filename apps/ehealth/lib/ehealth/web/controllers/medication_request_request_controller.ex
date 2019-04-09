@@ -3,6 +3,7 @@ defmodule EHealth.Web.MedicationRequestRequestController do
   use EHealth.Web, :controller
 
   alias Core.MedicationRequestRequests, as: API
+  alias Core.Validators.JsonSchema
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -14,11 +15,12 @@ defmodule EHealth.Web.MedicationRequestRequestController do
     end
   end
 
-  def create(conn, %{"medication_request_request" => params}) do
+  def create(conn, %{"medication_request_request" => params} = attrs) do
     user_id = get_consumer_id(conn.req_headers)
     client_id = get_client_id(conn.req_headers)
 
-    with {:ok, mrr, urgent_data} <- API.create(params, user_id, client_id) do
+    with :ok <- JsonSchema.validate(:medication_request_request_create, attrs),
+         {:ok, mrr, urgent_data} <- API.create(params, user_id, client_id) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", medication_request_request_path(conn, :show, mrr.medication_request_request))

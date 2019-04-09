@@ -12,6 +12,11 @@ defmodule Core.Validators.JsonSchema do
   )
 
   use_schema(
+    :medication_request_request_create,
+    "specs/json_schemas/medication_request_request/medication_request_request_create.json"
+  )
+
+  use_schema(
     :medication_request_request_create_generic,
     "specs/json_schemas/medication_request_request/medication_request_request_create_generic.json"
   )

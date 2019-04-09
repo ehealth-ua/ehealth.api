@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "medication_request_request": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "medication_request_request"
+  ],
+  "additionalProperties": false
+}
