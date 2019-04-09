@@ -15,6 +15,7 @@ defmodule Core.Factories do
   use Core.PRMFactories.MedicalProgramFactory
   use Core.PRMFactories.BlackListUserFactory
   use Core.PRMFactories.ContractFactory
+  use Core.PRMFactories.ServiceFactory
 
   # IL
   use Core.ILFactories.RegisterFactory

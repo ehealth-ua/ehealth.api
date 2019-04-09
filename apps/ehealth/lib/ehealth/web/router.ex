@@ -81,6 +81,7 @@ defmodule EHealthWeb.Router do
 
     put("/legal_entities", LegalEntityController, :create_or_update)
 
+    get("/services", ServiceController, :index)
     get("/dictionaries", DictionaryController, :index)
     patch("/dictionaries/:name", DictionaryController, :update)
 
