@@ -15,6 +15,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Dictionaries.Dictionary
   alias Core.Divisions.Division
   alias Core.Employees.Employee
+  alias Core.EmployeeRequests.EmployeeRequest
   alias Core.LegalEntities.LegalEntity
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
@@ -1053,6 +1054,62 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employee requests$/,
+    fn %{conn: conn}, %{count: count} ->
+      query = """
+        query ListEmployeeRequests($first: Int!) {
+          employeeRequests(first: $first) {
+            nodes {
+              databaseId
+              status
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) employee requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+      query = """
+        query ListEmployeeRequestsWithFilter($first: Int!, $filter: EmployeeRequestFilter) {
+          employeeRequests(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn},
        %{
@@ -1445,6 +1502,44 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) employee requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+      query_field =
+        case field do
+          "fullName" -> "lastName"
+          field -> field
+        end
+
+      query = """
+        query ListEmployeeRequestsWithOrderBy(
+          $first: Int!
+          $order_by: EmployeeRequestOrderBy!
+        ) {
+          employeeRequests(first: $first, order_by: $order_by) {
+            nodes {
+              #{query_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
+
+      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
       query = """
@@ -1617,6 +1712,80 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data employee))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request employee request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id} ->
+      query = """
+        query GetEmployeeRequestQuery($id: ID!) {
+          employeeRequest(id: $id) {
+            databaseId
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employeeRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeRequestQuery($id: ID!) {
+          employeeRequest(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employeeRequest))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeRequestQuery($id: ID!) {
+          employeeRequest(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employeeRequest))
 
       {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -2489,6 +2658,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("legal entity"), do: LegalEntity
   def entity_name_to_model("division"), do: Division
   def entity_name_to_model("employee"), do: Employee
+  def entity_name_to_model("employee request"), do: EmployeeRequest
   def entity_name_to_model("party"), do: Party
   def entity_name_to_model("party user"), do: PartyUser
   def entity_name_to_model("capitation contract request"), do: CapitationContractRequest
@@ -2516,6 +2686,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("legal entity"), do: {:prm, :legal_entity}
   def entity_name_to_factory_args("division"), do: {:prm, :division}
   def entity_name_to_factory_args("employee"), do: {:prm, :employee}
+  def entity_name_to_factory_args("employee request"), do: {:il, :employee_request}
   def entity_name_to_factory_args("party"), do: {:prm, :party}
   def entity_name_to_factory_args("party user"), do: {:prm, :party_user}
   def entity_name_to_factory_args("capitation contract request"), do: {:il, :capitation_contract_request}
