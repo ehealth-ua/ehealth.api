@@ -172,7 +172,6 @@ defmodule Core.MedicationDispense.API do
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "medication_dispense_process"),
          :ok <- SignatureValidator.check_last_name(signer, user_id),
-         :ok <- SignatureValidator.check_legal_entity_edrpou(signer, legal_entity_id),
          {:ok, _} <- validate_division(medication_dispense["division_id"], legal_entity_id),
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
          :ok <- JsonSchema.validate(:medication_dispense_process_content, content),

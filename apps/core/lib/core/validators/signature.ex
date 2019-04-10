@@ -80,28 +80,6 @@ defmodule Core.Validators.Signature do
 
   def check_last_name(_, _), do: Error.dump("Invalid surname")
 
-  def check_legal_entity_edrpou(%{"edrpou" => "", "drfo" => drfo}, legal_entity_id) do
-    do_check_legal_entity(drfo, legal_entity_id)
-  end
-
-  def check_legal_entity_edrpou(%{"edrpou" => edrpou}, legal_entity_id) do
-    do_check_legal_entity(edrpou, legal_entity_id)
-  end
-
-  def check_legal_entity_edrpou(_, _), do: Error.dump("Invalid edrpou")
-
-  defp do_check_legal_entity(edrpou_or_drfo, legal_entity_id) do
-    with %LegalEntity{edrpou: legal_entity_edrpou} <- LegalEntities.get_by_id(legal_entity_id) do
-      if edrpou_or_drfo == legal_entity_edrpou do
-        :ok
-      else
-        Error.dump("Does not match the legal entity")
-      end
-    else
-      _ -> Error.dump(%ValidationError{description: "Legal entity not found", path: "$.legal_entity_id"})
-    end
-  end
-
   defp process_data(
          %{"content" => content, "signatures" => signatures},
          required_signatures_count,

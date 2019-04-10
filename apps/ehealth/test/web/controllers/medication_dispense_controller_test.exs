@@ -2518,46 +2518,100 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
              } = resp["error"]
     end
 
-    test "invalid legal entity in DS", %{conn: conn} do
-      msp()
-      expect_mpi_get_person()
+    test "successful when invalid legal entity in DS", %{conn: conn} do
+      msp(2)
 
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
-      medication = insert(:prm, :medication)
-      party = insert(:prm, :party)
-      party_user = insert(:prm, :party_user, party: party)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      division = insert(:prm, :division, legal_entity: legal_entity)
-      insert_medication(innm_dosage_id)
-      medical_program = insert(:prm, :medical_program)
+      medication = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
-      {_, medication_dispense} =
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {medication_request, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
-          division_id: division.id,
+          division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program.id,
+          medical_program_id: medical_program_id,
           medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          },
           medication_dispense_params: %{
-            party_id: party.id,
-            status: "EXPIRED"
+            party_id: party_user.party.id
           },
           medication_dispense_details_params: %{
             medication_id: medication.id,
-            division_id: division.id
+            medication: medication,
+            division_id: division_id,
+            medication_qty: 10,
+            sell_price: 18.65,
+            sell_amount: 186.5,
+            discount_amount: 50
           }
         })
 
-      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
-        {:ok, %{"data" => [medication_dispense]}}
+      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
+
+      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
+        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      payment_id = "12345"
+      payment_amount = 20
+
+      content =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(medication_dispense_path(conn, :show, medication_dispense["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "payment_id" => payment_id,
+          "payment_amount" => payment_amount
+        })
 
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:ok,
          %{
            "data" => %{
-             "content" => %{},
+             "content" => content,
              "signatures" => [
                %{
                  "is_valid" => true,
@@ -2579,62 +2633,114 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
           "signed_medication_dispense" =>
-            %{}
+            content
             |> Jason.encode!()
             |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-        |> json_response(422)
+        |> json_response(200)
+        |> assert_show_response_schema("medication_dispense")
+        |> Map.get("data")
 
-      assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
-               "message" => "Does not match the legal entity",
-               "type" => "request_malformed"
-             } = resp["error"]
+      assert "PROCESSED" == resp["status"]
+      assert payment_id == resp["payment_id"]
+      assert payment_amount == resp["payment_amount"]
     end
 
-    test "legal entity in DS as absent", %{conn: conn} do
-      msp()
-      expect_mpi_get_person()
+    test "successful when legal entity in DS is absent", %{conn: conn} do
+      msp(2)
 
+      person = string_params_for(:person)
+
+      expect(MPIMock, :person, 2, fn _, _headers ->
+        {:ok, %{"data" => person}}
+      end)
+
+      party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
-      medication = insert(:prm, :medication)
-      party = insert(:prm, :party)
-      party_user = insert(:prm, :party_user, party: party)
+      %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
+      %{id: division_id} = insert(:prm, :division, legal_entity: legal_entity)
       %{id: innm_dosage_id} = insert_innm_dosage()
-      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      division = insert(:prm, :division, legal_entity: legal_entity)
-      insert_medication(innm_dosage_id)
-      medical_program = insert(:prm, :medical_program)
+      medication = insert_medication(innm_dosage_id)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
 
-      {_, medication_dispense} =
+      insert(
+        :prm,
+        :program_medication,
+        medication_id: medication.id,
+        medical_program_id: medical_program_id,
+        reimbursement: build(:reimbursement, reimbursement_amount: 150)
+      )
+
+      {medication_request, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
-          division_id: division.id,
+          division_id: division_id,
           employee_id: employee_id,
-          medical_program_id: medical_program.id,
+          medical_program_id: medical_program_id,
           medication_id: innm_dosage_id,
+          medication_request_params: %{
+            dispense_valid_from: Date.utc_today() |> Date.add(-1),
+            dispense_valid_to: Date.utc_today() |> Date.add(1)
+          },
           medication_dispense_params: %{
-            party_id: party.id,
-            status: "EXPIRED"
+            party_id: party_user.party.id
           },
           medication_dispense_details_params: %{
             medication_id: medication.id,
-            division_id: division.id
+            medication: medication,
+            division_id: division_id,
+            medication_qty: 10,
+            sell_price: 18.65,
+            sell_amount: 186.5,
+            discount_amount: 50
           }
         })
 
-      expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
-        {:ok, %{"data" => [medication_dispense]}}
+      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
+
+      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
+        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+      end)
+
+      expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
+        {:ok,
+         %{
+           "data" => [medication_dispense],
+           "paging" => %{
+             "page_number" => 1,
+             "page_size" => 50,
+             "total_entries" => 1,
+             "total_pages" => 1
+           }
+         }}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
+      payment_id = "12345"
+      payment_amount = 20
+
+      content =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> get(medication_dispense_path(conn, :show, medication_dispense["id"]))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "payment_id" => payment_id,
+          "payment_amount" => payment_amount
+        })
 
       expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
         {:ok,
          %{
            "data" => %{
-             "content" => %{},
+             "content" => content,
              "signatures" => [
                %{
                  "is_valid" => true,
@@ -2655,20 +2761,18 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> put_consumer_id_header(party_user.user_id)
         |> patch(medication_dispense_path(conn, :process, medication_dispense["id"]), %{
           "signed_medication_dispense" =>
-            %{}
+            content
             |> Jason.encode!()
             |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-        |> json_response(422)
+        |> json_response(200)
+        |> assert_show_response_schema("medication_dispense")
+        |> Map.get("data")
 
-      assert %{
-               "invalid" => [
-                 %{"entry_type" => "request", "rules" => [%{"rule" => "json"}]}
-               ],
-               "message" => "Invalid edrpou",
-               "type" => "request_malformed"
-             } = resp["error"]
+      assert "PROCESSED" == resp["status"]
+      assert payment_id == resp["payment_id"]
+      assert payment_amount == resp["payment_amount"]
     end
 
     test "failed to process by NOT owner", %{conn: conn} do
