@@ -328,9 +328,9 @@ defmodule Core.DeclarationRequests.API.V1.CreatorTest do
         |> Creator.validate_confidant_persons_tax_id()
 
       assert [
-               "data.person.confidant_person[2].tax_id": {"Person's tax ID in not valid.", []},
-               "data.person.confidant_person[1].tax_id": {"Person's tax ID in not valid.", []},
-               "data.person.confidant_person[0].tax_id": {"Person's tax ID in not valid.", []}
+               "data.person.confidant_person.[2].tax_id": {"Person's tax ID in not valid.", []},
+               "data.person.confidant_person.[1].tax_id": {"Person's tax ID in not valid.", []},
+               "data.person.confidant_person.[0].tax_id": {"Person's tax ID in not valid.", []}
              ] = result.errors
     end
   end
@@ -502,7 +502,7 @@ defmodule Core.DeclarationRequests.API.V1.CreatorTest do
         |> Creator.validate_confidant_person_rel_type()
 
       assert [
-               "data.person.confidant_persons[].relation_type": {
+               "data.person.confidant_persons.[0].relation_type": {
                  "one and only one confidant person with type PRIMARY is required",
                  []
                }

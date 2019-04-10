@@ -523,7 +523,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock()
 
     assert {:error,
-            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.[0].settlement"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -543,7 +543,7 @@ defmodule Core.Unit.LegalEntityTest do
     uaddresses_invalid_mock()
 
     assert {:error,
-            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses[0].settlement"}]} ==
+            [{%{description: "invalid settlement value", params: [], rule: :invalid}, "$.addresses.[0].settlement"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -560,9 +560,9 @@ defmodule Core.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
+    uaddresses_invalid_mock("$.addresses.[0].region", "invalid region value")
 
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.[0].region"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -579,9 +579,9 @@ defmodule Core.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    uaddresses_invalid_mock("$.addresses[0].region", "invalid region value")
+    uaddresses_invalid_mock("$.addresses.[0].region", "invalid region value")
 
-    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses[0].region"}]} ==
+    assert {:error, [{%{description: "invalid region value", params: [], rule: :invalid}, "$.addresses.[0].region"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -598,9 +598,9 @@ defmodule Core.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
+    uaddresses_invalid_mock("$.addresses.[0].area", "invalid area value")
 
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.[0].area"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -617,9 +617,9 @@ defmodule Core.Unit.LegalEntityTest do
       legal_entity_data
       |> Map.put("addresses", [address])
 
-    uaddresses_invalid_mock("$.addresses[0].area", "invalid area value")
+    uaddresses_invalid_mock("$.addresses.[0].area", "invalid area value")
 
-    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses[0].area"}]} ==
+    assert {:error, [{%{description: "invalid area value", params: [], rule: :invalid}, "$.addresses.[0].area"}]} ==
              Validator.validate_addresses(content)
   end
 
@@ -673,7 +673,7 @@ defmodule Core.Unit.LegalEntityTest do
     insert(:il, :dictionary_document_type)
   end
 
-  defp uaddresses_invalid_mock(path \\ "$.addresses[0].settlement", message \\ "invalid settlement value") do
+  defp uaddresses_invalid_mock(path \\ "$.addresses.[0].settlement", message \\ "invalid settlement value") do
     expect_uaddresses_validate(
       {:error,
        %{

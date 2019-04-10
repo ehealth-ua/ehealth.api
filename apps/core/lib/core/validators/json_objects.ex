@@ -63,11 +63,13 @@ defmodule Core.Validators.JsonObjects do
     if Enum.any?(keys, &(&1 == required_item)) do
       :ok
     else
-      %ValidationError{
-        description: "Must contain required item.",
-        path: get_path(object_path, "[]", key_name),
-        params: [required_item]
-      }
+      Enum.map(0..(length(keys) - 1), fn index ->
+        %ValidationError{
+          description: "Must contain required item.",
+          path: get_path(object_path, index, key_name),
+          params: [required_item]
+        }
+      end)
     end
   end
 
@@ -76,10 +78,9 @@ defmodule Core.Validators.JsonObjects do
   end
 
   defp get_path(object_path), do: "$." <> Enum.join(object_path, ".")
-  defp get_path(object_path, "[]", key_name), do: "$." <> Enum.join(object_path, ".") <> "[].#{key_name}"
 
-  defp get_path(object_path, i, key_name) when is_integer(i),
-    do: "$." <> Enum.join(object_path, ".") <> "[#{i}]" <> ".#{key_name}"
+  defp get_path(object_path, index, key_name) when is_integer(index),
+    do: "$." <> Enum.join(object_path, ".") <> ".[#{index}]" <> ".#{key_name}"
 
   def combine_path(prefix, path) when is_binary(prefix) and is_binary(path),
     do: String.replace(path, "$.", "$.#{prefix}.")

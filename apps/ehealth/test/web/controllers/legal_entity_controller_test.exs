@@ -136,7 +136,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_service_provider.licenses.0.license_number"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_service_provider.licenses.[0].license_number"}]}} =
+               resp
     end
 
     test "create legal entity with type pharmacy", %{conn: conn} do

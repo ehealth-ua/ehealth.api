@@ -1328,7 +1328,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
          %{
            invalid: [
              %{
-               entry: "$.addresses[0].settlement_id",
+               entry: "$.addresses.[0].settlement_id",
                entry_type: "json_data_property",
                rules: [
                  %{
@@ -1338,7 +1338,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                ]
              },
              %{
-               entry: "$.addresses[1].settlement_id",
+               entry: "$.addresses.[1].settlement_id",
                entry_type: "json_data_property",
                rules: [
                  %{
@@ -1362,7 +1362,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.addresses[0].settlement_id",
+                   "entry" => "$.addresses.[0].settlement_id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
@@ -1372,7 +1372,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                    ]
                  },
                  %{
-                   "entry" => "$.addresses[1].settlement_id",
+                   "entry" => "$.addresses.[1].settlement_id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{

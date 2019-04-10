@@ -8,6 +8,8 @@ defmodule GraphQL.Resolvers.EmployeeRequest do
   alias Core.EmployeeRequests
   alias Core.EmployeeRequests.EmployeeRequest
   alias Core.LegalEntities.LegalEntity
+  alias Core.ValidationError
+  alias Core.Validators.Error
   alias Ecto.Query
 
   @read_repo Application.get_env(:core, :repos)[:read_repo]
@@ -38,6 +40,9 @@ defmodule GraphQL.Resolvers.EmployeeRequest do
 
     with {:ok, employee_request} <- EmployeeRequests.create_signed(params, headers) do
       {:ok, %{employee_request: employee_request}}
+    else
+      %ValidationError{} = err -> Error.dump(err)
+      err -> err
     end
   end
 

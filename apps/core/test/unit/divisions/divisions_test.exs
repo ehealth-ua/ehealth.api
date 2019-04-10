@@ -43,7 +43,7 @@ defmodule Core.Unit.DivisionsTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["RESIDENCE"],
-               path: "$.addresses[1].type",
+               path: "$.addresses.[1].type",
                rule: :invalid
              } = API.validate_json_objects(bad_division)
 
@@ -53,7 +53,7 @@ defmodule Core.Unit.DivisionsTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["REGISTRATION"],
-               path: "$.addresses[1].type",
+               path: "$.addresses.[1].type",
                rule: :invalid
              } = API.validate_json_objects(bad_division)
     end
@@ -69,7 +69,7 @@ defmodule Core.Unit.DivisionsTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["MOBILE"],
-               path: "$.phones[1].type",
+               path: "$.phones.[1].type",
                rule: :invalid
              } = API.validate_json_objects(bad_division)
     end

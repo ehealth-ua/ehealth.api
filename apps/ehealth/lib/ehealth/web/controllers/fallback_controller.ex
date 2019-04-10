@@ -11,6 +11,7 @@ defmodule EHealth.Web.FallbackController do
   require Logger
 
   def call(conn, %CoreValidationError{} = error), do: call(conn, EHealthError.dump(error))
+  def call(conn, [%CoreValidationError{} | _] = errors), do: call(conn, EHealthError.dump(errors))
 
   def call(conn, {:error, %{"paging" => %{"total_pages" => pages}}}) when pages > 1 do
     forbidden_message =

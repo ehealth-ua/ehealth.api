@@ -39,7 +39,7 @@ defmodule Core.Unit.LegalEntity.ValidatorTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["RESIDENCE"],
-               path: "$.addresses[2].type",
+               path: "$.addresses.[2].type",
                rule: :invalid
              } = Validator.validate_json_objects(bad_legal_entity)
     end
@@ -51,7 +51,7 @@ defmodule Core.Unit.LegalEntity.ValidatorTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["MOBILE"],
-               path: "$.phones[1].type",
+               path: "$.phones.[1].type",
                rule: :invalid
              } = Validator.validate_json_objects(bad_legal_entity)
     end
@@ -63,7 +63,7 @@ defmodule Core.Unit.LegalEntity.ValidatorTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["MOBILE"],
-               path: "$.owner.phones[1].type",
+               path: "$.owner.phones.[1].type",
                rule: :invalid
              } = Validator.validate_json_objects(bad_legal_entity)
     end
@@ -75,7 +75,7 @@ defmodule Core.Unit.LegalEntity.ValidatorTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["PASSPORT"],
-               path: "$.owner.documents[1].type",
+               path: "$.owner.documents.[1].type",
                rule: :invalid
              } = Validator.validate_json_objects(bad_legal_entity)
     end

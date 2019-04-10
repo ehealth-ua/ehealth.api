@@ -33,7 +33,7 @@ defmodule Core.Persons.V1.ValidatorTest do
       assert {:error,
               [
                 {%{description: "No duplicate values.", params: ["NATIONAL_ID"], rule: :invalid},
-                 "$.person.documents[2].type"}
+                 "$.person.documents.[2].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -52,7 +52,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "No duplicate values.",
                    params: ["MOBILE"],
                    rule: :invalid
-                 }, "$.person.phones[1].type"}
+                 }, "$.person.phones.[1].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -66,7 +66,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "No duplicate values.",
                    params: ["MOBILE"],
                    rule: :invalid
-                 }, "$.person.emergency_contact.phones[1].type"}
+                 }, "$.person.emergency_contact.phones.[1].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -80,7 +80,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "Must be one and only one authentication method.",
                    params: [],
                    rule: :invalid
-                 }, "$.person.authentication_methods[0].type"}
+                 }, "$.person.authentication_methods.[0].type"}
               ]} = Validator.validate(invalid_person)
 
       # two auth methods of the same type
@@ -92,7 +92,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "Must be one and only one authentication method.",
                    params: [],
                    rule: :invalid
-                 }, "$.person.authentication_methods[0].type"}
+                 }, "$.person.authentication_methods.[0].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -126,7 +126,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "No duplicate values.",
                    params: ["PASSPORT"],
                    rule: :invalid
-                 }, "$.person.confidant_person[0].documents_person[1].type"}
+                 }, "$.person.confidant_person.[0].documents_person.[1].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -150,7 +150,7 @@ defmodule Core.Persons.V1.ValidatorTest do
       assert {:error,
               [
                 {%{description: "No duplicate values.", params: ["MOBILE"], rule: :invalid},
-                 "$.person.confidant_person[0].phones[1].type"}
+                 "$.person.confidant_person.[0].phones.[1].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -189,7 +189,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "No duplicate values.",
                    params: ["CONFIDANT_CERTIFICATE"],
                    rule: :invalid
-                 }, "$.person.confidant_person[0].documents_relationship[4].type"}
+                 }, "$.person.confidant_person.[0].documents_relationship.[4].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -226,7 +226,7 @@ defmodule Core.Persons.V1.ValidatorTest do
       {:error, [{rules, path}]} = Validator.validate(invalid_person)
 
       assert %{description: "No duplicate values.", params: ["NATIONAL_ID"], rule: :invalid} == rules
-      assert "$.person.documents[2].type" == path
+      assert "$.person.documents.[2].type" == path
     end
 
     test "Error message if person documents contains PASSPORT and NATIONAL_ID same time", %{person: person} do
@@ -253,7 +253,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "Must be one and only one authentication method.",
                    params: [],
                    rule: :invalid
-                 }, "$.person.authentication_methods[0].type"}
+                 }, "$.person.authentication_methods.[0].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -263,7 +263,7 @@ defmodule Core.Persons.V1.ValidatorTest do
       assert {:error,
               [
                 {%{description: "Must contain required item.", params: ["PRIMARY"], rule: :invalid},
-                 "$.person.confidant_person[].relation_type"}
+                 "$.person.confidant_person.[0].relation_type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -284,7 +284,7 @@ defmodule Core.Persons.V1.ValidatorTest do
                    description: "No duplicate values.",
                    params: ["CONFIDANT_CERTIFICATE"],
                    rule: :invalid
-                 }, "$.person.confidant_person[1].documents_relationship[4].type"}
+                 }, "$.person.confidant_person.[1].documents_relationship.[4].type"}
               ]} = Validator.validate(invalid_person)
     end
 
@@ -341,7 +341,7 @@ defmodule Core.Persons.V1.ValidatorTest do
         assert %ValidationError{
                  description: "Birth certificate number is not valid",
                  params: ["BIRTH_CERTIFICATE"],
-                 path: "$.person.documents[0].number",
+                 path: "$.person.documents.[0].number",
                  rule: :invalid
                } =
                  :person

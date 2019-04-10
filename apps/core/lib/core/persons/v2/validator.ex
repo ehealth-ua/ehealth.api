@@ -31,6 +31,11 @@ defmodule Core.Persons.V2.Validator do
     else
       %ValidationError{path: path} = error ->
         Error.dump(%{error | path: JsonObjects.combine_path("person", path)})
+
+      [%ValidationError{} | _] = errors ->
+        errors
+        |> Enum.map(fn %{path: path} = error -> %{error | path: JsonObjects.combine_path("person", path)} end)
+        |> Error.dump()
     end
   end
 
@@ -150,14 +155,14 @@ defmodule Core.Persons.V2.Validator do
         %ValidationError{
           description: "Document issued date should be in the past",
           params: [],
-          path: "$.person.documents[#{index}].issued_at"
+          path: "$.person.documents.[#{index}].issued_at"
         }
 
       {:birth_date, _} ->
         %ValidationError{
           description: "Document issued date should greater than person.birth_date",
           params: [],
-          path: "$.person.documents[#{index}].issued_at"
+          path: "$.person.documents.[#{index}].issued_at"
         }
     end
   end
@@ -166,7 +171,7 @@ defmodule Core.Persons.V2.Validator do
     %ValidationError{
       description: "expiration_date is mandatory for document_type #{document_type}",
       params: [],
-      path: "$.person.documents[#{index}].expiration_date"
+      path: "$.person.documents.[#{index}].expiration_date"
     }
   end
 
@@ -179,7 +184,7 @@ defmodule Core.Persons.V2.Validator do
       %ValidationError{
         description: "Document expiration_date should be in the future",
         params: [],
-        path: "$.person.documents[#{index}].expiration_date"
+        path: "$.person.documents.[#{index}].expiration_date"
       }
     end
   end

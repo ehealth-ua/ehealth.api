@@ -84,7 +84,7 @@ defmodule Core.LegalEntities.Validator do
           {:halt,
            Error.dump(%ValidationError{
              description: "license_number is required for legal_entity with type \"pharmacy\"",
-             path: "$.medical_service_provider.licenses.#{index}.license_number"
+             path: "$.medical_service_provider.licenses.[#{index}].license_number"
            })}
       end
     end)

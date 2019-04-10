@@ -398,7 +398,7 @@ defmodule Core.MedicationDispense.API do
     dispense_details
     |> Enum.with_index()
     |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
-      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
+      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details.[#{i}].medication_id"),
            :ok <- validate_active_medication(medication, i) do
         {:ok, Map.put(item, "reimbursement_amount", 0), medication}
       end
@@ -409,7 +409,7 @@ defmodule Core.MedicationDispense.API do
     dispense_details
     |> Enum.with_index()
     |> Enum.map(fn {%{"medication_id" => id} = item, i} ->
-      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details[#{i}].medication_id"),
+      with {:ok, medication} <- Reference.validate(:medication, id, "$.dispense_details.[#{i}].medication_id"),
            :ok <- validate_active_medication(medication, i),
            {:ok, program_medication} <- get_active_program_medication(id, medical_program_id, i),
            reimbursement_amount <- program_medication.reimbursement.reimbursement_amount,
@@ -431,7 +431,7 @@ defmodule Core.MedicationDispense.API do
     if is_nil(program_medication) do
       Error.dump(%ValidationError{
         description: "medication is not a participant of program",
-        path: "$.dispense_details[#{i}].medication_id"
+        path: "$.dispense_details.[#{i}].medication_id"
       })
     else
       {:ok, program_medication}
@@ -449,7 +449,7 @@ defmodule Core.MedicationDispense.API do
     else
       Error.dump(%ValidationError{
         description: "Requested discount price does not satisfy allowed reimbursement amount",
-        path: "$.dispense_details[#{i}].discount_amount",
+        path: "$.dispense_details.[#{i}].discount_amount",
         rule: :required
       })
     end
@@ -463,7 +463,7 @@ defmodule Core.MedicationDispense.API do
     else
       Error.dump(%ValidationError{
         description: "medication is not active",
-        path: "$.dispense_details[#{i}].medication_id",
+        path: "$.dispense_details.[#{i}].medication_id",
         rule: :required
       })
     end
@@ -657,7 +657,7 @@ defmodule Core.MedicationDispense.API do
         else
           Error.dump(%ValidationError{
             description: "Requested medication brand quantity must be a multiplier of package minimal quantity",
-            path: "$.dispense_details[#{i}].medication_qty",
+            path: "$.dispense_details.[#{i}].medication_qty",
             rule: :required
           })
         end

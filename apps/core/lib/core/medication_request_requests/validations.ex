@@ -147,23 +147,25 @@ defmodule Core.MedicationRequestRequest.Validations do
     |> Enum.reduce_while(:ok, fn {instruction, instruction_index}, acc ->
       with :ok <-
              do_validate_codeable(instruction["additional_instruction"], "additional instruction", fn i ->
-               "$.dosage_instruction[#{Enum.at(i, 0)}].additional_instruction[#{Enum.at(i, 1)}].coding[#{Enum.at(i, 2)}].code"
+               "$.dosage_instruction.[#{Enum.at(i, 0)}].additional_instruction.[#{Enum.at(i, 1)}].coding.[#{
+                 Enum.at(i, 2)
+               }].code"
              end),
            :ok <-
              do_validate_codeable(instruction["site"], "site", fn i ->
-               "$.dosage_instruction[#{Enum.at(i, 0)}].site.coding[#{Enum.at(i, 1)}].code"
+               "$.dosage_instruction.[#{Enum.at(i, 0)}].site.coding.[#{Enum.at(i, 1)}].code"
              end),
            :ok <-
              do_validate_codeable(instruction["route"], "route", fn i ->
-               "$.dosage_instruction[#{Enum.at(i, 0)}].route.coding[#{Enum.at(i, 1)}].code"
+               "$.dosage_instruction.[#{Enum.at(i, 0)}].route.coding.[#{Enum.at(i, 1)}].code"
              end),
            :ok <-
              do_validate_codeable(instruction["method"], "method", fn i ->
-               "$.dosage_instruction[#{Enum.at(i, 0)}].method.coding[#{Enum.at(i, 1)}].code"
+               "$.dosage_instruction.[#{Enum.at(i, 0)}].method.coding.[#{Enum.at(i, 1)}].code"
              end),
            :ok <-
              do_validate_codeable(instruction["dose_and_rate"]["type"], "dose and rate type", fn i ->
-               "$.dosage_instruction[#{Enum.at(i, 0)}].dose_and_rate.type.coding[#{Enum.at(i, 1)}].code"
+               "$.dosage_instruction.[#{Enum.at(i, 0)}].dose_and_rate.type.coding.[#{Enum.at(i, 1)}].code"
              end) do
         {:cont, acc}
       else

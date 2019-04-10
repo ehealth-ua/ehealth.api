@@ -1203,7 +1203,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "rules" => [
                      %{
                        "description" =>
-                         "incorrect additional instruction ($.dosage_instruction[1].additional_instruction[1].coding[1].code)",
+                         "incorrect additional instruction ($.dosage_instruction.[1].additional_instruction.[1].coding.[1].code)",
                        "params" => [],
                        "rule" => "invalid"
                      }
@@ -1239,7 +1239,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
-                       "description" => "incorrect site ($.dosage_instruction[0].site.coding[1].code)",
+                       "description" => "incorrect site ($.dosage_instruction.[0].site.coding.[1].code)",
                        "params" => [],
                        "rule" => "invalid"
                      }
@@ -1625,7 +1625,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.programs[1].id",
+                   "entry" => "$.programs.[1].id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
@@ -1636,7 +1636,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                    ]
                  },
                  %{
-                   "entry" => "$.programs[2].id",
+                   "entry" => "$.programs.[2].id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
@@ -1783,7 +1783,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.programs[0].id",
+                   "entry" => "$.programs.[0].id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{
@@ -1917,7 +1917,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert %{
                "invalid" => [
                  %{
-                   "entry" => "$.programs[0].id",
+                   "entry" => "$.programs.[0].id",
                    "entry_type" => "json_data_property",
                    "rules" => [
                      %{

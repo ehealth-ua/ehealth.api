@@ -435,7 +435,7 @@ defmodule Core.MedicationRequestRequests do
                 %ValidationError{
                   description: "Medical program not found",
                   rule: :required,
-                  path: "$.programs[#{i}].id"
+                  path: "$.programs.[#{i}].id"
                 }
               ]
 
@@ -444,7 +444,7 @@ defmodule Core.MedicationRequestRequests do
               [
                 %ValidationError{
                   description: "Medical program is not active",
-                  path: "$.programs[#{i}].id"
+                  path: "$.programs.[#{i}].id"
                 }
               ]
 
@@ -473,7 +473,7 @@ defmodule Core.MedicationRequestRequests do
                 %ValidationError{
                   description:
                     "It's to early to create new medication request for such innm_dosage and medical_program_id",
-                  path: "$.programs[#{i}].id"
+                  path: "$.programs.[#{i}].id"
                 }
               ]
 

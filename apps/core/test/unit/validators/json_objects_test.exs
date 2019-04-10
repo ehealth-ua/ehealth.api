@@ -45,7 +45,7 @@ defmodule Core.Unit.Validators.JsonObjectsTest do
     end
 
     test "combine_path/2 can combine validation path inside object" do
-      assert "$.upper_level.propA[0].propB" == JsonObjects.combine_path("upper_level", "$.propA[0].propB")
+      assert "$.upper_level.propA.[0].propB" == JsonObjects.combine_path("upper_level", "$.propA.[0].propB")
     end
   end
 
@@ -65,7 +65,7 @@ defmodule Core.Unit.Validators.JsonObjectsTest do
       assert %ValidationError{
                description: "No duplicate values.",
                params: ["passport"],
-               path: "$.person.details.documents[1].type",
+               path: "$.person.details.documents.[1].type",
                rule: :invalid
              } = JsonObjects.array_unique_by_key(object, @valid_path, "type")
     end
@@ -94,7 +94,7 @@ defmodule Core.Unit.Validators.JsonObjectsTest do
       assert %ValidationError{
                description: "Must contain only one valid item.",
                params: [],
-               path: "$.person.details.documents[0].type",
+               path: "$.person.details.documents.[0].type",
                rule: :invalid
              } = JsonObjects.array_single_item(@object, @valid_path, "type")
     end
@@ -109,12 +109,14 @@ defmodule Core.Unit.Validators.JsonObjectsTest do
       non_required = [%{"type" => "national_id", "serial" => 67890}]
       object = put_in(@object, @valid_path, non_required)
 
-      assert %ValidationError{
-               description: "Must contain required item.",
-               params: ["passport"],
-               path: "$.person.details.documents[].type",
-               rule: :invalid
-             } = JsonObjects.array_item_required(object, @valid_path, "type", "passport")
+      assert [
+               %ValidationError{
+                 description: "Must contain required item.",
+                 params: ["passport"],
+                 path: "$.person.details.documents.[0].type",
+                 rule: :invalid
+               }
+             ] = JsonObjects.array_item_required(object, @valid_path, "type", "passport")
     end
   end
 end

@@ -415,7 +415,7 @@ defmodule Core.MedicationRequests.API do
     else
       {:error,
        Enum.map(errors, fn {nil, i} ->
-         {%{description: "Medical program not found", params: [], rule: :required}, "$.programs[#{i}].id"}
+         {%{description: "Medical program not found", params: [], rule: :required}, "$.programs.[#{i}].id"}
        end)}
     end
   end

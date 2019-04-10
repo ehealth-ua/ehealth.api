@@ -505,7 +505,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
         if is_nil(tax_id) || TaxID.validate(tax_id, nil) == :ok do
           changeset
         else
-          add_error(changeset, :"data.person.confidant_person[#{index}].tax_id", "Person's tax ID in not valid.")
+          add_error(changeset, :"data.person.confidant_person.[#{index}].tax_id", "Person's tax ID in not valid.")
         end
       end
 
@@ -528,7 +528,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
         changeset
       else
         message = "one and only one confidant person with type PRIMARY is required"
-        add_error(changeset, :"data.person.confidant_persons[].relation_type", message)
+        add_error(changeset, :"data.person.confidant_persons.[0].relation_type", message)
       end
     else
       changeset

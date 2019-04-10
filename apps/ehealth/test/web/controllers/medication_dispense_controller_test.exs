@@ -619,7 +619,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details.[0].medication_id"}]}} = resp
     end
 
     test "division is not belong to contract", %{conn: conn} do
@@ -729,7 +729,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details.[0].medication_id"}]}} = resp
     end
 
     test "medication is not a participant of program", %{conn: conn} do
@@ -801,7 +801,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].medication_id"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details.[0].medication_id"}]}} = resp
     end
 
     test "invalid code", %{conn: conn} do
@@ -960,7 +960,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         )
 
       resp = json_response(conn, 422)
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details[0].discount_amount"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.dispense_details.[0].discount_amount"}]}} = resp
     end
 
     test "failed when medication request intent is PLAN", %{conn: conn} do

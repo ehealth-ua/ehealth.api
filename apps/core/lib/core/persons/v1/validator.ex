@@ -22,6 +22,11 @@ defmodule Core.Persons.V1.Validator do
     else
       %ValidationError{path: path} = error ->
         Error.dump(%{error | path: JsonObjects.combine_path("person", path)})
+
+      [%ValidationError{} | _] = errors ->
+        errors
+        |> Enum.map(fn %{path: path} = error -> %{error | path: JsonObjects.combine_path("person", path)} end)
+        |> Error.dump()
     end
   end
 
@@ -92,7 +97,7 @@ defmodule Core.Persons.V1.Validator do
         %ValidationError{
           description: "Birth certificate number is not valid",
           params: ["BIRTH_CERTIFICATE"],
-          path: "$.person.documents[#{document_index}].number"
+          path: "$.person.documents.[#{document_index}].number"
         }
 
       true ->
@@ -180,7 +185,7 @@ defmodule Core.Persons.V1.Validator do
       validate_every_confidant_person(t, i + 1)
     else
       %ValidationError{path: path} = error ->
-        %{error | path: JsonObjects.combine_path("confidant_person[#{i}]", path)}
+        %{error | path: JsonObjects.combine_path("confidant_person.[#{i}]", path)}
     end
   end
 end
