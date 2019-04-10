@@ -22,7 +22,7 @@ defmodule Core.Services do
         parent_id = service_group.node.parent_id
 
         if parent_id do
-          {_, parent} = Enum.find(tree, fn {k, _} -> k == parent_id end)
+          {_, parent} = Enum.find(acc, fn {k, _} -> k == parent_id end)
           Map.put(acc, parent_id, Map.put(parent, :groups, [service_group_id | parent.groups]))
         else
           acc
