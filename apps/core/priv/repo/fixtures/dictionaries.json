@@ -12084,7 +12084,12 @@
       "employee": "Employee",
       "legal_entity": "Legal entity",
       "service_request": "Service request(Referral)",
-      "patient": "Patient"
+      "patient": "Patient",
+      "diagnostic_report": "Diagnostic report",
+      "medication_request": "Medication request",
+      "risk_assessment": "Risk assessment",
+      "device": "Device",
+      "medication_statement": "Medication statement"
     },
     "labels": [
       "SYSTEM",
