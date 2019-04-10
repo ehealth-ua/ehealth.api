@@ -13,7 +13,6 @@ defmodule Core.Contracts.Renderer do
       contractor_payment_details
       contractor_rmsp_amount
       external_contractor_flag
-      external_contractors
       id_form
       issue_city
       misc
@@ -28,9 +27,10 @@ defmodule Core.Contracts.Renderer do
       contractor_divisions: render_association(:contractor_divisions, references),
       contractor_employee_divisions: render_association(:contractor_employee_divisions, references)
     })
+    |> maybe_put_external_contractors(contract)
   end
 
-  def render_create_request_content(%ReimbursementContract{} = contract, references) do
+  def render_create_request_content(%ReimbursementContract{} = contract, associations) do
     contract
     |> Map.take(~w(
       contract_number
@@ -48,19 +48,19 @@ defmodule Core.Contracts.Renderer do
       nhs_signer_base
     )a)
     |> Map.merge(%{
-      consent_text: references.consent_text,
-      contractor_divisions: render_association(:contractor_divisions, references)
+      consent_text: associations.consent_text,
+      contractor_divisions: render_association(:contractor_divisions, associations)
     })
   end
 
-  def render_association(:contractor_divisions, references) do
-    references
+  def render_association(:contractor_divisions, associations) do
+    associations
     |> Map.get(:contract_divisions)
     |> Enum.map(& &1.division_id)
   end
 
-  def render_association(:contractor_employee_divisions, references) do
-    references
+  def render_association(:contractor_employee_divisions, associations) do
+    associations
     |> Map.get(:contract_employees)
     |> Enum.map(&render_association(:contractor_employee_division, &1))
   end
@@ -73,4 +73,10 @@ defmodule Core.Contracts.Renderer do
       staff_units
     )a)
   end
+
+  def maybe_put_external_contractors(data, %CapitationContract{external_contractor_flag: true} = contract) do
+    Map.put(data, :external_contractors, contract.external_contractors)
+  end
+
+  def maybe_put_external_contractors(data, _), do: data
 end
