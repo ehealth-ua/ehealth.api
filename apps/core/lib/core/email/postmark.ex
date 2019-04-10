@@ -15,12 +15,8 @@ defmodule Core.Email.Postmark do
 
       {:ok, bounce_id}
     else
-      {:error, error} = error_result ->
-        Logger.error("[PostmarkClient]: #{error}")
-        error_result
-
       error ->
-        Logger.error("[PostmarkClient]: error happened #{inspect(error)}")
+        Logger.warn("[PostmarkClient]: #{inspect(error)}")
         error
     end
   end
@@ -31,7 +27,7 @@ defmodule Core.Email.Postmark do
     |> parse_response_body()
     |> case do
       %{"Bounces" => [%{"ID" => bounce_id} | _]} -> {:ok, Integer.to_string(bounce_id)}
-      _ -> {:error, "bounce from '#{email}' not found"}
+      _ -> {:error, "Bounce from '#{email}' not found"}
     end
   end
 
@@ -41,7 +37,7 @@ defmodule Core.Email.Postmark do
     |> parse_response_body()
     |> case do
       %{"Bounce" => %{"CanActivate" => true}} -> {:ok, bounce_id}
-      _ -> {:error, "can not activate email by bounce_id #{bounce_id}"}
+      _ -> {:error, "Can not activate email by bounce_id #{bounce_id}"}
     end
   end
 
