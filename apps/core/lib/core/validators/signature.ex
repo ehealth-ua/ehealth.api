@@ -3,8 +3,6 @@ defmodule Core.Validators.Signature do
 
   alias Core.Employees
   alias Core.Employees.Employee
-  alias Core.LegalEntities
-  alias Core.LegalEntities.LegalEntity
   alias Core.Parties
   alias Core.Parties.Party
   alias Core.ValidationError
