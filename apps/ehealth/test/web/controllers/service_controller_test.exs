@@ -24,8 +24,7 @@ defmodule EHealth.Web.ServiceControllerTest do
       assert group1_response |> Map.get("groups") |> hd() |> Map.get("groups") |> hd() |> Map.get("id") == group5.id
 
       services =
-        data
-        |> hd()
+        group1_response
         |> Map.get("groups")
         |> hd()
         |> Map.get("groups")
