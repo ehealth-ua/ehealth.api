@@ -1497,7 +1497,11 @@
       "P19": "Завідувач аптечного пункту",
       "P20": "Старший провізор",
       "P21": "Провізор",
-      "P22": "Комерційний директор"
+      "P22": "Комерційний директор",
+      "P23": "в.о. генерального директора",
+      "P24": "в.о. директора",
+      "P25": "в.о. головного лікаря",
+      "P26": "ФОП"
     },
     "labels": [
       "SYSTEM",
@@ -14769,7 +14773,7 @@
     "name": "SERVICE_REQUEST_PRIORITY",
     "values": {
       "routine": "routine",
-      "urgent":"urgent"
+      "urgent": "urgent"
     },
     "labels": [
       "SYSTEM",
@@ -14804,10 +14808,9 @@
   },
   {
     "name": "eHealth/diagnostic_report_categories",
-    "values":{
+    "values": {
       "LAB": "laboratory",
       "MB": "Microbiology"
-
     },
     "labels": [
       "SYSTEM",
@@ -14817,10 +14820,9 @@
   },
   {
     "name": "eHealth/LOINC/diagnostic_report_codes",
-    "values":{
+    "values": {
       "10217-8": "Surgical operation note indications [Interpretation] Narrative",
       "10226-9": "Oxygen content in Intravascular space"
-
     },
     "labels": [
       "SYSTEM",
@@ -14830,9 +14832,8 @@
   },
   {
     "name": "eHealth/SNOMED/clinical_findings",
-    "values":{
+    "values": {
       "109006": "Anxiety disorder of childhood OR adolescence"
-
     },
     "labels": [
       "SYSTEM",
