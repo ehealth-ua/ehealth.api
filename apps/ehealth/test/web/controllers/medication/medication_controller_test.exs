@@ -148,6 +148,33 @@ defmodule EHealth.Web.MedicationControllerTest do
       assert "Діетіламід Форте" == innm_dosage["name"]
     end
 
+    test "find by Medication code_atc and medical program id", %{conn: conn} do
+      %{medical_program: medical_program_id, innms: innms, innm_dosage: innm_dosage} =
+        fixture(:list_with_medication_program)
+
+      [innm_in | innms_out] = innms
+      [innm_dosage_in | innm_dosages_out] = innm_dosage
+
+      resp =
+        conn
+        |> get(medication_path(conn, :drugs), %{
+          medication_code_atc: "Z00CA01",
+          medical_program_id: medical_program_id
+        })
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert 1 == length(resp)
+
+      resp_innm = resp |> hd() |> get_in(~w(innm id))
+      assert innm_in == resp_innm
+      Enum.each(innms_out, fn innm_out -> refute innm_out == resp_innm end)
+
+      resp_innm_dosage = resp |> hd() |> Map.get("id")
+      assert innm_dosage_in == resp_innm_dosage
+      Enum.each(innm_dosages_out, fn innm_dosage_out -> refute innm_dosage_out == resp_innm_dosage end)
+    end
+
     test "find by INNM Dosage name", %{conn: conn} do
       fixture(:list)
       conn = get(conn, medication_path(conn, :drugs), innm_dosage_name: "он Фор")
@@ -606,7 +633,14 @@ defmodule EHealth.Web.MedicationControllerTest do
     insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id_out_1, innm_child_id: innm_id_out)
     insert(:prm, :ingredient_innm_dosage, parent_id: dosage_id_out_1, innm_child_id: innm_id_out, is_primary: false)
 
-    %{id: med_id} = insert(:prm, :medication, package_qty: 5, package_min_qty: 20, name: "Бупропіонол")
+    %{id: med_id} =
+      insert(:prm, :medication,
+        package_qty: 5,
+        package_min_qty: 20,
+        name: "Бупропіонол",
+        code_atc: ["Z00CA01", "Z00CA02"]
+      )
+
     %{id: med_id_out} = insert(:prm, :medication, package_qty: 10, package_min_qty: 20, name: "Діетіламідон")
 
     insert(:prm, :ingredient_medication, parent_id: med_id, medication_child_id: dosage_id)

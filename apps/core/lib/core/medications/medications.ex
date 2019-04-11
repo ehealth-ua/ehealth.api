@@ -179,7 +179,7 @@ defmodule Core.Medications do
     |> do_where_drugs_attrs(attrs)
     |> where([innm_dosage, ...], innm_dosage.is_active)
     |> where([_, _, innm], innm.is_active)
-    |> where([..., med], med.is_active)
+    |> do_where_medication_conditions(attrs)
   end
 
   defp do_where_drugs_attrs(query, attrs) do
@@ -203,7 +203,11 @@ defmodule Core.Medications do
         where(query, [innm_dosage], innm_dosage.form == ^value)
 
       {:medication_code_atc, value}, query ->
-        where(query, [..., med], fragment("? @> ?", med.code_atc, ^value))
+        if Map.has_key?(attrs, :medical_program_id) do
+          where(query, [..., med, _], fragment("? @> ?", med.code_atc, ^value))
+        else
+          where(query, [..., med], fragment("? @> ?", med.code_atc, ^value))
+        end
 
       {:medical_program_id, value}, query ->
         where(query, [..., pm], pm.medical_program_id == ^value and pm.is_active and pm.medication_request_allowed)
@@ -211,6 +215,14 @@ defmodule Core.Medications do
       _, query ->
         query
     end)
+  end
+
+  defp do_where_medication_conditions(query, %{medical_program_id: _}) do
+    where(query, [..., med, _], med.is_active)
+  end
+
+  defp do_where_medication_conditions(query, _) do
+    where(query, [..., med], med.is_active)
   end
 
   defp do_select(query, %{medical_program_id: _}) do
