@@ -442,9 +442,11 @@ defmodule Core.MedicationDispense.API do
     %{"medication_qty" => medication_qty, "discount_amount" => discount_amount} = details
 
     deviation = config()[:deviation]
-    coefficient = Float.round(discount_amount / (reimbursement_amount / medication.package_qty * medication_qty), 2)
+    tolerance = config()[:tolerance]
+    coefficient = discount_amount / (reimbursement_amount / medication.package_qty * medication_qty)
+    reimbursement_amount_max = reimbursement_amount / medication.package_qty * medication_qty
 
-    if 1 >= coefficient and coefficient >= 1 - deviation do
+    if discount_amount <= reimbursement_amount_max + tolerance and coefficient >= 1 - deviation do
       :ok
     else
       Error.dump(%ValidationError{

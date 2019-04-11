@@ -368,7 +368,9 @@ config :core, Core.Guardian,
   secret_key: {Confex, :fetch_env!, [:core, :jwt_secret]}
 
 # Deviation koeficient 0..1, equal to percents
-config :core, Core.MedicationDispense.API, deviation: {:system, :float, "DEVIATION", 0.1}
+config :core, Core.MedicationDispense.API,
+  deviation: {:system, :float, "DEVIATION", 0.1},
+  tolerance: {:system, :float, "TOLERANCE", 0.01}
 
 config :core, Core.DeclarationRequests.API.V1.Creator,
   use_phone_number_auth_limit: {:system, :boolean, "USE_PHONE_NUMBER_AUTH_LIMIT", true}
