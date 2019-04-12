@@ -736,10 +736,16 @@
           ],
           "properties": {
             "latitude": {
-              "type": "number"
+              "type": [
+                "number",
+                "null"
+              ]
             },
             "longitude": {
-              "type": "number"
+              "type": [
+                "number",
+                "null"
+              ]
             }
           },
           "required": [
@@ -773,7 +779,10 @@
               "type": "string"
             },
             "second_name": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "phones": {
               "type": "array"
