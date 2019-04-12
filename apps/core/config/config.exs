@@ -388,4 +388,78 @@ config :kaffe,
     topics: ["deactivate_declaration_events", "merge_legal_entities", "edr_verification_events", "event_manager_topic"]
   ]
 
+config :core,
+  topologies: [
+    k8s_me: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "medical_events_api",
+        kubernetes_selector: "app=api-medical-events",
+        kubernetes_namespace: "me",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_uaddresses: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "uaddresses_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "uaddresses",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_ops: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "ops",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "ops",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_mpi: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "mpi",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "mpi",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_mithril: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "mithril_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "mithril",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_edr_api: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "edr_api",
+        kubernetes_selector: "app=edr-api",
+        kubernetes_namespace: "edr",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_manual_merger: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "manual_merger",
+        kubernetes_selector: "app=manual-merger",
+        kubernetes_namespace: "mpi",
+        polling_interval: 10_000
+      ]
+    ]
+  ]
+
 import_config "#{Mix.env()}.exs"

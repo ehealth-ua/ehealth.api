@@ -22,48 +22,4 @@ config :ehealth, EHealth.Web.Endpoint,
   ],
   instrumenters: [LoggerJSON.Phoenix.Instruments]
 
-config :ehealth,
-  topologies: [
-    k8s_me: [
-      strategy: Elixir.Cluster.Strategy.Kubernetes,
-      config: [
-        mode: :dns,
-        kubernetes_node_basename: "medical_events_api",
-        kubernetes_selector: "app=api-medical-events",
-        kubernetes_namespace: "me",
-        polling_interval: 10_000
-      ]
-    ],
-    k8s_uaddresses: [
-      strategy: Elixir.Cluster.Strategy.Kubernetes,
-      config: [
-        mode: :dns,
-        kubernetes_node_basename: "uaddresses_api",
-        kubernetes_selector: "app=api",
-        kubernetes_namespace: "uaddresses",
-        polling_interval: 10_000
-      ]
-    ],
-    k8s_ops: [
-      strategy: Elixir.Cluster.Strategy.Kubernetes,
-      config: [
-        mode: :dns,
-        kubernetes_node_basename: "ops",
-        kubernetes_selector: "app=api",
-        kubernetes_namespace: "ops",
-        polling_interval: 10_000
-      ]
-    ],
-    k8s_mpi: [
-      strategy: Elixir.Cluster.Strategy.Kubernetes,
-      config: [
-        mode: :dns,
-        kubernetes_node_basename: "mpi",
-        kubernetes_selector: "app=api",
-        kubernetes_namespace: "mpi",
-        polling_interval: 10_000
-      ]
-    ]
-  ]
-
 import_config "#{Mix.env()}.exs"

@@ -11,20 +11,6 @@ defmodule EdrValidationsConsumer.Application do
       }
     ]
 
-    children =
-      if Application.get_env(:core, :env) == :prod do
-        children ++
-          [
-            {Cluster.Supervisor,
-             [
-               Application.get_env(:edr_validations_consumer, :topologies),
-               [name: EdrValidationsConsumer.ClusterSupervisor]
-             ]}
-          ]
-      else
-        children
-      end
-
     Application.put_env(:kaffe, :consumer, Application.get_env(:edr_validations_consumer, :kaffe_consumer))
 
     opts = [strategy: :one_for_one, name: EdrValidationsConsumer.Supervisor]

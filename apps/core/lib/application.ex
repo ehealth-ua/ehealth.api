@@ -13,6 +13,16 @@ defmodule Core.Application do
       {Core.Validators.Cache, []}
     ]
 
+    children =
+      if Application.get_env(:core, :env) == :prod do
+        children ++
+          [
+            {Cluster.Supervisor, [Application.get_env(:core, :topologies), [name: Core.ClusterSupervisor]]}
+          ]
+      else
+        children
+      end
+
     opts = [strategy: :one_for_one, name: Core.Supervisor]
     Supervisor.start_link(children, opts)
   end

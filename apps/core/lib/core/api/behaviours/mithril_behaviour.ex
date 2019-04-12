@@ -40,8 +40,6 @@ defmodule Core.API.MithrilBehaviour do
   @callback get_user_roles(user_id :: binary, params :: map, headers :: list) :: api_response()
   @callback create_user_role(user_id :: binary, params :: map, headers :: list) :: api_response()
   @callback create_global_user_role(user_id :: binary, params :: map, headers :: list) :: api_response()
-  @callback delete_user_roles_by_user_and_role_name(user_id :: binary, role_name :: binary, headers :: list) ::
-              api_response()
 
   # tokens
   @callback create_access_token(user_id :: binary, token :: map, headers :: list) :: api_response()

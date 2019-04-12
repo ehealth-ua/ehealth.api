@@ -3,6 +3,12 @@ defmodule Core.Expectations.RPC do
 
   import Mox
 
+  def expect_delete_user_role(response, times \\ 1) do
+    expect(RPCWorkerMock, :run, times, fn _, _, :delete_user_role, _ ->
+      response
+    end)
+  end
+
   def expect_settlement_by_id(response, times \\ 1) do
     expect(RPCWorkerMock, :run, times, fn _, _, :settlement_by_id, _ ->
       response

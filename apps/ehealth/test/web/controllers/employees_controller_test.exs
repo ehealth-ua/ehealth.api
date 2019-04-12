@@ -413,10 +413,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       msp()
       set_mox_global()
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
-
-      expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
-        {:ok, %{"data" => nil}}
-      end)
+      expect_delete_user_role(:ok, 2)
 
       expect(MithrilMock, :delete_apps_by_user_and_client, 2, fn _, _, _ ->
         {:ok, %{"data" => nil}}
@@ -441,10 +438,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       msp()
       set_mox_global()
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
-
-      expect(MithrilMock, :delete_user_roles_by_user_and_role_name, 2, fn _, _, _ ->
-        {:ok, %{"data" => nil}}
-      end)
+      expect_delete_user_role(:ok, 2)
 
       expect(MithrilMock, :delete_apps_by_user_and_client, 2, fn _, _, _ ->
         {:ok, %{"data" => nil}}

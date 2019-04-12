@@ -123,10 +123,6 @@ defmodule Core.API.Mithril do
     delete!("/admin/users/#{user_id}/roles/#{role_id}", headers)
   end
 
-  def delete_user_roles_by_user_and_role_name(user_id, role_name, headers) do
-    delete!("/admin/users/#{user_id}/roles?role_name=#{role_name}", headers)
-  end
-
   # Apps
 
   def get_app(id, headers \\ [], params) do

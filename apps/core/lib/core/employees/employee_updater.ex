@@ -23,6 +23,8 @@ defmodule Core.Employees.EmployeeUpdater do
 
   @producer Application.get_env(:core, :kafka)[:producer]
 
+  @rpc_worker Application.get_env(:core, :rpc_worker)
+
   def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
     deactivate(id, params["legal_entity_id"], "auto_employee_deactivate", headers, with_owner)
   end
@@ -103,7 +105,7 @@ defmodule Core.Employees.EmployeeUpdater do
   end
 
   def delete_mithril_entities(user_id, client_id, role_name, headers) do
-    with {:ok, _} <- @mithril_api.delete_user_roles_by_user_and_role_name(user_id, role_name, headers),
+    with :ok <- @rpc_worker.run("mithril_api", Core.Rpc, :delete_user_role, [user_id, client_id, role_name]),
          {:ok, _} <- @mithril_api.delete_apps_by_user_and_client(user_id, client_id, headers),
          {:ok, _} <- @mithril_api.delete_tokens_by_user_and_client(user_id, client_id, headers) do
       :ok
