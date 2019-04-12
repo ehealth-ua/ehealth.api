@@ -6324,9 +6324,9 @@ BEGIN
     AND m.certificate = 'UA/3906/01/03';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/03', '202020-07-27'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/03', '2020-07-27'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''afd96691-a7fd-4dab-a105-15ef48140d83'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 90, 90, ''UA/3906/01/03'', ''202020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''afd96691-a7fd-4dab-a105-15ef48140d83'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 90, 90, ''UA/3906/01/03'', ''2020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''1fd15365-16f9-4d3b-8e4b-fb5a8516f7a0'', ''{"numerator_unit": "MG", "numerator_value": "50", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
@@ -6676,9 +6676,9 @@ BEGIN
     AND m.certificate = 'UA/3906/01/04';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/04', '202020-07-27'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/04', '2020-07-27'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''9d1d763c-b08e-4b05-9840-eae7db5e24d0'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 90, 90, ''UA/3906/01/04'', ''202020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''9d1d763c-b08e-4b05-9840-eae7db5e24d0'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 90, 90, ''UA/3906/01/04'', ''2020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''44b743c9-9926-4037-bc26-dd20c2db1054'', ''{"numerator_unit": "MG", "numerator_value": "100", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
@@ -6720,9 +6720,9 @@ BEGIN
     AND m.certificate = 'UA/3906/01/04';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/04', '202020-07-27'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '[" C09CA01"]'::jsonb, 'UA/3906/01/04', '2020-07-27'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''c7422b53-f335-4782-b65e-384d34b47ccb'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 30, 30, ''UA/3906/01/04'', ''202020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''c7422b53-f335-4782-b65e-384d34b47ccb'', ''ЛОЗАП'', ''BRAND'', ''{"name": "АТ \"Санека Фармасьютікалз\"", "country": " Словацька Республіка"}'', ''[" C09CA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 30, 30, ''UA/3906/01/04'', ''2020-07-27'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''d66ba062-efff-452c-b7a5-855803199d82'', ''{"numerator_unit": "MG", "numerator_value": "100", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
@@ -7688,9 +7688,9 @@ BEGIN
     AND m.certificate = 'UA/14019/01/02';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["C10AA01"]'::jsonb, 'UA/14019/01/02', '202019-10-31'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["C10AA01"]'::jsonb, 'UA/14019/01/02', '2019-10-31'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''e4a06f2b-2d17-4484-989f-63f5a23eea1d'', ''СИМВАСТАТИН 20 АНАНТА'', ''BRAND'', ''{"name": "Марксанс Фарма Лтд.", "country": " Індія"}'', ''["C10AA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 28, 28, ''UA/14019/01/02'', ''202019-10-31'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''e4a06f2b-2d17-4484-989f-63f5a23eea1d'', ''СИМВАСТАТИН 20 АНАНТА'', ''BRAND'', ''{"name": "Марксанс Фарма Лтд.", "country": " Індія"}'', ''["C10AA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 28, 28, ''UA/14019/01/02'', ''2019-10-31'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''83b12db0-5d6f-485d-b6ed-54612e83dc3b'', ''{"numerator_unit": "MG", "numerator_value": "20", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
@@ -7952,9 +7952,9 @@ BEGIN
     AND m.certificate = 'UA/14019/01/03';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["C10AA01"]'::jsonb, 'UA/14019/01/03', '202019-10-31'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["C10AA01"]'::jsonb, 'UA/14019/01/03', '2019-10-31'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''456dd08c-0e85-4a9a-9515-f946c614048e'', ''СИМВАСТАТИН 40 АНАНТА'', ''BRAND'', ''{"name": "Марксанс Фарма Лтд.", "country": " Індія"}'', ''["C10AA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 28, 28, ''UA/14019/01/03'', ''202019-10-31'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''456dd08c-0e85-4a9a-9515-f946c614048e'', ''СИМВАСТАТИН 40 АНАНТА'', ''BRAND'', ''{"name": "Марксанс Фарма Лтд.", "country": " Індія"}'', ''["C10AA01"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 28, 28, ''UA/14019/01/03'', ''2019-10-31'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''38bb77d6-3bcd-494e-abd6-5febe0e6e3bd'', ''{"numerator_unit": "MG", "numerator_value": "40", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
@@ -10768,9 +10768,9 @@ BEGIN
     AND m.certificate = 'UA/14151/01/01';
 
     IF brand_id IS NOT NULL THEN
-        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["A10BB09"]'::jsonb, 'UA/14151/01/01', '202019-12-29'::date, brand_id;
+        EXECUTE 'UPDATE medications SET is_active = TRUE, code_atc = $1, certificate = $2, certificate_expired_at = $3 WHERE id = $4' USING '["A10BB09"]'::jsonb, 'UA/14151/01/01', '2019-12-29'::date, brand_id;
     ELSE
-        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''5299a002-728a-4db7-986b-d0762e401293'', ''ГЛІКЛАДА'', ''BRAND'', ''{"name": "КРКА", "country": " Словенія"}'', ''["A10BB09"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 30, 30, ''UA/14151/01/01'', ''202019-12-29'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
+        EXECUTE 'INSERT INTO medications (id, name, type, manufacturer, code_atc, is_active, form, container, package_qty, package_min_qty, certificate, certificate_expired_at, inserted_by, updated_by, inserted_at, updated_at) VALUES (''5299a002-728a-4db7-986b-d0762e401293'', ''ГЛІКЛАДА'', ''BRAND'', ''{"name": "КРКА", "country": " Словенія"}'', ''["A10BB09"]'', true, ''TABLET'', ''{"numerator_unit": "PILL", "numerator_value": 1, "denumerator_unit": "PILL", "denumerator_value": "1"}'', 30, 30, ''UA/14151/01/01'', ''2019-12-29'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', ''4261eacf-8008-4e62-899f-de1e2f7065f0'', now(), now()) RETURNING id' INTO brand_id;
         EXECUTE 'INSERT INTO ingredients (id, dosage, is_primary, medication_child_id, parent_id, inserted_at, updated_at) VALUES (''054c2a1a-9597-48fc-a741-8b5fd31e5309'', ''{"numerator_unit": "MG", "numerator_value": "60", "denumerator_unit": "PILL", "denumerator_value": "1"}'', true, $1, $2, now(), now())' USING dosage_id, brand_id;
     END IF;
 
