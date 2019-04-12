@@ -196,7 +196,11 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       contract_number = NumberGenerator.generate_from_sequence(1, 1)
 
-      previous_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
+      previous_request =
+        insert(:il, :reimbursement_contract_request,
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_divisions: [division.id]
+        )
 
       insert(
         :prm,
@@ -1386,6 +1390,64 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
                  ]
                }
              ] = resp["error"]["invalid"]
+    end
+
+    test "division is not dls verified", %{conn: conn} do
+      nhs()
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      division = insert(:prm, :division, type: Division.type(:drugstore_point), dls_verified: false)
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: ReimbursementContractRequest.status(:nhs_signed),
+          contract_number: "1345",
+          contractor_divisions: [division.id]
+        )
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      assert conn
+             |> put_client_id_header(client_id)
+             |> put_consumer_id_header(user_id)
+             |> put_req_header("msp_drfo", legal_entity.edrpou)
+             |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+               "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+               "signed_content_encoding" => "base64"
+             })
+             |> json_response(409)
     end
 
     test "success to sign contract_request", %{conn: conn} do

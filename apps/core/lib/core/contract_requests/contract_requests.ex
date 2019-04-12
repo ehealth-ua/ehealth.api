@@ -137,6 +137,7 @@ defmodule Core.ContractRequests do
          {:ok, contract_request} <- validate_contract_request_content(:create, pack, client_id),
          :ok <- validate_unique_contractor_divisions(content),
          :ok <- validate_contractor_divisions(pack.type, content),
+         :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
          :ok <- create_validate_contractor_owner_id(pack.type, content),
@@ -180,6 +181,7 @@ defmodule Core.ContractRequests do
          {:ok, contract_request} <- validate_contract_request_content(:create, pack, contractor_legal_entity_id),
          :ok <- validate_unique_contractor_divisions(content),
          :ok <- validate_contractor_divisions(pack.type, content),
+         :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
          :ok <- create_validate_contractor_owner_id(pack.type, content),
@@ -289,6 +291,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_nhs_signer_id(contract_request, client_id),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_divisions(pack.type, contract_request),
+         :ok <- validate_contractor_divisions_dls(pack.type, contract_request.contractor_divisions),
          :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          update_params <-
@@ -320,6 +323,7 @@ defmodule Core.ContractRequests do
          {:contractor_owner, :ok} <- {:contractor_owner, validate_contractor_owner_id(contract_request)},
          :ok <- validate_employee_divisions(contract_request, client_id),
          :ok <- validate_contractor_divisions(pack.type, contract_request),
+         :ok <- validate_contractor_divisions_dls(pack.type, contract_request.contractor_divisions),
          :ok <- validate_start_date_year(contract_request),
          :ok <- validate_medical_program_is_active(contract_request),
          %Changeset{valid?: true} = changes <- approve_msp_changeset(contract_request, update_params),
@@ -463,6 +467,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
          :ok <- validate_medical_program_is_active(contract_request),
          :ok <- validate_start_date_year(contract_request),
+         :ok <- validate_contractor_divisions_dls(pack.type, contract_request.contractor_divisions),
          :ok <-
            save_signed_content(
              contract_request.id,
@@ -520,6 +525,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_start_date_year(pack.contract_request),
          :ok <- validate_contractor_legal_entity(pack.contract_request.contractor_legal_entity_id),
          :ok <- validate_contractor_owner_id(pack.contract_request),
+         :ok <- validate_contractor_divisions_dls(pack.type, contract_request.contractor_divisions),
          contract_id <- UUID.generate(),
          :ok <-
            save_signed_content(

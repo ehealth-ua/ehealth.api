@@ -3,6 +3,7 @@ defmodule Core.ContractRequests.Validator do
 
   import Core.API.Helpers.Connection, only: [get_header: 2]
   import Core.Users.Validator, only: [user_has_role: 2]
+  import Ecto.Query, only: [where: 3]
 
   alias Core.ContractRequests.CapitationContractRequest
   alias Core.ContractRequests.ReimbursementContractRequest
@@ -50,6 +51,9 @@ defmodule Core.ContractRequests.Validator do
   @admin Employee.type(:admin)
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
+
+  @drugstore Division.type(:drugstore)
+  @drugstore_point Division.type(:drugstore_point)
 
   # Contract Request
 
@@ -497,6 +501,20 @@ defmodule Core.ContractRequests.Validator do
       :ok
     else
       Error.dump(%ValidationError{description: "The division is not belong to contractor_divisions", path: error})
+    end
+  end
+
+  def validate_contractor_divisions_dls(@capitation, _), do: :ok
+
+  def validate_contractor_divisions_dls(@reimbursement, contractor_divisions) do
+    Division
+    |> where([d], d.dls_verified == false or is_nil(d.dls_verified))
+    |> where([d], d.id in ^contractor_divisions)
+    |> where([d], d.type in [@drugstore, @drugstore_point])
+    |> @read_prm_repo.aggregate(:count, :id)
+    |> case do
+      0 -> :ok
+      _ -> {:error, {:conflict, "All contractor divisions must be dls verified"}}
     end
   end
 
