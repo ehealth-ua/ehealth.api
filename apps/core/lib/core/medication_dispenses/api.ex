@@ -359,11 +359,13 @@ defmodule Core.MedicationDispense.API do
   end
 
   defp get_valid_reimbursement_contract(medical_program_id, legal_entity_id) do
+    now = Date.utc_today()
+
     ReimbursementContract
     |> where(
       [c],
       c.status == @reimbursement_contract_status_verified and c.contractor_legal_entity_id == ^legal_entity_id and
-        c.medical_program_id == ^medical_program_id
+        c.medical_program_id == ^medical_program_id and c.start_date <= ^now and c.end_date >= ^now
     )
     |> @read_prm_repo.one()
   end
