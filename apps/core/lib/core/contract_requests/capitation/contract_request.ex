@@ -23,6 +23,7 @@ defmodule Core.ContractRequests.CapitationContractRequest do
   )a
 
   @fields_optional ~w(
+    assignee_id
     contractor_employee_divisions
     external_contractor_flag
     external_contractors

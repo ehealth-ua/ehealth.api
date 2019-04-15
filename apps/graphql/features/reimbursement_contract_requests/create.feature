@@ -60,3 +60,4 @@ Feature: Create reimbursement contract request
     Then no errors should be returned
     And I should receive requested item
     And the status of the requested item should be "APPROVED"
+    And the databaseId in the assignee of the requested item should be "becfe929-60c0-4731-b4d7-e72482ff84fd"

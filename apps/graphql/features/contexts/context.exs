@@ -2210,6 +2210,9 @@ defmodule GraphQL.Features.Context do
             contractRequest {
               databaseId
               status
+              assignee {
+                databaseId
+              }
             }
           }
         }
