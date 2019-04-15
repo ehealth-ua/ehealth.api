@@ -120,12 +120,14 @@ defmodule GraphQL.ProgramMedicationResolverTest do
     test "success", %{conn: conn} do
       gen_innm_dosage = &insert(:prm, :innm_dosage, name: &1).id
       gen_medical_program = &insert(:prm, :medical_program, name: &1, is_active: true).id
+      code_atc = "C08CA0"
 
       gen_medication =
         &insert(:prm, :medication,
           name: &1,
           is_active: true,
           form: "COATED_TABLET",
+          code_atc: [code_atc],
           manufacturer: build(:manufacturer, name: "Kyiv Vitamin Plant")
         ).id
 
@@ -164,6 +166,7 @@ defmodule GraphQL.ProgramMedicationResolverTest do
             name: "medication",
             is_active: true,
             form: "COATED_TABLET",
+            atc_code: code_atc,
             innm_dosages: %{
               name: "Dosage 1",
               is_active: true

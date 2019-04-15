@@ -19,6 +19,8 @@ defmodule GraphQL.Schema.ProgramMedicationTypes do
       arg(:filter, :program_medication_filter)
       arg(:order_by, :program_medication_order_by, default_value: :inserted_at_desc)
 
+      middleware(&transform_atc_code/2)
+
       middleware(Filtering,
         database_id: :equal,
         is_active: :equal,
@@ -28,6 +30,7 @@ defmodule GraphQL.Schema.ProgramMedicationTypes do
           name: :like,
           is_active: :equal,
           form: :equal,
+          code_atc: :contains,
           innm_dosages: [
             database_id: :equal,
             name: :like,
@@ -159,4 +162,15 @@ defmodule GraphQL.Schema.ProgramMedicationTypes do
   enum :reimbursement_type do
     value(:fixed, as: "FIXED")
   end
+
+  defp transform_atc_code(%{arguments: %{filter: filter} = arguments} = resolution, _) do
+    {code, updated_filter} = pop_in(filter, ~w(medication atc_code)a)
+
+    case code do
+      nil -> resolution
+      code -> %{resolution | arguments: %{arguments | filter: put_in(updated_filter, ~w(medication code_atc)a, code)}}
+    end
+  end
+
+  defp transform_atc_code(resolution, _), do: resolution
 end

@@ -22,11 +22,14 @@ defmodule GraphQL.Schema.MedicationTypes do
       arg(:filter, :medication_filter)
       arg(:order_by, :medication_order_by, default_value: :inserted_at_desc)
 
+      middleware(&transform_atc_code/2)
+
       middleware(Filtering,
         database_id: :equal,
         name: :like,
         is_active: :equal,
         form: :equal,
+        code_atc: :contains,
         innm_dosages: [
           database_id: :equal,
           name: :like,
@@ -57,6 +60,7 @@ defmodule GraphQL.Schema.MedicationTypes do
     field(:name, :string)
     field(:is_active, :boolean)
     field(:form, :string)
+    field(:atc_code, :string)
     field(:innm_dosages, :innm_dosage_filter)
     field(:manufacturer, :manufacturer_filter)
   end
@@ -200,4 +204,12 @@ defmodule GraphQL.Schema.MedicationTypes do
     value(:brand, as: "BRAND")
     value(:innm_dosage, as: "INNM_DOSAGE")
   end
+
+  defp transform_atc_code(%{arguments: %{filter: %{atc_code: code} = filter} = arguments} = resolution, _) do
+    updated_filter = filter |> Map.delete(:atc_code) |> Map.put(:code_atc, [code])
+
+    %{resolution | arguments: %{arguments | filter: updated_filter}}
+  end
+
+  defp transform_atc_code(resolution, _), do: resolution
 end
