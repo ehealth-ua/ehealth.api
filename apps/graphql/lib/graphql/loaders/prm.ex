@@ -41,5 +41,7 @@ defmodule GraphQL.Loaders.PRM do
     end
   end
 
+  def query(queryable, %{filter: filter}), do: filter(queryable, filter)
+
   def query(queryable, _), do: queryable
 end

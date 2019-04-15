@@ -2757,6 +2757,8 @@ defmodule GraphQL.Features.Context do
     |> String.to_atom()
   end
 
+  defp prepare_value(_, _, "null"), do: {:ok, nil}
+
   defp prepare_value(nil, _, value), do: {:ok, value}
 
   defp prepare_value(queryable, field, value) do

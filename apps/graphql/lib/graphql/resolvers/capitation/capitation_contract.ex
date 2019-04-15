@@ -17,13 +17,18 @@ defmodule GraphQL.Resolvers.CapitationContract do
   end
 
   def get_to_create_request_content(parent, _, %{context: %{client_id: client_id, loader: loader}}) do
+    contract_employees_batch_key = {
+      :contract_employees,
+      %{filter: [{:end_date, :equal, nil}]}
+    }
+
     loader
     |> Dataloader.load(PRM, :contract_divisions, parent)
-    |> Dataloader.load(PRM, :contract_employees, parent)
+    |> Dataloader.load(PRM, contract_employees_batch_key, parent)
     |> Dataloader.load(IL, {:one, Dictionary}, name: @consent_text_dictionary)
     |> on_load(fn loader ->
       with contract_divisions <- Dataloader.get(loader, PRM, :contract_divisions, parent),
-           contract_employees <- Dataloader.get(loader, PRM, :contract_employees, parent),
+           contract_employees <- Dataloader.get(loader, PRM, contract_employees_batch_key, parent),
            %Dictionary{values: values} <-
              Dataloader.get(loader, IL, {:one, Dictionary}, name: @consent_text_dictionary),
            {:ok, consent_text} <- Map.fetch(values, "APPROVED") do
