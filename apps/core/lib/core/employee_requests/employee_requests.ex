@@ -257,7 +257,8 @@ defmodule Core.EmployeeRequests do
 
     with {:ok, employee_request} <- check_transition_status(employee_request),
          {:ok, employee} <- Employees.create_or_update_employee(employee_request, headers),
-         {:ok, employee_request} <- update_status(employee_request, employee, @status_approved, user_id),
+         {:ok, employee_request} <-
+           update_status(employee_request, employee, @status_approved, user_id),
          {:ok, employee_request} <-
            send_email(
              employee_request,

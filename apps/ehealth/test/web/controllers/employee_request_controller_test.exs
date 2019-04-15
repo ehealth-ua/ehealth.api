@@ -1203,9 +1203,12 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
 
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
 
-      conn = put_client_id_header(conn, legal_entity_id)
-      conn1 = post(conn, employee_request_path(conn, :approve, request_id))
-      resp = json_response(conn1, 200)
+      resp =
+        conn
+        |> put_client_id_header(legal_entity_id)
+        |> post(employee_request_path(conn, :approve, request_id))
+        |> json_response(200)
+
       assert %{"data" => %{"employee_id" => employee_id}} = resp
 
       {:ok, %{"data" => [role]}} = @mithril_api.get_user_roles(user_id, %{}, [])
@@ -1220,13 +1223,22 @@ defmodule EHealth.Web.EmployeeRequestControllerTest do
       data = Map.put(data, :doctor, doctor)
 
       %{id: request_id} = insert(:il, :employee_request, employee_id: nil, data: data)
-      conn2 = post(conn, employee_request_path(conn, :approve, request_id))
-      resp = json_response(conn2, 200)["data"]
+      resp = conn |> post(employee_request_path(conn, :approve, request_id)) |> json_response(200) |> Map.get("data")
       assert employee_id = resp["employee_id"]
       refute Map.has_key?(resp["doctor"], "science_degree")
-      conn3 = get(conn, employee_path(conn, :show, employee_id))
-      resp = json_response(conn3, 200)["data"]
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity_id)
+        |> get(employee_path(conn, :show, employee_id))
+        |> json_response(200)
+        |> Map.get("data")
+
       refute Map.has_key?(resp["doctor"], "science_degree")
+
+      assert Enum.all?(resp["party"]["documents"], fn document ->
+               assert %{"issued_at" => _, "issued_by" => _, "number" => _, "type" => _} = document
+             end)
     end
 
     test "can approve employee request with employee_id and delete party.second_name", %{conn: conn} do

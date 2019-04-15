@@ -64,15 +64,14 @@ defmodule EHealth.Web.EmployeeRequestController do
   end
 
   def approve(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with :ok <- API.check_employee_request(req_headers, id) do
-      with {:ok, employee_request, references} <- API.approve(id, req_headers) do
-        render(
-          conn,
-          "show.json",
-          employee_request: employee_request,
-          references: references
-        )
-      end
+    with :ok <- API.check_employee_request(req_headers, id),
+         {:ok, employee_request, references} <- API.approve(id, req_headers) do
+      render(
+        conn,
+        "show.json",
+        employee_request: employee_request,
+        references: references
+      )
     end
   end
 

@@ -34,7 +34,9 @@ defmodule Core.ILFactories.EmployeeRequestFactory do
             documents: [
               %{
                 type: "PASSPORT",
-                number: "120518"
+                number: "120518",
+                issued_at: "2019-04-08",
+                issued_by: "Нептун"
               }
             ],
             phones: [

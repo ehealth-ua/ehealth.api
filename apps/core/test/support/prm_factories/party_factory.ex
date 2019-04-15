@@ -17,7 +17,9 @@ defmodule Core.PRMFactories.PartyFactory do
           documents: [
             %Core.Parties.Document{
               type: "NATIONAL_ID",
-              number: "AA000000"
+              number: "AA000000",
+              issued_at: "2017-06-11",
+              issued_by: "Прикордонна служба"
             }
           ],
           phones: [
