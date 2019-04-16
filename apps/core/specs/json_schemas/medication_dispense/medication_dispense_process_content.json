@@ -168,7 +168,10 @@
                   "type": "string"
                 },
                 "second_name": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "email": {
                   "type": "string"
@@ -337,7 +340,10 @@
           "type": "string"
         },
         "second_name": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
