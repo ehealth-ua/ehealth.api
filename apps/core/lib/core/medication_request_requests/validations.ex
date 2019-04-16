@@ -269,7 +269,7 @@ defmodule Core.MedicationRequestRequest.Validations do
   def validate_existing_medication_requests(%{"intent" => @intent_order} = data, medical_program_id) do
     search_params = %{
       "person_id" => data["person_id"],
-      "medication_id" => data["medication_id"],
+      "medication_id" => Enum.join(Medications.get_innm_medication_ids(data["medication_id"]), ","),
       "medical_program_id" => medical_program_id,
       "status" => Enum.join([MedicationRequest.status(:active), MedicationRequest.status(:completed)], ",")
     }

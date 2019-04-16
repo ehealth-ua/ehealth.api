@@ -405,6 +405,25 @@ defmodule Core.Medications do
     })
   end
 
+  def get_innm_medication_ids(innm_dosage_id) do
+    innm_ids =
+      INNMDosage
+      |> join(:inner, [innm_dosage], ing in MedicationIngredient, ing.parent_id == innm_dosage.id)
+      |> join(:inner, [innm_dosage, ing], innm in INNM, ing.innm_child_id == innm.id)
+      |> where([innm_dosage], innm_dosage.is_active == true)
+      |> where([innm_dosage], innm_dosage.id == ^innm_dosage_id)
+      |> where([innm_dosage, ing], ing.is_primary == true)
+      |> where([..., innm], innm.is_active == true)
+      |> select([..., innm], innm.id)
+
+    Medication
+    |> join(:inner, [med], ing in MedicationIngredient, med.id == ing.parent_id)
+    |> join(:inner, [med, ing], innm in subquery(innm_ids), ing.innm_child_id == innm.id)
+    |> where([med], med.is_active == true)
+    |> select([med], med.id)
+    |> @read_prm_repo.all()
+  end
+
   # Create
 
   def create_innm_dosage(attrs, actor_id), do: create_medication_entity(INNMDosage, attrs, actor_id)
