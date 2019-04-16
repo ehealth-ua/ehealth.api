@@ -11,7 +11,7 @@ defmodule EHealth.Web.ServiceView do
     end)
   end
 
-  def render("group.json", %{group: group, tree: nodes}) do
+  def render("group.json", %{group: group} = params) do
     group.node
     |> Map.take(~w(
       id
@@ -24,10 +24,10 @@ defmodule EHealth.Web.ServiceView do
       updated_at
       updated_by
     )a)
-    |> put_children(group, nodes)
+    |> put_children(group, params[:tree])
   end
 
-  def render("service.json", %{service: service, services_group: services_group}) do
+  def render("service.json", %{service: service} = params) do
     service
     |> Map.take(~w(
       id
@@ -42,8 +42,11 @@ defmodule EHealth.Web.ServiceView do
       updated_at
       updated_by
     )a)
-    |> Map.put(:name, services_group.alias || service.name)
+    |> Map.put(:name, get_service_name(params))
   end
+
+  defp get_service_name(%{service: service, services_group: services_group}), do: services_group.alias || service.name
+  defp get_service_name(%{service: service}), do: service.name
 
   defp put_children(data, %{groups: [], services: services}, _) do
     Map.put(data, :services, Enum.map(services, fn value -> render("service.json", value) end))
