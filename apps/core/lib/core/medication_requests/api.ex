@@ -25,6 +25,7 @@ defmodule Core.MedicationRequests.API do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.PartyUsers
   alias Core.PartyUsers.PartyUser
+  alias Core.Persons
   alias Core.Utils.NumberGenerator
   alias Core.ValidationError
   alias Core.Validators.Content, as: ContentValidator
@@ -37,7 +38,6 @@ defmodule Core.MedicationRequests.API do
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   @legal_entity_msp LegalEntity.type(:msp)
@@ -289,7 +289,7 @@ defmodule Core.MedicationRequests.API do
          %Employee{} = employee <- Employees.get_by_id(medication_request["employee_id"]),
          %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_request["medication_id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(medication_request["legal_entity_id"]),
-         {:ok, %{"data" => person}} <- @mpi_api.person(medication_request["person_id"], []) do
+         {:ok, person} <- Persons.get_by_id(medication_request["person_id"]) do
       result =
         medication_request
         |> Map.put("division", division)

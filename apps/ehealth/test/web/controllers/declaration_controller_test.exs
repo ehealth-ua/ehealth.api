@@ -48,7 +48,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
       expect(RPCWorkerMock, :run, fn "mpi",
                                      MPI.Rpc,
                                      :search_persons,
-                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+                                     [
+                                       %{"ids" => ids},
+                                       ~w(id first_name last_name second_name birth_date)a,
+                                       [read_only: true]
+                                     ] ->
         get_rpc_persons(ids)
       end)
 
@@ -153,7 +157,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
       expect(RPCWorkerMock, :run, fn "mpi",
                                      MPI.Rpc,
                                      :search_persons,
-                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+                                     [
+                                       %{"ids" => ids},
+                                       ~w(id first_name last_name second_name birth_date)a,
+                                       [read_only: true]
+                                     ] ->
         get_rpc_persons(ids)
       end)
 
@@ -192,7 +200,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
       expect(RPCWorkerMock, :run, fn "mpi",
                                      MPI.Rpc,
                                      :search_persons,
-                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+                                     [
+                                       %{"ids" => ids},
+                                       ~w(id first_name last_name second_name birth_date)a,
+                                       [read_only: true]
+                                     ] ->
         get_rpc_persons(ids)
       end)
 
@@ -239,7 +251,11 @@ defmodule EHealth.Web.DeclarationControllerTest do
       expect(RPCWorkerMock, :run, fn "mpi",
                                      MPI.Rpc,
                                      :search_persons,
-                                     [%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a] ->
+                                     [
+                                       %{"ids" => ids},
+                                       ~w(id first_name last_name second_name birth_date)a,
+                                       [read_only: true]
+                                     ] ->
         get_rpc_persons(ids)
       end)
 
@@ -324,8 +340,8 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -367,8 +383,8 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -409,8 +425,8 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -429,7 +445,10 @@ defmodule EHealth.Web.DeclarationControllerTest do
     Enum.each(fields, fn field ->
       assert Map.has_key?(declaration, field), "Expected field #{field} not present"
       assert is_map(declaration[field]), "Expected that field #{field} is map"
-      assert Enum.any?([:id, "id"], &Map.has_key?(declaration[field], &1)), "Expected field #{field}.id not present"
+
+      assert Enum.any?([:id, "id"], &Map.has_key?(declaration[field], &1)),
+             "Expected field #{field}.id not present"
+
       refute Map.has_key?(declaration, field <> "_id"), "Field #{field}_id should be not present"
     end)
   end
@@ -763,16 +782,5 @@ defmodule EHealth.Web.DeclarationControllerTest do
   defp get_rpc_persons(params) when is_binary(params) do
     {:ok, persons} = get_persons(params)
     {:ok, persons["data"]}
-  end
-
-  defp get_person(id) do
-    person = build(:person, id: id)
-
-    person =
-      person
-      |> Jason.encode!()
-      |> Jason.decode!()
-
-    {:ok, %{"data" => person}}
   end
 end

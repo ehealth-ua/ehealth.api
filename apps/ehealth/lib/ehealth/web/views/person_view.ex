@@ -20,19 +20,19 @@ defmodule EHealth.Web.PersonView do
     mandatory_fields =
       Map.take(
         person,
-        ~w(id first_name second_name last_name birth_country birth_settlement master_persons merged_persons)
+        ~w(id first_name second_name last_name birth_country birth_settlement master_persons merged_persons)a
       )
 
     requested_fields =
       Enum.into(fields, %{}, fn field ->
         case field do
           "birth_certificate" ->
-            documents = Map.get(person, "documents") || []
-            {"documents", Enum.filter(documents, &(Map.get(&1, "type") == "BIRTH_CERTIFICATE"))}
+            documents = person.documents || []
+            {"documents", Enum.filter(documents, &(&1.type == "BIRTH_CERTIFICATE"))}
 
           "phone_number" ->
-            phones = Map.get(person, "phones") || []
-            {"phones", Enum.filter(phones, &(Map.get(&1, "type") == "MOBILE"))}
+            phones = person.phones || []
+            {"phones", Enum.filter(phones, &(&1.type == "MOBILE"))}
 
           _ ->
             {field, Map.get(person, field)}
@@ -42,13 +42,12 @@ defmodule EHealth.Web.PersonView do
     Map.merge(mandatory_fields, requested_fields)
   end
 
-  def render("person_short.json", %{"person" => person}) do
-    Map.take(person, ~w(
-      id
-      first_name
-      last_name
-      second_name
-    ))
+  def render("person_short.json", %{"person" => %{id: _} = person}) do
+    Map.take(person, ~w(id first_name last_name second_name)a)
+  end
+
+  def render("person_short.json", %{"person" => %{"id" => _} = person}) do
+    Map.take(person, ~w(id first_name last_name second_name))
   end
 
   def render("person_short.json", _), do: %{}

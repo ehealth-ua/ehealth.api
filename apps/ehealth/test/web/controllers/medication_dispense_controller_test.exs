@@ -1805,12 +1805,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   describe "process medication dispense" do
     test "success process", %{conn: conn} do
       msp(2)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      person = build(:person)
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1934,10 +1930,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid division dls status", %{conn: conn} do
       msp(2)
-      person = string_params_for(:person)
 
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       party_user = insert(:prm, :party_user)
@@ -2952,11 +2947,10 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "success process by NHS", %{conn: conn} do
       nhs(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       party_user = insert(:prm, :party_user)
@@ -3084,10 +3078,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "failed when signed content does not match the previously created content", %{conn: conn} do
       msp(2)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       party_user = insert(:prm, :party_user)
@@ -3556,8 +3548,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   end
 
   defp expect_mpi_get_person(n \\ 1) do
-    expect(MPIMock, :person, n, fn id, _headers ->
-      {:ok, %{"data" => string_params_for(:person, id: id)}}
+    expect(RPCWorkerMock, :run, n, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+      {:ok, build(:person, id: person_id)}
     end)
   end
 

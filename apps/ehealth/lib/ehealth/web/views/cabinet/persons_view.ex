@@ -34,12 +34,12 @@ defmodule EHealth.Web.Cabinet.PersonsView do
   end
 
   def render("personal_info.json", %{person: person}) do
-    %{
-      id: person["id"],
-      first_name: person["first_name"],
-      last_name: person["last_name"],
-      second_name: person["second_name"]
-    }
+    Map.take(person, ~w(
+      id
+      first_name
+      last_name
+      second_name
+    )a)
   end
 
   def render("person_details.json", %{person: person}) do
@@ -63,6 +63,6 @@ defmodule EHealth.Web.Cabinet.PersonsView do
       process_disclosure_data_consent
       authentication_methods
       preferred_way_communication
-    ))
+    )a)
   end
 end

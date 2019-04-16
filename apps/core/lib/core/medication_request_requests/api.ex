@@ -200,13 +200,8 @@ defmodule Core.MedicationRequestRequests do
   end
 
   defp put_verification_code(%Operation{valid?: true} = operation) do
-    otp = Enum.find(operation.data.person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)
-
-    if otp do
-      NumberGenerator.generate_otp_verification_code()
-    else
-      nil
-    end
+    otp = Enum.find(operation.data.person.authentication_methods, nil, fn method -> method["type"] == "OTP" end)
+    if otp, do: NumberGenerator.generate_otp_verification_code(), else: nil
   end
 
   defp put_verification_code(_), do: nil
@@ -492,7 +487,7 @@ defmodule Core.MedicationRequestRequests do
   defp check_intent(%{"intent" => "plan"}), do: {:error, {:conflict, "Plan can't be qualified"}}
   defp check_intent(%{"intent" => _}), do: :ok
 
-  def prepare_urgent_data(%{"authentication_methods" => authentication_methods}) do
+  def prepare_urgent_data(%{authentication_methods: authentication_methods}) do
     filtered_authentication_method_current =
       authentication_methods
       |> List.first()

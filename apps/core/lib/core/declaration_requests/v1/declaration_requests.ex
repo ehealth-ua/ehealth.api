@@ -81,7 +81,7 @@ defmodule Core.DeclarationRequests do
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          :ok <- check_user_person_id(user, declaration_request.mpi_id),
          {:ok, person} <- Reference.validate(:person, declaration_request.mpi_id),
-         :ok <- validate_tax_id(user["tax_id"], person["tax_id"]),
+         :ok <- validate_tax_id(user["tax_id"], person.tax_id),
          updates <-
            changeset(declaration_request, %{
              status: @status_approved,

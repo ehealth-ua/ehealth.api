@@ -47,16 +47,16 @@ defmodule Core.MedicationRequestRequest.Renderer do
     end
   end
 
-  def render_person(%{"birth_date" => birth_date} = person, mrr_created_at) do
+  def render_person(%{birth_date: birth_date} = person, mrr_created_at) do
     age = get_age(birth_date, mrr_created_at)
     response = PersonsRenderer.render("show.json", person)
 
     response
     |> Map.put("age", age)
-    |> Map.drop(["birth_date", "addresses"])
+    |> Map.drop(~w(birth_date addresses)a)
   end
 
   defp get_age(birth_date, current_date) do
-    Timex.diff(current_date, Timex.parse!(birth_date, "{YYYY}-{0M}-{D}"), :years)
+    Timex.diff(current_date, birth_date, :years)
   end
 end

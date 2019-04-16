@@ -99,16 +99,16 @@ defmodule Core.MedicationRequests.Renderer do
     })
   end
 
-  def render_person(%{"birth_date" => birth_date} = person, mrr_created_at) do
+  def render_person(%{birth_date: birth_date} = person, mrr_created_at) do
     response = PersonsRenderer.render("show.json", person)
-    %{"id" => response["id"], "age" => age(birth_date, mrr_created_at), "short_name" => initials(response)}
+    %{"id" => response.id, "age" => age(birth_date, mrr_created_at), "short_name" => initials(response)}
   end
 
   defp age(birth_date, current_date) do
-    Timex.diff(current_date, Timex.parse!(birth_date, "{YYYY}-{0M}-{D}"), :years)
+    Timex.diff(current_date, birth_date, :years)
   end
 
-  defp initials(%{"first_name" => first_name, "last_name" => last_name, "second_name" => second_name}) do
+  defp initials(%{first_name: first_name, last_name: last_name, second_name: second_name}) do
     last_name <> get_initials(first_name) <> get_initials(second_name)
   end
 

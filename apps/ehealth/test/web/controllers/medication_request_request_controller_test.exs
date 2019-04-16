@@ -126,10 +126,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       mrr = fixture(:medication_request_request)
       data = %{"employee_id" => mrr.medication_request_request.data.employee_id}
@@ -144,10 +145,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data with different intents", %{conn: conn} do
-      expect_ops_get_declarations(2)
-      expect_mpi_get_person(4)
+      expect_mpi_get_person()
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
+      expect_encounter_status("finished")
+      expect_ops_get_declarations()
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+      expect_mpi_get_person(2)
+      expect_ops_get_declarations()
 
       fixture(:medication_request_request, %{"intent" => "order"})
       fixture(:medication_request_request, %{"intent" => "plan"}, true)
@@ -162,10 +167,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by status", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       fixture(:medication_request_request)
 
@@ -179,10 +185,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by person_id", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       mrr = fixture(:medication_request_request)
       data = %{"person_id" => mrr.medication_request_request.data.person_id}
@@ -196,13 +203,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                |> length
     end
 
-    test "lists all medication_request_requests with data search by all posible filters", %{
-      conn: conn
-    } do
+    test "lists all medication_request_requests with data search by all posible filters", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       mrr = fixture(:medication_request_request, %{"intent" => "order"})
 
@@ -223,10 +229,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "lists all medication_request_requests with data search by intent", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations(2)
-      expect_mpi_get_person(3)
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
+      expect_encounter_status("finished")
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       %{medication_request_request: %{id: mrr_id_in}} = fixture(:medication_request_request, %{"intent" => "order"})
 
@@ -246,10 +255,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "ignore invalid search params", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations(2)
-      expect_mpi_get_person(4)
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
+      expect_encounter_status("finished")
+      expect_mpi_get_person()
+      expect_encounter_status("finished")
+      expect_mpi_get_person(2)
 
       fixture(:medication_request_request, %{"intent" => "order"})
       fixture(:medication_request_request, %{"intent" => "plan"}, true)
@@ -305,10 +317,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "show medication_request_request" do
     test "success", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       %{medication_request_request: %{id: id}} = fixture(:medication_request_request)
 
@@ -318,9 +331,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "success when PLAN data does not contain medical_program_id", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
 
       %{medication_request_request: %{id: id}} = fixture(:medication_request_request, %{"intent" => "plan"}, true)
 
@@ -364,12 +378,9 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render medication_request_request when data is valid", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_get_declarations()
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
 
       expect_ops_last_medication_request_dates(%{
         "started_at" => Date.add(Date.utc_today(), -2),
@@ -377,6 +388,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       })
 
       expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -399,7 +411,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                |> assert_show_response_schema("medication_request_request")
 
       assert person
-             |> Map.get("authentication_methods", [])
+             |> Map.get(:authentication_methods, [])
              |> List.first()
              |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
 
@@ -420,15 +432,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "success when medical_program is absent (medical_program param is optional)", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_get_declarations()
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
-
       expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       {medication_id, _} = create_medications_structure()
 
@@ -452,7 +460,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
                |> assert_show_response_schema("medication_request_request")
 
       assert person
-             |> Map.get("authentication_methods", [])
+             |> Map.get(:authentication_methods, [])
              |> List.first()
              |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
 
@@ -632,17 +640,15 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when person_id is invalid", %{conn: conn} do
-      expect(MPIMock, :person, fn _id, _headers ->
-        {:error, %{"error" => %{"type" => "not_found"}, "meta" => %{"code" => 404}}}
-      end)
-
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> nil end)
       test_request = test_request(%{"person_id" => "585041f5-1272-4bca-8d41-8440eefe7d26"})
 
-      conn = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+      assert resp =
+               conn
+               |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+               |> json_response(422)
 
-      assert json_response(conn, 422)
-
-      assert List.first(json_response(conn, 422)["error"]["invalid"])["entry"] == "$.data.person_id"
+      assert List.first(resp["error"]["invalid"])["entry"] == "$.data.person_id"
     end
 
     test "render errors when employee_id is invalid", %{conn: conn} do
@@ -1131,12 +1137,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "render errors when dosage instruction entry code is not valid in dictionary", %{conn: conn} do
+      expect_mpi_get_person()
+      expect_ops_last_medication_request_dates(nil)
       expect_ops_get_declarations(2)
-      expect_mpi_get_person(2)
+      expect_encounter_status("finished")
+      expect_mpi_get_person()
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
-      expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished")
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -1251,10 +1259,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
     test "failed when started_at less than existing medication request ended_at param", %{conn: conn} do
       expect_ops_get_declarations()
-
-      expect(MPIMock, :person, fn _, _headers ->
-        {:ok, %{"data" => string_params_for(:person)}}
-      end)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, build(:person)} end)
 
       expect_ops_last_medication_request_dates(%{
         "started_at" => Date.utc_today(),
@@ -2008,10 +2013,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "reject medication request request" do
     test "works when data is valid", %{conn: conn} do
+      expect_mpi_get_person()
       expect_ops_get_declarations()
-      expect_mpi_get_person(2)
       expect_ops_last_medication_request_dates(nil)
       expect_encounter_status("finished")
+      expect_mpi_get_person()
+
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -2069,30 +2076,30 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   describe "sign medication request request" do
     test "when data is valid", %{conn: conn} do
+      person = build(:person)
+
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_ops_last_medication_request_dates(nil)
+      expect_ops_get_declarations()
+      expect_encounter_status("finished")
+
       expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
-      expect_ops_get_declarations()
-      expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
-        medication_request = build(:medication_request, id: params.medication_request.id)
-
         medication_request =
-          medication_request
+          :medication_request
+          |> build(id: params.medication_request.id)
           |> Jason.encode!()
           |> Jason.decode!()
 
         {:ok, %{"data" => medication_request}}
       end)
+
+      expect_encounter_status("finished")
 
       {medication_id, pm} = create_medications_structure()
 
@@ -2131,18 +2138,18 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when data is valid (medical_program param is optional)", %{conn: conn} do
+      person = build(:person)
+
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+
       expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
         {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
       end)
 
       expect_ops_get_declarations()
-      expect_encounter_status("finished", 2)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
         medication_request = build(:medication_request, id: params.medication_request.id)
@@ -2240,15 +2247,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "return 422 if signature is not valid", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_get_declarations()
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
 
       {medication_id, pm} = create_medications_structure()
 
@@ -2304,15 +2309,13 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when some data is invalid", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_get_declarations()
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
-
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
       {medication_id, pm} = create_medications_structure()
 
       test_request =
@@ -2340,14 +2343,12 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when context in signed context is invalid", %{conn: conn} do
+      person = build(:person)
       expect_ops_get_declarations()
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_last_medication_request_dates(nil)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       {medication_id, pm} = create_medications_structure()
 
@@ -2357,11 +2358,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medical_program_id" => pm.medical_program_id
         })
 
-      expect_encounter_status("finished")
-
-      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
-
-      assert mrr = json_response(conn1, 201)["data"]
+      mrr =
+        conn
+        |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+        |> json_response(201)
+        |> Map.get("data")
 
       signed_mrr =
         mrr
@@ -2399,15 +2400,14 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
     end
 
     test "when request emploee_id.drfo is invalid", %{conn: conn} do
+      person = build(:person)
+
       expect_ops_get_declarations()
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_ops_last_medication_request_dates(nil)
-      expect_encounter_status("finished", 2)
-
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
-      end)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
 
       {medication_id, pm} = create_medications_structure()
 
@@ -2417,9 +2417,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
           "medical_program_id" => pm.medical_program_id
         })
 
-      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
-
-      assert mrr = json_response(conn1, 201)["data"]
+      assert mrr =
+               conn
+               |> post(medication_request_request_path(conn, :create), medication_request_request: test_request)
+               |> json_response(201)
+               |> Map.get("data")
 
       signed_mrr =
         mrr
@@ -2470,8 +2472,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   defp expect_mpi_get_person(times_called \\ 1) do
-    expect(MPIMock, :person, times_called, fn id, _headers ->
-      {:ok, %{"data" => string_params_for(:person, id: id)}}
+    expect(RPCWorkerMock, :run, times_called, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+      {:ok, build(:person, id: id)}
     end)
   end
 

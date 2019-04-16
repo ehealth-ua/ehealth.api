@@ -8,6 +8,7 @@ defmodule Core.Registers.API do
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.Ecto.Base64
+  alias Core.Persons
   alias Core.Registers.Register
   alias Core.Registers.RegisterEntry
   alias Core.Registers.SearchRegisterEntries
@@ -299,16 +300,12 @@ defmodule Core.Registers.API do
 
   defp validate_csv_death_date(_), do: :ok
 
-  defp validate_death_date(%{"death_date" => death_date}, {:ok, %{"data" => [_ | _] = persons}})
-       when byte_size(death_date) > 0 do
+  defp validate_death_date(%{"death_date" => death_date}, {:ok, persons}) when byte_size(death_date) > 0 do
     with {:ok, death_date} <- Date.from_iso8601(death_date) do
-      Enum.reduce_while(persons, :ok, fn %{"birth_date" => birth_date}, _acc ->
-        with {:ok, birth_date} <- Date.from_iso8601(birth_date),
-             true <- Date.compare(death_date, birth_date) in [:gt, :eq] do
-          {:cont, :ok}
-        else
-          _ -> {:halt, {:error, "Invalid death_date: it is less than birth_date on line "}}
-        end
+      Enum.reduce_while(persons, :ok, fn person, _acc ->
+        if Date.compare(death_date, person.birth_date) in [:gt, :eq],
+          do: {:cont, :ok},
+          else: {:halt, {:error, "Invalid death_date: it is less than birth_date on line "}}
       end)
     else
       _ -> {:error, "Invalid death_date on line "}
@@ -326,29 +323,19 @@ defmodule Core.Registers.API do
 
   def validate_csv_mpi_id(_), do: :ok
 
-  defp search_person(%{"type" => "MPI_ID", "number" => person_id} = _entry_data) do
-    @mpi_api.search(%{"id" => person_id}, [])
+  defp search_person(entry_data) do
+    if entry_data["type"] == "MPI_ID",
+      do: Persons.search_persons(%{"id" => entry_data["number"]}, ~w(id birth_date)a, read_only: true),
+      else: Persons.search_persons(entry_data, ~w(id birth_date)a, read_only: true)
   end
 
-  defp search_person(%{"type" => type, "number" => number} = _entry_data) do
-    @mpi_api.search(%{"type" => String.downcase(type), "number" => number}, [])
-  end
-
-  defp set_entry_status(entry_data, {:ok, %{"data" => persons}}) when is_list(persons) and length(persons) > 0 do
-    entry_data =
-      Enum.map(
-        persons,
-        &Map.merge(entry_data, %{
-          "person_id" => &1["id"],
-          "status" => @status_matched
-        })
-      )
-
-    {@status_matched, entry_data}
-  end
-
-  defp set_entry_status(entry_data, {:ok, %{"data" => []}}) do
+  defp set_entry_status(entry_data, {:ok, []}) do
     {@status_not_found, [Map.put(entry_data, "status", @status_not_found)]}
+  end
+
+  defp set_entry_status(entry_data, {:ok, persons}) do
+    entry_data = Enum.map(persons, &Map.merge(entry_data, %{"person_id" => &1.id, "status" => @status_matched}))
+    {@status_matched, entry_data}
   end
 
   defp set_entry_status(entry_data, _) do

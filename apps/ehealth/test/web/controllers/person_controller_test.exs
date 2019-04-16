@@ -33,8 +33,8 @@ defmodule EHealth.Web.PersonControllerTest do
         )
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -99,8 +99,8 @@ defmodule EHealth.Web.PersonControllerTest do
         )
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)
@@ -200,7 +200,10 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "success search age > 16", %{conn: conn} do
-      expect(MPIMock, :search, fn params, _headers ->
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [params, nil, [read_only: true, paginate: true]] ->
         get_persons(params)
       end)
 
@@ -228,7 +231,10 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "success search with unzr", %{conn: conn} do
-      expect(MPIMock, :search, fn params, _headers ->
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [params, nil, [read_only: true, paginate: true]] ->
         get_persons(params)
       end)
 
@@ -273,8 +279,15 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "too many persons matched", %{conn: conn} do
-      expect(MPIMock, :search, fn _params, _headers ->
-        {:ok, %{"data" => [], "paging" => %{"total_pages" => 2}}}
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [
+                                       %{birth_date: _, first_name: _, last_name: _, status: _},
+                                       nil,
+                                       [read_only: true, paginate: true]
+                                     ] ->
+        {:ok, %{data: [], paging: %{total_pages: 2}}}
       end)
 
       resp =
@@ -295,7 +308,10 @@ defmodule EHealth.Web.PersonControllerTest do
     end
 
     test "success search age > 16 with phone_number", %{conn: conn} do
-      expect(MPIMock, :search, fn params, _headers ->
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [params, nil, [read_only: true, paginate: true]] ->
         get_persons(params)
       end)
 
@@ -357,13 +373,7 @@ defmodule EHealth.Web.PersonControllerTest do
 
   defp get_persons(params) do
     person = build(:person, params)
-
-    person =
-      person
-      |> Jason.encode!()
-      |> Jason.decode!()
-
-    {:ok, %{"data" => [person], "paging" => %{"total_pages" => 1}}}
+    {:ok, %{data: [person], paging: %{total_pages: 1}}}
   end
 
   defp get_person(id, response_status, params \\ %{}) do

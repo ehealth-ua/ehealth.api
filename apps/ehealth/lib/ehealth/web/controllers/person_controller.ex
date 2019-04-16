@@ -20,7 +20,7 @@ defmodule EHealth.Web.PersonController do
   end
 
   def search_persons(conn, params) do
-    with {:ok, persons, changes} <- Persons.search(params, conn.req_headers) do
+    with {:ok, persons, changes} <- Persons.search(params) do
       fields =
         changes
         |> Map.keys()

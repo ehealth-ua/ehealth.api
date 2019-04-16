@@ -21,7 +21,7 @@ defmodule EHealth.Web.Cabinet.DeclarationController do
     user_id = get_consumer_id(headers)
 
     with {:ok, declaration} <- Declarations.terminate(id, user_id, params, headers),
-         {:ok, declaration_data} <- Declarations.load_declaration_relations(declaration, headers) do
+         {:ok, declaration_data} <- Declarations.load_declaration_relations(declaration) do
       conn
       |> put_view(DeclarationView)
       |> render("show.json", declaration: declaration_data)

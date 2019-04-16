@@ -21,7 +21,6 @@ defmodule Core.Declarations.API do
   require Logger
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
@@ -29,7 +28,7 @@ defmodule Core.Declarations.API do
 
   def get_person_declarations(%{} = params, headers) do
     with {:ok, person} <- Persons.get_person(headers),
-         declaration_params <- Map.merge(params, %{"person_id" => person["id"]}),
+         declaration_params <- Map.merge(params, %{"person_id" => person.id}),
          {:ok, %{"data" => declarations, "paging" => paging}} <- @ops_api.get_declarations(declaration_params, headers),
          references <- load_declarations_references(declarations),
          paging <- strings_to_keys(paging) do
@@ -69,7 +68,7 @@ defmodule Core.Declarations.API do
          division = Divisions.get_by_id(declaration_data["division_id"]),
          employee = Employees.get_by_id(declaration_data["employee_id"]),
          legal_entity = LegalEntities.get_by_id(declaration_data["legal_entity_id"]),
-         {:ok, %{"data" => person_data}} <- @mpi_api.person(declaration_data["person_id"], headers),
+         {:ok, person_data} <- Persons.get_by_id(declaration_data["person_id"]),
          merged_declaration_data = merge_related_data(declaration_data, person_data, legal_entity, division, employee),
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:person_id, true} <- {:person_id, user["person_id"] == declaration_data["person_id"]},
@@ -100,7 +99,7 @@ defmodule Core.Declarations.API do
   defp preload_persons(""), do: {:ok, []}
 
   defp preload_persons(ids) do
-    Persons.search_persons(%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a)
+    Persons.search_persons(%{"ids" => ids}, ~w(id first_name last_name second_name birth_date)a, read_only: true)
   end
 
   defp put_related_id(list, id) do
@@ -272,7 +271,7 @@ defmodule Core.Declarations.API do
   # TODO: Split permission check and data loading into 2 functions
   def expand_declaration_relations(%{"legal_entity_id" => legal_entity_id} = declaration, headers) do
     with :ok <- check_declaration_access(legal_entity_id, headers) do
-      person = load_relation(@mpi_api, :person, declaration["person_id"], headers)
+      person = load_relation(declaration["person_id"])
       legal_entity = LegalEntities.get_by_id(legal_entity_id)
       division = Divisions.get_by_id(declaration["division_id"])
       employee = Employees.get_by_id(declaration["employee_id"])
@@ -282,10 +281,10 @@ defmodule Core.Declarations.API do
     end
   end
 
-  def load_declaration_relations(%{legal_entity_id: legal_entity_id} = declaration, headers) do
+  def load_declaration_relations(%{legal_entity_id: legal_entity_id} = declaration) do
     declaration = atoms_to_strings(declaration)
 
-    person = load_relation(@mpi_api, :person, declaration["person_id"], headers)
+    person = load_relation(declaration["person_id"])
     legal_entity = LegalEntities.get_by_id(legal_entity_id)
     division = Divisions.get_by_id(declaration["division_id"])
     employee = Employees.get_by_id(declaration["employee_id"])
@@ -310,9 +309,9 @@ defmodule Core.Declarations.API do
     end
   end
 
-  def load_relation(module, func, id, headers) do
-    case apply(module, func, [id, headers]) do
-      {:ok, %{"data" => entity}} -> entity
+  def load_relation(id) do
+    case Persons.get_by_id(id) do
+      {:ok, entity} -> entity
       _ -> %{}
     end
   end

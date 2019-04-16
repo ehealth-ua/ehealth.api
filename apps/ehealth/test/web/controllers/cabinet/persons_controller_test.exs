@@ -139,8 +139,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "3378115538"}}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id, tax_id: "3378115538")}
       end)
 
       drfo_signed_content(%{}, "3378115538")
@@ -178,20 +178,21 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     test "tax_id doesn't match with signer", %{conn: conn, tax_id: tax_id} do
       cabinet()
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id
            }
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => "2222222220"}}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok, build(:person, id: person_id, tax_id: "2222222220")}
       end)
 
       drfo_signed_content(%{"tax_id" => "2222222220"}, "2222222220")
@@ -206,7 +207,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       resp =
         conn
-        |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        |> patch(cabinet_persons_path(conn, :update_person, person_id), %{
           "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => "2222222220"}))
         })
         |> json_response(422)
@@ -229,20 +230,21 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     test "invalid signed content changeset", %{conn: conn, tax_id: tax_id} do
       cabinet()
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id
            }
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => tax_id}}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok, build(:person, id: person_id, tax_id: "2222222220")}
       end)
 
       legal_entity = insert(:prm, :legal_entity)
@@ -257,7 +259,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, person_id), %{
           "signed_content" => Base.encode64(Jason.encode!(%{"tax_id" => tax_id}))
         })
 
@@ -268,14 +270,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       cabinet()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
-        {:ok,
-         %{
-           "data" => %{
-             "id" => id,
-             "person_id" => UUID.generate(),
-             "tax_id" => tax_id
-           }
-         }}
+        {:ok, %{"data" => %{"id" => id, "person_id" => UUID.generate(), "tax_id" => tax_id}}}
       end)
 
       legal_entity = insert(:prm, :legal_entity)
@@ -286,7 +281,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       conn =
-        patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+        patch(conn, cabinet_persons_path(conn, :update_person, UUID.generate()), %{
           "signed_content" => Base.encode64(Jason.encode!(%{}))
         })
 
@@ -302,15 +297,16 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-id", "668d1541-e4cf-4a95-a25a-60d83864ceaf")
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
-      conn = patch(conn, cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{})
+      conn = patch(conn, cabinet_persons_path(conn, :update_person, UUID.generate()), %{})
       assert json_response(conn, 403)
     end
 
     test "success update person", %{conn: conn, data: data} do
       cabinet()
+      person_id = UUID.generate()
 
-      expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => data["tax_id"]}}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok, build(:person, id: person_id, tax_id: data["tax_id"])}
       end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
@@ -318,14 +314,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       end)
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
-        {:ok,
-         %{
-           "data" => %{
-             "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
-             "tax_id" => data["tax_id"]
-           }
-         }}
+        {:ok, %{"data" => %{"id" => id, "person_id" => person_id, "tax_id" => data["tax_id"]}}}
       end)
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
@@ -350,7 +339,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       drfo_signed_content(data, data["tax_id"])
 
       assert conn
-             |> patch(cabinet_persons_path(conn, :update_person, "c8912855-21c3-4771-ba18-bcd8e524f14c"), %{
+             |> patch(cabinet_persons_path(conn, :update_person, person_id), %{
                "signed_content" => Base.encode64(Jason.encode!(data))
              })
              |> json_response(200)
@@ -359,8 +348,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     test "update person with valid unzr", %{conn: conn, data: data} do
       cabinet()
 
-      expect(MPIMock, :person, fn id, _ ->
-        {:ok, %{"data" => %{"id" => id, "tax_id" => data["tax_id"]}}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id, tax_id: data["tax_id"])}
       end)
 
       expect(OTPVerificationMock, :search, fn _, _ ->
@@ -595,26 +584,28 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     test "tax_id are different in user and person", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id
            }
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{
-          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
-          first_name: "Алекс",
-          last_name: "Джонс",
-          second_name: "Петрович",
-          tax_id: "2222222220"
-        })
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok,
+         build(:person,
+           id: person_id,
+           first_name: "Алекс",
+           last_name: "Джонс",
+           second_name: "Петрович",
+           tax_id: "2222222220"
+         )}
       end)
 
       resp =
@@ -630,27 +621,23 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
     test "returns person detail for logged user", %{conn: conn, tax_id: tax_id} do
       cabinet()
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id,
              "is_blocked" => false
            }
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{
-          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
-          first_name: "Алекс",
-          last_name: "Джонс",
-          second_name: "Петрович",
-          tax_id: tax_id
-        })
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok,
+         build(:person, id: person_id, first_name: "Алекс", last_name: "Джонс", second_name: "Петрович", tax_id: tax_id)}
       end)
 
       conn =
@@ -661,7 +648,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       conn = get(conn, cabinet_persons_path(conn, :personal_info))
       response_data = json_response(conn, 200)["data"]
 
-      assert "c8912855-21c3-4771-ba18-bcd8e524f14c" == response_data["id"]
+      assert person_id == response_data["id"]
       assert "Алекс" == response_data["first_name"]
       assert "Джонс" == response_data["last_name"]
       assert "Петрович" == response_data["second_name"]
@@ -684,13 +671,14 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
     test "tax_id are different in user and person", %{conn: conn, tax_id: tax_id} do
       cabinet()
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id
            }
          }}
@@ -699,24 +687,25 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{
-          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
-          first_name: "Алекс",
-          second_name: "Петрович",
-          birth_country: "string value",
-          birth_settlement: "string value",
-          gender: "string value",
-          email: "test@example.com",
-          tax_id: "2222222220",
-          documents: [%{"type" => "BIRTH_CERTIFICATE", "number" => "1234567890"}],
-          phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
-          secret: "string value",
-          emergency_contact: %{},
-          process_disclosure_data_consent: true,
-          authentication_methods: [%{"type" => "NA"}],
-          preferred_way_communication: "––"
-        })
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok,
+         build(:person,
+           id: person_id,
+           first_name: "Алекс",
+           second_name: "Петрович",
+           birth_country: "string value",
+           birth_settlement: "string value",
+           gender: "string value",
+           email: "test@example.com",
+           tax_id: "2222222220",
+           documents: [%{type: "BIRTH_CERTIFICATE", number: "1234567890"}],
+           phones: [%{type: "MOBILE", number: "+380972526080"}],
+           secret: "string value",
+           emergency_contact: %{},
+           process_disclosure_data_consent: true,
+           authentication_methods: [%{"type" => "NA"}],
+           preferred_way_communication: "––"
+         )}
       end)
 
       conn =
@@ -736,44 +725,46 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       cabinet()
       legal_entity = insert(:prm, :legal_entity)
       insert(:prm, :party_user, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
+      person_id = UUID.generate()
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok,
          %{
            "data" => %{
              "id" => id,
-             "person_id" => "c8912855-21c3-4771-ba18-bcd8e524f14c",
+             "person_id" => person_id,
              "tax_id" => tax_id
            }
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{
-          id: "c8912855-21c3-4771-ba18-bcd8e524f14c",
-          first_name: "Алекс",
-          second_name: "Петрович",
-          birth_country: "string value",
-          birth_settlement: "string value",
-          gender: "string value",
-          email: "test@example.com",
-          tax_id: tax_id,
-          unzr: "20180925-012345",
-          documents: [
-            %{
-              "type" => "BIRTH_CERTIFICATE",
-              "number" => "1234567890",
-              "expiration_date" => "2024-02-12"
-            }
-          ],
-          phones: [%{"type" => "MOBILE", "number" => "+380972526080"}],
-          secret: "string value",
-          emergency_contact: %{},
-          process_disclosure_data_consent: true,
-          authentication_methods: [%{"type" => "NA"}],
-          preferred_way_communication: "––",
-          addresses: get_person_addresses()
-        })
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
+        {:ok,
+         build(:person,
+           id: person_id,
+           first_name: "Алекс",
+           second_name: "Петрович",
+           birth_country: "string value",
+           birth_settlement: "string value",
+           gender: "string value",
+           email: "test@example.com",
+           tax_id: tax_id,
+           unzr: "20180925-012345",
+           documents: [
+             %{
+               type: "BIRTH_CERTIFICATE",
+               number: "1234567890",
+               expiration_date: "2024-02-12"
+             }
+           ],
+           phones: [%{type: "MOBILE", number: "+380972526080"}],
+           secret: "string value",
+           emergency_contact: %{},
+           process_disclosure_data_consent: true,
+           authentication_methods: [%{"type" => "NA"}],
+           preferred_way_communication: "––",
+           addresses: rpc_maps(get_person_addresses())
+         )}
       end)
 
       conn =
@@ -788,7 +779,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       data = response["data"]
 
-      assert data["id"] == "c8912855-21c3-4771-ba18-bcd8e524f14c"
+      assert data["id"] == person_id
       assert data["first_name"] == "Алекс"
       assert data["second_name"] == "Петрович"
       assert Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, data["birth_date"])
@@ -841,5 +832,9 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         "expiration_date" => "2024-02-12"
       }
     ]
+  end
+
+  defp rpc_maps(maps) do
+    Enum.map(maps, &Map.new(&1, fn {k, v} -> {String.to_atom(k), v} end))
   end
 end

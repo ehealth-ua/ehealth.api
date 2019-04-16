@@ -51,7 +51,7 @@ defmodule Core.MedicationRequestRequest.Validations do
   end
 
   def validate_person(person) do
-    with true <- person["is_active"] do
+    with true <- person.is_active do
       {:ok, person}
     else
       _ -> {:invalid_person, person}

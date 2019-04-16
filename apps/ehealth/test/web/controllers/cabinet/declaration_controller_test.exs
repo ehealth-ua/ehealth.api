@@ -48,17 +48,16 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
          %{"data" => %{"id" => consumer_id, "person_id" => @person_id, "tax_id" => "12341234", "is_blocked" => false}}}
       end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :get_declaration, _ -> {:ok, declaration} end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :terminate_declaration, [id, _] ->
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, _ -> {:ok, person} end)
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :terminate_declaration, [id, _] ->
         assert id == declaration.id
         {:ok, %{declaration | status: @status_terminated}}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{addresses: get_person_addresses()})
-      end)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] -> {:ok, build(:person, id: id)} end)
 
       assert resp =
                conn
@@ -72,8 +71,8 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   end
 
   test "searches person declarations in cabinet", %{conn: conn} do
-    expect(MPIMock, :person, fn id, _headers ->
-      get_person(id, 200, %{tax_id: "12341234"})
+    expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, [id] ->
+      {:ok, build(:person, id: id, tax_id: "12341234")}
     end)
 
     expect(MithrilMock, :get_user_by_id, fn _, _ ->
@@ -125,19 +124,5 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
     |> put_consumer_id_header(UUID.generate())
     |> put_client_id_header(UUID.generate())
     |> get(cabinet_declarations_path(conn, :index), params)
-  end
-
-  defp get_person(id, response_status, params) do
-    params = Map.put(params, :id, id)
-    person = string_params_for(:person, params)
-
-    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
-  end
-
-  defp get_person_addresses do
-    [
-      build(:address, %{"type" => "REGISTRATION"}),
-      build(:address, %{"type" => "RESIDENCE"})
-    ]
   end
 end

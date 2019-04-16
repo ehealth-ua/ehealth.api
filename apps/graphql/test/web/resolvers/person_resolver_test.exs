@@ -180,7 +180,7 @@ defmodule GraphQL.PersonResolverTest do
       declaration1 = build(:declaration, person_id: person1.id)
       declarations = Enum.map(persons, &build(:declaration, person_id: &1.id))
 
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [filter, _, _] ->
+      expect(RPCWorkerMock, :run, fn _, _, :ql_search, [filter, _, _] ->
         assert {:is_active, :equal, true} in filter
 
         {:ok, persons}

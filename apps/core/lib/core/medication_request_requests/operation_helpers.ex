@@ -10,10 +10,10 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
   alias Core.MedicationRequestRequest.Operation
   alias Core.MedicationRequestRequest.Validations
   alias Core.Medications
+  alias Core.Persons
   alias Core.Utils.Helpers
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def get_employee(id) do
     Helpers.get_assoc_by_func("employee_id", fn ->
@@ -38,7 +38,11 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
   end
 
   def get_person(id) do
-    Helpers.get_assoc_by_func("person_id", fn -> @mpi_api.person(id, []) end)
+    Helpers.get_assoc_by_func("person_id", fn ->
+      with {:ok, person} <- Persons.get_by_id(id) do
+        person
+      end
+    end)
   end
 
   def get_legal_entity(client_id) do

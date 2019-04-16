@@ -9,6 +9,6 @@ defmodule Core.Persons.Renderer do
       second_name
       birth_date
       addresses
-    ))
+    )a)
   end
 end

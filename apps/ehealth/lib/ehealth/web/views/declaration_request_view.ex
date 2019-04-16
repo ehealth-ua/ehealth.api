@@ -53,11 +53,7 @@ defmodule EHealth.Web.DeclarationRequestView do
   def render("unprocessable_entity.json", %{error: error}), do: error
 
   def render("declaration_request_short.json", %{declaration_request: declaration_request}) do
-    %{
-      id: Map.get(declaration_request, :id),
-      status: Map.get(declaration_request, :status),
-      inserted_at: Map.get(declaration_request, :inserted_at)
-    }
+    Map.take(declaration_request, ~w(id status inserted_at)a)
   end
 
   def render("documents.json", %{documents: documents}) do

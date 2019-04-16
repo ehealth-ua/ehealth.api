@@ -167,7 +167,7 @@ defmodule EHealth.Web.DeclarationView do
       birth_settlement
       emergency_contact
       confidant_person
-    ))
+    )a)
   end
 
   def render("person_short.json", %{person: person}) do

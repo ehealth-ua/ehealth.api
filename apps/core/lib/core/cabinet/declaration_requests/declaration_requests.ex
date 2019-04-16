@@ -6,10 +6,10 @@ defmodule Core.Cabinet.DeclarationRequests do
 
   alias Core.Cabinet.DeclarationRequestsSearch
   alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.Persons
   alias Scrivener.Page
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @status_expired DeclarationRequest.status(:expired)
   @read_repo Application.get_env(:core, :repos)[:read_repo]
 
@@ -17,11 +17,11 @@ defmodule Core.Cabinet.DeclarationRequests do
     user_id = get_consumer_id(headers)
 
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
-         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         {:ok, person} <- Persons.get_by_id(user["person_id"]),
          :ok <- validate_user_person(user, person),
          :ok <- check_user_blocked(user["is_blocked"]),
          %Ecto.Changeset{valid?: true} <- DeclarationRequestsSearch.changeset(search_params),
-         %Page{} = paging <- get_person_declaration_requests(search_params, person["id"]) do
+         %Page{} = paging <- get_person_declaration_requests(search_params, person.id) do
       {:ok, paging}
     end
   end
@@ -30,17 +30,17 @@ defmodule Core.Cabinet.DeclarationRequests do
     user_id = get_consumer_id(headers)
 
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
-         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         {:ok, person} <- Persons.get_by_id(user["person_id"]),
          :ok <- validate_user_person(user, person),
          :ok <- check_user_blocked(user["is_blocked"]),
          %DeclarationRequest{} = declaration_request <- @read_repo.get(DeclarationRequest, id),
-         :ok <- validate_person_id(declaration_request, person["id"]) do
+         :ok <- validate_person_id(declaration_request, person.id) do
       {:ok, declaration_request}
     end
   end
 
   defp validate_user_person(user, person) do
-    if user["person_id"] == person["id"] and user["tax_id"] == person["tax_id"] do
+    if user["person_id"] == person.id and user["tax_id"] == person.tax_id do
       :ok
     else
       {:error, {:access_denied, "Person not found"}}

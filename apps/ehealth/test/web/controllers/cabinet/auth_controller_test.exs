@@ -1315,8 +1315,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
         authentication_factors_response(count, user_id)
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{"tax_id" => "12341234"})
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id, tax_id: "12341234")}
       end)
 
       assert resp =
@@ -1345,8 +1345,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{"tax_id" => "12341234"})
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id, tax_id: "12341234")}
       end)
 
       assert resp =
@@ -1375,8 +1375,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
-      expect(MPIMock, :person, fn id, _headers ->
-        get_person(id, 200, %{tax_id: "12341234", status: "inactive"})
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id, tax_id: "12341234", status: "inactive")}
       end)
 
       assert resp =
@@ -1394,13 +1394,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
     content
     |> Jason.encode!()
     |> Base.encode64()
-  end
-
-  defp get_person(id, response_status, params) do
-    params = Map.put(params, :id, id)
-    person = string_params_for(:person, params)
-
-    {:ok, %{"data" => person, "meta" => %{"code" => response_status}}}
   end
 
   defp authentication_factors_response(count, user_id) do

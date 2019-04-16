@@ -157,18 +157,16 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         insert(:il, :declaration_request, params)
       end)
 
-      conn = put_client_id_header(conn, legal_entity_id)
-
-      conn =
-        get(
-          conn,
+      resp =
+        conn
+        |> put_client_id_header(legal_entity_id)
+        |> get(
           declaration_request_path(conn, :index, %{
             status: status,
             employee_id: employee_id
           })
         )
-
-      resp = json_response(conn, 200)
+        |> json_response(200)
 
       assert_count_declaration_request_list(resp, 2)
     end

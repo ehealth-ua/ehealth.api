@@ -16,12 +16,12 @@ defmodule Core.Validators.Reference do
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications
   alias Core.Medications.Medication
+  alias Core.Persons
   alias Core.ReimbursementContractRequests
   alias Core.ValidationError
   alias Core.Validators.Error
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
 
   def validate(type, nil) do
     error(type)
@@ -74,7 +74,7 @@ defmodule Core.Validators.Reference do
   end
 
   def validate(:person = type, id, path) do
-    with {:ok, %{"data" => person}} <- @mpi_api.person(id, []) do
+    with {:ok, person} <- Persons.get_by_id(id) do
       {:ok, person}
     else
       _ -> error(type, path)

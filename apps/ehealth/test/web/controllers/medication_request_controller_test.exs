@@ -23,8 +23,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success list medication requests with different intents", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, 2, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -107,8 +107,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success list medication requests with different intents without medical_program_id", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, 2, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -236,8 +236,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success get medication_request by id (both ORDER and PLAN)", %{conn: conn} do
       msp(2)
 
-      expect(MPIMock, :person, 2, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -325,17 +325,9 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     } do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
         {:ok,
-         %{
-           "data" =>
-             string_params_for(:person,
-               id: id,
-               first_name: "Шах    Хож-Ахмед",
-               last_name: "Аль-Бекиров",
-               second_name: "Саид- заурович"
-             )
-         }}
+         build(:person, id: id, first_name: "Шах    Хож-Ахмед", last_name: "Аль-Бекиров", second_name: "Саид- заурович")}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -388,8 +380,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "failed when medical program is invalid", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -469,8 +461,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success get medication_request by number", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -950,11 +942,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   describe "reject medication request" do
     test "success ORDER", %{conn: conn} do
       msp(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1067,11 +1058,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "success ORDER without medical_program_id (medical_program_id param is optional)", %{conn: conn} do
       msp(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1183,11 +1173,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "success PLAN", %{conn: conn} do
       msp(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1358,8 +1347,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "invalid transition", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1436,12 +1425,11 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "medication request has medication dispenses with status NEW, PROCESSED etc", %{conn: conn} do
       msp()
-
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
+
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
+      end)
 
       party_user =
         :prm
@@ -1609,11 +1597,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "invalid content params", %{conn: conn} do
       msp(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1746,11 +1733,10 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "failed when signed content does not match the previously created content", %{conn: conn} do
       msp(2)
+      person = build(:person)
 
-      person = string_params_for(:person)
-
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1866,8 +1852,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
+        {:ok, build(:person, id: person_id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)
@@ -1943,8 +1929,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "failed when intent is PLAN", %{conn: conn} do
       msp()
 
-      expect(MPIMock, :person, fn id, _headers ->
-        {:ok, %{"data" => string_params_for(:person, id: id)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
+        {:ok, build(:person, id: id)}
       end)
 
       user_id = get_consumer_id(conn.req_headers)

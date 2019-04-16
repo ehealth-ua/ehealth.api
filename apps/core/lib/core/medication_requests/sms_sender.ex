@@ -4,7 +4,7 @@ defmodule Core.MedicationRequests.SMSSender do
   @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
 
   def maybe_send_sms(mrr, person, template_fun) do
-    otp = Enum.find(person["authentication_methods"], nil, fn method -> method["type"] == "OTP" end)
+    otp = Enum.find(person.authentication_methods, nil, fn method -> method["type"] == "OTP" end)
 
     if otp do
       {:ok, _} =

@@ -4,7 +4,6 @@ defmodule EHealth.Web.RegisterControllerTest do
   use EHealth.Web.ConnCase, async: false
   import Mox
 
-  alias Ecto.UUID
   alias EHealth.MockServer
   alias Core.Registers.Register
   alias Core.Registers.Register.Qty
@@ -72,9 +71,8 @@ defmodule EHealth.Web.RegisterControllerTest do
     setup :set_mox_global
 
     test "success with status PROCESSED", %{conn: conn} do
-      expect(MPIMock, :search, 3, fn _, _ ->
-        persons_data = [%{"id" => UUID.generate()}, %{"id" => UUID.generate()}]
-        {:ok, MockServer.wrap_response_with_paging(persons_data)}
+      expect(RPCWorkerMock, :run, 3, fn "mpi", MPI.Rpc, :search_persons, [_, [:id, :birth_date], [read_only: true]] ->
+        {:ok, build_list(2, :person)}
       end)
 
       expect(MPIMock, :update_person, 6, fn _, _, _ ->
@@ -141,16 +139,19 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "success with status PROCESSING", %{conn: conn} do
-      expect(MPIMock, :search, 4, fn params, _ ->
+      expect(RPCWorkerMock, :run, 4, fn "mpi",
+                                        MPI.Rpc,
+                                        :search_persons,
+                                        [params, [:id, :birth_date], [read_only: true]] ->
         case params do
           %{"number" => "primary"} ->
-            {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}, %{"id" => UUID.generate()}])}
+            {:ok, build_list(2, :person)}
 
           %{"number" => "processing"} ->
-            {:error, %{"error" => %{"message" => "system unavailable"}}}
+            {:error, "invalid search characters"}
 
           _ ->
-            {:ok, MockServer.wrap_response_with_paging([])}
+            {:ok, []}
         end
       end)
 
@@ -314,9 +315,11 @@ defmodule EHealth.Web.RegisterControllerTest do
         entity_type: "patient"
       }
 
-      expect(MPIMock, :search, 1, fn _, _ ->
-        persons_data = [string_params_for(:person, birth_date: "2000-10-10")]
-        {:ok, MockServer.wrap_response_with_paging(persons_data)}
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [%{"id" => _}, [:id, :birth_date], [read_only: true]] ->
+        {:ok, [build(:person, birth_date: ~D[2000-10-10])]}
       end)
 
       data =
@@ -375,12 +378,14 @@ defmodule EHealth.Web.RegisterControllerTest do
     test "success with MPI_ID and death_date PROCESSED", %{conn: conn} do
       person_with_death_date_id = "e9b9c5e2-3263-4574-bc9f-19bd089a7777"
 
-      expect(MPIMock, :search, 3, fn
-        %{"type" => "MPI_ID", "number" => id}, _ ->
-          {:ok, MockServer.wrap_response_with_paging([string_params_for(:person, id: id)])}
-
-        _, _ ->
-          {:ok, MockServer.wrap_response_with_paging([string_params_for(:person)])}
+      expect(RPCWorkerMock, :run, 3, fn "mpi",
+                                        MPI.Rpc,
+                                        :search_persons,
+                                        [params, [:id, :birth_date], [read_only: true]] ->
+        case params do
+          %{"type" => "MPI_ID", "number" => id} -> {:ok, [build(:person, id: id)]}
+          _ -> {:ok, [build(:person)]}
+        end
       end)
 
       expect(MPIMock, :update_person, 3, fn
@@ -460,11 +465,11 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "both params passed", %{conn: conn} do
-      expect(MPIMock, :search, 3, fn params, _ ->
-        case is_binary(params["type"]) do
-          true -> {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}], 200)}
-          _ -> {:error, MockServer.wrap_object_response(%{}, 422)}
-        end
+      expect(RPCWorkerMock, :run, 3, fn "mpi",
+                                        MPI.Rpc,
+                                        :search_persons,
+                                        [params, [:id, :birth_date], [read_only: true]] ->
+        if is_binary(params["type"]), do: {:ok, [build(:person)]}, else: {:error, "invalid search characters"}
       end)
 
       expect(MPIMock, :update_person, 3, fn _, _, _ ->
@@ -518,11 +523,13 @@ defmodule EHealth.Web.RegisterControllerTest do
     end
 
     test "param reason_description not passed", %{conn: conn} do
-      expect(MPIMock, :search, 3, fn params, _ ->
-        case is_binary(params["type"]) do
-          true -> {:ok, MockServer.wrap_response_with_paging([%{"id" => UUID.generate()}])}
-          _ -> {:error, MockServer.wrap_object_response(%{}, 422)}
-        end
+      expect(RPCWorkerMock, :run, 3, fn "mpi",
+                                        MPI.Rpc,
+                                        :search_persons,
+                                        [params, [:id, :birth_date], [read_only: true]] ->
+        if is_binary(params["type"]),
+          do: {:ok, [build(:person)]},
+          else: {:error, "invalid search characters"}
       end)
 
       expect(OPSMock, :terminate_person_declarations, 3, fn person_id, _, _, reason_description, _ ->

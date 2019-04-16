@@ -11,6 +11,7 @@ defmodule Core.Cabinet.API do
   alias Core.DeclarationRequests.API.V2.Persons
   alias Core.Guardian
   alias Core.Man.Templates.EmailVerification
+  alias Core.Persons, as: CorePersons
   alias Core.Persons.V2.Validator, as: PersonsValidator
   alias Core.ValidationError
   alias Core.Validators.Addresses
@@ -275,7 +276,7 @@ defmodule Core.Cabinet.API do
     user_id = get_consumer_id(headers)
 
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
-         {:ok, %{"data" => person}} <- @mpi_api.person(user["person_id"], headers),
+         {:ok, person} <- CorePersons.get_by_id(user["person_id"]),
          :ok <- check_user_blocked(user),
          :ok <- check_person_status(person),
          {:ok, paging} <- @mithril_api.get_authentication_factors(user_id, %{}, headers) do
@@ -283,6 +284,6 @@ defmodule Core.Cabinet.API do
     end
   end
 
-  defp check_person_status(%{"status" => @person_active}), do: :ok
+  defp check_person_status(%{is_active: true, status: @person_active}), do: :ok
   defp check_person_status(_), do: {:error, {:conflict, "Person is not active"}}
 end
