@@ -2643,10 +2643,10 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "successful when invalid legal entity in DS", %{conn: conn} do
       msp(2)
 
-      person = string_params_for(:person)
+      person = build(:person)
 
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       party_user = insert(:prm, :party_user)
@@ -2772,10 +2772,10 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     test "successful when legal entity in DS is absent", %{conn: conn} do
       msp(2)
 
-      person = string_params_for(:person)
+      person = build(:person)
 
-      expect(MPIMock, :person, 2, fn _, _headers ->
-        {:ok, %{"data" => person}}
+      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
+        {:ok, person}
       end)
 
       party_user = insert(:prm, :party_user)
