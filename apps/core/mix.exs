@@ -40,7 +40,7 @@ defmodule Core.MixProject do
       {:ecto, "~> 2.1"},
       {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},
-      {:kube_rpc, "~> 0.1.0"},
+      {:kube_rpc, "~> 0.2.0"},
       {:libcluster, "~> 3.0", git: "https://github.com/AlexKovalevych/libcluster.git", branch: "kube_namespaces"},
       {:geo, "~> 1.4"},
       {:guardian, "~> 1.2.1"},
