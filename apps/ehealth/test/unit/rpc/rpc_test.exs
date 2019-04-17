@@ -30,4 +30,18 @@ defmodule EHealth.RpcTest do
       assert {:ok, %{id: ^id}} = Rpc.service_group_by_id(id)
     end
   end
+
+  describe "service_belongs_to_group?/2" do
+    test "service does not belong to group" do
+      refute Rpc.service_belongs_to_group?(UUID.generate(), UUID.generate())
+    end
+
+    test "service belongs to group" do
+      service = insert(:prm, :service)
+      service_group = insert(:prm, :service_group)
+      insert(:prm, :services_groups, service: service, service_group: service_group)
+
+      assert Rpc.service_belongs_to_group?(service.id, service_group.id)
+    end
+  end
 end

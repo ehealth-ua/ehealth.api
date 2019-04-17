@@ -7,7 +7,7 @@
     <meta name="generator" content="ExDoc v0.19.2">
     <title>EHealth.Rpc —  v8.13.2</title>
     <link rel="stylesheet" href="dist/html-c1666276880c0f8e3769.css" />
-    <script src="dist/sidebar_items-2533b3910f.js"></script>
+    <script src="dist/sidebar_items-ce96109021.js"></script>
     
   </head>
   <body data-type="modules">
@@ -93,6 +93,13 @@ EHealth.Rpc              </h1>
     <h2>
       <a href="#functions">Functions</a>
     </h2>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#service_belongs_to_group?/2">service_belongs_to_group?(service_id, service_group_id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Check if service belongs to group</p>
+</div>
+</div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#service_by_id/1">service_by_id(service_id)</a>
@@ -181,6 +188,30 @@ Types          </h1>
             </a>
 Functions          </h1>
           <div class="functions-list">
+<section class="detail" id="service_belongs_to_group?/2">
+    <div class="detail-header">
+    <a href="#service_belongs_to_group?/2" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">service_belongs_to_group?(service_id, service_group_id)</span>
+        
+      <div class="specs">
+          <pre>service_belongs_to_group?(service_id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), service_group_id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Check if service belongs to group</p>
+<h2 id="service_belongs_to_group?/2-examples" class="section-heading">
+  <a href="#service_belongs_to_group?/2-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_belongs_to_group?</span><span class="p" data-group-id="6400455613-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="6400455613-1">)</span><span class="w">
+</span><span class="no">true</span></code></pre>
+  </section>
+</section>
 <section class="detail" id="service_by_id/1">
     <div class="detail-header">
     <a href="#service_by_id/1" class="detail-link" title="Link to this function">
@@ -200,23 +231,23 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_by_id</span><span class="p" data-group-id="1301803338-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p" data-group-id="1301803338-1">)</span><span class="w">
-</span><span class="p" data-group-id="1301803338-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
-  </span><span class="p" data-group-id="1301803338-3">%{</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_by_id</span><span class="p" data-group-id="0513294704-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p" data-group-id="0513294704-1">)</span><span class="w">
+</span><span class="p" data-group-id="0513294704-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="0513294704-3">%{</span><span class="w">
     </span><span class="ss">category</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_category&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">code</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_code&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p">,</span><span class="w">
-    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1301803338-4">#</span><span class="nc" data-group-id="1301803338-4">DateTime</span><span class="p" data-group-id="1301803338-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="1301803338-4">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0513294704-4">#</span><span class="nc" data-group-id="0513294704-4">DateTime</span><span class="p" data-group-id="0513294704-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="0513294704-4">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_composition</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
     </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_name&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">parent_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;99630d0e-880c-4f70-a62b-cf65895ee196&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">request_allowed</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1301803338-5">#</span><span class="nc" data-group-id="1301803338-5">DateTime</span><span class="p" data-group-id="1301803338-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="1301803338-5">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0513294704-5">#</span><span class="nc" data-group-id="0513294704-5">DateTime</span><span class="p" data-group-id="0513294704-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="0513294704-5">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="w">
-  </span><span class="p" data-group-id="1301803338-3">}</span><span class="w">
-</span><span class="p" data-group-id="1301803338-2">}</span></code></pre>
+  </span><span class="p" data-group-id="0513294704-3">}</span><span class="w">
+</span><span class="p" data-group-id="0513294704-2">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="service_group_by_id/1">
@@ -239,20 +270,20 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_group_by_id</span><span class="p" data-group-id="3022263401-1">(</span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="3022263401-1">)</span><span class="w">
-</span><span class="p" data-group-id="3022263401-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
-  </span><span class="p" data-group-id="3022263401-3">%{</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_group_by_id</span><span class="p" data-group-id="3949098021-1">(</span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="3949098021-1">)</span><span class="w">
+</span><span class="p" data-group-id="3949098021-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="3949098021-3">%{</span><span class="w">
     </span><span class="ss">code</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_group_code&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p">,</span><span class="w">
-    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3022263401-4">#</span><span class="nc" data-group-id="3022263401-4">DateTime</span><span class="p" data-group-id="3022263401-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3022263401-4">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3949098021-4">#</span><span class="nc" data-group-id="3949098021-4">DateTime</span><span class="p" data-group-id="3949098021-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3949098021-4">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
     </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_group_name&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">request_allowed</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3022263401-5">#</span><span class="nc" data-group-id="3022263401-5">DateTime</span><span class="p" data-group-id="3022263401-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3022263401-5">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3949098021-5">#</span><span class="nc" data-group-id="3949098021-5">DateTime</span><span class="p" data-group-id="3949098021-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3949098021-5">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="w">
-  </span><span class="p" data-group-id="3022263401-3">}</span><span class="w">
-</span><span class="p" data-group-id="3022263401-2">}</span></code></pre>
+  </span><span class="p" data-group-id="3949098021-3">}</span><span class="w">
+</span><span class="p" data-group-id="3949098021-2">}</span></code></pre>
   </section>
 </section>
           </div>

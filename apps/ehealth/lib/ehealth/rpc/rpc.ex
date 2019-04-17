@@ -5,7 +5,9 @@ defmodule EHealth.Rpc do
 
   alias Core.Services.Service
   alias Core.Services.ServiceGroup
+  alias Core.Services.ServicesGroups
   alias EHealth.Web.ServiceView
+  import Ecto.Query
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
@@ -93,5 +95,23 @@ defmodule EHealth.Rpc do
     with %ServiceGroup{} = service_group <- @read_prm_repo.get(ServiceGroup, service_group_id) do
       {:ok, ServiceView.render("group.json", %{group: %{node: service_group}})}
     end
+  end
+
+  @doc """
+  Check if service belongs to group
+
+  ## Examples
+
+      iex> EHealth.Rpc.service_belongs_to_group?("cdfade57-5d1c-4bac-8155-a26e88795d9f", "71a01a1b-c60a-41c0-8ee6-73fc10abf1ea")
+      true
+  """
+
+  @spec service_belongs_to_group?(service_id :: binary(), service_group_id :: binary()) :: boolean()
+  def service_belongs_to_group?(service_id, service_group_id) do
+    ServicesGroups
+    |> where([sg], sg.service_id == ^service_id and sg.service_group_id == ^service_group_id)
+    |> @read_prm_repo.one()
+    |> Kernel.is_nil()
+    |> Kernel.not()
   end
 end
