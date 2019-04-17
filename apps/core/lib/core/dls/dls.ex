@@ -12,7 +12,7 @@ defmodule Core.DLS do
     Registry
     |> PRMRepo.all()
     |> Enum.each(fn registry ->
-      with {:ok, division} <- Divisions.get_by_id(registry.division_id),
+      with %Division{} = division <- Divisions.get_by_id(registry.division_id),
            true <- division.type in @division_types do
         case String.downcase(registry.dls_status) do
           "active" ->

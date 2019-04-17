@@ -164,7 +164,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
         {:ok, %{"state" => 1, "address" => %{"parts" => %{"atu_code" => "12345678"}}, "name" => "foo"}}
       )
 
-      expect_settlement_by_id({:ok, %{"koatuu" => "12345600"}})
+      expect_settlement_by_id({:ok, %{koatuu: "12345600"}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -205,7 +205,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
          }}
       )
 
-      expect_settlement_by_id({:ok, %{"koatuu" => "12345600"}})
+      expect_settlement_by_id({:ok, %{koatuu: "12345600"}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [

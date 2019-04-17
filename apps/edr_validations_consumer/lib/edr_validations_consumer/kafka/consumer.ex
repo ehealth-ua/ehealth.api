@@ -48,7 +48,7 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
       legal_entity_data = %{
         "name" => legal_entity.name,
         "legal_form" => legal_entity.legal_form,
-        "address" => settlement["koatuu"]
+        "address" => Map.get(settlement, :koatuu)
       }
 
       changes
