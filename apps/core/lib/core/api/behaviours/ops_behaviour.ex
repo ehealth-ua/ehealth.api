@@ -63,10 +63,6 @@ defmodule Core.API.OPSBehaviour do
               {:ok, result :: term}
               | {:error, reason :: term}
 
-  @callback get_doctor_medication_requests(params :: map, headers :: list) ::
-              {:ok, result :: term}
-              | {:error, reason :: term}
-
   @callback get_qualify_medication_requests(params :: map, headers :: list) ::
               {:ok, result :: term}
               | {:error, reason :: term}

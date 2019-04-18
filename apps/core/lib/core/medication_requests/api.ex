@@ -32,9 +32,11 @@ defmodule Core.MedicationRequests.API do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
+  alias Scrivener.Page
 
   require Logger
 
+  @rpc_worker Application.get_env(:core, :rpc_worker)
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
@@ -48,7 +50,7 @@ defmodule Core.MedicationRequests.API do
 
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
-         {:ok, %{"data" => data, "paging" => paging}} <- get_medication_requests(changes, client_type, headers) do
+         %Page{entries: data} = paging <- get_medication_requests(changes, client_type, headers) do
       medication_requests =
         Enum.reduce_while(data, [], fn medication_request, acc ->
           with {:ok, medication_request} <- get_references(medication_request) do
@@ -63,7 +65,7 @@ defmodule Core.MedicationRequests.API do
       with {:error, error} <- medication_requests do
         {:error, error}
       else
-        _ -> {:ok, medication_requests, paging}
+        _ -> %{paging | entries: medication_requests}
       end
     end
   end
@@ -165,47 +167,46 @@ defmodule Core.MedicationRequests.API do
   end
 
   def get_medication_requests(changes, client_type, headers) do
-    do_get_medication_requests(get_consumer_id(headers), client_type, changes, headers)
+    do_get_medication_requests(get_consumer_id(headers), client_type, changes)
   end
 
-  defp do_get_medication_requests(_, "NHS", changes, headers) do
+  defp do_get_medication_requests(_, "NHS", changes) do
     employee_id = Map.get(changes, :employee_id)
     search_params = get_search_params([], changes)
     search_params = if is_nil(employee_id), do: Map.delete(search_params, :employee_id), else: search_params
-    @ops_api.get_doctor_medication_requests(search_params, headers)
+    @rpc_worker.run("ops", OPS.Rpc, :medication_requests, [search_params])
   end
 
-  defp do_get_medication_requests(user_id, _, changes, headers) do
+  defp do_get_medication_requests(user_id, _, changes) do
     with %PartyUser{party: party} <- get_party_user(user_id),
          employee_ids <- get_employees(party.id, Map.get(changes, :legal_entity_id)),
          :ok <- validate_employee_id(Map.get(changes, :employee_id), employee_ids),
          search_params <- get_search_params(employee_ids, changes) do
-      @ops_api.get_doctor_medication_requests(search_params, headers)
+      @rpc_worker.run("ops", OPS.Rpc, :medication_requests, [search_params])
     end
   end
 
   def get_medication_request(%{"id" => id}, client_type, headers) do
-    do_get_medication_request(get_client_id(headers), get_consumer_id(headers), client_type, id, headers)
+    do_get_medication_request(get_client_id(headers), client_type, id)
   end
 
-  defp do_get_medication_request(_, _, "NHS", id, headers) do
+  defp do_get_medication_request(_, "NHS", id) do
     with {:ok, search_params} <- add_id_search_params(%{}, id),
-         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
+         %Page{entries: [medication_request]} <- @rpc_worker.run("ops", OPS.Rpc, :medication_requests, [search_params]) do
       {:ok, medication_request}
     else
-      {:ok, %{"data" => []}} -> nil
+      %Page{entries: []} -> nil
       error -> error
     end
   end
 
-  defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
-    with %PartyUser{party: party} <- get_party_user(user_id),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         {:ok, search_params} <- get_show_search_params(party.id, legal_entity.id, legal_entity.type, id),
-         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
+  defp do_get_medication_request(legal_entity_id, _, id) do
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
+         {:ok, search_params} <- get_show_search_params(legal_entity.id, legal_entity.type, id),
+         %Page{entries: [medication_request]} <- @rpc_worker.run("ops", OPS.Rpc, :medication_requests, [search_params]) do
       {:ok, medication_request}
     else
-      {:ok, %{"data" => []}} -> nil
+      %Page{entries: []} -> nil
       :validation_error -> nil
       error -> error
     end
@@ -217,18 +218,15 @@ defmodule Core.MedicationRequests.API do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
   end
 
-  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp_pharmacy, id) do
-    get_show_search_params(party_id, legal_entity_id, @legal_entity_pharmacy, id)
+  defp get_show_search_params(legal_entity_id, @legal_entity_msp_pharmacy, id) do
+    get_show_search_params(legal_entity_id, @legal_entity_pharmacy, id)
   end
 
-  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp, id) do
-    with employee_ids <- get_employees(party_id, legal_entity_id),
-         {:ok, search_params} <- add_id_search_params(%{"employee_id" => Enum.join(employee_ids, ",")}, id) do
-      {:ok, search_params}
-    end
+  defp get_show_search_params(legal_entity_id, @legal_entity_msp, id) do
+    add_id_search_params(%{"legal_entity_id" => legal_entity_id}, id)
   end
 
-  defp get_show_search_params(_, _, @legal_entity_pharmacy, id), do: add_id_search_params(%{}, id)
+  defp get_show_search_params(_, @legal_entity_pharmacy, id), do: add_id_search_params(%{}, id)
 
   defp add_id_search_params(search_params, id) do
     symbols = NumberGenerator.get_number_symbols()

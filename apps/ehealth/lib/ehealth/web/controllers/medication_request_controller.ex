@@ -10,9 +10,8 @@ defmodule EHealth.Web.MedicationRequestController do
   def index(%Plug.Conn{req_headers: headers} = conn, params) do
     client_type = conn.assigns.client_type
 
-    with {:ok, data, paging} <- API.list(params, client_type, headers) do
-      paging = Enum.map(paging, fn {key, value} -> {String.to_atom(key), value} end)
-      render(conn, "index.json", medication_requests: data, paging: struct(Page, paging))
+    with %Page{entries: data} = paging <- API.list(params, client_type, headers) do
+      render(conn, "index.json", medication_requests: data, paging: paging)
     end
   end
 
