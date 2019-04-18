@@ -44,7 +44,7 @@ defmodule EHealth.Web.ContractRequestController do
            ContractRequests.get_by_id_with_client_validation(headers, client_type, pack) do
       conn
       |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(id, contract_request.type, contract_request.status)
+        "documents" => ContractRequests.gen_relevant_get_links(id, contract_request.status)
       })
       |> render("show.json", contract_request: contract_request, references: references)
     end

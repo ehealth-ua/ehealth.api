@@ -259,6 +259,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
         {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
       end)
 
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
+
       contract_request = insert(:il, :capitation_contract_request)
 
       id = Node.to_global_id("CapitationContractRequest", contract_request.id)

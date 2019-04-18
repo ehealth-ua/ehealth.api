@@ -28,6 +28,8 @@ defmodule EHealth.Web.ContractControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
+      expect(MediaStorageMock, :get_signed_content, 3, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
+
       owner = insert(:prm, :employee)
       signer = insert(:prm, :employee)
       legal_entity = insert(:prm, :legal_entity)
@@ -98,6 +100,8 @@ defmodule EHealth.Web.ContractControllerTest do
       expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 3, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       owner = insert(:prm, :employee)
       signer = insert(:prm, :employee)
@@ -178,6 +182,8 @@ defmodule EHealth.Web.ContractControllerTest do
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       msp()
 
@@ -2027,6 +2033,8 @@ defmodule EHealth.Web.ContractControllerTest do
       expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       resp =
         conn

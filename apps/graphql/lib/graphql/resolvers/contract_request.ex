@@ -104,8 +104,8 @@ defmodule GraphQL.Resolvers.ContractRequest do
     {:ok, printout_content}
   end
 
-  def get_attached_documents(%{id: id, type: type, status: status}, _, _) do
-    with documents when is_list(documents) <- Storage.gen_relevant_get_links(id, type, status) do
+  def get_attached_documents(%{id: id, status: status}, _, _) do
+    with documents when is_list(documents) <- Storage.gen_relevant_get_links(id, status) do
       {:ok, documents}
     end
   end

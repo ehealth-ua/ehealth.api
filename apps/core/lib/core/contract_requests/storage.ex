@@ -46,24 +46,19 @@ defmodule Core.ContractRequests.Storage do
     end
   end
 
-  def gen_relevant_get_links(id, type, status) do
+  def gen_relevant_get_links(id, status) do
     Enum.reduce(get_document_attributes_by_status(status), [], fn doc, acc ->
       with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
              @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, id, []) do
-        # crooked nail for reimbursement contracts with optional documents
-        if type == @reimbursement do
-          case file_uploaded?(secret_url) do
-            true -> [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
-            _ -> acc
-          end
-        else
-          [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
+        case file_uploaded?(secret_url) do
+          true -> [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
+          _ -> acc
         end
       end
     end)
   end
 
-  # crooked nail for reimbursement contracts with optional documents
+  # TODO: We should use better way to determine file existence
   defp file_uploaded?(url) do
     case @media_storage_api.get_signed_content(url) do
       {:ok, %{status_code: 200, body: body}} -> !String.match?(body, ~r/<Error>/)

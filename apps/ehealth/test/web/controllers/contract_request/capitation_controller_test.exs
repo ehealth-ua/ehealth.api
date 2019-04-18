@@ -1937,6 +1937,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
 
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
+
       resp =
         conn
         |> put_client_id_header(legal_entity.id)
@@ -1983,6 +1985,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
       end)
+
+      expect(MediaStorageMock, :get_signed_content, 4, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
 
       resp =
         conn

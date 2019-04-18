@@ -111,7 +111,7 @@ defmodule Core.ContractRequests do
 
   defdelegate draft, to: Storage, as: :draft
 
-  defdelegate gen_relevant_get_links(id, type, status), to: Storage, as: :gen_relevant_get_links
+  defdelegate gen_relevant_get_links(id, status), to: Storage, as: :gen_relevant_get_links
 
   def create_from_draft(headers, %{"id" => id} = params) do
     user_id = get_consumer_id(headers)
