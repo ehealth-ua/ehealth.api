@@ -185,6 +185,10 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,
@@ -250,6 +254,10 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,
@@ -281,6 +289,10 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "without uploaded documents", %{conn: conn} do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       %{
         medical_program: medical_program,
         legal_entity: legal_entity,

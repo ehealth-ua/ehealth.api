@@ -1011,6 +1011,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       now = Date.utc_today()
       contract_request_start_date = Date.add(now, 1)
       contract_request_end_date = Date.add(contract_request_start_date, 10)
@@ -1191,6 +1195,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       start_date = contract_start_date()
       contract_number = NumberGenerator.generate_from_sequence(1, 1)
 
@@ -1252,6 +1260,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
+      end)
+
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
       end)
 
       conn =
@@ -1478,6 +1490,10 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "success", context do
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       %{
         conn: conn,
         start_date: start_date,

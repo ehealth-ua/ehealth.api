@@ -2204,6 +2204,10 @@ defmodule GraphQL.Features.Context do
   when_(
     ~r/^I create contract request with signed content and attributes:$/,
     fn %{conn: conn, signed_content: signed_content}, %{table_data: [row]} ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       query = """
         mutation CreateContractRequest($input: CreateContractRequestInput!) {
           createContractRequest(input: $input) {

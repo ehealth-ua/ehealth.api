@@ -143,11 +143,12 @@ defmodule Core.ContractRequests do
          :ok <- create_validate_contractor_owner_id(pack.type, content),
          :ok <- validate_documents(pack, headers),
          :ok <- move_uploaded_documents(pack, headers),
+         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_draft"),
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
-             "status" => @new,
              "id" => id,
+             "status" => @new,
              "inserted_by" => user_id,
              "updated_by" => user_id
            }),
@@ -158,6 +159,7 @@ defmodule Core.ContractRequests do
   end
 
   def create_from_contract(headers, %{"assignee_id" => assignee_id} = params) do
+    id = UUID.generate()
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
@@ -185,9 +187,11 @@ defmodule Core.ContractRequests do
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
          :ok <- create_validate_contractor_owner_id(pack.type, content),
+         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_contract"),
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
+             "id" => id,
              "status" => @approved,
              "assignee_id" => assignee_id,
              "inserted_by" => user_id,
