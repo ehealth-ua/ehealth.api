@@ -560,9 +560,26 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(409)
+        |> json_response(422)
 
-      assert get_in(resp, ~w(error message)) == "Provided data doesn't match with EDR data"
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.name",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "Legal entity name doesn't match with EDR data",
+                         "params" => [],
+                         "rule" => "invalid"
+                       }
+                     ]
+                   }
+                 ],
+                 "type" => "validation_failed"
+               }
+             } = resp
     end
 
     test "fail to create legal entity when EDR API returns response with invalid legal address", %{conn: conn} do
@@ -597,9 +614,26 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> put_req_header("x-consumer-id", UUID.generate())
         |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(409)
+        |> json_response(422)
 
-      assert get_in(resp, ~w(error message)) == "Provided data doesn't match with EDR data"
+      assert %{
+               "error" => %{
+                 "invalid" => [
+                   %{
+                     "entry" => "$.addresses.[0]",
+                     "entry_type" => "json_data_property",
+                     "rules" => [
+                       %{
+                         "description" => "Legal entity registration address doesn't match with EDR data",
+                         "params" => [],
+                         "rule" => "invalid"
+                       }
+                     ]
+                   }
+                 ],
+                 "type" => "validation_failed"
+               }
+             } = resp
     end
   end
 

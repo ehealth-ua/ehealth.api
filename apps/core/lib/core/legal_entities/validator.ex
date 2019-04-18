@@ -209,48 +209,69 @@ defmodule Core.LegalEntities.Validator do
   defp validate_legal_entity_status(_), do: {:error, {:conflict, "Invalid Legal Entity status in EDR"}}
 
   defp validate_legal_entity_attrs(edr_data, content) do
-    with true <- content["name"] == edr_data["names"]["display"],
-         true <- content["legal_form"] == edr_data["olf_code"],
+    same_legal_form? =
+      content["legal_form"] == edr_data["olf_code"] ||
+        (content["legal_form"] == "910" && is_nil(edr_data["olf_code"]))
+
+    with {_, true} <- {:name, content["name"] == edr_data["names"]["display"]},
+         {_, true} <- {:legal_form, same_legal_form?},
          :ok <- validate_legal_entity_address(edr_data, content) do
       :ok
     else
-      false -> {:error, {:conflict, "Provided data doesn't match with EDR data"}}
-      error -> error
+      {:name, _} ->
+        Error.dump(%ValidationError{
+          description: "Legal entity name doesn't match with EDR data",
+          path: "$.name"
+        })
+
+      {:legal_form, _} ->
+        Error.dump(%ValidationError{
+          description: "Legal entity legal form doesn't match with EDR data",
+          path: "$.legal_form"
+        })
+
+      error ->
+        error
     end
   end
 
   defp validate_legal_entity_address(edr_data, content) do
-    case content
-         |> Map.get("addresses")
-         |> Enum.find(fn address -> address["type"] == "REGISTRATION" end) do
-      nil ->
-        {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+    {address, i} =
+      content
+      |> Map.get("addresses")
+      |> Enum.with_index()
+      |> Enum.find(fn {address, _} -> address["type"] == "REGISTRATION" end)
 
-      address ->
-        case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :settlement_by_id, [address["settlement_id"]]) do
-          {:ok, settlement_data} -> validate_legal_entity_address_koatu(settlement_data, edr_data)
-          _ -> {:error, {:conflict, "Provided data doesn't match with EDR data"}}
-        end
+    error =
+      Error.dump(%ValidationError{
+        description: "Legal entity registration address doesn't match with EDR data",
+        path: "$.addresses.[#{i}]"
+      })
+
+    case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :settlement_by_id, [address["settlement_id"]]) do
+      {:ok, settlement_data} ->
+        validate_legal_entity_address_koatu(error, settlement_data, edr_data)
+
+      _ ->
+        error
     end
   end
 
-  defp validate_legal_entity_address_koatu(%{koatuu: nil}, %{
+  defp validate_legal_entity_address_koatu(_, %{koatuu: nil}, %{
          "address" => %{"parts" => %{"atu_code" => ""}}
        }) do
     :ok
   end
 
-  defp validate_legal_entity_address_koatu(%{koatuu: nil}, _) do
-    {:error, {:conflict, "Provided data doesn't match with EDR data"}}
-  end
+  defp validate_legal_entity_address_koatu(error, %{koatuu: nil}, _), do: error
 
-  defp validate_legal_entity_address_koatu(%{koatuu: settlement_koatuu}, %{
+  defp validate_legal_entity_address_koatu(error, %{koatuu: settlement_koatuu}, %{
          "address" => %{"parts" => %{"atu_code" => edr_koatuu}}
        }) do
     if String.starts_with?(edr_koatuu, String.replace_trailing(settlement_koatuu, "0", "")) do
       :ok
     else
-      {:error, {:conflict, "Provided data doesn't match with EDR data"}}
+      error
     end
   end
 

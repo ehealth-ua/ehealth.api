@@ -100,7 +100,14 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
       legal_entity_address &&
         String.starts_with?(edr_data["address"], String.replace_trailing(legal_entity_address, "0", ""))
 
-    if Map.drop(edr_data, ~w(address)) == Map.drop(legal_entity_data, ~w(address)) and same_address? do
+    same_legal_form? =
+      legal_entity_data["legal_form"] == edr_data["legal_form"] ||
+        (legal_entity_data["legal_form"] == "910" && is_nil(edr_data["legal_form"]))
+
+    drop_fields = ~w(address legal_form)
+
+    if Map.drop(edr_data, drop_fields) == Map.drop(legal_entity_data, drop_fields) and same_address? and
+         same_legal_form? do
       EdrVerification.status(:verified)
     else
       EdrVerification.status(:error)
