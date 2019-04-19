@@ -7,7 +7,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicationRequests.MedicationRequest
   alias Ecto.UUID
-  alias Scrivener.Page
 
   setup :verify_on_exit!
 
@@ -1070,8 +1069,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :medication_requests, _ ->
-        %Page{entries: [medication_request]}
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
@@ -1190,8 +1189,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :medication_requests, _ ->
-        %Page{entries: [medication_request]}
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -1297,8 +1296,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :medication_requests, _ ->
-        %Page{entries: [medication_request]}
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -1424,8 +1423,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(RPCWorkerMock, :run, fn _, _, :medication_requests, _ ->
-        %Page{entries: [medication_request]}
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -3480,6 +3479,8 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success list", %{conn: conn} do
+      expect_mpi_get_person()
+
       party = insert(:prm, :party)
       %{user_id: user_id, party: party} = insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
@@ -3518,11 +3519,9 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(RPCWorkerMock, :run, fn _, _, :medication_requests, _ ->
-        %Page{entries: [medication_request]}
+      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_request]}}
       end)
-
-      expect_mpi_get_person()
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok, %{"data" => [medication_dispense]}}
@@ -3539,6 +3538,12 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       assert 1 == length(resp)
       assert medication_request["id"] == resp |> hd() |> get_in(~w(medication_request id))
+    end
+
+    test "party_user not found", %{conn: conn} do
+      conn = put_client_id_header(conn, UUID.generate())
+      conn = get(conn, medication_dispense_path(conn, :by_medication_request, UUID.generate()))
+      assert json_response(conn, 500)
     end
   end
 

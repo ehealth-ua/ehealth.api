@@ -3,12 +3,6 @@ defmodule Core.Expectations.RPC do
 
   import Mox
 
-  def expect_medication_requests(response, times \\ 1) do
-    expect(RPCWorkerMock, :run, times, fn _, _, :medication_requests, _ ->
-      response
-    end)
-  end
-
   def expect_delete_user_role(response, times \\ 1) do
     expect(RPCWorkerMock, :run, times, fn _, _, :delete_user_role, _ ->
       response

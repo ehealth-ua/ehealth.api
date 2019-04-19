@@ -61,6 +61,10 @@ defmodule Core.API.OPS do
     get!("/medication_requests", headers, params: params)
   end
 
+  def get_doctor_medication_requests(params, headers \\ []) do
+    post!("/doctor_medication_requests", Jason.encode!(params), headers)
+  end
+
   def get_qualify_medication_requests(params, headers \\ []) do
     get!("/qualify_medication_requests", headers, params: params)
   end
