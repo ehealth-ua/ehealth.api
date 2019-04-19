@@ -148,6 +148,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       assert ["47.73", "86.10"] == resp["data"]["kveds"]
       assert "MSP_PHARMACY" == resp["data"]["type"]
+      assert resp["data"]["edr_verified"]
     end
 
     test "create legal entity with type pharmacy and msp correct kveds and type do not duplicate kveds", %{conn: conn} do
@@ -446,7 +447,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
                |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
-      assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
+      assert %{"nhs_reviewed" => false, "nhs_verified" => false, "edr_verified" => true} = resp_data
     end
 
     test "fail to create legal entity sign drfo passport number is not allowed", %{conn: conn} do

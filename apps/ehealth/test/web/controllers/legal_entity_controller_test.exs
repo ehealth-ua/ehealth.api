@@ -170,16 +170,16 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
+      assert %{"data" => resp_data} =
+               conn
+               |> put_req_header("content-type", "application/json")
+               |> put_req_header("content-length", "7000")
+               |> put_req_header("x-consumer-id", UUID.generate())
+               |> put_req_header("edrpou", legal_entity_params["edrpou"])
+               |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+               |> json_response(200)
 
-      assert resp
+      assert %{"edr_verified" => true} = resp_data
     end
 
     test "create legal entity sign edrpou", %{conn: conn} do
@@ -405,7 +405,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
-      assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
+      assert %{"nhs_reviewed" => false, "nhs_verified" => false, "edr_verified" => true} = resp_data
     end
 
     test "fail to create legal entity sign drfo passport number is not allowed", %{conn: conn} do

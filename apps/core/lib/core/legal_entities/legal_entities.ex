@@ -77,6 +77,7 @@ defmodule Core.LegalEntities do
     receiver_funds_code
     website
     beneficiary
+    edr_verified
   )a
 
   @employee_request_status "NEW"
@@ -336,7 +337,8 @@ defmodule Core.LegalEntities do
         "updated_by" => consumer_id,
         "created_by_mis_client_id" => client_id,
         "nhs_verified" => false,
-        "nhs_reviewed" => false
+        "nhs_reviewed" => false,
+        "edr_verified" => true
       })
 
     create(legal_entity, creation_data, consumer_id)
@@ -357,7 +359,8 @@ defmodule Core.LegalEntities do
         "updated_by" => consumer_id,
         "is_active" => true,
         "nhs_verified" => false,
-        "nhs_reviewed" => false
+        "nhs_reviewed" => false,
+        "edr_verified" => true
       })
 
     legal_entity
