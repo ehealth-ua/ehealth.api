@@ -428,12 +428,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       assert get_in(resp, ~w(error message)) =~ "Could not load remote reference for medication_request"
     end
 
-    test "no party user", %{conn: conn} do
-      msp()
-      conn = get(conn, medication_request_path(conn, :show, Ecto.UUID.generate()))
-      assert json_response(conn, 500)
-    end
-
     test "not found", %{conn: conn} do
       msp()
       user_id = get_consumer_id(conn.req_headers)
@@ -513,16 +507,8 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       |> assert_show_response_schema("medication_request")
     end
 
-    test "no party user", %{conn: conn} do
-      msp()
-      conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(0)))
-      assert json_response(conn, 500)
-    end
-
     test "not found", %{conn: conn} do
       msp()
-      user_id = get_consumer_id(conn.req_headers)
-      insert(:prm, :party_user, user_id: user_id)
 
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
         {:ok,

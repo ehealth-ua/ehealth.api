@@ -185,10 +185,10 @@ defmodule Core.MedicationRequests.API do
   end
 
   def get_medication_request(%{"id" => id}, client_type, headers) do
-    do_get_medication_request(get_client_id(headers), get_consumer_id(headers), client_type, id, headers)
+    do_get_medication_request(get_client_id(headers), client_type, id, headers)
   end
 
-  defp do_get_medication_request(_, _, "NHS", id, headers) do
+  defp do_get_medication_request(_, "NHS", id, headers) do
     with {:ok, search_params} <- add_id_search_params(%{}, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
@@ -198,10 +198,9 @@ defmodule Core.MedicationRequests.API do
     end
   end
 
-  defp do_get_medication_request(legal_entity_id, user_id, _, id, headers) do
-    with %PartyUser{party: party} <- get_party_user(user_id),
-         %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
-         {:ok, search_params} <- get_show_search_params(party.id, legal_entity.id, legal_entity.type, id),
+  defp do_get_medication_request(legal_entity_id, _, id, headers) do
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
+         {:ok, search_params} <- get_show_search_params(legal_entity.id, legal_entity.type, id),
          {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
       {:ok, medication_request}
     else
@@ -217,18 +216,15 @@ defmodule Core.MedicationRequests.API do
     if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
   end
 
-  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp_pharmacy, id) do
-    get_show_search_params(party_id, legal_entity_id, @legal_entity_pharmacy, id)
+  defp get_show_search_params(legal_entity_id, @legal_entity_msp_pharmacy, id) do
+    get_show_search_params(legal_entity_id, @legal_entity_pharmacy, id)
   end
 
-  defp get_show_search_params(party_id, legal_entity_id, @legal_entity_msp, id) do
-    with employee_ids <- get_employees(party_id, legal_entity_id),
-         {:ok, search_params} <- add_id_search_params(%{"employee_id" => Enum.join(employee_ids, ",")}, id) do
-      {:ok, search_params}
-    end
+  defp get_show_search_params(legal_entity_id, @legal_entity_msp, id) do
+    add_id_search_params(%{"legal_entity_id" => legal_entity_id}, id)
   end
 
-  defp get_show_search_params(_, _, @legal_entity_pharmacy, id), do: add_id_search_params(%{}, id)
+  defp get_show_search_params(_, @legal_entity_pharmacy, id), do: add_id_search_params(%{}, id)
 
   defp add_id_search_params(search_params, id) do
     symbols = NumberGenerator.get_number_symbols()

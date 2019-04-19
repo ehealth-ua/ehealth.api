@@ -185,12 +185,13 @@ defmodule Core.MedicationDispense.API do
              "updated_by" => user_id
            }),
          {:ok, %{"data" => medication_dispense}} <-
-           @ops_api.update_medication_dispense(id, %{"medication_dispense" => attrs}, headers),
+           @ops_api.process_medication_dispense(
+             id,
+             %{"medication_dispense" => attrs, "medication_request" => request_attrs},
+             headers
+           ),
          {:ok, details} <- load_dispense_medications(medication_dispense),
-         medication_dispense <- Map.put(medication_dispense, "details", details),
-         medication_request_id <- Map.get(references.medication_request, "id"),
-         {:ok, _} <-
-           @ops_api.update_medication_request(medication_request_id, %{"medication_request" => request_attrs}, headers) do
+         medication_dispense <- Map.put(medication_dispense, "details", details) do
       {:ok, medication_dispense, references}
     end
   end

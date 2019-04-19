@@ -65,6 +65,10 @@ defmodule Core.API.OPS do
     post!("/doctor_medication_requests", Jason.encode!(params), headers)
   end
 
+  def process_medication_dispense(id, params, headers \\ []) do
+    patch!("/medication_dispenses/#{id}/process", Jason.encode!(params), headers)
+  end
+
   def get_qualify_medication_requests(params, headers \\ []) do
     get!("/qualify_medication_requests", headers, params: params)
   end
