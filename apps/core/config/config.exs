@@ -464,7 +464,7 @@ config :core,
       strategy: Elixir.Cluster.Strategy.Kubernetes,
       config: [
         mode: :dns,
-        kubernetes_node_basename: "jabba",
+        kubernetes_node_basename: "jabba-rpc",
         kubernetes_selector: "app=jabba-rpc",
         kubernetes_namespace: "jabba",
         polling_interval: 10_000
