@@ -7,15 +7,12 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
   import Mox
 
   alias Absinthe.Relay.Node
-  alias BSON.ObjectId
   alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
-  alias TasKafka.Job
-  alias TasKafka.Jobs, as: TasKafkaJobs
+  alias Jobs.LegalEntityDeactivationJob
+  alias Jobs.Jabba.Client, as: JabbaClient
 
   setup :verify_on_exit!
-
-  @legal_entity_deactivation_type Jobs.type(:legal_entity_deactivation)
 
   @query """
     mutation DeactivateLegalEntityMutation($input: DeactivateLegalEntityInput!) {
@@ -47,6 +44,21 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
   describe "deactivate legal entity" do
     test "success", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
+      type = JabbaClient.type(:legal_entity_deactivation)
+      status = "PENDING"
+      job = job("legal_entity_deactivation", "PENDING", legal_entity)
+
+      expect(RPCWorkerMock, :run, fn _, _, :create_job, [tasks, job_type, _opts] ->
+        assert 1 == length(tasks)
+        %{name: name, callback: {_, m, f, a}} = hd(tasks)
+        assert LegalEntityDeactivationJob = m
+        assert :deactivate = f
+        assert is_list(a)
+        assert type == job_type
+        assert "Deactivate legal entity" == name
+
+        {:ok, job}
+      end)
 
       job =
         conn
@@ -54,43 +66,9 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         |> json_response(200)
         |> get_in(~w(data deactivateLegalEntity legalEntityDeactivationJob))
 
-      pending_status =
-        :pending
-        |> Job.status()
-        |> Job.status_to_string()
-        |> String.upcase()
-
-      assert pending_status == job["status"]
+      assert status == job["status"]
       assert Map.has_key?(job, "endedAt")
       refute job["endedAt"]
-
-      resp =
-        conn
-        |> post_query(@query, input_legal_entity_id(legal_entity.id))
-        |> json_response(200)
-
-      assert %{"message" => "Legal Entity deactivation job is already created with id " <> id} = hd(resp["errors"])
-
-      query = """
-        query GetLegalEntityDeactivationJobQuery($id: ID) {
-          legalEntityDeactivationJob(id: $id) {
-            status
-          }
-        }
-      """
-
-      pending_status =
-        :pending
-        |> Job.status()
-        |> Job.status_to_string()
-        |> String.upcase()
-
-      assert pending_status ==
-               conn
-               |> put_scope("legal_entity_deactivation_job:read")
-               |> post_query(query, %{id: id})
-               |> json_response(200)
-               |> get_in(~w(data legalEntityDeactivationJob status))
     end
 
     test "invalid scope", %{conn: conn} do
@@ -145,18 +123,25 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
     end
 
     test "filter by status and legal_entity_id", %{conn: conn} do
-      legal_entity1 = insert(:prm, :legal_entity)
-      legal_entity2 = insert(:prm, :legal_entity)
-      {:ok, job_id1, _} = create_job(legal_entity1)
-      TasKafkaJobs.processed(job_id1, :done)
-      {:ok, job_id2, _} = create_job(legal_entity1)
-      TasKafkaJobs.processed(job_id2, :done)
-      {:ok, job_id3, _} = create_job(legal_entity1)
-      TasKafkaJobs.processed(job_id3, :done)
-      {:ok, job_id4, _} = create_job(legal_entity1)
-      TasKafkaJobs.failed(job_id4, :error)
-      {:ok, job_id5, _} = create_job(legal_entity2)
-      TasKafkaJobs.processed(job_id5, :done)
+      legal_entity = insert(:prm, :legal_entity)
+      type = JabbaClient.type(:legal_entity_deactivation)
+      status = "PROCESSED"
+      job = job("legal_entity_deactivation", "PENDING", legal_entity)
+      edrpou = get_in(job[:meta], ~w(deactivated_legal_entity edrpou))
+      assert edrpou
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_jobs, args ->
+        assert [filter, order_by, cursor] = args
+        assert type == filter[:type]
+        assert status == filter[:status]
+        assert %{edrpou: edrpou} == filter[:deactivated_legal_entity]
+        assert [desc: :started_at] == order_by
+        assert {3, 0} == cursor
+
+        {:ok, [job, job, job]}
+      end)
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_jobs, _args -> {:ok, [job]} end)
 
       query = """
         query ListLegalEntityDeactivationJobsQuery(
@@ -193,7 +178,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         filter: %{
           status: "PROCESSED",
           deactivated_legal_entity: %{
-            edrpou: legal_entity1.edrpou
+            edrpou: legal_entity.edrpou
           }
         },
         order_by: "STARTED_AT_DESC",
@@ -235,7 +220,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         filter: %{
           status: "PROCESSED",
           deactivated_legal_entity: %{
-            edrpou: legal_entity1.edrpou
+            edrpou: legal_entity.edrpou
           }
         },
         order_by: "STARTED_AT_ASC",
@@ -252,69 +237,6 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
       refute resp["pageInfo"]["hasNextPage"]
       assert resp["pageInfo"]["hasPreviousPage"]
     end
-
-    test "order_by", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
-      {:ok, job_id1, _} = create_job(legal_entity)
-      TasKafkaJobs.processed(job_id1, :done)
-      {:ok, job_id2, _} = create_job(legal_entity)
-      TasKafkaJobs.processed(job_id2, :done)
-      {:ok, job_id3, _} = create_job(legal_entity)
-      TasKafkaJobs.processed(job_id3, :done)
-      {:ok, job_id4, _} = create_job(legal_entity)
-      TasKafkaJobs.processed(job_id4, :done)
-
-      query = """
-        query ListLegalEntityDeactivationJobsQuery(
-          $first: Int!,
-          $filter: LegalEntityDeactivationJobFilter!,
-          $order_by: LegalEntityDeactivationJobOrderBy!
-        ){
-          legalEntityDeactivationJobs(first: $first, filter: $filter, order_by: $order_by) {
-            nodes {
-              id
-              startedAt
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: 10,
-        filter: %{
-          deactivated_legal_entity: %{
-            edrpou: legal_entity.edrpou
-          }
-        },
-        order_by: "STARTED_AT_DESC"
-      }
-
-      resp =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-        |> get_in(~w(data legalEntityDeactivationJobs nodes))
-
-      assert Node.to_global_id("LegalEntityDeactivationJob", job_id4) == hd(resp)["id"]
-
-      variables = %{
-        first: 10,
-        filter: %{
-          deactivated_legal_entity: %{
-            edrpou: legal_entity.edrpou
-          }
-        },
-        order_by: "STARTED_AT_ASC"
-      }
-
-      resp =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-        |> get_in(~w(data legalEntityDeactivationJobs nodes))
-
-      assert Node.to_global_id("LegalEntityDeactivationJob", job_id1) == hd(resp)["id"]
-    end
   end
 
   describe "get by id" do
@@ -324,9 +246,15 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
     test "success", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      {:ok, job_id, _} = create_job(legal_entity)
-      TasKafkaJobs.processed(job_id, :done)
-      id = Node.to_global_id("LegalEntityDeactivationJob", job_id)
+      job = job("merge_legal_entities", "PROCESSED", legal_entity)
+
+      expect(RPCWorkerMock, :run, fn _, _, :get_job, args ->
+        assert job.id == hd(args)
+
+        {:ok, job}
+      end)
+
+      id = Node.to_global_id("LegalEntityDeactivationJob", job.id)
 
       query = """
         query GetLegalEntityDeactivationJobQuery($id: ID) {
@@ -348,18 +276,23 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
       variables = %{id: id}
 
-      resp =
+      resp_body =
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legalEntityDeactivationJob))
+
+      refute resp_body["errors"]
+
+      resp = get_in(resp_body, ~w(data legalEntityDeactivationJob))
 
       assert legal_entity.edrpou == resp["deactivatedLegalEntity"]["edrpou"]
       assert "PROCESSED" == resp["status"]
-      assert Jason.encode!(:done) == resp["result"]
+      assert Jason.encode!(%{success: "ok"}) == resp["result"]
     end
 
     test "job not found", %{conn: conn} do
+      expect(RPCWorkerMock, :run, fn _, _, :get_job, _args -> {:ok, nil} end)
+
       query = """
         query GetLegalEntityDeactivationJobQuery($id: ID) {
           legalEntityDeactivationJob(id: $id) {
@@ -379,10 +312,22 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
     end
   end
 
-  defp create_job(legal_entity) do
-    meta = %{deactivated_legal_entity: Map.take(legal_entity, ~w(id name edrpou)a)}
-    {:ok, job} = TasKafkaJobs.create(meta, @legal_entity_deactivation_type)
-    {:ok, ObjectId.encode!(job._id), job}
+  defp job(type, status, legal_entity, ended_at \\ nil) do
+    %{
+      id: UUID.generate(),
+      type: type,
+      status: status,
+      result: %{"success" => "ok"},
+      meta: %{
+        "deactivated_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        }
+      },
+      inserted_at: DateTime.utc_now(),
+      ended_at: ended_at
+    }
   end
 
   defp input_legal_entity_id(id) do

@@ -230,7 +230,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert parent_contract.id == resp_entity["parentContract"]["databaseId"]
       assert previous_request.id == resp_entity["previousRequest"]["databaseId"]
       assert assignee.id == resp_entity["assignee"]["databaseId"]
@@ -286,7 +286,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequest attachedDocuments))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert 2 == length(resp_entities)
 
       Enum.each(resp_entities, fn document ->
@@ -332,7 +332,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       assert match?(
                %{
@@ -1032,7 +1032,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
 
       resp_entity = get_in(resp_body, ~w(data signContractRequest contractRequest))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert %{"status" => @contract_request_status_nhs_signed, "printoutContent" => ^printout_content} = resp_entity
     end
   end

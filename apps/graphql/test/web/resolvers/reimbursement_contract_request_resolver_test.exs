@@ -270,7 +270,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       addresses = get_in(resp_body, ~w(data reimbursementContractRequest contractorLegalEntity addresses))
       assert [%{"building" => nil}, %{"building" => ""}] == addresses

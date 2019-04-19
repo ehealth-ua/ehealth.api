@@ -27,7 +27,6 @@ defmodule GraphQL.Schema do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
   alias GraphQL.Loaders.{IL, ManualMerger, MPI, OPS, PRM, Uaddresses}
-  alias TasKafka.Job
 
   import_types(Absinthe.Type.Custom)
 
@@ -124,7 +123,6 @@ defmodule GraphQL.Schema do
       %ProgramMedication{}, _ -> :program_medication
       %ManualMergeRequest{}, _ -> :merge_request
       %Person{}, _ -> :person
-      %Job{}, _ -> :legal_entity_merge_job
       _, _ -> nil
     end)
   end

@@ -32,7 +32,7 @@ defmodule GraphQL.DatabaseIDsMiddlewareTest do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       Enum.each(legal_entities, fn legal_entitity ->
         assert Enum.any?(resp_entities, &(legal_entitity.id == &1["databaseId"]))
@@ -61,7 +61,7 @@ defmodule GraphQL.DatabaseIDsMiddlewareTest do
 
       resp_entity = get_in(resp_body, ~w(data legalEntity))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert legal_entity.id == resp_entity["databaseId"]
     end
   end

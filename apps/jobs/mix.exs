@@ -35,7 +35,6 @@ defmodule Jobs.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:taskafka, "~> 0.1.1"},
       {:core, in_umbrella: true}
     ]
   end

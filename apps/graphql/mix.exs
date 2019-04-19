@@ -64,12 +64,10 @@ defmodule GraphQL.Mixfile do
   defp aliases do
     [
       "ecto.setup": &ecto_setup/1,
-      "mongo.reset": ["drop", "migrate"],
       test: [
         "ecto.create --quiet --repo Core.Repo",
         "ecto.create --quiet --repo Core.PRMRepo",
         "ecto.migrate",
-        "mongo.reset",
         "test"
       ]
     ]

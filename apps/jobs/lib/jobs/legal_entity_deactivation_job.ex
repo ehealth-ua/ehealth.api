@@ -2,7 +2,6 @@ defmodule Jobs.LegalEntityDeactivationJob do
   @moduledoc false
 
   use Confex, otp_app: :core
-  use TasKafka.Task, topic: "deactivate_legal_entity_event"
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
   alias Core.ContractRequests
@@ -18,20 +17,37 @@ defmodule Jobs.LegalEntityDeactivationJob do
   alias Core.PRMRepo
   alias Core.Repo
   alias Ecto.Changeset
-  alias TasKafka.Jobs, as: TasKafkaJobs
+  alias Jobs.Jabba.Client, as: JabbaClient
+  alias Jobs.Jabba.Task, as: JabbaTask
   require Logger
-
-  defstruct [:job_id, :actor_id, :records]
 
   @status_active LegalEntity.status(:active)
   @status_closed LegalEntity.status(:closed)
 
   @status_reason "AUTO_DEACTIVATION_LEGAL_ENTITY"
-  @legal_entity_deactivation_type Jobs.type(:legal_entity_deactivation)
+  @legal_entity_deactivation_type JabbaClient.type(:legal_entity_deactivation)
 
-  def consume(%__MODULE__{job_id: job_id, actor_id: actor_id, records: [record | records]}) do
-    with :ok <- process_record(record, actor_id),
-         :ok <- produce_without_job(%__MODULE__{job_id: job_id, actor_id: actor_id, records: records}) do
+  def search_jobs(filter, order_by, limit, offset) do
+    filter
+    |> Keyword.put(:type, @legal_entity_deactivation_type)
+    |> JabbaClient.search_jobs(order_by, {limit, offset})
+  end
+
+  def get_job(id) do
+    case JabbaClient.get_job(id) do
+      {:ok, job} -> {:ok, prepare_meta(job)}
+      nil -> {:ok, nil}
+    end
+  end
+
+  defp prepare_meta(%{meta: meta} = job) do
+    Map.merge(job, Map.take(meta, ~w(deactivated_legal_entity)a))
+  end
+
+  defp prepare_meta(job), do: job
+
+  def deactivate(entity, actor_id) do
+    with :ok <- process_entity(entity, actor_id) do
       :ok
     else
       {:error, %Changeset{} = changeset} ->
@@ -42,52 +58,40 @@ defmodule Jobs.LegalEntityDeactivationJob do
             end)
           end)
 
-        Logger.error("failed to deactivate legal entity with: #{inspect(errors)}")
-        TasKafkaJobs.failed(job_id, errors)
-        {:error, changeset}
+        Logger.error("Failed to deactivate legal entity with: #{inspect(errors)}")
+        {:error, errors}
 
       {:error, reason} ->
-        Logger.error("failed to deactivate legal entity with: #{inspect(reason)}")
-        TasKafkaJobs.failed(job_id, reason)
+        Logger.error("Failed to deactivate legal entity with: #{inspect(reason)}")
         {:error, reason}
     end
   rescue
     e ->
-      Logger.error("failed to deactivate legal entity with: #{inspect(e)}")
-      TasKafkaJobs.failed(job_id, "raised an exception: #{inspect(e)}")
+      Logger.error("Failed to deactivate legal entity with: #{inspect(e)}")
+      {:error, inspect(e)}
   end
 
-  def consume(%__MODULE__{job_id: job_id, actor_id: _, records: []}) do
-    TasKafkaJobs.processed(job_id, :done)
-    :ok
+  defp process_entity(%{entity: entity, schema: "legal_entity"}, actor_id) do
+    with {:ok, _} <- update_legal_entity_status(entity, actor_id), do: :ok
   end
 
-  def consume(value) do
-    Logger.warn(fn -> "unknown kafka event: #{inspect(value)}" end)
-    :ok
-  end
-
-  defp process_record(%{record: record, schema: "legal_entity"}, actor_id) do
-    with {:ok, _} <- update_legal_entity_status(record, actor_id), do: :ok
-  end
-
-  defp process_record(%{record: record, schema: "employee"}, actor_id) do
-    with {:ok, _} <- EmployeeUpdater.do_deactivate(record, @status_reason, [], actor_id, true),
+  defp process_entity(%{entity: entity, schema: "employee"}, actor_id) do
+    with {:ok, _} <- EmployeeUpdater.do_deactivate(entity, @status_reason, [], actor_id, true),
          do: :ok
   end
 
-  defp process_record(%{record: record, schema: "contract"}, actor_id) do
-    with {:ok, _} <- Contracts.do_terminate(actor_id, record, %{"status_reason" => @status_reason}),
+  defp process_entity(%{entity: entity, schema: "contract"}, actor_id) do
+    with {:ok, _} <- Contracts.do_terminate(actor_id, entity, %{"status_reason" => @status_reason}),
          do: :ok
   end
 
-  defp process_record(%{record: record, schema: "contract_request"}, actor_id) do
+  defp process_entity(%{entity: entity, schema: "contract_request"}, actor_id) do
     with {:ok, _} <-
-           ContractRequests.do_terminate(actor_id, record, %{"status_reason" => "auto_deactivation_legal_entity"}),
+           ContractRequests.do_terminate(actor_id, entity, %{"status_reason" => "auto_deactivation_legal_entity"}),
          do: :ok
   end
 
-  defp process_record(_, _), do: {:error, "Invalid record"}
+  defp process_entity(_, _), do: {:error, "Invalid entity"}
 
   def create(id, headers) do
     user_id = get_consumer_id(headers)
@@ -95,26 +99,25 @@ defmodule Jobs.LegalEntityDeactivationJob do
     with {:ok, legal_entity} <- LegalEntities.fetch_by_id(id),
          :ok <- check_transition(legal_entity),
          :ok <- LegalEntities.check_nhs_reviewed(legal_entity, true) do
-      job_data = get_legal_entity_deactivation_event_data(legal_entity, user_id)
-      meta = %{deactivated_legal_entity: Map.take(legal_entity, ~w(id name edrpou)a)}
+      tasks = get_legal_entity_deactivation_tasks(legal_entity, user_id)
 
-      __MODULE__
-      |> struct(job_data)
-      |> produce(meta, type: @legal_entity_deactivation_type)
+      opts = [
+        name: "Deactivate legal entity",
+        meta: %{deactivated_legal_entity: Map.take(legal_entity, ~w(id name edrpou)a)}
+      ]
+
+      JabbaClient.create_job(tasks, @legal_entity_deactivation_type, opts)
     end
   end
 
-  defp get_legal_entity_deactivation_event_data(legal_entity, user_id) do
-    %{
-      actor_id: user_id,
-      records: get_records_to_deactivate(legal_entity)
-    }
+  defp get_legal_entity_deactivation_tasks(legal_entity, actor_id) do
+    Enum.map(get_entities_to_deactivate(legal_entity), &prepare_task(&1, actor_id))
   end
 
-  defp get_records_to_deactivate(legal_entity) do
+  defp get_entities_to_deactivate(legal_entity) do
     %{
       schema: "legal_entity",
-      record: legal_entity
+      entity: legal_entity
     }
     |> List.wrap()
     |> Enum.concat([
@@ -125,15 +128,15 @@ defmodule Jobs.LegalEntityDeactivationJob do
     |> List.flatten()
   end
 
-  def check_transition(%LegalEntity{is_active: true, status: @status_active}), do: :ok
+  defp check_transition(%LegalEntity{is_active: true, status: @status_active}), do: :ok
 
-  def check_transition(_legal_entity) do
+  defp check_transition(_legal_entity) do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
   end
 
   defp get_employees_to_deactivate(legal_entity_id) do
     Employee
-    |> select([e], %{schema: "employee", record: e})
+    |> select([e], %{schema: "employee", entity: e})
     |> where([e], e.legal_entity_id == ^legal_entity_id)
     |> where([e], e.is_active)
     |> where([e], e.status == ^Employee.status(:approved))
@@ -149,7 +152,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   defp get_capitation_contract_requests_to_deactivate(legal_entity_id) do
     CapitationContractRequest
-    |> select([cr], %{schema: "contract_request", record: cr})
+    |> select([cr], %{schema: "contract_request", entity: cr})
     |> where([cr], cr.type == ^CapitationContractRequest.type())
     |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
     |> where(
@@ -167,7 +170,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   defp get_reimbursement_contract_requests_to_deactivate(legal_entity_id) do
     ReimbursementContractRequest
-    |> select([cr], %{schema: "contract_request", record: cr})
+    |> select([cr], %{schema: "contract_request", entity: cr})
     |> where([cr], cr.type == ^ReimbursementContractRequest.type())
     |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
     |> where(
@@ -192,7 +195,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   defp get_capitation_contracts_to_deactivate(legal_entity_id) do
     CapitationContract
-    |> select([c], %{schema: "contract", record: c})
+    |> select([c], %{schema: "contract", entity: c})
     |> where([c], c.type == ^CapitationContract.type())
     |> where([c], c.contractor_legal_entity_id == ^legal_entity_id)
     |> where([c], c.status == ^CapitationContract.status(:verified))
@@ -202,7 +205,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   defp get_reimbursement_contracts_to_deactivate(legal_entity_id) do
     ReimbursementContract
-    |> select([c], %{schema: "contract", record: c})
+    |> select([c], %{schema: "contract", entity: c})
     |> where([c], c.type == ^ReimbursementContract.type())
     |> where([c], c.contractor_legal_entity_id == ^legal_entity_id)
     |> where([c], c.status == ^ReimbursementContract.status(:verified))
@@ -210,7 +213,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
     |> PRMRepo.all()
   end
 
-  def update_legal_entity_status(legal_entity, actor_id) do
+  defp update_legal_entity_status(legal_entity, actor_id) do
     params =
       actor_id
       |> get_update_legal_entity_params()
@@ -226,6 +229,11 @@ defmodule Jobs.LegalEntityDeactivationJob do
       updated_by: actor_id,
       end_date: Date.utc_today() |> Date.to_iso8601()
     }
+  end
+
+  defp prepare_task(%{schema: schema} = entity, actor_id) do
+    type = JabbaTask.type(:"deactivate_#{schema}")
+    JabbaTask.new(type, entity, actor_id)
   end
 
   def put_legal_entity_status(params, status), do: Map.put(params, :status, status)

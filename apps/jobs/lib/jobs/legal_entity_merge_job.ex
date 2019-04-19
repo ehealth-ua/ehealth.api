@@ -2,7 +2,6 @@ defmodule Jobs.LegalEntityMergeJob do
   @moduledoc false
 
   use Confex, otp_app: :core
-  use TasKafka.Task, topic: "merge_legal_entities"
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Query
@@ -18,26 +17,55 @@ defmodule Jobs.LegalEntityMergeJob do
   alias Core.Validators.Signature
   alias Ecto.Changeset
   alias Ecto.UUID
-  alias TasKafka.Jobs, as: TasKafkaJobs
+  alias Jobs.Jabba.Client, as: JabbaClient
+  alias Jobs.Jabba.Task, as: JabbaTask
 
-  defstruct [:job_id, :reason, :headers, :merged_from_legal_entity, :merged_to_legal_entity, :signed_content]
+  require Logger
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
   @status_active LegalEntity.status(:active)
   @type_msp LegalEntity.type(:msp)
-  @merge_legal_entities_type Jobs.type(:merge_legal_entities)
+  @merge_legal_entities_job_type JabbaClient.type(:merge_legal_entities)
+  @merge_legal_entity_task_type JabbaTask.type(:merge_legal_entity)
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
-  def consume(%__MODULE__{} = job) do
+  def search_jobs(filter, order_by, limit, offset) do
+    filter
+    |> Keyword.put(:type, @merge_legal_entities_job_type)
+    |> JabbaClient.search_jobs(order_by, {limit, offset})
+  end
+
+  def get_job(id) do
+    case JabbaClient.get_job(id) do
+      {:ok, job} -> {:ok, prepare_meta(job)}
+      nil -> {:ok, nil}
+    end
+  end
+
+  defp prepare_meta(%{meta: meta} = job) do
+    Map.merge(job, Map.take(meta, ~w(merged_to_legal_entity merged_from_legal_entity)a))
+  end
+
+  defp prepare_meta(job), do: job
+
+  def merge(
+        %{
+          reason: _,
+          headers: _,
+          merged_from_legal_entity: _,
+          merged_to_legal_entity: _,
+          signed_content: _
+        } = task
+      ) do
     related_legal_entity_id = UUID.generate()
 
-    with :ok <- store_signed_content(job.signed_content, related_legal_entity_id),
-         :ok <- dismiss_employees(job),
-         :ok <- update_client_type(job.merged_from_legal_entity.id, job.headers),
-         :ok <- deactivate_client_tokens(job.merged_from_legal_entity.id, job.headers),
-         {:ok, related} <- create_related_legal_entity(related_legal_entity_id, job) do
-      TasKafkaJobs.processed(job.job_id, %{related_legal_entity_id: related.id})
+    with :ok <- store_signed_content(task.signed_content, related_legal_entity_id),
+         :ok <- dismiss_employees(task),
+         :ok <- update_client_type(task.merged_from_legal_entity.id, task.headers),
+         :ok <- deactivate_client_tokens(task.merged_from_legal_entity.id, task.headers),
+         {:ok, related} <- create_related_legal_entity(related_legal_entity_id, task) do
+      {:ok, %{related_legal_entity_id: related.id}}
     else
       {:error, %Changeset{} = changeset} ->
         errors =
@@ -48,24 +76,16 @@ defmodule Jobs.LegalEntityMergeJob do
           end)
 
         Logger.error("Failed to merge legal entities with: #{inspect(errors)}")
-        TasKafkaJobs.failed(job.job_id, errors)
+        {:error, errors}
 
-      {:error, reason} ->
+      {:error, reason} = err ->
         Logger.error("Failed to merge legal entities with: #{inspect(reason)}")
-        TasKafkaJobs.failed(job.job_id, reason)
+        err
     end
-
-    :ok
   rescue
     e ->
       Logger.error("Failed to merge legal entities with: #{inspect(e)}")
-      TasKafkaJobs.failed(job.job_id, "raised an exception: #{inspect(e)}")
-      :ok
-  end
-
-  def consume(value) do
-    Logger.warn("Unknown kafka event: #{inspect(value)}")
-    :ok
+      {:error, e}
   end
 
   def create(%{signed_content: %{content: encoded_content, encoding: encoding}}, headers) do
@@ -84,12 +104,15 @@ defmodule Jobs.LegalEntityMergeJob do
          {:ok, legal_entity_from} <- validate_legal_entity("from", content),
          {:ok, legal_entity_to} <- validate_legal_entity("to", content),
          :ok <- validate_legal_entities_type(legal_entity_from, legal_entity_to) do
-      meta = Map.take(content, ~w(merged_from_legal_entity merged_to_legal_entity))
-      job_data = Map.merge(content, %{"headers" => headers, "signed_content" => encoded_content})
+      arg =
+        content
+        |> Map.merge(%{"headers" => headers, "signed_content" => encoded_content})
+        |> TypesConverter.strings_to_keys()
 
-      __MODULE__
-      |> struct(TypesConverter.strings_to_keys(job_data))
-      |> produce(meta, type: @merge_legal_entities_type)
+      task = JabbaTask.new(@merge_legal_entity_task_type, arg)
+      opts = [meta: Map.take(content, ~w(merged_from_legal_entity merged_to_legal_entity))]
+
+      JabbaClient.create_job([task], @merge_legal_entities_job_type, opts)
     end
   end
 
@@ -150,7 +173,7 @@ defmodule Jobs.LegalEntityMergeJob do
   defp validate_legal_entities_type(%{type: @type_msp}, %{type: @type_msp}), do: :ok
   defp validate_legal_entities_type(_, _), do: {:error, {:conflict, "Invalid legal entity type"}}
 
-  defp dismiss_employees(%{merged_from_legal_entity: merged_from, merged_to_legal_entity: merged_to} = job) do
+  defp dismiss_employees(%{merged_from_legal_entity: merged_from, merged_to_legal_entity: merged_to} = task) do
     merged_from_employees = get_merged_from_employees(merged_from.id)
     merged_to_employees = get_merged_to_employees(merged_from_employees, merged_to.id)
 
@@ -158,7 +181,7 @@ defmodule Jobs.LegalEntityMergeJob do
     |> Enum.filter(fn %{party_id: party_id, speciality: %{"speciality" => speciality}} ->
       {party_id, speciality} not in merged_to_employees
     end)
-    |> terminate_employees_declarations(job.headers)
+    |> terminate_employees_declarations(task.headers)
   end
 
   defp get_merged_from_employees(merged_from_legal_entity_id) do
@@ -241,16 +264,16 @@ defmodule Jobs.LegalEntityMergeJob do
     end
   end
 
-  defp create_related_legal_entity(id, job) do
-    inserted_by = get_consumer_id(job.headers)
+  defp create_related_legal_entity(id, task) do
+    inserted_by = get_consumer_id(task.headers)
 
     LegalEntities.create(
       %RelatedLegalEntity{},
       %{
         id: id,
-        reason: job.reason,
-        merged_from_id: job.merged_from_legal_entity.id,
-        merged_to_id: job.merged_to_legal_entity.id,
+        reason: task.reason,
+        merged_from_id: task.merged_from_legal_entity.id,
+        merged_to_id: task.merged_to_legal_entity.id,
         inserted_by: inserted_by,
         is_active: true
       },

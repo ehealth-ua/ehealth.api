@@ -29,7 +29,8 @@ defmodule GraphQL.Resolvers.MergeRequest do
   def get_merge_request_by_id(_parent, %{id: id}, %{context: %{consumer_id: consumer_id}}) do
     filter = get_filter_conditions(consumer_id, [{:id, :equal, id}])
 
-    with {:ok, [merge_request]} <- @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :search_manual_merge_requests, [filter]) do
+    with {:ok, [merge_request]} <-
+           @rpc_worker.run(@rpc_pod, ManualMerger.Rpc, :search_manual_merge_requests, [filter]) do
       {:ok, response_to_ecto_struct(ManualMergeRequest, merge_request)}
     else
       _ -> {:ok, nil}

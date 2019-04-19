@@ -251,7 +251,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       refute Map.has_key?(resp["data"]["legal_entity"], "created_by")
 
       refute Map.has_key?(resp["data"], "division_id")
-      assert nil == resp["data"]["division"]
+      refute resp["data"]["division"]
     end
 
     test "with MSP token when legal_entity_id != client_id", %{conn: conn} do

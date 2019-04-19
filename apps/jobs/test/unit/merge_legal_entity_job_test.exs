@@ -5,15 +5,14 @@ defmodule Unit.LegalEntityMergeJobTest do
 
   import Mox
   import Core.Expectations.Mithril
+  import Core.Expectations.Signature
 
-  alias BSON.ObjectId
   alias Ecto.UUID
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.LegalEntities
+  alias Jobs.Jabba.Task, as: JabbaTask
   alias Jobs.LegalEntityMergeJob
-  alias TasKafka.Job
-  alias TasKafka.Jobs
 
   setup :set_mox_global
   setup :verify_on_exit!
@@ -23,6 +22,54 @@ defmodule Unit.LegalEntityMergeJobTest do
 
   @approved Employee.status(:approved)
   @dismissed Employee.status(:dismissed)
+
+  @task_type JabbaTask.type(:merge_legal_entity)
+
+  describe "create" do
+    setup do
+      merged_to = insert(:prm, :legal_entity)
+      merged_from = insert(:prm, :legal_entity)
+
+      legal_entity = insert(:prm, :legal_entity, edrpou: "100000001")
+      party_user = insert(:prm, :party_user, party: build(:party, tax_id: "100000001"))
+
+      context = %{
+        merged_to: merged_to,
+        merged_from: merged_from,
+        client_id: legal_entity.id,
+        party_user: party_user
+      }
+
+      {:ok, context}
+    end
+
+    test "successfully", context do
+      expect(RPCWorkerMock, :run, fn _, _, :create_job, args ->
+        {:ok, args}
+      end)
+
+      %{
+        client_id: client_id,
+        party_user: party_user,
+        merged_to: merged_to,
+        merged_from: merged_from
+      } = context
+
+      consumer_id = party_user.user_id
+
+      content = content(merged_from, merged_to, "duplicated")
+      drfo_signed_content(content, party_user.party.tax_id)
+
+      signed_content = %{signed_content: %{content: "content", encoding: "base64"}}
+
+      headers = [
+        {"x-consumer-id", consumer_id},
+        {"x-consumer-metadata", Jason.encode!(%{client_id: client_id})}
+      ]
+
+      assert {:ok, _} = LegalEntityMergeJob.create(signed_content, headers)
+    end
+  end
 
   describe "job processed" do
     setup do
@@ -82,18 +129,20 @@ defmodule Unit.LegalEntityMergeJobTest do
         :ok
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, related_id, resource_name, _headers ->
+      expect(MediaStorageMock, :store_signed_content, fn signed_content,
+                                                         bucket,
+                                                         related_le_id,
+                                                         resource_name,
+                                                         _headers ->
         assert "some-base-64-encoded-content" == signed_content
         assert :related_legal_entity_bucket == bucket
         assert "merged_legal_entities" == resource_name
-        assert related_id
-        :ets.insert(:related_legal_entity, {:id, related_id})
+        assert related_le_id
+        :ets.insert(:related_legal_entity, {:id, related_le_id})
         {:ok, "success"}
       end)
 
-      {:ok, job_id, _} = create_job()
-
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
+      assert {:ok, %{related_legal_entity_id: related_id}} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
 
       # employee with type doctor dismissed
       assert @dismissed == Employees.get_by_id(employee_dismissed.id).status
@@ -109,11 +158,7 @@ defmodule Unit.LegalEntityMergeJobTest do
       assert @approved == Employees.get_by_id(employee_owner.id).status
       assert @approved == Employees.get_by_id(employee_admin.id).status
 
-      # mongo job successfully processed
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:processed) == mongo_job.status
-      assert %{"related_legal_entity_id" => related_id} = mongo_job.result
-      assert :ets.lookup(:related_legal_entity, :id)[:id] == related_id
+      assert related_id == :ets.lookup(:related_legal_entity, :id)[:id]
 
       # related legal entity created
       related = LegalEntities.get_related_by(id: related_id)
@@ -122,19 +167,19 @@ defmodule Unit.LegalEntityMergeJobTest do
     end
 
     test "without employees", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
+      :ets.new(:related_legal_entity, [:named_table])
       put_client()
       deactivate_client_tokens()
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
-      {:ok, job_id, _} = create_job()
 
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, related_le_id, _, _ ->
+        :ets.insert(:related_legal_entity, {:id, related_le_id})
+        {:ok, %{"success" => true}}
+      end)
 
-      # mongo job successfully processed
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:processed) == mongo_job.status
-      assert %{"related_legal_entity_id" => related_id} = mongo_job.result
+      assert {:ok, %{related_legal_entity_id: related_id}} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
 
       # related legal entity created
+      assert related_id == :ets.lookup(:related_legal_entity, :id)[:id]
       related = LegalEntities.get_related_by(id: related_id)
       assert merged_to.id == related.merged_to_id
       assert merged_from.id == related.merged_from_id
@@ -154,13 +199,9 @@ defmodule Unit.LegalEntityMergeJobTest do
       put_client()
       deactivate_client_tokens()
       insert(:prm, :related_legal_entity, merged_from: merged_from, merged_to: merged_to)
-      {:ok, job_id, _} = create_job()
 
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
-
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:failed) == mongo_job.status
-      assert %{"merged_to" => ["related legal entity already created"]} == mongo_job.result
+      assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
+      assert %{merged_to: ["related legal entity already created"]} == reason
     end
 
     test "cannot terminate declaration", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
@@ -172,83 +213,62 @@ defmodule Unit.LegalEntityMergeJobTest do
 
       insert(:prm, :employee, legal_entity: merged_from)
 
-      {:ok, job_id, _} = create_job()
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
-
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:failed) == mongo_job.status
-      assert mongo_job.result =~ "Declaration does not exist"
+      assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
+      assert reason =~ "Declaration does not exist"
     end
 
     test "cannot update client_type", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:error, %{"error" => "db connection"}} end)
 
-      {:ok, job_id, _} = create_job()
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
-
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:failed) == mongo_job.status
-      assert mongo_job.result =~ "Cannot update client type on Mithril for client"
+      assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
+      assert reason =~ "Cannot update client type on Mithril for client"
     end
 
     test "cannot store signed content", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:error, %{"error_code" => 500}} end)
 
-      {:ok, job_id, _} = create_job()
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
-
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:failed) == mongo_job.status
-      assert mongo_job.result =~ "Failed to save signed content"
+      assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
+      assert reason =~ "Failed to save signed content"
     end
 
     test "when raised an error", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:response_not_expected} end)
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
 
-      {:ok, job_id, _} = create_job()
-      assert_consume(merged_from, merged_to, job_id, consumer_id)
-
-      assert {:ok, mongo_job} = Jobs.get_by_id(job_id)
-      assert Job.status(:failed) == mongo_job.status
-      assert "raised an exception: %CaseClauseError{term: {:response_not_expected}}" == mongo_job.result
+      assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
+      assert %CaseClauseError{term: {:response_not_expected}} == reason
     end
   end
 
-  defp create_job, do: create_job(%{"meta" => UUID.generate()})
-
-  defp create_job(meta) do
-    {:ok, job} = Jobs.create(meta)
-    {:ok, ObjectId.encode!(job._id), job}
-  end
-
-  defp assert_consume(merged_from, merged_to, job_id, consumer_id) do
-    %{
-      job_id: job_id,
-      reason: "test merge",
+  defp emulate_jabba_callback(merged_from, merged_to, consumer_id) do
+    arg = %{
+      reason: "duplicated",
       headers: [{"x-consumer-id", consumer_id}],
-      merged_from_legal_entity: %{
-        id: merged_from.id,
-        name: merged_from.name,
-        edrpou: merged_from.edrpou
-      },
-      merged_to_legal_entity: %{
-        id: merged_to.id,
-        name: merged_to.name,
-        edrpou: merged_to.edrpou
-      },
+      merged_from_legal_entity: merged_from,
+      merged_to_legal_entity: merged_to,
       signed_content: "some-base-64-encoded-content"
     }
-    |> assert_consume()
+
+    task = JabbaTask.new(@task_type, arg)
+    emulate_jabba_callback(task)
   end
 
-  defp assert_consume(data),
-    do:
-      assert(
-        :ok =
-          LegalEntityMergeJob
-          |> struct(data)
-          |> LegalEntityMergeJob.consume()
-      )
+  defp emulate_jabba_callback(%JabbaTask{callback: {_, m, f, a}}), do: apply(m, f, a)
+
+  defp content(merged_from, merged_to, reason) do
+    %{
+      "reason" => reason,
+      "merged_from_legal_entity" => %{
+        "id" => merged_from.id,
+        "name" => merged_from.name,
+        "edrpou" => merged_from.edrpou
+      },
+      "merged_to_legal_entity" => %{
+        "id" => merged_to.id,
+        "name" => merged_to.name,
+        "edrpou" => merged_to.edrpou
+      }
+    }
+  end
 end

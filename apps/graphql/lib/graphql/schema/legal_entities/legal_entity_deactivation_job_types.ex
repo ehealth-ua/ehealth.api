@@ -17,7 +17,7 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
       arg(:order_by, :legal_entity_deactivation_job_order_by, default_value: :started_at_desc)
 
       middleware(FilterArgument)
-      resolve(&LegalEntityDeactivationJobResolver.list_jobs/2)
+      resolve(&LegalEntityDeactivationJobResolver.search_jobs/2)
     end
 
     @desc "get one Legal Entity deactivation job by id"
@@ -82,9 +82,12 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
   end
 
   enum :legal_entity_deactivation_job_status do
-    value(:failed, as: "failed")
-    value(:failed_with_error, as: "failed_with_error")
-    value(:pending, as: "pending")
-    value(:processed, as: "processed")
+    value(:new, as: "NEW")
+    value(:failed, as: "FAILED")
+    value(:pending, as: "PENDING")
+    value(:aborted, as: "ABORTED")
+    value(:rescued, as: "RESCUED")
+    value(:consumed, as: "CONSUMED")
+    value(:processed, as: "PROCESSED")
   end
 end

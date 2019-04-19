@@ -107,7 +107,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
                |> json_response(200)
                |> Map.get("data")
 
-      assert nil == Repo.get(DeclarationRequest, declaration_request_id).mpi_id
+      refute Repo.get(DeclarationRequest, declaration_request_id).mpi_id
     end
 
     test "declaration request doctor speciality doesn't match patient's age", %{conn: conn} do

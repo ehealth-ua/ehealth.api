@@ -241,7 +241,7 @@ defmodule GraphQL.LegalEntityResolverTest do
         |> post_query(query, variables)
         |> json_response(200)
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert [%{"databaseId" => legal_entity.id}] == get_in(resp_body, ~w(data legalEntities nodes))
     end
 
@@ -268,7 +268,7 @@ defmodule GraphQL.LegalEntityResolverTest do
 
       result_ids = get_in(resp_body, ["data", "legalEntities", "nodes", Access.all(), "databaseId"])
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert 2 == length(result_ids)
       assert legal_entity_id in result_ids
       assert legal_entity_id2 in result_ids
@@ -326,7 +326,7 @@ defmodule GraphQL.LegalEntityResolverTest do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
       assert "0987654321" == hd(resp_entities)["edrpou"]
     end
 
@@ -355,7 +355,7 @@ defmodule GraphQL.LegalEntityResolverTest do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       assert resp_entities
              |> Enum.take(5)

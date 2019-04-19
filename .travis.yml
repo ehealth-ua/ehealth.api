@@ -39,7 +39,6 @@ before_script:
 before_install:
   - sudo apt-get install jq
   - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/init-db.sh -o init-db.sh; sudo sh ./init-db.sh
-  - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/install-mongodb.sh -o install-mongodb.sh; sudo sh ./install-mongodb.sh
   - curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/init-kafka.sh -o init-kafka.sh; sudo sh ./init-kafka.sh
   - kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic merge_legal_entities
   - kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic deactivate_legal_entity_event
@@ -49,7 +48,6 @@ jobs:
     - stage: "test and build"
       name: "Run tests"
       script:
-        - mongo --version
         - (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella/tests.sh -o tests.sh; bash ./tests.sh) || travis_terminate 1
         - cd apps/graphql && mix white_bread.run
         - if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;

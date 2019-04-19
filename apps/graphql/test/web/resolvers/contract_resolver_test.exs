@@ -91,7 +91,7 @@ defmodule GraphQL.ContractResolverTest do
 
       {resp_body, resp_entity} = call_terminate(conn, contract, contract.contractor_legal_entity_id)
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       assert %{
                "status" => @contract_status_terminated,
@@ -134,7 +134,7 @@ defmodule GraphQL.ContractResolverTest do
 
       {resp_body, resp_entity} = call_terminate(conn, contract, contract.nhs_legal_entity_id)
 
-      assert nil == resp_body["errors"]
+      refute resp_body["errors"]
 
       assert %{
                "status" => @contract_status_terminated,
