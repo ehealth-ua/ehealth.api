@@ -365,7 +365,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       insert(:il, :dictionary, name: "POSITION", values: %{"P1" => "Генеральний директор"})
 
-      client_id = UUID.generate()
+      %{id: client_id} = insert(:prm, :legal_entity)
       nhs_signer = insert(:prm, :employee)
       external_contractor_legal_entity = insert(:prm, :legal_entity)
       external_contractor_division = insert(:prm, :division)

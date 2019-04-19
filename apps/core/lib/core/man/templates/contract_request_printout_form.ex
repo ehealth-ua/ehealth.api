@@ -25,6 +25,8 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     sun: "Нд."
   ]
 
+  @legal_entity_edrpou_regex ~r/^[0-9]{8}$/
+
   def render(
         %CapitationContractRequest{parent_contract_id: parent_contract_id, contract_number: contract_number} =
           contract_request,
@@ -120,7 +122,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
     party = Map.get(employee, :party) || %{}
     data = %{"party" => Map.take(party, ~w(first_name last_name second_name)a)}
 
-    if Regex.match?(~r/^[0-9]{8}$/, contractor_legal_entity.edrpou) do
+    if Regex.match?(@legal_entity_edrpou_regex, contractor_legal_entity.edrpou) do
       %Dictionary{values: positions} = Enum.find(dictionaries, fn %Dictionary{name: name} -> name == "POSITION" end)
       Map.put(data, "position", Map.get(positions, Map.get(employee, :position)))
     else
@@ -139,8 +141,16 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
       |> Enum.find(fn address -> Map.get(address, "type") == "REGISTRATION" end)
       |> translate_address(dictionaries)
 
+    contractor_legal_entity_name =
+      if Regex.match?(@legal_entity_edrpou_regex, contractor_legal_entity.edrpou) do
+        contractor_legal_entity.name
+      else
+        "ФОП " <> contractor_legal_entity.name
+      end
+
     contractor_legal_entity
-    |> Map.take(~w(edrpou name)a)
+    |> Map.take(~w(edrpou)a)
+    |> Map.put(:name, contractor_legal_entity_name)
     |> Map.put(:address, address)
   end
 
