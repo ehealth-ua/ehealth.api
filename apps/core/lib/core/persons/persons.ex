@@ -22,7 +22,7 @@ defmodule Core.Persons do
 
   def search(params) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- Search.changeset(params),
-         search_params <- Map.put(changes, :status, @person_active),
+         search_params <- changes |> Map.put(:status, @person_active) |> Map.new(fn {k, v} -> {to_string(k), v} end),
          {:ok, %{data: persons, paging: %{total_pages: 1}}} <-
            search_persons(search_params, nil, read_only: true, paginate: true) do
       {:ok, persons, changes}

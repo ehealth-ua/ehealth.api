@@ -283,7 +283,7 @@ defmodule EHealth.Web.PersonControllerTest do
                                      MPI.Rpc,
                                      :search_persons,
                                      [
-                                       %{birth_date: _, first_name: _, last_name: _, status: _},
+                                       %{"birth_date" => _, "first_name" => _, "last_name" => _, "status" => _},
                                        nil,
                                        [read_only: true, paginate: true]
                                      ] ->
