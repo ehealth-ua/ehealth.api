@@ -4,7 +4,7 @@ defmodule GraphQL.Features.Context do
 
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
-  import Core.Expectations.Signature, only: [drfo_signed_content: 2, expect_signed_content: 2]
+  import Core.Expectations.Signature, only: [expect_signed_content: 2]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
   import Mox, only: [expect: 3, expect: 4]
 
@@ -188,6 +188,31 @@ defmodule GraphQL.Features.Context do
         table_data
         |> transpose_table()
         |> prepare_input_attrs()
+
+      encoded_content =
+        content
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      state =
+        Map.merge(state, %{
+          content: content,
+          signed_content: %{content: encoded_content, encoding: "BASE64"}
+        })
+
+      {:ok, state}
+    end
+  )
+
+  given_(
+    ~r/^I have a signed content with field "(?<field>[^"]+)" and the following nested fields:$/,
+    fn state, %{field: field, table_data: table_data} ->
+      content =
+        table_data
+        |> transpose_table()
+        |> prepare_input_attrs()
+
+      content = Map.put(%{}, field, content)
 
       encoded_content =
         content
@@ -2482,13 +2507,8 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I create employee request with taxId "(?<tax_id>[^"]+)" and attributes:$/,
-    fn %{conn: conn}, %{tax_id: tax_id, table_data: table_data} ->
-      request_params = Enum.into(table_data, %{}, &{Macro.underscore(&1.field), Jason.decode!(&1.value)})
-      employee_request_params = %{"employee_request" => request_params}
-
-      # TODO: Split expectations
-      drfo_signed_content(employee_request_params, tax_id)
+    ~r/^I create employee request with signed content$/,
+    fn %{conn: conn, signed_content: signed_content}, _ ->
       template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -2507,12 +2527,7 @@ defmodule GraphQL.Features.Context do
       """
 
       variables = %{
-        input: %{
-          signedContent: %{
-            content: employee_request_params |> Jason.encode!() |> Base.encode64(),
-            encoding: "BASE64"
-          }
-        }
+        input: %{signedContent: signed_content}
       }
 
       resp_body =
