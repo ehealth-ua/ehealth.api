@@ -514,14 +514,10 @@ defmodule Core.MedicationDispense.API do
   end
 
   defp is_active_medication_request(medication_request) do
-    now = Date.utc_today()
-    started_at = Date.from_iso8601!(Map.get(medication_request, "started_at"))
-    ended_at = Date.from_iso8601!(Map.get(medication_request, "ended_at"))
     is_active = Map.get(medication_request, "is_active")
     status = Map.get(medication_request, "status")
-    is_valid_period = Date.compare(started_at, now) != :gt && Date.compare(ended_at, now) != :lt
 
-    if is_active and status == "ACTIVE" && is_valid_period do
+    if is_active and status == "ACTIVE" do
       :ok
     else
       {:conflict, "Medication request is not active"}
