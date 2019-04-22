@@ -177,28 +177,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       assert_list_response_schema(resp, "medication_request")
     end
 
-    test "no party user", %{conn: conn} do
-      msp()
-      conn = get(conn, medication_request_path(conn, :index))
-      assert json_response(conn, 500)
-    end
-
-    test "no employees found", %{conn: conn} do
-      msp()
-      user_id = get_consumer_id(conn.req_headers)
-      legal_entity_id = get_client_id(conn.req_headers)
-
-      %{party: party} =
-        :prm
-        |> insert(:party_user, user_id: user_id)
-        |> PRMRepo.preload(:party)
-
-      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
-      insert(:prm, :employee, party: party, legal_entity: legal_entity)
-      conn = get(conn, medication_request_path(conn, :index), %{"employee_id" => Ecto.UUID.generate()})
-      assert json_response(conn, 403)
-    end
-
     test "could not load remote reference", %{conn: conn} do
       msp()
       user_id = get_consumer_id(conn.req_headers)

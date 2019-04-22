@@ -23,8 +23,6 @@ defmodule Core.MedicationRequests.API do
   alias Core.Medications.Medication
   alias Core.Medications.Medication.Ingredient
   alias Core.Medications.Program, as: ProgramMedication
-  alias Core.PartyUsers
-  alias Core.PartyUsers.PartyUser
   alias Core.Persons
   alias Core.Utils.NumberGenerator
   alias Core.ValidationError
@@ -165,23 +163,16 @@ defmodule Core.MedicationRequests.API do
   end
 
   def get_medication_requests(changes, client_type, headers) do
-    do_get_medication_requests(get_consumer_id(headers), client_type, changes, headers)
+    do_get_medication_requests(get_client_id(headers), client_type, changes, headers)
   end
 
   defp do_get_medication_requests(_, "NHS", changes, headers) do
-    employee_id = Map.get(changes, :employee_id)
-    search_params = get_search_params([], changes)
-    search_params = if is_nil(employee_id), do: Map.delete(search_params, :employee_id), else: search_params
-    @ops_api.get_doctor_medication_requests(search_params, headers)
+    @ops_api.get_doctor_medication_requests(changes, headers)
   end
 
-  defp do_get_medication_requests(user_id, _, changes, headers) do
-    with %PartyUser{party: party} <- get_party_user(user_id),
-         employee_ids <- get_employees(party.id, Map.get(changes, :legal_entity_id)),
-         :ok <- validate_employee_id(Map.get(changes, :employee_id), employee_ids),
-         search_params <- get_search_params(employee_ids, changes) do
-      @ops_api.get_doctor_medication_requests(search_params, headers)
-    end
+  defp do_get_medication_requests(legal_entity_id, _, changes, headers) do
+    search_params = Map.put(changes, :legal_entity_id, legal_entity_id)
+    @ops_api.get_doctor_medication_requests(search_params, headers)
   end
 
   def get_medication_request(%{"id" => id}, client_type, headers) do
@@ -210,12 +201,6 @@ defmodule Core.MedicationRequests.API do
     end
   end
 
-  defp validate_employee_id(nil, _), do: :ok
-
-  defp validate_employee_id(employee_id, employee_ids) do
-    if Enum.member?(employee_ids, employee_id), do: :ok, else: {:error, :forbidden}
-  end
-
   defp get_show_search_params(legal_entity_id, @legal_entity_msp_pharmacy, id) do
     get_show_search_params(legal_entity_id, @legal_entity_pharmacy, id)
   end
@@ -238,45 +223,6 @@ defmodule Core.MedicationRequests.API do
 
       true ->
         :validation_error
-    end
-  end
-
-  defp get_search_params(employee_ids, %{person_id: person_id} = params) do
-    Map.put(do_get_search_params(employee_ids, params), :person_id, person_id)
-  end
-
-  defp get_search_params(employee_ids, params), do: do_get_search_params(employee_ids, params)
-
-  defp do_get_search_params(_employee_ids, %{employee_id: _employee_id} = params), do: params
-
-  defp do_get_search_params(employee_ids, params) do
-    Map.put(params, :employee_id, Enum.join(employee_ids, ","))
-  end
-
-  defp get_employees(party_id, nil) do
-    do_get_employees(party_id: party_id)
-  end
-
-  defp get_employees(party_id, legal_entity_id) do
-    do_get_employees(
-      party_id: party_id,
-      legal_entity_id: legal_entity_id
-    )
-  end
-
-  defp do_get_employees(params) do
-    params
-    |> Employees.list!()
-    |> Enum.map(&Map.get(&1, :id))
-  end
-
-  defp get_party_user(user_id) do
-    with [party_user] <- PartyUsers.list!(%{user_id: user_id}) do
-      party_user
-    else
-      _ ->
-        Logger.error("No party user for user_id: \"#{user_id}\"")
-        {:error, %{"type" => "internal_error"}}
     end
   end
 
