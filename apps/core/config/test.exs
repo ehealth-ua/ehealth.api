@@ -57,6 +57,7 @@ config :core, Core.API.MediaStorage,
   legal_entity_bucket: {:system, "MEDIA_STORAGE_LEGAL_ENTITY_BUCKET", "legal-entities-dev"},
   contract_request_bucket: {:system, "MEDIA_STORAGE_CONTRACT_REQUEST_BUCKET", "contract-requests-dev"},
   contract_bucket: {:system, "MEDIA_STORAGE_CONTRACT_BUCKET", "contracts-dev"},
+  employee_request_bucket: {:system, "MEDIA_STORAGE_EMPLOYEE_REQUEST_BUCKET", "employee-requests-dev"},
   declaration_request_bucket: {:system, "MEDIA_STORAGE_DECLARATION_REQUEST_BUCKET", "declaration-requests-dev"},
   declaration_bucket: {:system, "MEDIA_STORAGE_DECLARATION_BUCKET", "declarations-dev"},
   medication_request_request_bucket:

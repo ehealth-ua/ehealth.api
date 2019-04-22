@@ -2,12 +2,18 @@ defmodule EHealth.Web.V2.EmployeeRequestControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
+
   import Core.Expectations.Signature
   import Core.Expectations.Man
+  import Mox
+
+  setup :verify_on_exit!
 
   describe "create employee request" do
     test "success", %{conn: conn} do
-      nhs()
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
 
       employee_request_params =
         "../core/test/data/employee_doctor_request.json"

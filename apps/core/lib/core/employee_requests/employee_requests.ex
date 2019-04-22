@@ -32,7 +32,10 @@ defmodule Core.EmployeeRequests do
   alias Core.Validators.Signature
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
+  @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+
   @read_repo Application.get_env(:core, :repos)[:read_repo]
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @status_new Request.status(:new)
   @status_approved Request.status(:approved)
@@ -44,8 +47,6 @@ defmodule Core.EmployeeRequests do
   @owner Employee.type(:owner)
   @pharmacy_owner Employee.type(:pharmacy_owner)
   @doctor Employee.type(:doctor)
-
-  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list(params) do
     query = from(er in Request, order_by: [desc: :inserted_at])
@@ -147,11 +148,11 @@ defmodule Core.EmployeeRequests do
          {:ok, %{"content" => content, "signers" => [signer]}} <-
            Signature.validate(attrs["signed_content"], attrs["signed_content_encoding"], headers),
          :ok <- Signature.check_drfo(signer, user_id, "create_signed_employee_request") do
-      create(content, headers)
+      create(content, headers, attrs["signed_content"])
     end
   end
 
-  def create(attrs, headers) do
+  def create(attrs, headers, signed_content \\ nil) do
     client_id = get_client_id(headers)
     attrs = put_in(attrs, ~w(employee_request legal_entity_id), client_id)
 
@@ -163,9 +164,16 @@ defmodule Core.EmployeeRequests do
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
          :ok <- check_division_legal_entity(client_id, division_id),
          :ok <- validate_type(legal_entity, employee_type),
-         :ok <- check_is_user_blacklisted(params),
-         {:ok, employee_request} <- insert_employee_request(params) do
-      {:ok, employee_request}
+         :ok <- check_is_user_blacklisted(params) do
+      Repo.transaction(fn ->
+        with {:ok, employee_request} <- insert_employee_request(params),
+             :ok <- save_signed_content(signed_content, employee_request.id, headers) do
+          {:ok, employee_request}
+        else
+          err -> Repo.rollback(err)
+        end
+      end)
+      |> elem(1)
     end
   end
 
@@ -601,5 +609,22 @@ defmodule Core.EmployeeRequests do
     :core
     |> Confex.fetch_env!(:emails)
     |> Keyword.get(type)
+  end
+
+  # Signed content is saved only for employee requests v2
+  defp save_signed_content(nil, _, _), do: :ok
+
+  defp save_signed_content(signed_content, employee_request_id, headers) do
+    signed_content
+    |> @media_storage_api.store_signed_content(
+      :employee_request_bucket,
+      employee_request_id,
+      "signed_content/signed_content",
+      headers
+    )
+    |> case do
+      {:ok, _} -> :ok
+      err -> err
+    end
   end
 end

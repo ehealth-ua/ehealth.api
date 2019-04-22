@@ -2491,6 +2491,10 @@ defmodule GraphQL.Features.Context do
       drfo_signed_content(employee_request_params, tax_id)
       template()
 
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+        {:ok, "success"}
+      end)
+
       query = """
         mutation CreateEmployeeRequest($input: CreateEmployeeRequestInput!) {
           createEmployeeRequest(input: $input) {
