@@ -217,12 +217,12 @@ defmodule Jobs.LegalEntityMergeJob do
   defp terminate_employees_declarations([], _), do: :ok
 
   defp terminate_employees_declarations(employees, headers) do
+    actor_id = get_consumer_id(headers)
+
     employees
     |> Enum.map(
       &Task.async(fn ->
-        employee_id = Map.get(&1, :id)
-        legal_entity_id = Map.get(&1, :legal_entity_id)
-        {employee_id, EmployeeUpdater.deactivate(employee_id, legal_entity_id, "auto_reorganization", headers, false)}
+        {&1.id, EmployeeUpdater.deactivate(&1, "auto_reorganization", headers, actor_id, false)}
       end)
     )
     |> Enum.map(&Task.await/1)

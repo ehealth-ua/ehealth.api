@@ -4,7 +4,7 @@ defmodule EHealth.Web.EmployeeController do
   use EHealth.Web, :controller
 
   alias Core.Employees, as: API
-  alias Core.Employees.EmployeeUpdater
+  alias Core.Employees.{Employee, EmployeeUpdater}
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -27,7 +27,9 @@ defmodule EHealth.Web.EmployeeController do
   end
 
   def deactivate(%Plug.Conn{req_headers: req_headers} = conn, params) do
-    with {:ok, employee} <- EmployeeUpdater.deactivate(params, req_headers) do
+    with {:ok, employee} <- API.fetch_by_id(params["id"]),
+         :ok <- check_legal_entity_id(params["legal_entity_id"], employee),
+         {:ok, employee} <- EmployeeUpdater.deactivate(employee, "manual_employee_deactivate", req_headers) do
       render(conn, "employee.json", employee: employee)
     end
   end
@@ -37,4 +39,7 @@ defmodule EHealth.Web.EmployeeController do
       render(conn, "employee_users_short.json", employee: employee)
     end
   end
+
+  defp check_legal_entity_id(legal_entity_id, %Employee{legal_entity_id: legal_entity_id}), do: :ok
+  defp check_legal_entity_id(_, _), do: {:error, :not_found}
 end

@@ -324,10 +324,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "deactivate employee admin suspend contracts", %{conn: conn, legal_entity: legal_entity} do
-      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
-        :ok
-      end)
-
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       msp()
@@ -350,7 +346,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
     end
 
     test "deactivate employee", %{conn: conn, legal_entity: legal_entity} do
-      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "manual_employee_deactivate"} ->
         :ok
       end)
 
@@ -387,7 +383,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
-      assert json_response(conn_resp, 409)["error"]["message"] == "Owner can’t be deactivated"
+      assert json_response(conn_resp, 409)["error"]["message"] == "Owner employees can’t be deactivated"
     end
 
     test "can't deactivate PHARMACY OWNER", %{conn: conn, legal_entity: legal_entity} do
@@ -406,7 +402,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
       conn = put_client_id_header(conn, legal_entity.id)
       conn_resp = patch(conn, employee_path(conn, :deactivate, employee.id))
 
-      assert json_response(conn_resp, 409)["error"]["message"] == "Pharmacy owner can’t be deactivated"
+      assert json_response(conn_resp, 409)["error"]["message"] == "Owner employees can’t be deactivated"
     end
 
     test "successful doctor", %{conn: conn, doctor: doctor, legal_entity: legal_entity} do
@@ -423,7 +419,7 @@ defmodule EHealth.Web.EmployeesControllerTest do
         {:ok, %{"data" => nil}}
       end)
 
-      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
+      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "manual_employee_deactivate"} ->
         :ok
       end)
 
@@ -446,10 +442,6 @@ defmodule EHealth.Web.EmployeesControllerTest do
 
       expect(MithrilMock, :delete_tokens_by_user_and_client, 2, fn _, _, _ ->
         {:ok, %{"data" => nil}}
-      end)
-
-      expect(KafkaMock, :publish_deactivate_declaration_event, fn %{"reason" => "auto_employee_deactivate"} ->
-        :ok
       end)
 
       conn = put_client_id_header(conn, legal_entity.id)

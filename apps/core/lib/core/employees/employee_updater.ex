@@ -2,7 +2,7 @@ defmodule Core.Employees.EmployeeUpdater do
   @moduledoc false
 
   import Ecto.Query
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
 
   alias Core.Employees
   alias Core.Employees.Employee
@@ -10,8 +10,9 @@ defmodule Core.Employees.EmployeeUpdater do
 
   require Logger
 
-  @type_owner Employee.type(:owner)
   @type_admin Employee.type(:admin)
+  @type_doctor Employee.type(:doctor)
+  @type_owner Employee.type(:owner)
   @type_pharmacy_owner Employee.type(:pharmacy_owner)
 
   @status_approved Employee.status(:approved)
@@ -25,45 +26,37 @@ defmodule Core.Employees.EmployeeUpdater do
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
-  def deactivate(%{"id" => id} = params, headers, with_owner \\ false) do
-    deactivate(id, params["legal_entity_id"], "auto_employee_deactivate", headers, with_owner)
-  end
+  @message_does_not_belong "Employees not belonging to the current legal entity can't be deactivated"
+  @message_is_owner "Owner employees can’t be deactivated"
+  @message_already_deactivated "Employee is DEACTIVATED and cannot be updated."
 
-  def deactivate(employee_id, legal_entity_id, reason, headers, with_owner \\ false) do
-    user_id = get_consumer_id(headers)
+  def deactivate(employee, reason, headers) do
+    actor_id = get_consumer_id(headers)
+    client_id = get_client_id(headers)
 
-    with {:ok, employee} <- Employees.fetch_by_id(employee_id),
-         :ok <- check_legal_entity_id(legal_entity_id, employee),
-         :ok <- check_transition(employee, with_owner) do
-      do_deactivate(employee, reason, headers, user_id, false)
+    with :ok <- check_belongingness(employee, client_id),
+         :ok <- check_transition(employee) do
+      deactivate(employee, reason, headers, actor_id, false)
     end
   end
 
-  def do_deactivate(employee, reason, headers, user_id, skip_contracts_suspend?) do
-    deactivation_event = %{"employee_id" => employee.id, "actor_id" => user_id, "reason" => reason}
-
+  def deactivate(employee, reason, headers, actor_id, skip_contracts_suspend?) do
     with active_employees <- get_active_employees(employee),
-         :ok <- revoke_user_auth_data(employee, active_employees, headers),
-         :ok <- @producer.publish_deactivate_declaration_event(deactivation_event) do
-      set_employee_status_as_dismissed(employee, reason, user_id, skip_contracts_suspend?)
+         :ok <- maybe_revoke_user_auth_data(employee, active_employees, headers),
+         :ok <- maybe_deactivate_declarations(employee, reason, actor_id) do
+      set_employee_status_as_dismissed(employee, reason, actor_id, skip_contracts_suspend?)
     end
   end
 
-  def check_transition(%Employee{employee_type: @type_owner}, false) do
-    {:error, {:conflict, "Owner can’t be deactivated"}}
-  end
+  defp check_belongingness(%Employee{legal_entity_id: client_id}, client_id), do: :ok
+  defp check_belongingness(_, _), do: {:error, {:forbidden, @message_does_not_belong}}
 
-  def check_transition(%Employee{employee_type: @type_pharmacy_owner}, false) do
-    {:error, {:conflict, "Pharmacy owner can’t be deactivated"}}
-  end
+  defp check_transition(%Employee{employee_type: @type_owner}), do: {:error, {:conflict, @message_is_owner}}
+  defp check_transition(%Employee{employee_type: @type_pharmacy_owner}), do: {:error, {:conflict, @message_is_owner}}
+  defp check_transition(%Employee{is_active: true, status: @status_approved}), do: :ok
+  defp check_transition(_), do: {:error, {:conflict, @message_already_deactivated}}
 
-  def check_transition(%Employee{is_active: true, status: @status_approved}, _), do: :ok
-
-  def check_transition(_employee, _) do
-    {:error, {:conflict, "Employee is DEACTIVATED and cannot be updated."}}
-  end
-
-  def get_active_employees(%{party_id: party_id, employee_type: employee_type}) do
+  defp get_active_employees(%{party_id: party_id, employee_type: employee_type}) do
     params = [
       status: @status_approved,
       is_active: true,
@@ -76,6 +69,52 @@ defmodule Core.Employees.EmployeeUpdater do
     |> @read_prm_repo.all()
   end
 
+  defp maybe_revoke_user_auth_data(%Employee{} = employee, active_employees, headers)
+       when length(active_employees) <= 1 do
+    revoke_user_auth_data(employee, headers)
+  end
+
+  defp maybe_revoke_user_auth_data(_, _, _), do: :ok
+
+  defp maybe_deactivate_declarations(%Employee{employee_type: @type_doctor, id: id}, reason, actor_id) do
+    @producer.publish_deactivate_declaration_event(%{
+      "employee_id" => id,
+      "actor_id" => actor_id,
+      "reason" => reason
+    })
+  end
+
+  defp maybe_deactivate_declarations(_, _, _), do: :ok
+
+  defp set_employee_status_as_dismissed(%Employee{} = employee, reason, actor_id, skip_contracts_suspend?) do
+    params =
+      actor_id
+      |> get_deactivate_employee_params()
+      |> put_employee_status(employee, reason)
+
+    if employee.employee_type in [@type_owner, @type_admin] and !skip_contracts_suspend? do
+      Employees.update_with_ops_contract(employee, params, actor_id)
+    else
+      Employees.update(employee, params, actor_id)
+    end
+  end
+
+  defp get_deactivate_employee_params(actor_id) do
+    %{updated_by: actor_id, end_date: Date.utc_today() |> Date.to_iso8601()}
+  end
+
+  defp put_employee_status(params, %{employee_type: @type_owner}, reason) do
+    Map.merge(params, %{is_active: false, status_reason: reason})
+  end
+
+  defp put_employee_status(params, %{employee_type: @type_pharmacy_owner}, reason) do
+    Map.merge(params, %{is_active: false, status_reason: reason})
+  end
+
+  defp put_employee_status(params, _employee, reason) do
+    Map.merge(params, %{status: @status_dismissed, status_reason: reason})
+  end
+
   def revoke_user_auth_data(%Employee{} = employee, headers) do
     client_id = employee.legal_entity_id
     role_name = employee.employee_type
@@ -85,15 +124,9 @@ defmodule Core.Employees.EmployeeUpdater do
     end
   end
 
-  def revoke_user_auth_data(_employee, _headers), do: :ok
+  def revoke_user_auth_data(_, _), do: :ok
 
-  defp revoke_user_auth_data(%Employee{} = employee, active_employees, headers) when length(active_employees) <= 1 do
-    revoke_user_auth_data(employee, headers)
-  end
-
-  defp revoke_user_auth_data(_, _, _), do: :ok
-
-  def revoke_user_auth_data_async(user_parties, client_id, role_name, headers) do
+  defp revoke_user_auth_data_async(user_parties, client_id, role_name, headers) do
     user_parties
     |> Enum.map(
       &Task.async(fn ->
@@ -112,7 +145,7 @@ defmodule Core.Employees.EmployeeUpdater do
     end
   end
 
-  def check_async_error(resp) do
+  defp check_async_error(resp) do
     resp
     |> Enum.reduce_while(nil, fn {id, resp}, acc ->
       case resp do
@@ -128,39 +161,6 @@ defmodule Core.Employees.EmployeeUpdater do
       nil -> :ok
       err -> {:error, err}
     end
-  end
-
-  def set_employee_status_as_dismissed(%Employee{} = employee, reason, user_id, skip_contracts_suspend?) do
-    params =
-      user_id
-      |> get_deactivate_employee_params()
-      |> put_employee_status(employee, reason)
-
-    if employee.employee_type in [@type_owner, @type_admin] and !skip_contracts_suspend? do
-      Employees.update_with_ops_contract(employee, params, user_id)
-    else
-      Employees.update(employee, params, user_id)
-    end
-  end
-
-  defp get_deactivate_employee_params(user_id) do
-    %{updated_by: user_id, end_date: Date.utc_today() |> Date.to_iso8601()}
-  end
-
-  defp put_employee_status(params, %{employee_type: @type_owner}, reason) do
-    Map.merge(params, %{is_active: false, status_reason: reason})
-  end
-
-  defp put_employee_status(params, %{employee_type: @type_pharmacy_owner}, reason) do
-    Map.merge(params, %{is_active: false, status_reason: reason})
-  end
-
-  defp put_employee_status(params, _employee, reason) do
-    Map.merge(params, %{status: @status_dismissed, status_reason: reason})
-  end
-
-  defp check_legal_entity_id(client_id, %Employee{legal_entity_id: legal_entity_id}) do
-    if client_id == legal_entity_id, do: :ok, else: {:error, :forbidden}
   end
 
   defp log_error(id, message) do

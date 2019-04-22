@@ -76,8 +76,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
   end
 
   defp process_entity(%{entity: entity, schema: "employee"}, actor_id) do
-    with {:ok, _} <- EmployeeUpdater.do_deactivate(entity, @status_reason, [], actor_id, true),
-         do: :ok
+    with {:ok, _} <- EmployeeUpdater.deactivate(entity, @status_reason, [], actor_id, true), do: :ok
   end
 
   defp process_entity(%{entity: entity, schema: "contract"}, actor_id) do
