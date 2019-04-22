@@ -26,16 +26,16 @@ defmodule EHealth.Web.PersonView do
     requested_fields =
       Enum.into(fields, %{}, fn field ->
         case field do
-          "birth_certificate" ->
+          :birth_certificate ->
             documents = person.documents || []
-            {"documents", Enum.filter(documents, &(&1.type == "BIRTH_CERTIFICATE"))}
+            {:documents, Enum.filter(documents, &(&1.type == "BIRTH_CERTIFICATE"))}
 
-          "phone_number" ->
+          :phone_number ->
             phones = person.phones || []
-            {"phones", Enum.filter(phones, &(&1.type == "MOBILE"))}
+            {:phones, Enum.filter(phones, &(&1.type == "MOBILE"))}
 
           _ ->
-            {field, Map.get(person, field)}
+            {field, person[field]}
         end
       end)
 

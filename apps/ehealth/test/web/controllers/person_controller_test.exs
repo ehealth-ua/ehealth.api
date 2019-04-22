@@ -325,6 +325,7 @@ defmodule EHealth.Web.PersonControllerTest do
         })
         |> json_response(200)
 
+      data = hd(resp["data"])
       assert 1 == Enum.count(resp["data"])
       expected_keys = ~w(
         birth_country
@@ -337,7 +338,46 @@ defmodule EHealth.Web.PersonControllerTest do
         merged_persons
         phones
         second_name)
-      assert expected_keys == Map.keys(hd(resp["data"]))
+      assert data["birth_date"]
+      assert expected_keys == Map.keys(data)
+    end
+
+    test "success search age > 16 with phone_number and tax_id", %{conn: conn} do
+      expect(RPCWorkerMock, :run, fn "mpi",
+                                     MPI.Rpc,
+                                     :search_persons,
+                                     [params, nil, [read_only: true, paginate: true]] ->
+        get_persons(params)
+      end)
+
+      resp =
+        conn
+        |> get(person_path(conn, :search_persons), %{
+          tax_id: "012345678",
+          birth_date: "1990-01-01",
+          first_name: "string",
+          last_name: "string",
+          phone_number: "+380631111111"
+        })
+        |> json_response(200)
+
+      data = hd(resp["data"])
+      assert 1 == Enum.count(resp["data"])
+      expected_keys = ~w(
+        birth_country
+        birth_date
+        birth_settlement
+        first_name
+        id
+        last_name
+        master_persons
+        merged_persons
+        phones
+        second_name
+        tax_id)
+      assert data["birth_date"]
+      assert data["tax_id"]
+      assert expected_keys == Map.keys(data)
     end
   end
 
