@@ -149,7 +149,7 @@ defmodule GraphQL.DeclarationResolverTest do
         end)
 
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, declarations} end)
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, persons} end)
+      expect(RPCWorkerMock, :run, fn _, _, :ql_search, _ -> {:ok, persons} end)
 
       expect(MediaStorageMock, :create_signed_url, 8, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://example.com/signed_url_test"}}}
@@ -217,7 +217,7 @@ defmodule GraphQL.DeclarationResolverTest do
 
     test "success by id", %{conn: conn, declaration: declaration, person: person} do
       expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, [person]} end)
+      expect(RPCWorkerMock, :run, fn _, _, :ql_search, _ -> {:ok, [person]} end)
 
       id = Node.to_global_id("Declaration", declaration.id)
       variables = %{id: id}
@@ -238,7 +238,7 @@ defmodule GraphQL.DeclarationResolverTest do
       %{id: declaration_id, declaration_number: declaration_number} = declaration
 
       expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, _ -> {:ok, [person]} end)
+      expect(RPCWorkerMock, :run, fn _, _, :ql_search, _ -> {:ok, [person]} end)
 
       expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://example.com/signed_url_test"}}}

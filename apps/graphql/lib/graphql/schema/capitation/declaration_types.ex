@@ -139,7 +139,7 @@ defmodule GraphQL.Schema.DeclarationTypes do
     field(:legal_entity, non_null(:legal_entity), resolve: dataloader(PRM))
     field(:division, non_null(:division), resolve: dataloader(PRM))
     field(:employee, non_null(:employee), resolve: dataloader(PRM))
-    field(:person, non_null(:person), resolve: dataloader(MPI, {:search_persons, :one, :person_id, :id}))
+    field(:person, non_null(:person), resolve: dataloader(MPI, {:ql_search, :one, :person_id, :id}))
 
     field :declaration_attached_documents, list_of(:declaration_attached_document) do
       meta(:scope, ~w(declaration_documents:read))
