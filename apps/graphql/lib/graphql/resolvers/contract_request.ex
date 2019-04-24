@@ -104,11 +104,7 @@ defmodule GraphQL.Resolvers.ContractRequest do
     {:ok, printout_content}
   end
 
-  def get_attached_documents(%{id: id, status: status}, _, _) do
-    with documents when is_list(documents) <- Storage.gen_relevant_get_links(id, status) do
-      {:ok, documents}
-    end
-  end
+  def get_attached_documents(%{id: id, status: status}, _, _), do: Storage.gen_relevant_get_links(id, status)
 
   def get_to_sign_content(%{status: @status_pending_nhs_sign} = contract_request, args, resolution) do
     # ToDo: possible duplicated request to MediaStorage. Use dataloader

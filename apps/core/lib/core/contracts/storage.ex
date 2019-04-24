@@ -1,6 +1,8 @@
 defmodule Core.Contracts.Storage do
   @moduledoc false
 
+  require Logger
+
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
   def save_signed_content(id, %{"signed_content" => signed_content}, headers, employee_id) do
@@ -19,7 +21,11 @@ defmodule Core.Contracts.Storage do
   def gen_relevant_get_links(id) do
     with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
            @media_storage_api.create_signed_url("GET", get_bucket(), "signed_content/signed_content", id, []) do
-      [%{"type" => "SIGNED_CONTENT", "url" => secret_url}]
+      {:ok, [%{"type" => "SIGNED_CONTENT", "url" => secret_url}]}
+    else
+      error ->
+        Logger.error("Failed to generate contract document links with error: #{inspect(error)}")
+        {:error, {:internal_server_error, "Failed to generate contract document links."}}
     end
   end
 

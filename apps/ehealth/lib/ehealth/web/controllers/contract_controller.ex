@@ -25,26 +25,22 @@ defmodule EHealth.Web.ContractController do
   end
 
   def show(conn, %{"id" => id, "type" => @capitation} = params) do
-    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params) do
-      %CapitationContractRequest{status: status} = references[:contract_request][contract.contract_request_id]
-
+    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params),
+         %CapitationContractRequest{status: status} = references[:contract_request][contract.contract_request_id],
+         {:ok, documents} <- ContractRequests.gen_relevant_get_links(contract.contract_request_id, status) do
       conn
-      |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, status)
-      })
+      |> assign(:urgent, %{"documents" => documents})
       |> render("show.json", contract: contract, references: references)
     end
   end
 
   def show(conn, %{"id" => id, "type" => @reimbursement} = params) do
-    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params) do
-      %ReimbursementContractRequest{status: status} =
-        references[:reimbursement_contract_request][contract.contract_request_id]
-
+    with {:ok, contract, references} <- Contracts.get_by_id_with_client_validation(id, params),
+         %ReimbursementContractRequest{status: status} =
+           references[:reimbursement_contract_request][contract.contract_request_id],
+         {:ok, documents} <- ContractRequests.gen_relevant_get_links(contract.contract_request_id, status) do
       conn
-      |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(contract.contract_request_id, status)
-      })
+      |> assign(:urgent, %{"documents" => documents})
       |> render("show.json", contract: contract, references: references)
     end
   end

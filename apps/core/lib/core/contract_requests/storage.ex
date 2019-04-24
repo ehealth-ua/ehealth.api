@@ -7,6 +7,8 @@ defmodule Core.ContractRequests.Storage do
   alias Core.Validators.Signature, as: SignatureValidator
   alias Ecto.UUID
 
+  require Logger
+
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
@@ -47,13 +49,17 @@ defmodule Core.ContractRequests.Storage do
   end
 
   def gen_relevant_get_links(id, status) do
-    Enum.reduce(get_document_attributes_by_status(status), [], fn doc, acc ->
+    Enum.reduce_while(get_document_attributes_by_status(status), {:ok, []}, fn doc, {:ok, acc} ->
       with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
              @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, id, []) do
         case file_uploaded?(secret_url) do
-          true -> [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]
-          _ -> acc
+          true -> {:cont, {:ok, [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]}}
+          _ -> {:cont, {:ok, acc}}
         end
+      else
+        error ->
+          Logger.error("Failed to generate contract request document links with error: #{inspect(error)}")
+          {:halt, {:error, {:internal_server_error, "Failed to generate contract request document links."}}}
       end
     end)
   end

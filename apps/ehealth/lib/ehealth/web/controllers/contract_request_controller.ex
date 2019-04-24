@@ -41,11 +41,10 @@ defmodule EHealth.Web.ContractRequestController do
     pack = RequestPack.new(params)
 
     with {:ok, contract_request, references} <-
-           ContractRequests.get_by_id_with_client_validation(headers, client_type, pack) do
+           ContractRequests.get_by_id_with_client_validation(headers, client_type, pack),
+         {:ok, documents} <- ContractRequests.gen_relevant_get_links(id, contract_request.status) do
       conn
-      |> assign(:urgent, %{
-        "documents" => ContractRequests.gen_relevant_get_links(id, contract_request.status)
-      })
+      |> assign(:urgent, %{"documents" => documents})
       |> render("show.json", contract_request: contract_request, references: references)
     end
   end
