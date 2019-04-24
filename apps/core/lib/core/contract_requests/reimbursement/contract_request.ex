@@ -29,6 +29,12 @@ defmodule Core.ContractRequests.ReimbursementContractRequest do
     parent_contract_id
     previous_request_id
     medical_program_id
+    issue_city
+    misc
+    nhs_legal_entity_id
+    nhs_payment_method
+    nhs_signer_id
+    nhs_signer_base
   )a
 
   use Core.ContractRequests.ContractRequest,

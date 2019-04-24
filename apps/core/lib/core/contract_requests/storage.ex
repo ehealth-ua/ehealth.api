@@ -12,8 +12,6 @@ defmodule Core.ContractRequests.Storage do
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
-  @reimbursement "REIMBURSEMENT"
-
   @signed_content %{
     dictionary_name: "SIGNED_CONTENT",
     permanent_path: "signed_content/signed_content"

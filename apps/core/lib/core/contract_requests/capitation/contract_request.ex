@@ -30,6 +30,13 @@ defmodule Core.ContractRequests.CapitationContractRequest do
     contract_number
     parent_contract_id
     previous_request_id
+    issue_city
+    misc
+    nhs_contract_price
+    nhs_legal_entity_id
+    nhs_payment_method
+    nhs_signer_id
+    nhs_signer_base
   )a
 
   use Core.ContractRequests.ContractRequest,
