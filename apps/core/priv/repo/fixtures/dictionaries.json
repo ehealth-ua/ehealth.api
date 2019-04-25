@@ -14692,19 +14692,12 @@
   {
     "name": "eHealth/SNOMED/service_request_categories",
     "values": {
-      "409063005": "Counselling",
-      "108252007": "Laboratory procedure"
-    },
-    "labels": [
-      "SYSTEM",
-      "EXTERNAL"
-    ],
-    "is_active": true
-  },
-  {
-    "name": "eHealth/SNOMED/procedure_codes",
-    "values": {
-      "1417002": "Operation on face"
+      "counselling": "Counselling",
+      "laboratory_procedure": "Laboratory procedure",
+      "diagnostic_procedure": "Diagnostic procedure",
+      "imaging": "Imaging",
+      "education": "Education",
+      "surgical_procedure": "Surgical procedure"
     },
     "labels": [
       "SYSTEM",
@@ -14811,18 +14804,6 @@
     "values": {
       "LAB": "laboratory",
       "MB": "Microbiology"
-    },
-    "labels": [
-      "SYSTEM",
-      "EXTERNAL"
-    ],
-    "is_active": true
-  },
-  {
-    "name": "eHealth/LOINC/diagnostic_report_codes",
-    "values": {
-      "10217-8": "Surgical operation note indications [Interpretation] Narrative",
-      "10226-9": "Oxygen content in Intravascular space"
     },
     "labels": [
       "SYSTEM",
