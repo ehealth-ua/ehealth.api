@@ -72,12 +72,6 @@ defmodule EHealth.Web.DeclarationRequestController do
     with {:ok, declaration} <- DeclarationRequests.sign(params, conn.req_headers) do
       render(conn, "declaration.json", declaration: declaration)
     else
-      {:error, :person_changeset, errors} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> put_resp_content_type("application/json")
-        |> send_resp(422, errors)
-
       error ->
         Logger.warn("Failed to sign Declaration Request \"#{params["id"]}\". Reason: #{inspect(error)}")
         error

@@ -3,12 +3,14 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   use EHealth.Web.ConnCase
 
-  import Mox
   import Core.Expectations.Signature
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
+  import Ecto.Changeset, only: [add_error: 3]
+  import Mox
+
   alias Ecto.UUID
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Utils.NumberGenerator
-  alias HTTPoison.Response
 
   setup :verify_on_exit!
 
@@ -711,8 +713,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        {:ok, %Response{body: Jason.encode!(%{"data" => string_params_for(:person)}), status_code: 200}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, [person_data, _] ->
+        {:ok, build(:person, strings_to_keys(person_data))}
       end)
 
       expect(CasherMock, :update_person_data, fn _params, _headers ->
@@ -780,27 +782,10 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        errors = %{
-          "invalid" => [
-            %{
-              "entry" => "$.last_name",
-              "entry_type" => "json_data_property",
-              "rules" => [
-                %{
-                  "description" => "has already been taken",
-                  "params" => [],
-                  "rule" => nil
-                }
-              ]
-            }
-          ],
-          "message" =>
-            "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
-          "type" => "validation_failed"
-        }
-
-        {:ok, %Response{status_code: 422, body: Jason.encode!(errors)}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, [person_data, _] ->
+        {build(:person, person_data), %{last_name: :string}}
+        |> Ecto.Changeset.cast(%{last_name: "Callum"}, [:last_name])
+        |> add_error(:last_name, "has already been taken")
       end)
 
       data =
@@ -910,12 +895,9 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        {:ok,
-         %Response{
-           body: Jason.encode!(%{"data" => string_params_for(:person, no_tax_id: true, tax_id: "")}),
-           status_code: 200
-         }}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, [person_data, _] ->
+        person_data = Map.merge(person_data, %{"no_tax_id" => true, "tax_id" => ""})
+        {:ok, build(:person, strings_to_keys(person_data))}
       end)
 
       expect(CasherMock, :update_person_data, fn _params, _headers ->

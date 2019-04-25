@@ -15,11 +15,10 @@ defmodule Core.DeclarationRequests.API.Sign do
   alias Core.Validators.Content, as: ContentValidator
   alias Core.Validators.Error
   alias Core.Validators.Signature, as: SignatureValidator
-  alias HTTPoison.Response
 
   require Logger
 
-  @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @casher_api Application.get_env(:core, :api_resolvers)[:casher]
 
@@ -30,15 +29,17 @@ defmodule Core.DeclarationRequests.API.Sign do
   @status_approved DeclarationRequest.status(:approved)
 
   def sign(params, headers) do
+    consumer_id = get_consumer_id(headers)
+
     with {:ok, %{"content" => content, "signers" => [signer]}} <- decode_and_validate(params, headers),
          %DeclarationRequest{} = declaration_request <- params |> Map.fetch!("id") |> DeclarationRequests.get_by_id!(),
          :ok <- check_status(declaration_request),
          :ok <- check_patient_signed(content),
          :ok <- compare_with_db(content, declaration_request, headers),
          :ok <- check_employee_id(content, headers),
-         :ok <- SignatureValidator.check_drfo(signer, get_consumer_id(headers), "declaration_request_sign"),
+         :ok <- SignatureValidator.check_drfo(signer, consumer_id, "declaration_request_sign"),
          :ok <- store_signed_content(declaration_request, params, headers),
-         {:ok, person} <- create_or_update_person(declaration_request, content, headers),
+         {:ok, person} <- create_or_update_person(declaration_request, content, consumer_id),
          {:ok, declaration} <- create_declaration_with_termination_logic(person, declaration_request, headers),
          :ok <- update_casher_person_data(declaration["data"]["employee_id"]),
          {:ok, signed_declaration} <- update_declaration_request_status(declaration_request, declaration) do
@@ -154,31 +155,24 @@ defmodule Core.DeclarationRequests.API.Sign do
     end
   end
 
-  def create_or_update_person(%DeclarationRequest{} = declaration_request, content, headers) do
-    content
-    |> Map.fetch!("person")
-    |> Map.put("patient_signed", true)
-    |> maybe_put("id", declaration_request.mpi_id)
-    |> @mpi_api.create_or_update_person(headers)
-    |> create_or_update_person_response()
+  def create_or_update_person(%DeclarationRequest{} = declaration_request, content, consumer_id) do
+    person_data =
+      content
+      |> Map.fetch!("person")
+      |> Map.put("patient_signed", true)
+      |> maybe_put("id", declaration_request.mpi_id)
+
+    with {:ok, person} <- @rpc_worker.run("mpi", MPI.Rpc, :create_or_update_person, [person_data, consumer_id]) do
+      {:ok, person}
+    else
+      nil -> {:error, {:conflict, "person is not found"}}
+      {:error, {:conflict, _}} -> {:error, {:conflict, "person is not active"}}
+      error -> error
+    end
   end
-
-  defp create_or_update_person_response({:ok, %Response{status_code: 409}}), do: {:conflict, "person is not active"}
-
-  defp create_or_update_person_response({:ok, %Response{status_code: 404}}), do: {:conflict, "person is not found"}
-
-  defp create_or_update_person_response({:ok, %Response{body: person, status_code: code}}) when code in [200, 201] do
-    Jason.decode(person)
-  end
-
-  defp create_or_update_person_response({:ok, %Response{status_code: 422, body: errors}}) do
-    {:error, :person_changeset, errors}
-  end
-
-  defp create_or_update_person_response(error), do: error
 
   def create_declaration_with_termination_logic(
-        %{"data" => %{"id" => person_id}} = person,
+        %{id: person_id} = person,
         %DeclarationRequest{
           id: id,
           data: data,
@@ -190,7 +184,7 @@ defmodule Core.DeclarationRequests.API.Sign do
         headers
       ) do
     consumer_id = get_consumer_id(headers)
-    person_no_tax_id = get_in(person, ~w(data no_tax_id)) || false
+    person_no_tax_id = Map.get(person, :no_tax_id) || false
     person_authentication_method = List.first(get_in(data, ~w(person authentication_methods)) || [])
 
     data

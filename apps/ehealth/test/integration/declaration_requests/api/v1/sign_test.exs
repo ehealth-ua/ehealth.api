@@ -4,12 +4,12 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
   use EHealth.Web.ConnCase
 
   import Core.DeclarationRequests.API.Sign
+  import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import Mox
 
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Repo
   alias Ecto.UUID
-  alias HTTPoison.Response
 
   setup :verify_on_exit!
 
@@ -142,37 +142,36 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
   describe "create_or_update_person/2" do
     test "returns expected result" do
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
-        {:ok, %{"data" => params}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, [person_data, _] ->
+        {:ok, build(:person, strings_to_keys(person_data))}
       end)
 
-      person = %{
+      person_data = %{
         "first_name" => "test",
         "birth_date" => "1990-01-01",
         "last_name" => "test",
         "patient_signed" => false
       }
 
-      uuid = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
+      mpi_id = "6e8d4595-e83c-4f97-be76-c6e2b96b05f1"
 
       assert {:ok,
               %{
-                "data" => %{
-                  "first_name" => "test",
-                  "birth_date" => "1990-01-01",
-                  "last_name" => "test",
-                  "patient_signed" => true,
-                  "id" => uuid
-                }
-              }} == create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
+                first_name: "test",
+                birth_date: "1990-01-01",
+                last_name: "test",
+                patient_signed: true,
+                id: ^mpi_id
+              }} =
+               create_or_update_person(%DeclarationRequest{mpi_id: mpi_id}, %{"person" => person_data}, UUID.generate())
     end
 
     test "person is not active" do
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        {:ok, %Response{status_code: 409}}
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, _ ->
+        {:error, {:conflict, "person is not active"}}
       end)
 
-      person = %{
+      person_data = %{
         "first_name" => "test",
         "last_name" => "test",
         "birth_date" => "1990-01-01",
@@ -181,48 +180,50 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
 
       uuid = "d2bb5bef-5984-4c25-9538-16ed61dc810e"
 
-      assert {:conflict, "person is not active"} ==
-               create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person}, [])
+      assert {:error, {:conflict, "person is not active"}} ==
+               create_or_update_person(%DeclarationRequest{mpi_id: uuid}, %{"person" => person_data}, UUID.generate())
     end
 
     test "person not found" do
-      expect(MPIMock, :create_or_update_person, fn _params, _headers ->
-        {:ok, %Response{status_code: 404}}
-      end)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, _ -> nil end)
 
-      person = %{"data" => "somedata", "birth_date" => "1990-01-01", "patient_signed" => false}
+      person_data = %{"data" => "somedata", "birth_date" => "1990-01-01", "patient_signed" => false}
       uuid = UUID.generate()
 
-      assert {:conflict, "person is not found"} ==
-               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+      assert {:error, {:conflict, "person is not found"}} ==
+               create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person_data}, UUID.generate())
     end
 
     test "person already exists on MPI" do
       person_id = UUID.generate()
 
-      expect(MPIMock, :create_or_update_person, fn params, _headers ->
-        {:ok, %{"data" => Map.put(params, "id", person_id)}}
-      end)
-
-      person = %{
+      person_data = %{
         "first_name" => "test",
         "birth_date" => "1990-01-01",
         "last_name" => "test",
         "patient_signed" => false
       }
 
-      uuid = UUID.generate()
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :create_or_update_person, [person_data, _] ->
+        person_data = Map.merge(person_data, %{"id" => person_id})
+        {:ok, build(:person, strings_to_keys(person_data))}
+      end)
+
+      declaration_request_id = UUID.generate()
 
       assert {:ok,
               %{
-                "data" => %{
-                  "first_name" => "test",
-                  "birth_date" => "1990-01-01",
-                  "id" => person_id,
-                  "last_name" => "test",
-                  "patient_signed" => true
-                }
-              }} == create_or_update_person(%DeclarationRequest{id: uuid}, %{"person" => person}, [])
+                first_name: "test",
+                birth_date: "1990-01-01",
+                id: ^person_id,
+                last_name: "test",
+                patient_signed: true
+              }} =
+               create_or_update_person(
+                 %DeclarationRequest{id: declaration_request_id},
+                 %{"person" => person_data},
+                 UUID.generate()
+               )
     end
   end
 
@@ -243,7 +244,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         )
 
       person_id = UUID.generate()
-      person_data = %{"data" => %{"id" => person_id}}
+      person_data = build(:person, id: person_id)
       client_id = UUID.generate()
       x_consumer_id_header = {"x-consumer-id", client_id}
 
@@ -282,8 +283,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
         )
 
       declaration_request.data["person"]["authentication_methods"]
-
-      person_data = %{"data" => %{"id" => ""}}
+      person_data = build(:person)
 
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
@@ -307,7 +307,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
           data: data
         )
 
-      person_data = %{"data" => %{"id" => ""}}
+      person_data = build(:person)
 
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
@@ -328,7 +328,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
           authentication_method_current: %{"type" => "OFFLINE"}
         )
 
-      person_data = %{"data" => %{"id" => ""}}
+      person_data = build(:person)
 
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
@@ -350,7 +350,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.SignTest do
           authentication_method_current: %{"type" => "SOME_TYPE"}
         )
 
-      person_data = %{"data" => %{"id" => ""}}
+      person_data = build(:person)
 
       {:ok, %{"data" => data}} = create_declaration_with_termination_logic(person_data, declaration_request, [])
 
