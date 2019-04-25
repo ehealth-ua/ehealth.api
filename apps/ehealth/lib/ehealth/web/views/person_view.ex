@@ -47,12 +47,10 @@ defmodule EHealth.Web.PersonView do
     Map.merge(mandatory_fields, requested_fields)
   end
 
-  def render("person_short.json", %{"person" => %{id: _} = person}) do
-    Map.take(person, ~w(id first_name last_name second_name)a)
-  end
-
-  def render("person_short.json", %{"person" => %{"id" => _} = person}) do
-    Map.take(person, ~w(id first_name last_name second_name))
+  def render("person_short.json", %{"person" => person}) do
+    person
+    |> Map.new(fn {k, v} -> {to_string(k), v} end)
+    |> Map.take(~w(id first_name last_name second_name))
   end
 
   def render("person_short.json", _), do: %{}
