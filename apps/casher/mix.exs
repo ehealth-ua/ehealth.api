@@ -33,9 +33,6 @@ defmodule Casher.Mixfile do
       {:core, in_umbrella: true},
       {:confex, "~> 3.4"},
       {:confex_config_provider, "~> 0.1.0"},
-      {:eview, "~> 0.12"},
-      {:phoenix, "~> 1.4.0", override: true},
-      {:plug_cowboy, "~> 2.0"},
       {:redix, ">= 0.0.0"},
       {:mox, "~> 0.3", only: :test},
       {:ex_machina, "~> 2.0", only: [:dev, :test]}

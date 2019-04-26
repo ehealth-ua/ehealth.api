@@ -717,8 +717,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, build(:person, strings_to_keys(person_data))}
       end)
 
-      expect(CasherMock, :update_person_data, fn _params, _headers ->
-        {:ok, %{}}
+      expect(RPCWorkerMock, :run, fn "casher", Casher.Rpc, :get_person_data, _ ->
+        {:ok, %{person_ids: []}}
       end)
 
       data =
@@ -900,8 +900,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, build(:person, strings_to_keys(person_data))}
       end)
 
-      expect(CasherMock, :update_person_data, fn _params, _headers ->
-        {:ok, %{}}
+      expect(RPCWorkerMock, :run, fn "casher", Casher.Rpc, :get_person_data, _ ->
+        {:ok, %{person_ids: []}}
       end)
 
       data =

@@ -20,7 +20,6 @@ defmodule Core.DeclarationRequests.API.Sign do
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
-  @casher_api Application.get_env(:core, :api_resolvers)[:casher]
 
   @auth_na DeclarationRequest.authentication_method(:na)
   @auth_otp DeclarationRequest.authentication_method(:otp)
@@ -214,13 +213,19 @@ defmodule Core.DeclarationRequests.API.Sign do
   defp get_reason(_, _, _), do: nil
 
   defp update_casher_person_data(employee_id) do
-    with {:ok, _response} <- @casher_api.update_person_data(%{"employee_id" => employee_id}, []) do
-      :ok
+    "casher"
+    |> @rpc_worker.run(Casher.Rpc, :get_person_data, [%{"employee_id" => employee_id}])
+    |> case do
+      {:ok, _} ->
+        :ok
+
+      nil ->
+        :ok
+
+      error ->
+        Logger.warn("Failed to save cache with error: `#{inspect(error)}`")
+        :ok
     end
-  rescue
-    error ->
-      Logger.warn("Failed to save cache #{inspect(error)}")
-      :ok
   end
 
   def update_declaration_request_status(%DeclarationRequest{} = declaration_request, declaration) do

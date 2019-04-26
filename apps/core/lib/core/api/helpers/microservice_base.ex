@@ -5,10 +5,11 @@ defmodule Core.API.Helpers.MicroserviceBase do
     quote do
       use Confex, otp_app: :core
       use HTTPoison.Base
+
       alias Core.API.Helpers.ResponseDecoder
       require Logger
 
-      def process_url(url), do: config()[:endpoint] <> url
+      def process_request_url(url), do: config()[:endpoint] <> url
 
       def process_request_options(options), do: Keyword.merge(config()[:hackney_options], options)
 
@@ -18,26 +19,21 @@ defmodule Core.API.Helpers.MicroserviceBase do
       def process_request_headers(headers) do
         headers
         |> Keyword.drop(@filter_request_headers)
-        |> Kernel.++([{"Content-Type", "application/json"}])
+        |> Enum.concat([{"Content-Type", "application/json"}])
       end
 
-      def process_log_headers(headers) do
+      defp process_log_headers(headers) do
         headers
         |> Keyword.drop(@filter_log_headers)
-        |> Enum.reduce(%{}, fn {k, v}, map ->
-          Map.put_new(map, k, v)
-        end)
+        |> Enum.into(%{})
       end
 
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         with {:ok, _} <- check_params(options) do
-          response = super(method, url, body, headers, options)
-
-          if response.status_code >= 300 do
-            Logger.warn("Failed microservice #{method} request to #{config()[:endpoint]} with response: #{body}")
-          end
-
-          ResponseDecoder.check_response(response)
+          method
+          |> super(url, body, headers, options)
+          |> log_response()
+          |> ResponseDecoder.check_response()
         end
       end
 
@@ -46,11 +42,13 @@ defmodule Core.API.Helpers.MicroserviceBase do
           query_string = if Enum.empty?(params), do: "", else: "?#{URI.encode_query(params)}"
 
           Logger.info(
-            "Microservice #{method} request to #{config()[:endpoint]} on #{Enum.join([process_url(url), query_string])}.
+            "Microservice #{method} request to #{config()[:endpoint]} on #{process_request_url(url)}#{query_string}.
             Body: #{body} and headers: #{inspect(process_log_headers(headers))}"
           )
 
-          super(method, url, body, headers, options)
+          method
+          |> super(url, body, headers, options)
+          |> log_response()
         end
       end
 
@@ -74,6 +72,16 @@ defmodule Core.API.Helpers.MicroserviceBase do
 
         if length(errors) > 0, do: {:error, errors}, else: {:ok, params}
       end
+
+      defp log_response(%{request: request, status_code: code, body: body} = response) when code >= 300 do
+        Logger.warn(
+          "Failed microservice #{request.method} request to #{config()[:endpoint]} with response: #{inspect(body)}"
+        )
+
+        response
+      end
+
+      defp log_response(response), do: response
 
       defp error_description(value_name) do
         [

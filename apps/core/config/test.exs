@@ -11,7 +11,6 @@ config :core,
     media_storage: MediaStorageMock,
     otp_verification: OTPVerificationMock,
     uaddresses: UAddressesMock,
-    casher: CasherMock,
     postmark: PostmarkMock,
     declaration_request_creator: DeclarationRequestsCreatorMock
   ],
@@ -47,8 +46,6 @@ config :core, Core.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://lo
 config :core, Core.API.OTPVerification, endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
 
 config :core, Core.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
-
-config :core, Core.API.Casher, endpoint: {:system, "CASHER_ENDPOINT", "http://localhost:4040"}
 
 config :core, Core.API.Signature, enabled: {:system, :boolean, "DIGITAL_SIGNATURE_ENABLED", false}
 

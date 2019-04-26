@@ -1,4 +1,4 @@
-defmodule Casher.Web.ConnCase do
+defmodule Casher.ConnCase do
   @moduledoc false
 
   use ExUnit.CaseTemplate
@@ -7,13 +7,8 @@ defmodule Casher.Web.ConnCase do
   using do
     quote do
       # Import conveniences for testing with connections
-      use Phoenix.ConnTest
-      import Casher.Router.Helpers
-      import Casher.Web.ConnCase
+      import Casher.ConnCase
       import Core.Factories
-
-      # The default endpoint for testing
-      @endpoint Casher.Web.Endpoint
     end
   end
 

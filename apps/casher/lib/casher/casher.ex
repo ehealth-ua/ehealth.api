@@ -6,10 +6,7 @@ defmodule Casher do
 
   @spec start(Application.start_type(), list) :: Supervisor.on_start()
   def start(_type, _args) do
-    children =
-      Enum.concat(redis_workers(), [
-        supervisor(Casher.Web.Endpoint, [])
-      ])
+    children = redis_workers()
 
     opts = [strategy: :one_for_one, name: Casher.Supervisor]
     Supervisor.start_link(children, opts)

@@ -21,9 +21,6 @@ config :core, Core.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.
 # Configures OPS API
 config :core, Core.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://api-svc.ops"}
 
-# Configures Casher API
-config :core, Core.API.Casher, endpoint: {:system, "CASHER_ENDPOINT", "http://casher-svc.il"}
-
 # Configures MediaStorage API
 config :core, Core.API.MediaStorage,
   endpoint: {:system, "MEDIA_STORAGE_ENDPOINT", "http://api-svc.ael"},

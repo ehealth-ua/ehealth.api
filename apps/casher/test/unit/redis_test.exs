@@ -1,7 +1,7 @@
 defmodule Casher.Unit.RedisTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Casher.Redis
 

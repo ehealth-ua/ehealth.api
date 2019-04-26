@@ -13,11 +13,11 @@ defmodule Casher.Rpc do
 
   Available parameters:
 
-  | Parameter          | Type             | Example                                              | Description                                        |
-  | :----------------: | :--------------: | :--------------------------------------------------: |:------------------------------------------------: |
-  | user_id         | `binary`         | 0187d6ee-7b2e-4497-acfb-f1ee64f23ccc                    |                                                    |
-  | client_id       | `binary`         | 341d22ef-c667-44fb-ae41-705fa5017875                    |                                                    |
-  | employee_id     | `binary`         | 1d88ed7a-747a-4cbf-95cd-2ced81e55092                    |                                                    |
+  | Parameter    | Type             | Example                                              | Description                                        |
+  | :----------: | :--------------: | :--------------------------------------------------: |:-------------------------------------------------: |
+  | user_id      | `binary`         | "0187d6ee-7b2e-4497-acfb-f1ee64f23ccc"               |                                                    |
+  | client_id    | `binary`         | "341d22ef-c667-44fb-ae41-705fa5017875"               |                                                    |
+  | employee_id  | `binary`         | "1d88ed7a-747a-4cbf-95cd-2ced81e55092"               |                                                    |
 
   Returns `{:ok, %{person_ids: list(binary)}}`.
 
