@@ -198,6 +198,8 @@ defmodule Core.ContractRequests do
              "updated_by" => user_id
            }),
          %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
+         data <- render_contract_request_data(changes),
+         %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end

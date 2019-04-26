@@ -46,7 +46,6 @@ Feature: Create reimbursement contract request
       | id_form                       | "17"                                                                              |
       | issue_city                    | "Київ"                                                                            |
       | medical_program_id            | "a56e0d0e-2678-4efe-908d-f9ceb793a3d7"                                            |
-      | nhs_contract_price            | 105938.0                                                                          |
       | nhs_legal_entity_id           | "6696a798-22a7-4670-97b4-3b7d274f2d11"                                            |
       | nhs_payment_method            | "prepayment"                                                                      |
       | nhs_signer_base               | "на підставі наказу"                                                              |

@@ -24,6 +24,7 @@ defmodule Core.ContractRequests.ReimbursementContractRequest do
   )a
 
   @fields_optional ~w(
+    data
     assignee_id
     contract_number
     parent_contract_id
