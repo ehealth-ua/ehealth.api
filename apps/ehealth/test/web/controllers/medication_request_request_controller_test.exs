@@ -1257,7 +1257,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              } = resp["error"]
     end
 
-    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period => mrr_standart_duration",
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period >= mrr_standart_duration",
          %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
@@ -1268,7 +1268,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       current_day = Date.utc_today()
       created_at = current_day
-      ended_at = Date.add(current_day, max_mrr_renew_days - 1)
+      ended_at = Date.add(current_day, max_mrr_renew_days + 1)
       started_at = Date.add(ended_at, -mrr_standard_duration)
 
       medication_dispense_period =
@@ -1317,7 +1317,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              } = resp["error"]
     end
 
-    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period => mrr_standart_duration",
+    test "success when new mrr created_at parameter does not conflict with existing mr: mr dispense period >= mrr_standart_duration",
          %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
@@ -1389,7 +1389,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       current_day = Date.utc_today()
       created_at = current_day
-      ended_at = Date.add(current_day, min_mrr_renew_days - 1)
+      ended_at = Date.add(current_day, min_mrr_renew_days + 1)
       started_at = Date.add(ended_at, 1 - mrr_standard_duration)
 
       medication_dispense_period =
@@ -1700,7 +1700,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              |> json_response(200)
     end
 
-    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period => mrr_standart_duration",
+    test "failed when new mrr created_at parameter conflicts with existing mr: mr dispense period >= mrr_standart_duration",
          %{conn: conn} do
       expect_ops_get_declarations()
       expect_mpi_get_person()
@@ -1712,7 +1712,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       current_day = Date.utc_today()
       created_at = current_day
-      ended_at = Date.add(current_day, max_mrr_renew_days - 1)
+      ended_at = Date.add(current_day, max_mrr_renew_days + 1)
       started_at = Date.add(ended_at, -mrr_standard_duration)
 
       medication_dispense_period =
@@ -1846,7 +1846,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       current_day = Date.utc_today()
       created_at = current_day
-      ended_at = Date.add(current_day, min_mrr_renew_days - 1)
+      ended_at = Date.add(current_day, min_mrr_renew_days + 1)
       started_at = Date.add(ended_at, 1 - mrr_standard_duration)
 
       medication_dispense_period =
