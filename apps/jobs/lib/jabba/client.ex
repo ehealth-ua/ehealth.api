@@ -6,7 +6,7 @@ defmodule Jobs.Jabba.Client do
   alias Core.Utils.TypesConverter
   alias Jobs.Jabba.Task, as: JabbaTask
 
-  @pod "jabba"
+  @pod "jabba-rpc"
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
   @merge_legal_entities_type "merge_legal_entities"
@@ -17,7 +17,7 @@ defmodule Jobs.Jabba.Client do
 
   def create_job(tasks, type, opts \\ []) when is_list(tasks) and is_binary(type) and is_list(opts) do
     with {:ok, prepared_tasks} <- prepare_tasks(tasks) do
-      @rpc_worker.run("jabba", Jabba.RPC, :create_job, [prepared_tasks, type, opts])
+      @rpc_worker.run(@pod, Jabba.RPC, :create_job, [prepared_tasks, type, opts])
     end
   end
 
