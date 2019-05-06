@@ -12,7 +12,7 @@ defmodule Core.PRMRepo.Migrations.CreatePRM.Entities.Division do
       add(:phones, :map, null: false)
       add(:email, :string)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

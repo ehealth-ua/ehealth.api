@@ -151,7 +151,7 @@ defmodule EHealth.Web.ContractControllerTest do
         employee_id: employee1.id,
         division_id: division.id,
         declaration_limit: 2000,
-        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+        end_date: DateTime.add(DateTime.utc_now(), -60)
       )
 
       employee2 = insert(:prm, :employee)
@@ -1788,7 +1788,7 @@ defmodule EHealth.Web.ContractControllerTest do
         employee_id: employee.id,
         division_id: division_1.id,
         declaration_limit: 2000,
-        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+        end_date: DateTime.add(DateTime.utc_now(), -60)
       )
 
       # contract_employee_out_1
@@ -1874,8 +1874,8 @@ defmodule EHealth.Web.ContractControllerTest do
       employee = insert(:prm, :employee)
       insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
 
-      start_date = NaiveDateTime.add(NaiveDateTime.utc_now(), -60 * 60 * 24)
-      end_date = NaiveDateTime.add(NaiveDateTime.utc_now(), 60 * 60 * 24)
+      start_date = DateTime.add(DateTime.utc_now(), -60 * 60 * 24)
+      end_date = DateTime.add(DateTime.utc_now(), 60 * 60 * 24)
 
       for _ <- 1..2 do
         insert(
@@ -1897,7 +1897,7 @@ defmodule EHealth.Web.ContractControllerTest do
         employee_id: employee.id,
         division_id: division.id,
         declaration_limit: 2000,
-        end_date: NaiveDateTime.add(NaiveDateTime.utc_now(), -60)
+        end_date: DateTime.add(DateTime.utc_now(), -60)
       )
 
       response =

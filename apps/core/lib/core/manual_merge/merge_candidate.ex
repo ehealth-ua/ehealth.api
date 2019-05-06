@@ -15,6 +15,6 @@ defmodule Core.ManualMerge.MergeCandidate do
     belongs_to(:person, Person, type: UUID)
     belongs_to(:master_person, Person, type: UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

@@ -299,9 +299,9 @@ defmodule Core.MedicationRequestRequests do
       :left,
       [mp],
       pm in ProgramMedication,
-      pm.medical_program_id == mp.id and pm.is_active and pm.id in ^program_medications_ids
+      on: pm.medical_program_id == mp.id and pm.is_active and pm.id in ^program_medications_ids
     )
-    |> join(:left, [mp, pm], m in assoc(pm, :medication), m.id in ^medications_ids)
+    |> join(:left, [mp, pm], m in assoc(pm, :medication), on: m.id in ^medications_ids)
     |> preload([mp, pm, m], program_medications: {pm, medication: m})
     |> @read_prm_repo.get(id)
   end
@@ -313,13 +313,13 @@ defmodule Core.MedicationRequestRequests do
         :inner,
         [ing],
         m in Medication,
-        ing.parent_id == m.id and ing.medication_child_id == ^medication_id and ing.is_primary == true
+        on: ing.parent_id == m.id and ing.medication_child_id == ^medication_id and ing.is_primary == true
       )
       |> join(
         :inner,
         [ing, m],
         pm in ProgramMedication,
-        ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
+        on: ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
       )
       |> select([ing, m, pm], {pm.id, m.id})
       |> @read_prm_repo.all()

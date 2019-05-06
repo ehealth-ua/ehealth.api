@@ -14,7 +14,7 @@ defmodule Core.PRMRepo.Migrations.RenameSubstancesToINNMUpdateIngredients do
       add(:inserted_by, :uuid, null: false)
       add(:updated_by, :uuid, null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(unique_index(:innms, [:sctid]))
@@ -28,7 +28,7 @@ defmodule Core.PRMRepo.Migrations.RenameSubstancesToINNMUpdateIngredients do
       add(:innm_child_id, references(:innms, type: :uuid, on_delete: :nothing), null: true)
       add(:parent_id, references(:medications, type: :uuid, on_delete: :nothing), null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

@@ -503,7 +503,9 @@ defmodule Core.Unit.LegalEntityTest do
 
       assert {:ok, _} = API.create(%RelatedLegalEntity{}, data, inserted_by)
       assert {:error, %Changeset{errors: errors}} = API.create(%RelatedLegalEntity{}, data, inserted_by)
-      assert {"related legal entity already created", []} == errors[:merged_to]
+
+      assert {"related legal entity already created", [constraint: :unique, constraint_name: "merged_ids_index"]} ==
+               errors[:merged_to]
     end
   end
 

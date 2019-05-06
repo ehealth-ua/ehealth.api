@@ -302,7 +302,7 @@ defmodule Core.EmployeeRequests do
   end
 
   def update_all(query, updates, author_id) do
-    {_, request_ids} = Repo.update_all(query, [set: updates], returning: [:id, :employee_id])
+    {_, request_ids} = Repo.update_all(query, set: updates)
 
     max_concurrency = System.schedulers_online() * 2
 
@@ -372,8 +372,9 @@ defmodule Core.EmployeeRequests do
 
       query =
         Request
+        |> select([er], [:id, :employee_id])
         |> where([er], er.status not in ^statuses)
-        |> where([er], fragment("?::date < now()::date", datetime_add(er.inserted_at, ^term, ^normalized_unit)))
+        |> where([er], fragment("(?)::date < now()::date", datetime_add(er.inserted_at, ^term, ^normalized_unit)))
 
       update_all(query, [status: Request.status(:expired)], Confex.get_env(:core, :system_user))
     end

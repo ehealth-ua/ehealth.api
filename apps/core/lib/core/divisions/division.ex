@@ -36,7 +36,7 @@ defmodule Core.Divisions.Division do
     field(:type, :string)
     field(:status, :string, null: false)
     field(:is_active, :boolean, default: false)
-    field(:location, Geo.Geometry)
+    field(:location, Geo.PostGIS.Geometry)
     field(:working_hours, :map)
     field(:dls_id, :string)
     field(:dls_verified, :boolean)
@@ -44,6 +44,6 @@ defmodule Core.Divisions.Division do
     belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
     has_many(:addresses, DivisionAddress, foreign_key: :division_id, on_replace: :delete)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

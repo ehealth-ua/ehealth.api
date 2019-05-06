@@ -11,7 +11,7 @@ defmodule Core.FraudRepo.Migrations.CreatePersonDocuments do
       add(:expiration_date, :string)
       add(:issued_by, :text)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

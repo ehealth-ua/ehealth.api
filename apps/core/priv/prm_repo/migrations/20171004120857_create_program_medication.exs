@@ -13,7 +13,7 @@ defmodule Core.PRMRepo.Migrations.CreateProgramMedication do
       add(:medication_id, references(:medications, type: :uuid, on_delete: :nothing), null: false)
       add(:medical_program_id, references(:medical_programs, type: :uuid, on_delete: :nothing), null: false)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(unique_index(:program_medications, [:medication_id, :medical_program_id]))

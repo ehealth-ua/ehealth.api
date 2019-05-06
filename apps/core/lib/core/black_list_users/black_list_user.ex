@@ -12,6 +12,6 @@ defmodule Core.BlackListUsers.BlackListUser do
 
     has_many(:parties, Core.Parties.Party, foreign_key: :tax_id, references: :tax_id)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

@@ -69,7 +69,8 @@ defmodule Core.Contracts.CapitationContract do
             Enum.map(
               contractor_employee_divisions,
               &Map.merge(&1, %{
-                "start_date" => NaiveDateTime.from_erl!({Date.to_erl(attrs.start_date), {0, 0, 0}}),
+                "start_date" =>
+                  DateTime.from_naive!(NaiveDateTime.from_erl!({Date.to_erl(attrs.start_date), {0, 0, 0}}), "Etc/UTC"),
                 "inserted_by" => inserted_by,
                 "updated_by" => updated_by
               })

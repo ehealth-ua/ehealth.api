@@ -13,6 +13,6 @@ defmodule Core.Users.CredentialsRecoveryRequest do
     field(:expires_at, :utc_datetime, virtual: true)
     field(:email, :string, virtual: true)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

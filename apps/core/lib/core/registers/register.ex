@@ -28,7 +28,7 @@ defmodule Core.Registers.Register do
 
     has_many(:register_entries, Core.Registers.RegisterEntry)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   def type(:death), do: @death

@@ -18,7 +18,7 @@ defmodule Core.MedicationRequestRequest do
     field(:updated_by, Ecto.UUID, null: false)
     field(:medication_request_id, Ecto.UUID, null: false)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   @status_new "NEW"

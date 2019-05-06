@@ -66,9 +66,21 @@ defmodule EHealth.Web.RegisterEntryControllerTest do
     end
 
     test "search by inserted_at range", %{conn: conn} do
-      insert(:il, :register_entry, status: @matched, inserted_at: ~N[2017-12-12 12:10:12])
-      %{id: id} = insert(:il, :register_entry, status: @matched, inserted_at: ~N[2017-12-13 02:10:12])
-      insert(:il, :register_entry, status: @matched, inserted_at: ~N[2017-12-14 14:10:12])
+      insert(:il, :register_entry,
+        status: @matched,
+        inserted_at: %{DateTime.utc_now() | year: 2017, month: 12, day: 12}
+      )
+
+      %{id: id} =
+        insert(:il, :register_entry,
+          status: @matched,
+          inserted_at: %{DateTime.utc_now() | year: 2017, month: 12, day: 13}
+        )
+
+      insert(:il, :register_entry,
+        status: @matched,
+        inserted_at: %{DateTime.utc_now() | year: 2017, month: 12, day: 14}
+      )
 
       params = %{
         status: @matched,

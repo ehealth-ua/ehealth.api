@@ -10,7 +10,7 @@ defmodule Core.Medications.Medication do
   @derive {Jason.Encoder, except: [:__meta__, :ingredients, :innm_dosages]}
 
   @primary_key {:id, :binary_id, autogenerate: true}
-  @timestamps_opts type: :utc_datetime
+  @timestamps_opts type: :utc_datetime_usec
   schema "medications" do
     field(:name, :string)
     field(:form, :string)
@@ -30,7 +30,7 @@ defmodule Core.Medications.Medication do
     has_many(:ingredients, Ingredient, foreign_key: :parent_id)
     has_many(:innm_dosages, through: [:ingredients, :innm_dosage])
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   def type, do: @medication_type

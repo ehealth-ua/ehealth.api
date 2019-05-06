@@ -8,7 +8,7 @@ defmodule Core.Medications.Program do
   alias Core.Medications.Program.Reimbursement
 
   @primary_key {:id, :binary_id, autogenerate: true}
-  @timestamps_opts type: :utc_datetime
+  @timestamps_opts type: :utc_datetime_usec
   schema "program_medications" do
     field(:medication_request_allowed, :boolean, default: true)
     field(:is_active, :boolean, default: true)
@@ -25,6 +25,6 @@ defmodule Core.Medications.Program do
     belongs_to(:medical_program, MedicalProgram, type: Ecto.UUID)
     has_many(:innm_dosages, through: [:medication, :innm_dosages])
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

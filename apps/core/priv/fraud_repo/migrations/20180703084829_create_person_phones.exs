@@ -9,7 +9,7 @@ defmodule Core.FraudRepo.Migrations.CreatePersonPhones do
       add(:person_id, :uuid)
       add(:number, :string)
       add(:type, :string)
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(index(:person_phones, [:person_id]))

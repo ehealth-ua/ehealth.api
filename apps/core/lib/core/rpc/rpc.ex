@@ -42,7 +42,7 @@ defmodule Core.Rpc do
   def tax_id_by_employee_id(employee_id) do
     Party
     |> select([p], p.tax_id)
-    |> join(:left, [p], e in Employee, p.id == e.party_id)
+    |> join(:left, [p], e in Employee, on: p.id == e.party_id)
     |> where([p, e], e.id == ^employee_id)
     |> @read_prm_repo.one()
   end

@@ -5,8 +5,8 @@ defmodule Core.PRMRepo.Migrations.ContractEmployeesDatetimes do
 
   def change do
     alter table(:contract_employees) do
-      modify(:start_date, :naive_datetime, null: false)
-      modify(:end_date, :naive_datetime)
+      modify(:start_date, :utc_datetime_usec, null: false)
+      modify(:end_date, :utc_datetime_usec)
     end
   end
 end

@@ -69,7 +69,6 @@ config :core, Core.Man.Templates.CredentialsRecoveryRequest,
 
 # Configure your database
 config :core, Core.ReadRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "ehealth",
@@ -77,7 +76,6 @@ config :core, Core.ReadRepo,
   pool_size: 10
 
 config :core, Core.Repo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "ehealth",
@@ -85,7 +83,6 @@ config :core, Core.Repo,
   pool_size: 10
 
 config :core, Core.ReadPRMRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "prm_dev",
@@ -94,7 +91,6 @@ config :core, Core.ReadPRMRepo,
   types: Core.PRM.PostgresTypes
 
 config :core, Core.PRMRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "prm_dev",
@@ -103,7 +99,6 @@ config :core, Core.PRMRepo,
   types: Core.PRM.PostgresTypes
 
 config :core, Core.FraudRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "fraud_dev",

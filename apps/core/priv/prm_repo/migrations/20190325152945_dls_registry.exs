@@ -10,7 +10,7 @@ defmodule Core.PRMRepo.Migrations.DlsRegistry do
       add(:dls_status, :string)
       add(:division_id, references("divisions", type: :uuid))
 
-      timestamps(type: :utc_datetime, updated_at: false)
+      timestamps(type: :utc_datetime_usec, updated_at: false)
     end
   end
 end

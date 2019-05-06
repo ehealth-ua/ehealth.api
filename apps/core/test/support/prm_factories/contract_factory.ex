@@ -94,7 +94,7 @@ defmodule Core.PRMFactories.ContractFactory do
           declaration_limit: 2000,
           inserted_by: UUID.generate(),
           updated_by: UUID.generate(),
-          start_date: NaiveDateTime.utc_now()
+          start_date: DateTime.utc_now()
         }
       end
 

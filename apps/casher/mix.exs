@@ -11,7 +11,7 @@ defmodule Casher.Mixfile do
       lockfile: "../../mix.lock",
       elixir: "~> 1.8.1",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
@@ -34,8 +34,8 @@ defmodule Casher.Mixfile do
       {:confex, "~> 3.4"},
       {:confex_config_provider, "~> 0.1.0"},
       {:redix, ">= 0.0.0"},
-      {:mox, "~> 0.3", only: :test},
-      {:ex_machina, "~> 2.0", only: [:dev, :test]}
+      {:mox, "~> 0.5.0", only: [:test]},
+      {:ex_machina, "~> 2.3", only: [:dev, :test]}
     ]
   end
 

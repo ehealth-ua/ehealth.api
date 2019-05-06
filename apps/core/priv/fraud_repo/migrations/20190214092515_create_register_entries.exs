@@ -12,7 +12,7 @@ defmodule Core.FraudRepo.Migrations.CreateRegisterEntries do
       add(:document_number, :string, null: false)
       add(:register_id, :uuid)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

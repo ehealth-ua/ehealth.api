@@ -6,8 +6,6 @@ config :core,
   system_user: {:system, "EHEALTH_SYSTEM_USER", "4261eacf-8008-4e62-899f-de1e2f7065f0"},
   ecto_repos: [Core.Repo, Core.PRMRepo, Core.FraudRepo]
 
-config :ecto, json_library: Jason
-
 config :logger_json, :backend,
   formatter: EhealthLogger.Formatter,
   metadata: :all
@@ -15,6 +13,8 @@ config :logger_json, :backend,
 config :logger,
   backends: [LoggerJSON],
   level: :info
+
+config :ecto_trail, table_name: "audit_log"
 
 config :core,
   api_resolvers: [

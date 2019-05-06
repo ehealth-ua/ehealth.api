@@ -16,6 +16,6 @@ defmodule Core.Services.ServicesGroups do
     belongs_to(:service, Service, type: UUID, primary_key: true)
     belongs_to(:service_group, ServiceGroup, type: UUID, primary_key: true)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

@@ -5,7 +5,7 @@ defmodule GraphQL.Operators.RangeInclusion do
     quote do
       alias Core.Ecto.{DateRange, TimestampRange}
 
-      @timestamp_types [:naive_datetime, :utc_datetime]
+      @timestamp_types [:naive_datetime, :utc_datetime, :utc_datetime_usec]
 
       def apply(query, {field, :in, %DateRange{} = value}, :date, _) do
         where(

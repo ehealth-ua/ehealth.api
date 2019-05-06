@@ -23,7 +23,6 @@ defmodule Core.LegalEntities do
   alias Core.PRMRepo
   alias Core.Registries
   alias Ecto.Changeset
-  alias Ecto.Date
   alias Ecto.Schema.Metadata
   alias Ecto.UUID
   alias Scrivener.Page
@@ -430,7 +429,7 @@ defmodule Core.LegalEntities do
       "legal_entity_id" => legal_entity_id,
       "position" => Map.fetch!(party, "position"),
       "status" => @employee_request_status,
-      "start_date" => Date.to_iso8601(Date.utc()),
+      "start_date" => Date.to_iso8601(Date.utc_today()),
       "party" => Map.delete(party, "position")
     }
 

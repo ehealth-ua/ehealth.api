@@ -4,10 +4,10 @@ defmodule Core.Unit.EmployeeRequestsTest do
   use Core.ConnCase, async: false
   import Mox
 
-  alias Core.Repo
-  alias Ecto.UUID
   alias Core.EmployeeRequests
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
+  alias Core.Repo
+  alias Ecto.UUID
 
   @expired_status Request.status(:expired)
 
@@ -18,7 +18,7 @@ defmodule Core.Unit.EmployeeRequestsTest do
     expect(KafkaMock, :publish_to_event_manager, 2, fn _ -> :ok end)
 
     employee_id = UUID.generate()
-    inserted_at = Timex.shift(NaiveDateTime.utc_now(), days: -10)
+    inserted_at = DateTime.add(DateTime.utc_now(), -10 * 60 * 60 * 24)
     employee_request_expired = insert(:il, :employee_request, employee_id: employee_id, inserted_at: inserted_at)
     insert(:il, :employee_request, inserted_at: inserted_at)
     insert(:il, :employee_request)

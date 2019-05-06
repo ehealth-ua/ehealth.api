@@ -780,7 +780,7 @@ defmodule Core.ContractRequests do
     Preload.preload_references(contract_request, fields)
   end
 
-  def insert_events(multi, status, author_id) do
+  def insert_events(_, multi, status, author_id) do
     {_, contract_requests} = multi.contract_requests
 
     Enum.each(contract_requests, fn contract_request ->

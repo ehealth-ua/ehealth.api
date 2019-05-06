@@ -38,7 +38,7 @@ defmodule Core.FraudRepo.Migrations.CreateContractRequests do
       add(:assignee_id, :uuid)
       add(:previous_request_id, references(:contract_requests, type: :uuid))
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     execute("""

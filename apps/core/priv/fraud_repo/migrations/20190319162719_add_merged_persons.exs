@@ -8,7 +8,7 @@ defmodule Core.FraudRepo.Migrations.AddMergedPersons do
       add(:id, :uuid, primary_key: true)
       add(:master_person_id, :uuid)
       add(:merge_person_id, :uuid)
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

@@ -151,7 +151,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
 
     {rows_updated, _} =
       DeclarationRequest
-      |> join(:inner, [d], dr in subquery(subselect_ids), dr.id == d.id)
+      |> join(:inner, [d], dr in subquery(subselect_ids), on: dr.id == d.id)
       |> update(
         [d],
         set: [

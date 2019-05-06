@@ -110,7 +110,7 @@ defmodule Core.FraudRepo.Migrations.CreatePersons do
       add(:inserted_by, :string, null: false)
       add(:updated_by, :string, null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     execute("""

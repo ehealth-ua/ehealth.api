@@ -16,7 +16,7 @@ defmodule Core.PRMRepo.Migrations.CreateContractEmployee do
       add(:start_date, :date, null: false)
       add(:end_date, :date)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

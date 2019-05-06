@@ -106,8 +106,8 @@ defmodule Core.Ecto.DateRange do
         lower_inclusive: lower_inclusive,
         upper_inclusive: upper_inclusive
       }) do
-    with {:ok, lower} <- db_to_date(lower),
-         {:ok, upper} <- db_to_date(upper) do
+    with {:ok, lower} <- lower,
+         {:ok, upper} <- upper do
       {:ok,
        %__MODULE__{
          lower: lower,
@@ -133,18 +133,12 @@ defmodule Core.Ecto.DateRange do
       }) do
     {:ok,
      %Postgrex.Range{
-       lower: date_to_db(lower),
-       upper: date_to_db(upper),
+       lower: lower,
+       upper: upper,
        lower_inclusive: lower_inclusive,
        upper_inclusive: upper_inclusive
      }}
   end
 
   def dump(_), do: :error
-
-  defp db_to_date(nil), do: {:ok, nil}
-  defp db_to_date(term), do: Date.from_erl(term)
-
-  defp date_to_db(nil), do: nil
-  defp date_to_db(date), do: Date.to_erl(date)
 end

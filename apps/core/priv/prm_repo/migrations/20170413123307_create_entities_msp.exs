@@ -7,7 +7,7 @@ defmodule Core.PRMRepo.Migrations.CreatePRM.Entities.MSP do
       add(:accreditation, :map, null: false)
       add(:license, :map)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

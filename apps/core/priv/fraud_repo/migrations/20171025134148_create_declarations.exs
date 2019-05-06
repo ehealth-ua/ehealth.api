@@ -18,7 +18,7 @@ defmodule Core.FraudRepo.Migrations.CreateDeclarations do
       add(:legal_entity_id, :uuid, null: false)
       add(:declaration_request_id, :uuid, null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

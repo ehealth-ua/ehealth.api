@@ -169,7 +169,7 @@ defmodule Core.Medications do
   end
 
   defp join_program_medications(query, %{medical_program_id: _}) do
-    join(query, :inner, [..., m], pm in ProgramMedication, pm.medication_id == m.id)
+    join(query, :inner, [..., m], pm in ProgramMedication, on: pm.medication_id == m.id)
   end
 
   defp join_program_medications(query, _), do: query
@@ -376,12 +376,12 @@ defmodule Core.Medications do
 
   def maybe_validate_medication_program_for_medication_request_request(query, program_id) do
     query
-    |> join(:inner, [...], mp in MedicalProgram, mp.id == ^program_id)
+    |> join(:inner, [...], mp in MedicalProgram, on: mp.id == ^program_id)
     |> join(
       :inner,
       [innm_dosage, ing, med, mp],
       pm in ProgramMedication,
-      mp.id == pm.medical_program_id and pm.medication_id == med.id
+      on: mp.id == pm.medical_program_id and pm.medication_id == med.id
     )
     |> where([..., pm], pm.is_active == true)
     |> where([..., pm], pm.medication_request_allowed == true)
@@ -390,8 +390,8 @@ defmodule Core.Medications do
 
   def get_medication_for_medication_request_request_query(innm_dosage_id) do
     INNMDosage
-    |> join(:inner, [innm_dosage], ing in MedicationIngredient, ing.medication_child_id == ^innm_dosage_id)
-    |> join(:inner, [innm_dosage, ing], med in Medication, ing.parent_id == med.id)
+    |> join(:inner, [innm_dosage], ing in MedicationIngredient, on: ing.medication_child_id == ^innm_dosage_id)
+    |> join(:inner, [innm_dosage, ing], med in Medication, on: ing.parent_id == med.id)
     |> where([innm_dosage, ing, med], ing.is_primary == true)
     |> where([innm_dosage], innm_dosage.id == ^innm_dosage_id)
     |> where([innm_dosage], innm_dosage.type == ^INNMDosage.type())
@@ -408,8 +408,8 @@ defmodule Core.Medications do
   def get_innm_medication_ids(innm_dosage_id) do
     innm_ids =
       INNMDosage
-      |> join(:inner, [innm_dosage], ing in MedicationIngredient, ing.parent_id == innm_dosage.id)
-      |> join(:inner, [innm_dosage, ing], innm in INNM, ing.innm_child_id == innm.id)
+      |> join(:inner, [innm_dosage], ing in MedicationIngredient, on: ing.parent_id == innm_dosage.id)
+      |> join(:inner, [innm_dosage, ing], innm in INNM, on: ing.innm_child_id == innm.id)
       |> where([innm_dosage], innm_dosage.is_active == true)
       |> where([innm_dosage], innm_dosage.id == ^innm_dosage_id)
       |> where([innm_dosage, ing], ing.is_primary == true)
@@ -417,8 +417,8 @@ defmodule Core.Medications do
       |> select([..., innm], innm.id)
 
     Medication
-    |> join(:inner, [med], ing in MedicationIngredient, med.id == ing.parent_id)
-    |> join(:inner, [med, ing], innm in subquery(innm_ids), ing.innm_child_id == innm.id)
+    |> join(:inner, [med], ing in MedicationIngredient, on: med.id == ing.parent_id)
+    |> join(:inner, [med, ing], innm in subquery(innm_ids), on: ing.innm_child_id == innm.id)
     |> where([med], med.is_active == true)
     |> select([med], med.id)
     |> @read_prm_repo.all()

@@ -13,7 +13,7 @@ defmodule Core.FraudRepo.Migrations.CreateRegisters do
       add(:updated_by, :uuid)
       add(:entity_type, :string, null: false)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

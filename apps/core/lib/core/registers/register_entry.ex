@@ -19,7 +19,7 @@ defmodule Core.Registers.RegisterEntry do
 
     belongs_to(:register, Core.Registers.Register, type: Ecto.UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   def status(:matched), do: @matched

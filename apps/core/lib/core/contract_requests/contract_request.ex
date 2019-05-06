@@ -74,7 +74,7 @@ defmodule Core.ContractRequests.ContractRequest do
 
         belongs_to(:previous_request, __MODULE__, type: UUID)
 
-        timestamps(type: :utc_datetime)
+        timestamps(type: :utc_datetime_usec)
 
         if fields = unquote(opts)[:fields] do
           for args <- fields do

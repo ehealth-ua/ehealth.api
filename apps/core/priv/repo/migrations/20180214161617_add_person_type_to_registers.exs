@@ -1,4 +1,4 @@
-defmodule Core.Repo.Migrations.AddUniqueIndexes do
+defmodule Core.Repo.Migrations.AddPersonTypeToRegisters do
   use Ecto.Migration
 
   def change do

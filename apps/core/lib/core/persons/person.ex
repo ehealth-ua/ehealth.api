@@ -36,7 +36,7 @@ defmodule Core.Persons.Person do
     field(:merged_persons, {:array, :map})
     field(:no_tax_id, :boolean, default: false)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   @fields_required ~w(

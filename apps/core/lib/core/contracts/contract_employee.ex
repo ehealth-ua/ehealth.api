@@ -29,8 +29,8 @@ defmodule Core.Contracts.ContractEmployee do
     field(:staff_units, :float)
     field(:declaration_limit, :integer)
     # TODO: Since we are returning these fields as date, there is no sense to store this data as timestamp
-    field(:start_date, :utc_datetime)
-    field(:end_date, :utc_datetime)
+    field(:start_date, :utc_datetime_usec)
+    field(:end_date, :utc_datetime_usec)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
@@ -38,7 +38,7 @@ defmodule Core.Contracts.ContractEmployee do
     belongs_to(:employee, Employee, type: UUID)
     belongs_to(:division, Division, type: UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(%__MODULE__{} = contract_employee, attrs) do

@@ -17,7 +17,6 @@ defmodule Core.Ecto.TimestampRange do
   @match_regex ~r{^([^/]+)/([^/]+)$}
   @open_boundary ".."
   @interval_designator "/"
-  @utc_time_zone "Etc/UTC"
 
   @spec new(boundary_t(), boundary_t(), Keyword.t()) :: {:ok, t} | {:error, atom}
   def new(lower, upper, opts \\ []) do
@@ -109,18 +108,13 @@ defmodule Core.Ecto.TimestampRange do
         lower_inclusive: lower_inclusive,
         upper_inclusive: upper_inclusive
       }) do
-    with {:ok, lower} <- db_to_datetime(lower),
-         {:ok, upper} <- db_to_datetime(upper) do
-      {:ok,
-       %__MODULE__{
-         lower: lower,
-         upper: upper,
-         lower_inclusive: lower_inclusive,
-         upper_inclusive: upper_inclusive
-       }}
-    else
-      _ -> :error
-    end
+    {:ok,
+     %__MODULE__{
+       lower: lower,
+       upper: upper,
+       lower_inclusive: lower_inclusive,
+       upper_inclusive: upper_inclusive
+     }}
   end
 
   def load(_), do: :error
@@ -134,62 +128,14 @@ defmodule Core.Ecto.TimestampRange do
         lower_inclusive: lower_inclusive,
         upper_inclusive: upper_inclusive
       }) do
-    with {:ok, lower} <- datetime_to_db(lower),
-         {:ok, upper} <- datetime_to_db(upper) do
-      {:ok,
-       %Postgrex.Range{
-         lower: lower,
-         upper: upper,
-         lower_inclusive: lower_inclusive,
-         upper_inclusive: upper_inclusive
-       }}
-    else
-      _ -> :error
-    end
-  end
-
-  def dump(_), do: :error
-
-  defp db_to_datetime({{year, month, day}, {hour, minute, second, microsecond}}) do
     {:ok,
-     %DateTime{
-       calendar: Calendar.ISO,
-       year: year,
-       month: month,
-       day: day,
-       hour: hour,
-       minute: minute,
-       second: second,
-       microsecond: {microsecond, 6},
-       std_offset: 0,
-       utc_offset: 0,
-       zone_abbr: "UTC",
-       time_zone: @utc_time_zone
+     %Postgrex.Range{
+       lower: lower,
+       upper: upper,
+       lower_inclusive: lower_inclusive,
+       upper_inclusive: upper_inclusive
      }}
   end
 
-  defp db_to_datetime(nil), do: {:ok, nil}
-
-  defp db_to_datetime(_), do: :error
-
-  defp datetime_to_db(%DateTime{
-         year: year,
-         month: month,
-         day: day,
-         hour: hour,
-         minute: minute,
-         second: second,
-         microsecond: {microsecond, _},
-         time_zone: @utc_time_zone
-       }) do
-    {:ok, {{year, month, day}, {hour, minute, second, microsecond}}}
-  end
-
-  defp datetime_to_db(%DateTime{} = datetime) do
-    with {:ok, datetime} <- DateTime.shift_zone(datetime, @utc_time_zone) do
-      datetime_to_db(datetime)
-    end
-  end
-
-  defp datetime_to_db(nil), do: {:ok, nil}
+  def dump(_), do: :error
 end

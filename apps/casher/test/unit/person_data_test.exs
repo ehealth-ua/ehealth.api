@@ -1,13 +1,13 @@
 defmodule Casher.Unit.PersonDataTest do
   @moduledoc false
 
-  use Casher.ConnCase, async: true
+  use Casher.UnitCase, async: true
 
   import Mox
 
+  alias Casher.PersonData
   alias Casher.Redis
   alias Casher.StorageKeys
-  alias Casher.PersonData
   alias Ecto.UUID
 
   describe "get person data" do

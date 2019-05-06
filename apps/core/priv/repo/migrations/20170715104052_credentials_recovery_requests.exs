@@ -7,7 +7,7 @@ defmodule Core.Repo.Migrations.CredentialsRecoveryRequests do
       add(:user_id, :uuid)
       add(:is_active, :boolean, default: true)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

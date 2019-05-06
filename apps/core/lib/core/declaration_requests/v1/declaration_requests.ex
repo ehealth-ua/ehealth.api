@@ -67,7 +67,7 @@ defmodule Core.DeclarationRequests do
            }),
          :ok <- validate_status_transition(updates) do
       Multi.new()
-      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, verification_code, headers) end)
+      |> Multi.run(:verification, fn _, _ -> Approve.verify(declaration_request, verification_code, headers) end)
       |> Multi.update(:declaration_request, updates)
       |> Repo.transaction()
     end
@@ -89,7 +89,7 @@ defmodule Core.DeclarationRequests do
            }),
          :ok <- validate_status_transition(updates) do
       Multi.new()
-      |> Multi.run(:verification, fn _ -> Approve.verify(declaration_request, headers) end)
+      |> Multi.run(:verification, fn _, _ -> Approve.verify(declaration_request, headers) end)
       |> Multi.update(:declaration_request, updates)
       |> Repo.transaction()
     end

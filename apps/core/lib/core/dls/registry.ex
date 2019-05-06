@@ -12,6 +12,6 @@ defmodule Core.DLS.Registry do
 
     belongs_to(:division, Division, type: UUID)
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    timestamps(type: :utc_datetime_usec, updated_at: false)
   end
 end

@@ -12,6 +12,6 @@ defmodule Core.MedicalPrograms.MedicalProgram do
 
     has_many(:program_medications, Core.Medications.Program, foreign_key: :medical_program_id)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

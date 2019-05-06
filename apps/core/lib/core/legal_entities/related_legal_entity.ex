@@ -8,7 +8,7 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
   @derive {Jason.Encoder, except: [:__meta__]}
 
   @required_fields ~w(merged_from_id merged_to_id reason is_active inserted_by)a
-  @optional_fields ~w(id)
+  @optional_fields ~w(id)a
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "related_legal_entities" do
@@ -19,7 +19,7 @@ defmodule Core.LegalEntities.RelatedLegalEntity do
     belongs_to(:merged_from, LegalEntity, type: Ecto.UUID)
     belongs_to(:merged_to, LegalEntity, type: Ecto.UUID)
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    timestamps(type: :utc_datetime_usec, updated_at: false)
   end
 
   def changeset(%__MODULE__{} = entity, attrs) do

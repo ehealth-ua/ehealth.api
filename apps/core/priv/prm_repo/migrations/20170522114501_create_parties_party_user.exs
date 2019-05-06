@@ -7,7 +7,7 @@ defmodule Core.PRMRepo.Migrations.CreatePRM.Parties.PartyUser do
       add(:user_id, :uuid, null: false)
       add(:party_id, references(:parties, type: :uuid, on_delete: :nothing))
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(index(:parties_party_users, [:party_id]))

@@ -12,7 +12,7 @@ defmodule Core.Repo.Migrations.CreateRegisters do
       add(:inserted_by, :uuid, null: false)
       add(:updated_by, :uuid)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

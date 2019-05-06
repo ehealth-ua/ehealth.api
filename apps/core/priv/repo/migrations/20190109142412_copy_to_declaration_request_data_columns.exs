@@ -38,8 +38,8 @@ defmodule Core.Repo.Migrations.CopyToDeclarationRequestDataColumns do
       |> limit([dr], 1)
       |> Repo.one()
       |> case do
-        nil -> NaiveDateTime.new(~D[1970-01-01], ~T[00:00:00.000])
-        value -> {:ok, NaiveDateTime.add(value, -1)}
+        nil -> DateTime.from_unix(0)
+        value -> {:ok, DateTime.add(value, -1)}
       end
     end
 

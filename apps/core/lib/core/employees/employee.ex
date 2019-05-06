@@ -55,6 +55,6 @@ defmodule Core.Employees.Employee do
     belongs_to(:legal_entity, LegalEntity, type: Ecto.UUID)
     has_many(:party_users, PartyUser, references: :party_id, foreign_key: :party_id)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

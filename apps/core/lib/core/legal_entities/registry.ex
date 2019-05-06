@@ -20,6 +20,6 @@ defmodule Core.LegalEntities.Registry do
     field(:updated_by, Ecto.UUID)
     field(:type, :string)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

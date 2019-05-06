@@ -37,6 +37,7 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminator do
 
     query =
       CapitationContractRequest
+      |> select([cr], [:id, :status, :status_reason, :updated_by])
       |> where(
         [cr],
         cr.id in ^contract_request_ids
@@ -54,10 +55,8 @@ defmodule EHealthScheduler.Jobs.ContractRequestsTerminator do
     ]
 
     Multi.new()
-    |> Multi.update_all(:contract_requests, query, [set: updates],
-      returning: [:id, :status, :status_reason, :updated_by]
-    )
-    |> Multi.run(:insert_events, &ContractRequests.insert_events(&1, new_status, author_id))
+    |> Multi.update_all(:contract_requests, query, set: updates)
+    |> Multi.run(:insert_events, &ContractRequests.insert_events(&1, &2, new_status, author_id))
     |> Repo.transaction()
   end
 

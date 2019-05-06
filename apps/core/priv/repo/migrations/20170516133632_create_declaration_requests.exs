@@ -8,7 +8,7 @@ defmodule Core.Repo.Migrations.CreateDeclarationRequests do
       add(:status, :string, null: false)
       add(:inserted_by, :uuid, null: false)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

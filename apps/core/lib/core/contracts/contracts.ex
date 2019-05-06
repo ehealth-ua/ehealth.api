@@ -73,7 +73,7 @@ defmodule Core.Contracts do
         if %CapitationContract{} == schema do
           ContractEmployee
           |> where([ce], ce.contract_id == ^contract.id)
-          |> PRMRepo.update_all(set: [end_date: NaiveDateTime.utc_now(), updated_by: params.updated_by])
+          |> PRMRepo.update_all(set: [end_date: DateTime.utc_now(), updated_by: params.updated_by])
         end
 
         with {:ok, _} <-
@@ -170,7 +170,7 @@ defmodule Core.Contracts do
              headers,
              content["employee_id"]
            ) do
-      now = NaiveDateTime.utc_now()
+      now = DateTime.utc_now()
 
       query =
         ContractEmployee
@@ -283,7 +283,7 @@ defmodule Core.Contracts do
 
   defp update_contract_employee(_, %ContractEmployee{} = contract_employee, %{"is_active" => false}, user_id) do
     contract_employee
-    |> ContractEmployee.changeset(%{"end_date" => NaiveDateTime.utc_now(), "updated_by" => user_id})
+    |> ContractEmployee.changeset(%{"end_date" => DateTime.utc_now(), "updated_by" => user_id})
     |> PRMRepo.update()
   end
 
@@ -297,7 +297,7 @@ defmodule Core.Contracts do
          :ok <- validate_legal_entity_employee(contract, params),
          :ok <- validate_employee_division(contract, params) do
       contract_employee
-      |> ContractEmployee.changeset(%{"end_date" => NaiveDateTime.utc_now(), "updated_by" => user_id})
+      |> ContractEmployee.changeset(%{"end_date" => DateTime.utc_now(), "updated_by" => user_id})
       |> PRMRepo.update()
 
       insert_contract_employee(contract, params, user_id)
@@ -314,7 +314,7 @@ defmodule Core.Contracts do
         division_id: params["division_id"],
         staff_units: params["staff_units"],
         declaration_limit: params["declaration_limit"],
-        start_date: NaiveDateTime.utc_now(),
+        start_date: DateTime.utc_now(),
         inserted_by: user_id,
         updated_by: user_id
       })
@@ -327,7 +327,7 @@ defmodule Core.Contracts do
     |> where([ce], ce.contract_id == ^contract_id)
     |> where([ce], ce.employee_id == ^employee_id)
     |> where([ce], ce.division_id == ^division_id)
-    |> where([ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
+    |> where([ce], is_nil(ce.end_date) or ce.end_date > ^DateTime.utc_now())
     |> @read_prm_repo.one()
   end
 
@@ -341,8 +341,8 @@ defmodule Core.Contracts do
   def get_by_id(id, @capitation) do
     CapitationContract
     |> where([c], c.id == ^id and c.type == @capitation)
-    |> join(:left, [c], ce in ContractEmployee, c.id == ce.contract_id and is_nil(ce.end_date))
-    |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
+    |> join(:left, [c], ce in ContractEmployee, on: c.id == ce.contract_id and is_nil(ce.end_date))
+    |> join(:left, [c], cd in ContractDivision, on: c.id == cd.contract_id)
     |> preload([c, ce, cd], contract_employees: ce, contract_divisions: cd)
     |> @read_prm_repo.one()
   end
@@ -350,7 +350,7 @@ defmodule Core.Contracts do
   def get_by_id(id, @reimbursement) do
     ReimbursementContract
     |> where([c], c.id == ^id and c.type == @reimbursement)
-    |> join(:left, [c], cd in ContractDivision, c.id == cd.contract_id)
+    |> join(:left, [c], cd in ContractDivision, on: c.id == cd.contract_id)
     |> preload([c, cd], contract_divisions: cd)
     |> @read_prm_repo.one()
   end
@@ -413,11 +413,11 @@ defmodule Core.Contracts do
   end
 
   defp add_is_active_query_param(query, false) do
-    where(query, [ce], not (is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now()))
+    where(query, [ce], not (is_nil(ce.end_date) or ce.end_date > ^DateTime.utc_now()))
   end
 
   defp add_is_active_query_param(query, _) do
-    where(query, [ce], is_nil(ce.end_date) or ce.end_date > ^NaiveDateTime.utc_now())
+    where(query, [ce], is_nil(ce.end_date) or ce.end_date > ^DateTime.utc_now())
   end
 
   defp load_contract_employees_references(contract_employees) do

@@ -9,6 +9,6 @@ defmodule Core.PartyUsers.PartyUser do
 
     belongs_to(:party, Core.Parties.Party, type: Ecto.UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

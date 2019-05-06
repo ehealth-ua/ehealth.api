@@ -69,17 +69,15 @@ defmodule EHealthScheduler.Contracts.Terminator do
 
     {rows_updated, contracts} =
       CapitationContract
-      |> join(:inner, [c], cr in subquery(subselect_ids), c.id == cr.id)
+      |> select([c], [:id])
+      |> join(:inner, [c], cr in subquery(subselect_ids), on: c.id == cr.id)
       |> PRMRepo.update_all(
-        [
-          set: [
-            status: terminated,
-            status_reason: "AUTO_EXPIRED",
-            updated_by: user_id,
-            updated_at: NaiveDateTime.utc_now()
-          ]
-        ],
-        returning: [:id]
+        set: [
+          status: terminated,
+          status_reason: "AUTO_EXPIRED",
+          updated_by: user_id,
+          updated_at: NaiveDateTime.utc_now()
+        ]
       )
 
     log_status_updates(contracts, terminated, user_id)

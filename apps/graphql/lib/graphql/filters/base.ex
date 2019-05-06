@@ -7,11 +7,18 @@ defmodule GraphQL.Filters.Base do
 
   alias Core.Parties.Party
 
+  def apply(query, {field, :equal, nil}, _type, _context) do
+    where(query, [..., r], is_nil(field(r, ^field)))
+  end
+
   def apply(query, {_, nil, []}, :map, _), do: query
 
   def apply(query, {parent_field, nil, [{field, :like, value} | tail]}, :map = type, context) do
     query
-    |> where([..., r], ilike(fragment("?->>?", field(r, ^parent_field), ^to_string(field)), ^"%#{value}%"))
+    |> where(
+      [..., r],
+      ilike(fragment("?->>?", field(r, ^parent_field), ^to_string(field)), ^"%#{value}%")
+    )
     |> apply({parent_field, nil, tail}, type, context)
   end
 

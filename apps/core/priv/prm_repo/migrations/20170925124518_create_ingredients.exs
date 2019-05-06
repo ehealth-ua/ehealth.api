@@ -15,7 +15,7 @@ defmodule Core.PRMRepo.Migrations.CreateIngredients do
       add(:substance_id, references(:substances, type: :uuid, on_delete: :nothing), null: true)
       add(:medication_id, references(:medications, type: :uuid, on_delete: :nothing), null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

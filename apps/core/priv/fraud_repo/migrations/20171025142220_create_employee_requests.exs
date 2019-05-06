@@ -7,7 +7,7 @@ defmodule Core.FraudRepo.Migrations.CreateEmployeeRequests do
       add(:status, :string)
       add(:employee_id, :uuid)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

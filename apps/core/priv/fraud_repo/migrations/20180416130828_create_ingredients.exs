@@ -16,7 +16,7 @@ defmodule Core.FraudRepo.Migrations.CreateIngredients do
       add(:innm_child_id, :uuid, null: true)
       add(:medication_child_id, :uuid, null: true)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     execute("""
@@ -64,4 +64,3 @@ defmodule Core.FraudRepo.Migrations.CreateIngredients do
     drop(table(:ingredients))
   end
 end
-

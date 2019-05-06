@@ -1,8 +1,8 @@
-defmodule Core.PRMRepo.Migrations.CreatePRM.Registries.UkrMedRegistry do
+defmodule Core.PRMRepo.Migrations.CreatePRM.Registries.UkrMedRegistryIndexes do
   use Ecto.Migration
 
   def change do
-    drop(unique_index(:ukr_med_registries, [:edrpou]))
-    create(unique_index(:ukr_med_registries, [:edrpou, :type]))
+    drop_if_exists(unique_index(:ukr_med_registries, [:edrpou]))
+    create_if_not_exists(unique_index(:ukr_med_registries, [:edrpou, :type]))
   end
 end

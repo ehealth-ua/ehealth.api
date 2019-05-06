@@ -73,11 +73,11 @@ defmodule Core.Users.API do
 
   defp get_expiration_date(request) do
     ttl = Confex.fetch_env!(:core, :credentials_recovery_request_ttl)
-    NaiveDateTime.add(request.inserted_at, ttl)
+    DateTime.add(request.inserted_at, ttl, :second)
   end
 
   defp request_expired?(request) do
-    NaiveDateTime.compare(get_expiration_date(request), NaiveDateTime.utc_now()) == :lt
+    DateTime.compare(get_expiration_date(request), DateTime.utc_now()) == :lt
   end
 
   def reset_password(request_id, attrs, opts \\ []) do

@@ -3,15 +3,15 @@ defmodule OPS.Repo.Migrations.CreateMedicationDispenseHistory do
 
   def up do
     create table(:medication_dispense_status_hstr, primary_key: false) do
-      add :id, :integer, null: false
-      add :medication_dispense_id, :uuid, null: false
-      add :status, :string, null: false
+      add(:id, :integer, null: false)
+      add(:medication_dispense_id, :uuid, null: false)
+      add(:status, :string, null: false)
 
-      timestamps(type: :utc_datetime, updated_at: false)
+      timestamps(type: :utc_datetime_usec, updated_at: false)
     end
   end
 
   def down do
-    drop table(:medication_dispense_status_hstr)
+    drop(table(:medication_dispense_status_hstr))
   end
 end

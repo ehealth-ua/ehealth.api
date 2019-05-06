@@ -16,7 +16,7 @@ defmodule Core.ManualMerge.ManualMergeRequest do
     field(:assignee_id, Ecto.UUID)
     belongs_to(:manual_merge_candidate, ManualMergeCandidate)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   def status(:new), do: @status_new

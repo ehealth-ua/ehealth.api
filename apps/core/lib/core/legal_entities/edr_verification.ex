@@ -32,7 +32,7 @@ defmodule Core.LegalEntities.EdrVerification do
     field(:error_message, :string)
     field(:legal_entity_id, UUID)
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    timestamps(type: :utc_datetime_usec, updated_at: false)
   end
 
   def changeset(edr_verification, params) do

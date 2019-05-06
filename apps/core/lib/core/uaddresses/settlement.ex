@@ -14,6 +14,6 @@ defmodule Core.Uaddresses.Settlement do
     field(:district_id, UUID)
     field(:parent_settlement_id, UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

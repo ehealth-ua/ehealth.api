@@ -8,7 +8,7 @@ defmodule EHealthScheduler.DeclarationRequests.TerminatorTest do
 
   test "terminate outdated declaration_requests" do
     insert(:il, :declaration_request)
-    inserted_at = NaiveDateTime.add(NaiveDateTime.utc_now(), -86_400 * 10, :second)
+    inserted_at = DateTime.add(DateTime.utc_now(), -86_400 * 10)
 
     declaration_request1 =
       insert(

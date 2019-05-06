@@ -16,7 +16,7 @@ defmodule Core.Repo.Migrations.CreateRegisterEntries do
 
       add(:register_id, references(:registers, type: :uuid, on_delete: :nothing))
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

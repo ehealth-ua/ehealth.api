@@ -275,25 +275,23 @@ defmodule Core.Divisions do
     %{settlement_id: settlement_id, mountain_group: mountain_group} = attrs
 
     query =
-      from(
-        d in Division,
-        where: d.mountain_group != ^mountain_group,
-        join: c in assoc(d, :addresses),
-        where: c.settlement_id == ^settlement_id
-      )
+      Division
+      |> select([d], [:id, :mountain_group])
+      |> where([d], d.mountain_group != ^mountain_group)
+      |> join(:inner, [d], c in assoc(d, :addresses))
+      |> where([d, c], c.settlement_id == ^settlement_id)
 
     Multi.new()
     |> Multi.update_all(
       :update_divisions_mountain_group,
       query,
-      [set: [mountain_group: mountain_group, updated_at: NaiveDateTime.utc_now()]],
-      returning: [:id, :mountain_group]
+      set: [mountain_group: mountain_group, updated_at: DateTime.utc_now()]
     )
-    |> Multi.run(:log_updates, &log_changes(&1, consumer_id))
+    |> Multi.run(:log_updates, &log_changes(&1, &2, consumer_id))
     |> PRMRepo.transaction()
   end
 
-  defp log_changes(%{update_divisions_mountain_group: {_, updated_divisions}}, consumer_id) do
+  defp log_changes(_, %{update_divisions_mountain_group: {_, updated_divisions}}, consumer_id) do
     changes =
       updated_divisions
       |> Enum.map(fn division ->
@@ -304,7 +302,7 @@ defmodule Core.Divisions do
           changeset: %{mountain_group: division.mountain_group}
         }
       end)
-      |> Enum.map(&Map.put(&1, :inserted_at, NaiveDateTime.utc_now()))
+      |> Enum.map(&Map.put(&1, :inserted_at, DateTime.utc_now()))
 
     {_, changelog} = PRMRepo.insert_all(Changelog, changes, returning: true)
     {:ok, changelog}

@@ -16,6 +16,6 @@ defmodule Core.Services.Service do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

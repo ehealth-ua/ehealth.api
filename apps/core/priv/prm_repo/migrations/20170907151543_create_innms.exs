@@ -10,7 +10,7 @@ defmodule Core.PRMRepo.Migrations.CreateInnms do
       add(:inserted_by, :uuid, null: false)
       add(:updated_by, :uuid, null: false)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(unique_index(:innms, [:SCTID]))

@@ -28,6 +28,6 @@ defmodule Core.Parties.Party do
 
     has_many(:users, Core.PartyUsers.PartyUser, foreign_key: :party_id)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

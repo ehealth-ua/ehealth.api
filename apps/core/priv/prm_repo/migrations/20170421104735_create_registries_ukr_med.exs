@@ -9,7 +9,7 @@ defmodule Core.PRMRepo.Migrations.CreatePRM.Registries.UkrMedRegistry do
       add(:inserted_by, :uuid, null: false)
       add(:updated_by, :uuid)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(unique_index(:ukr_med_registries, [:edrpou]))

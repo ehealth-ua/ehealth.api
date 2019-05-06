@@ -11,6 +11,6 @@ defmodule Core.GlobalParameters.GlobalParameter do
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 end

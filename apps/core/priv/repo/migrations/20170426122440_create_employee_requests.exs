@@ -6,7 +6,7 @@ defmodule Core.Repo.Migrations.AddEmployeeRequests do
       add(:id, :uuid, primary_key: true)
       add(:data, :map, null: false)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

@@ -10,7 +10,7 @@ defmodule Core.PRMRepo.Migrations.CreateRelatedLegalEntities do
       add(:is_active, :boolean, null: false)
       add(:inserted_by, :uuid, null: false)
 
-      timestamps(type: :utc_datetime, updated_at: false)
+      timestamps(type: :utc_datetime_usec, updated_at: false)
     end
   end
 end

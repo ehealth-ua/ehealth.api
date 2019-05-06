@@ -16,7 +16,7 @@ defmodule Core.PRMRepo.Migrations.CreatePRM.Employees.Employee do
       add(:division_id, references(:divisions, type: :uuid, on_delete: :nothing))
       add(:party_id, references(:parties, type: :uuid, on_delete: :nothing))
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     create(index(:employees, [:legal_entity_id]))

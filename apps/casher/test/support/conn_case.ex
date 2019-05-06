@@ -1,4 +1,4 @@
-defmodule Casher.ConnCase do
+defmodule Casher.UnitCase do
   @moduledoc false
 
   use ExUnit.CaseTemplate
@@ -7,7 +7,7 @@ defmodule Casher.ConnCase do
   using do
     quote do
       # Import conveniences for testing with connections
-      import Casher.ConnCase
+      import Casher.UnitCase
       import Core.Factories
     end
   end
@@ -23,6 +23,6 @@ defmodule Casher.ConnCase do
       Sandbox.mode(Core.PRMRepo, {:shared, self()})
     end
 
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    :ok
   end
 end

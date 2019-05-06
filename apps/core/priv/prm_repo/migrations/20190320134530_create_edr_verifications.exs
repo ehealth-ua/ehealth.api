@@ -14,7 +14,7 @@ defmodule Core.PRMRepo.Migrations.CreateEdrVerifications do
       add(:edr_state, :integer)
       add(:error_message, :text)
 
-      timestamps(type: :utc_datetime, updated_at: false)
+      timestamps(type: :utc_datetime_usec, updated_at: false)
     end
   end
 end

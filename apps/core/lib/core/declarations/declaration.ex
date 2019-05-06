@@ -23,7 +23,7 @@ defmodule Core.Declarations.Declaration do
     field(:reason_description, :string)
     field(:declaration_number, :string)
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
 
     belongs_to(:declaration_request, DeclarationRequest, type: UUID)
     belongs_to(:division, Division, type: UUID)

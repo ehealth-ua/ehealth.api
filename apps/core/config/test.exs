@@ -85,7 +85,6 @@ config :core, Core.Repo,
   ownership_timeout: 120_000_000
 
 config :core, Core.ReadPRMRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "prm_test",
@@ -95,7 +94,6 @@ config :core, Core.ReadPRMRepo,
   ownership_timeout: 120_000_000
 
 config :core, Core.PRMRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "prm_test",
@@ -105,7 +103,6 @@ config :core, Core.PRMRepo,
   ownership_timeout: 120_000_000
 
 config :core, Core.FraudRepo,
-  adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
   database: "fraud_test",

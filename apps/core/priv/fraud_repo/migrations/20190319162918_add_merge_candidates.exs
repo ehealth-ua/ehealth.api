@@ -13,7 +13,7 @@ defmodule Core.FraudRepo.Migrations.AddMergeCandidates do
       add(:details, :map)
       add(:score, :float)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

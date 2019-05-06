@@ -14,7 +14,7 @@ defmodule Core.PRMRepo.Migrations.CreateServiceGroupsTable do
       add(:inserted_by, :uuid)
       add(:updated_by, :uuid)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
   end
 end

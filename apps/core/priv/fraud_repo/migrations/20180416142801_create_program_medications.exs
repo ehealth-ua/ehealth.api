@@ -16,7 +16,7 @@ defmodule Core.FraudRepo.Migrations.CreateProgramMedications do
       add(:medication_id, :uuid, null: false)
       add(:medical_program_id, :uuid, null: false)
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
 
     execute("""

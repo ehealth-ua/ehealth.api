@@ -2826,6 +2826,12 @@ defmodule GraphQL.Features.Context do
           {:ok, datetime}
         end
 
+      :utc_datetime_usec ->
+        with {:ok, value} <- Jason.decode(value),
+             {:ok, datetime, _} <- DateTime.from_iso8601(value) do
+          {:ok, datetime}
+        end
+
       :naive_datetime ->
         with {:ok, value} <- Jason.decode(value), do: NaiveDateTime.from_iso8601(value)
 

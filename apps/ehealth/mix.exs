@@ -46,16 +46,14 @@ defmodule EHealth.Mixfile do
       {:core, in_umbrella: true},
       {:confex, "~> 3.4"},
       {:confex_config_provider, "~> 0.1.0"},
-      {:ecto, "~> 2.1"},
-      {:ecto_trail, "0.2.3"},
       {:eview, "~> 0.15"},
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.1"},
-      {:phoenix, "~> 1.4.0-rc.3", override: true},
-      {:phoenix_ecto, "~> 3.2"},
+      {:phoenix, "~> 1.4.0"},
+      {:phoenix_ecto, "~> 4.0"},
       {:plug_cowboy, "~> 2.0"},
       {:poison, "~> 3.1"},
-      {:mox, "~> 0.3", only: :test}
+      {:mox, "~> 0.5.0", only: [:test]}
     ]
   end
 
