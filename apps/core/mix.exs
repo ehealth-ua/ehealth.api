@@ -53,7 +53,7 @@ defmodule Core.MixProject do
       {:phoenix_ecto, "~> 4.0"},
       {:plug, "~> 1.7"},
       {:postgrex, "~> 0.14.1"},
-      {:scrivener_ecto, git: "https://github.com/AlexKovalevych/scrivener_ecto.git", branch: "fix_page_number"},
+      {:ecto_paginator, git: "https://github.com/edenlabllc/ecto_paginator.git"},
       {:timex, "~> 3.5"},
       {:translit, "~> 0.1.0"},
       {:mox, "~> 0.5.0", only: [:test]},

@@ -47,12 +47,21 @@ defmodule Core.DeclarationRequests do
   end
 
   def list(params) do
-    DeclarationRequest
-    |> order_by([dr], desc: :inserted_at)
-    |> filter_by_employee_id(params)
-    |> filter_by_legal_entity_id(params)
-    |> filter_by_status(params)
-    |> @read_repo.paginate(params)
+    entries_query =
+      DeclarationRequest
+      |> order_by([dr], desc: :inserted_at)
+      |> filter_by_employee_id(params)
+      |> filter_by_legal_entity_id(params)
+      |> filter_by_status(params)
+
+    count_query =
+      DeclarationRequest
+      |> select([dr], count(dr.id))
+      |> filter_by_employee_id(params)
+      |> filter_by_legal_entity_id(params)
+      |> filter_by_status(params)
+
+    EctoPaginator.paginate(entries_query, count_query, @read_repo.paginator_options(params))
   end
 
   def approve(id, verification_code, headers) do
