@@ -325,7 +325,7 @@ defmodule Core.LegalEntities do
         headers
       ) do
     # Creates new Legal Entity in PRM
-    consumer_id = get_consumer_id(headers)
+    consumer_id = get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user)
     client_id = get_client_id(headers)
 
     creation_data =
@@ -349,7 +349,7 @@ defmodule Core.LegalEntities do
         headers
       ) do
     # Updates Legal Entity
-    consumer_id = get_consumer_id(headers)
+    consumer_id = get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user)
     # filter immutable data
     update_data =
       attrs

@@ -17,7 +17,7 @@ defmodule Core.OAuth.API do
     client_attrs = %{
       "id" => legal_entity.id,
       "name" => legal_entity.name,
-      "user_id" => get_consumer_id(headers),
+      "user_id" => get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user),
       "client_type_id" => client_type_id
     }
 
@@ -44,7 +44,7 @@ defmodule Core.OAuth.API do
         "id" => legal_entity.id,
         "name" => legal_entity.name,
         "redirect_uri" => redirect_uri,
-        "user_id" => get_consumer_id(headers),
+        "user_id" => get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user),
         "client_type_id" => client_type_id
       },
       headers
