@@ -12,27 +12,35 @@ defmodule Core.LegalEntities.LegalEntity do
 
   @status_active "ACTIVE"
   @status_closed "CLOSED"
+  @status_reorganized "REORGANIZED"
+  @status_suspended "SUSPENDED"
 
   @type_mis "MIS"
   @type_msp "MSP"
-  @type_nhs "NHS"
-  @type_pharmacy "PHARMACY"
   @type_msp_pharmacy "MSP_PHARMACY"
+  @type_nhs "NHS"
+  @type_outpatient "OUTPATIENT"
+  @type_pharmacy "PHARMACY"
+  @type_primary_care "PRIMARY_CARE"
 
   @mis_verified_verified "VERIFIED"
   @mis_verified_not_verified "NOT_VERIFIED"
 
   def type(:mis), do: @type_mis
   def type(:msp), do: @type_msp
-  def type(:nhs), do: @type_nhs
-  def type(:pharmacy), do: @type_pharmacy
   def type(:msp_pharmacy), do: @type_msp_pharmacy
+  def type(:nhs), do: @type_nhs
+  def type(:outpatient), do: @type_outpatient
+  def type(:pharmacy), do: @type_pharmacy
+  def type(:primary_care), do: @type_primary_care
 
   def mis_verified(:verified), do: @mis_verified_verified
   def mis_verified(:not_verified), do: @mis_verified_not_verified
 
   def status(:active), do: @status_active
   def status(:closed), do: @status_closed
+  def status(:reorganized), do: @status_reorganized
+  def status(:suspended), do: @status_suspended
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "legal_entities" do

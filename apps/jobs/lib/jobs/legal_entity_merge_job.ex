@@ -24,10 +24,22 @@ defmodule Jobs.LegalEntityMergeJob do
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+
   @status_active LegalEntity.status(:active)
+  @status_reorganized LegalEntity.status(:reorganized)
+  @status_suspended LegalEntity.status(:suspended)
+
   @type_msp LegalEntity.type(:msp)
+  @type_msp_pharmacy LegalEntity.type(:msp_pharmacy)
+  @type_outpatient LegalEntity.type(:outpatient)
+  @type_pharmacy LegalEntity.type(:pharmacy)
+  @type_primary_care LegalEntity.type(:primary_care)
+
+  @mergeable_types [@type_msp, @type_msp_pharmacy, @type_outpatient, @type_pharmacy, @type_primary_care]
+
   @merge_legal_entities_job_type JabbaClient.type(:merge_legal_entities)
   @merge_legal_entity_task_type JabbaTask.type(:merge_legal_entity)
+
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def search_jobs(filter, order_by, limit, offset) do
@@ -61,6 +73,7 @@ defmodule Jobs.LegalEntityMergeJob do
     related_legal_entity_id = UUID.generate()
 
     with :ok <- store_signed_content(task.signed_content, related_legal_entity_id),
+         :ok <- update_merged_from_legal_entity(task.merged_from_legal_entity.id, task.headers),
          :ok <- dismiss_employees(task),
          :ok <- update_client_type(task.merged_from_legal_entity.id, task.headers),
          :ok <- deactivate_client_tokens(task.merged_from_legal_entity.id, task.headers),
@@ -164,14 +177,27 @@ defmodule Jobs.LegalEntityMergeJob do
   defp validate_edrpou(_direction, %{edrpou: edrpou}, request_edrpou) when edrpou == request_edrpou, do: :ok
   defp validate_edrpou(direction, _, _), do: {:error, {:"422", "Invalid merged #{direction} legal entity edrpou"}}
 
-  defp validate_status(_direction, %{status: @status_active}), do: :ok
-  defp validate_status(direction, _), do: {:error, {:conflict, "Merged #{direction} legal entity must be active"}}
+  defp validate_status(_, %{status: @status_active}), do: :ok
+  defp validate_status("from", %{status: @status_suspended}), do: :ok
+  defp validate_status("to", _), do: {:error, {:conflict, "Merged to legal entity must be active"}}
+  defp validate_status("from", _), do: {:error, {:conflict, "Merged from legal entity must be active or suspended"}}
 
   defp validate_merged_id(from_id, to_id) when from_id != to_id, do: :ok
   defp validate_merged_id(_, _), do: {:error, {:conflict, "Legator and successor of legal entities must be different"}}
 
-  defp validate_legal_entities_type(%{type: @type_msp}, %{type: @type_msp}), do: :ok
+  defp validate_legal_entities_type(%{type: type}, %{type: type}) when type in @mergeable_types, do: :ok
+  defp validate_legal_entities_type(%{type: @type_msp}, %{type: @type_primary_care}), do: :ok
+  defp validate_legal_entities_type(%{type: @type_primary_care}, %{type: @type_msp}), do: :ok
   defp validate_legal_entities_type(_, _), do: {:error, {:conflict, "Invalid legal entity type"}}
+
+  defp update_merged_from_legal_entity(id, headers) do
+    actor_id = get_consumer_id(headers)
+
+    with {:ok, legal_entity} <- LegalEntities.fetch_by_id(id),
+         {:ok, _} <- LegalEntities.update(legal_entity, %{status: @status_reorganized}, actor_id) do
+      :ok
+    end
+  end
 
   defp dismiss_employees(%{merged_from_legal_entity: merged_from, merged_to_legal_entity: merged_to} = task) do
     merged_from_employees = get_merged_from_employees(merged_from.id)
