@@ -140,7 +140,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
-         :ok <- create_validate_contractor_owner_id(pack.type, content),
+         :ok <- validate_contractor_owner_id_on_create(pack.type, content),
          :ok <- validate_documents(pack, headers),
          :ok <- move_uploaded_documents(pack, headers),
          :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_draft"),
@@ -173,7 +173,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_type(pack.type, contractor_legal_entity),
          %LegalEntity{} = nhs_legal_entity <- LegalEntities.get_by_id(client_id),
          :ok <- validate_legal_entity_edrpou(nhs_legal_entity, signer),
-         {:ok, content, contract} <- validate_contract_number(pack.type, content, headers),
+         {:ok, contract} <- Contracts.fetch_by_id(content["parent_contract_id"], pack.type),
+         {:ok, _, _} <- validate_contract_number(pack.type, content, headers),
          pack <- RequestPack.put_decoded_content(pack, content),
          :ok <- validate_contractor_legal_entity_id(contractor_legal_entity_id, contract),
          :ok <- validate_previous_request(pack, contractor_legal_entity_id),
@@ -186,8 +187,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
-         :ok <- create_validate_contractor_owner_id(pack.type, content),
-         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_contract"),
+         :ok <- validate_contractor_owner_id_on_create(pack.type, content),
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
@@ -200,6 +200,8 @@ defmodule Core.ContractRequests do
          %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
          data <- render_contract_request_data(changes),
          %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
+         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_contract"),
+         :ok <- copy_contract_request_documents(id, contract.contract_request_id, headers),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end

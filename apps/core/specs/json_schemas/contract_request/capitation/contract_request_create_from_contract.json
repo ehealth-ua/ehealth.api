@@ -245,6 +245,15 @@
     },
     "status_reason":{
       "type": ["string", "null"]
+    },
+    "parent_contract_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "id of parent contract"
+    },
+    "assignee_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid"
     }
   },
   "required": [
@@ -263,7 +272,8 @@
     "nhs_signer_base",
     "nhs_contract_price",
     "nhs_payment_method",
-    "issue_city"
+    "issue_city",
+    "parent_contract_id"
   ],
   "additionalProperties": false
 }

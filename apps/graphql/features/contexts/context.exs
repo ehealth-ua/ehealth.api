@@ -2268,6 +2268,13 @@ defmodule GraphQL.Features.Context do
         {:ok, "success"}
       end)
 
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource, _, _ ->
+        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      end)
+
+      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+
       query = """
         mutation CreateContractRequest($input: CreateContractRequestInput!) {
           createContractRequest(input: $input) {

@@ -26,6 +26,7 @@ defmodule GraphQL.Resolvers.ReimbursementContract do
           |> Map.put(:nhs_legal_entity_id, client_id)
           |> Renderer.render_create_request_content(%{
             consent_text: consent_text,
+            parent_contract_id: parent.id,
             contract_divisions: contract_divisions
           })
 

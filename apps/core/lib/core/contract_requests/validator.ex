@@ -342,7 +342,7 @@ defmodule Core.ContractRequests.Validator do
     })
   end
 
-  def create_validate_contractor_owner_id(type, %{
+  def validate_contractor_owner_id_on_create(type, %{
         "contractor_owner_id" => contractor_owner_id,
         "contractor_legal_entity_id" => contractor_legal_entity_id
       }) do

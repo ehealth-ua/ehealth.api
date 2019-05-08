@@ -170,6 +170,26 @@ defmodule Core.ContractRequests.Storage do
     end
   end
 
+  def copy_contract_request_documents(new_contract_request_id, prev_contract_request_id, headers) do
+    Enum.reduce_while([@statute, @additional_document], :ok, fn doc, _ ->
+      with {:ok, %{"data" => %{"secret_url" => url}}} <-
+             @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, prev_contract_request_id, []),
+           {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
+           {:ok, _} <-
+             @media_storage_api.save_file(
+               new_contract_request_id,
+               signed_content,
+               get_bucket(),
+               doc.permanent_path,
+               headers
+             ) do
+        {:cont, :ok}
+      else
+        _ -> {:halt, {:error, {:conflict, "Failed to copy contract request documents"}}}
+      end
+    end)
+  end
+
   defp md5_request_param_exist?(%{decoded_content: decoded_content}, key), do: Map.has_key?(decoded_content, key)
 
   defp get_bucket do

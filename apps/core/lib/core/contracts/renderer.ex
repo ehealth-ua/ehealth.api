@@ -24,13 +24,14 @@ defmodule Core.Contracts.Renderer do
     )a)
     |> Map.merge(%{
       consent_text: references.consent_text,
+      parent_contract_id: references.parent_contract_id,
       contractor_divisions: render_association(:contractor_divisions, references),
       contractor_employee_divisions: render_association(:contractor_employee_divisions, references)
     })
     |> maybe_put_external_contractors(contract)
   end
 
-  def render_create_request_content(%ReimbursementContract{} = contract, associations) do
+  def render_create_request_content(%ReimbursementContract{} = contract, references) do
     contract
     |> Map.take(~w(
       contract_number
@@ -48,8 +49,9 @@ defmodule Core.Contracts.Renderer do
       nhs_signer_base
     )a)
     |> Map.merge(%{
-      consent_text: associations.consent_text,
-      contractor_divisions: render_association(:contractor_divisions, associations)
+      consent_text: references.consent_text,
+      parent_contract_id: references.parent_contract_id,
+      contractor_divisions: render_association(:contractor_divisions, references)
     })
   end
 

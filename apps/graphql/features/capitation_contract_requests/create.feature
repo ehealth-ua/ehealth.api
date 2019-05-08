@@ -27,8 +27,8 @@ Feature: Create capitation contract request
       | "59c88952-ce62-47b9-b400-3a26ccde0cc9" | "DOCTOR"     | "e8d4b752-79e7-4906-835f-42397ac78b56" |
       | "9071e3b7-1468-4322-8742-c3ccd571ef65" | "DOCTOR"     | "e8d4b752-79e7-4906-835f-42397ac78b56" |
     And the following capitation contracts exist:
-      | contractNumber   | contractorLegalEntityId                |
-      | "0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" |
+      | databaseId                             | contractNumber   | contractorLegalEntityId                |
+      | "07488354-ec03-42ff-bcc1-240fba1ae7f4" | "0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" |
     And my scope is "contract_request:create"
     And my client type is "NHS"
     And my client ID is "6696a798-22a7-4670-97b4-3b7d274f2d11"
@@ -52,6 +52,7 @@ Feature: Create capitation contract request
       | nhs_payment_method            | "prepayment"                                                                                                                                                                                                                                                                                                                       |
       | nhs_signer_base               | "на підставі наказу"                                                                                                                                                                                                                                                                                                               |
       | nhs_signer_id                 | "2c5ef867-310e-42f4-a581-27613e3ac2aa"                                                                                                                                                                                                                                                                                             |
+      | parent_contract_id            | "07488354-ec03-42ff-bcc1-240fba1ae7f4"                                                                                                                                                                                                                                                                                             |
     And the following signatures was applied:
       | drfo         | edrpou       | surname    |
       | "1234567890" | "0987654321" | "ШЕВЧЕНКО" |
@@ -91,8 +92,8 @@ Feature: Create capitation contract request
       | "59c88952-ce62-47b9-b400-3a26ccde0cc9" | "DOCTOR"     | "e8d4b752-79e7-4906-835f-42397ac78b56" |
       | "9071e3b7-1468-4322-8742-c3ccd571ef65" | "DOCTOR"     | "e8d4b752-79e7-4906-835f-42397ac78b56" |
     And the following capitation contracts exist:
-      | contractNumber   | contractorLegalEntityId                |
-      | "0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" |
+      | databaseId                             | contractNumber  | contractorLegalEntityId                |
+      | "d6be56dc-1f62-433e-97bc-16894c32e777" |"0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" |
     And my scope is "contract_request:create"
     And my client type is "NHS"
     And my client ID is "6696a798-22a7-4670-97b4-3b7d274f2d11"
@@ -117,6 +118,7 @@ Feature: Create capitation contract request
       | nhs_payment_method            | "prepayment"                                                                                                                                                                                                                                                                                                                       |
       | nhs_signer_base               | "на підставі наказу"                                                                                                                                                                                                                                                                                                               |
       | nhs_signer_id                 | "2c5ef867-310e-42f4-a581-27613e3ac2aa"                                                                                                                                                                                                                                                                                             |
+      | parent_contract_id            | "d6be56dc-1f62-433e-97bc-16894c32e777"                                                                                                                                                                                                                                                                                             |
     And the following signatures was applied:
       | drfo         | edrpou       | surname    |
       | "1234567890" | "0987654321" | "ШЕВЧЕНКО" |

@@ -132,6 +132,15 @@
     "medical_program_id": {
       "$ref": "#/definitions/uuid",
       "description": "id of a medical program that is a subject of reimbursement contract"
+    },
+    "parent_contract_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid",
+      "description": "id of parent contract"
+    },
+    "assignee_id": {
+      "type": "string",
+      "$ref": "#/definitions/uuid"
     }
   },
   "required": [
@@ -148,7 +157,8 @@
     "nhs_signer_base",
     "nhs_payment_method",
     "issue_city",
-    "medical_program_id"
+    "medical_program_id",
+    "parent_contract_id"
   ],
   "additionalProperties": false
 }

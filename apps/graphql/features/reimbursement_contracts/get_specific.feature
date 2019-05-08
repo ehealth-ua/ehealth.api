@@ -65,3 +65,4 @@ Feature: Get specific reimbursement contract
       | nhs_payment_method            | "prepayment"                                                                      |
       | nhs_signer_base               | "на підставі наказу"                                                              |
       | nhs_signer_id                 | "65735584-b938-4882-bab5-207cf2bda235"                                            |
+      | parent_contract_id            | "ab9328f4-f9dc-4135-a126-2acc4ac4a1af"                                            |

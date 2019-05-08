@@ -28,8 +28,8 @@ Feature: Create reimbursement contract request
       | databaseId                             |
       | "a56e0d0e-2678-4efe-908d-f9ceb793a3d7" |
     And the following reimbursement contracts exist:
-      | contractNumber   | contractorLegalEntityId                | medicalProgramId                       |
-      | "0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" | "a56e0d0e-2678-4efe-908d-f9ceb793a3d7" |
+      | databaseId                             | contractNumber   | contractorLegalEntityId                | medicalProgramId                       |
+      | "fe4d0548-9085-411a-bcc1-951fdf5f0ee2" | "0000-AEHK-MPTX" | "e8d4b752-79e7-4906-835f-42397ac78b56" | "a56e0d0e-2678-4efe-908d-f9ceb793a3d7" |
     And my scope is "contract_request:create"
     And my client type is "NHS"
     And my client ID is "6696a798-22a7-4670-97b4-3b7d274f2d11"
@@ -50,6 +50,7 @@ Feature: Create reimbursement contract request
       | nhs_payment_method            | "prepayment"                                                                      |
       | nhs_signer_base               | "на підставі наказу"                                                              |
       | nhs_signer_id                 | "2c5ef867-310e-42f4-a581-27613e3ac2aa"                                            |
+      | parent_contract_id            | "fe4d0548-9085-411a-bcc1-951fdf5f0ee2"                                            |
     And the following signatures was applied:
       | drfo         | edrpou       | surname    |
       | "1234567890" | "0987654321" | "ШЕВЧЕНКО" |
