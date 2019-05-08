@@ -431,6 +431,46 @@ config :core,
         polling_interval: 10_000
       ]
     ],
+    k8s_man: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "man_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "man",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_otp_verification: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "otp_verification_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "verification",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_ael: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "ael_api",
+        kubernetes_selector: "app=api",
+        kubernetes_namespace: "ael",
+        polling_interval: 10_000
+      ]
+    ],
+    k8s_ds: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "ds_api",
+        kubernetes_selector: "app=ds-api",
+        kubernetes_namespace: "digital-signature",
+        polling_interval: 10_000
+      ]
+    ],
     k8s_edr_api: [
       strategy: Elixir.Cluster.Strategy.Kubernetes,
       config: [
