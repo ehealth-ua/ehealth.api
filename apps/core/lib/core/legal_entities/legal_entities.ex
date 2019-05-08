@@ -278,6 +278,12 @@ defmodule Core.LegalEntities do
   # Create legal entity
 
   def create(params, headers) do
+    headers =
+      case get_consumer_id(headers) do
+        nil -> List.keystore(headers, "x-consumer-id", 0, {"x-consumer-id", Confex.fetch_env!(:core, :system_user)})
+        _ -> headers
+      end
+
     with {:ok, request_params} <- Validator.decode_and_validate(params, headers),
          edrpou <- Map.fetch!(request_params, "edrpou"),
          type <- Map.fetch!(request_params, "type"),
@@ -325,7 +331,7 @@ defmodule Core.LegalEntities do
         headers
       ) do
     # Creates new Legal Entity in PRM
-    consumer_id = get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user)
+    consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
     creation_data =
@@ -349,7 +355,7 @@ defmodule Core.LegalEntities do
         headers
       ) do
     # Updates Legal Entity
-    consumer_id = get_consumer_id(headers) || Confex.fetch_env!(:core, :system_user)
+    consumer_id = get_consumer_id(headers)
     # filter immutable data
     update_data =
       attrs
