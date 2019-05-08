@@ -52,14 +52,18 @@ defmodule Core.PRMFactories.LegalEntityFactory do
         }
       end
 
-      def related_legal_entity_factory do
-        %RelatedLegalEntity{
+      def related_legal_entity_factory(attrs) do
+        record = %RelatedLegalEntity{
           reason: "some reason",
           is_active: true,
           inserted_by: UUID.generate(),
           merged_from: build(:legal_entity),
           merged_to: build(:legal_entity)
         }
+
+        record
+        |> drop_overridden_fields(attrs)
+        |> merge_attributes(attrs)
       end
     end
   end

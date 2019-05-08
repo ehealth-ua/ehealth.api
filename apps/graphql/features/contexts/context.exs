@@ -4,9 +4,8 @@ defmodule GraphQL.Features.Context do
 
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
-  import Core.Expectations.Signature, only: [expect_signed_content: 2]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
-  import Mox, only: [expect: 3, expect: 4]
+  import Mox, only: [expect: 3, expect: 4, stub: 3]
 
   alias Absinthe.Relay.Node
   alias Core.{Repo, PRMRepo}
@@ -16,7 +15,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.EmployeeRequests.EmployeeRequest
-  alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Program, as: ProgramMedication
@@ -25,6 +24,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
+  alias Jobs.LegalEntityMergeJob
   alias Mox
   alias Phoenix.ConnTest
 
@@ -234,7 +234,22 @@ defmodule GraphQL.Features.Context do
     fn %{content: content} = state, %{table_data: table_data} ->
       signers = Enum.map(table_data, &prepare_input_attrs/1)
 
-      expect_signed_content(content, signers)
+      stub(SignatureMock, :decode_and_validate, fn _, _, _ ->
+        {:ok,
+         %{
+           "data" => %{
+             "content" => content,
+             "signatures" =>
+               Enum.map(signers, fn signer ->
+                 %{
+                   "is_valid" => Map.get(signer, :is_valid, true),
+                   "is_stamp" => Map.get(signer, :is_stamp, false),
+                   "signer" => %{"edrpou" => signer[:edrpou], "drfo" => signer[:drfo], "surname" => signer[:surname]}
+                 }
+               end)
+           }
+         }}
+      end)
 
       {:ok, state}
     end
@@ -2227,6 +2242,56 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I merge legal entities with signed content$/,
+    fn %{conn: conn, content: content, signed_content: signed_content}, _ ->
+      job = %{
+        id: UUID.generate(),
+        type: "merge_legal_entities",
+        status: "PENDING",
+        result: %{"success" => "ok"},
+        meta: Map.take(content, ~w(merged_to_legal_entity merged_from_legal_entity)),
+        inserted_at: DateTime.utc_now(),
+        ended_at: nil
+      }
+
+      stub(RPCWorkerMock, :run, fn _, _, :create_job, [tasks, _type, _opts] ->
+        assert 1 == length(tasks)
+        %{name: name, callback: {_, m, f, a}} = hd(tasks)
+        assert LegalEntityMergeJob = m
+        assert :merge = f
+        assert is_map(hd(a))
+        assert "Merge legal entity" == name
+
+        {:ok, job}
+      end)
+
+      query = """
+        mutation MergeLegalEntitiesMutation($input: MergeLegalEntitiesInput!) {
+          mergeLegalEntities(input: $input) {
+            legalEntityMergeJob {
+              id
+              status
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{signedContent: signed_content}
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data mergeLegalEntities legalEntityMergeJob))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I create employee request with signed content$/,
     fn %{conn: conn, signed_content: signed_content}, _ ->
       template()
@@ -2720,6 +2785,7 @@ defmodule GraphQL.Features.Context do
 
   def entity_name_to_model("dictionary"), do: Dictionary
   def entity_name_to_model("legal entity"), do: LegalEntity
+  def entity_name_to_model("related legal entity"), do: RelatedLegalEntity
   def entity_name_to_model("division"), do: Division
   def entity_name_to_model("employee"), do: Employee
   def entity_name_to_model("employee request"), do: EmployeeRequest
@@ -2748,6 +2814,7 @@ defmodule GraphQL.Features.Context do
 
   def entity_name_to_factory_args("dictionary"), do: {:il, :dictionary}
   def entity_name_to_factory_args("legal entity"), do: {:prm, :legal_entity}
+  def entity_name_to_factory_args("related legal entity"), do: {:prm, :related_legal_entity}
   def entity_name_to_factory_args("division"), do: {:prm, :division}
   def entity_name_to_factory_args("employee"), do: {:prm, :employee}
   def entity_name_to_factory_args("employee request"), do: {:il, :employee_request}
