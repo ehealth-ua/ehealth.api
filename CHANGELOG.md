@@ -5,23 +5,70 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
-## [8.13.2](https://github.com/edenlabllc/ehealth.api/compare/8.13.1...8.13.2) (2019-3-28)
-
-
-
-
-### Bug Fixes:
-
-* topologies (#4596)
-
-* create dispense without a program (#4588)
-
-## [8.13.1](https://github.com/edenlabllc/ehealth.api/compare/8.13.1...8.13.1) (2019-3-27)
+## [8.13.2](https://github.com/edenlabllc/ehealth.api/compare/8.13.2...8.13.2) (2019-5-9)
 
 
 
 
 ### Features:
+
+* extend validations for create LE merge job process, set REORGANIZED status for merged LE
+
+* ecto_paginator (#4922)
+
+* ecto 3 (#4904)
+
+* graphql: add `deactivateEmployee` mutation
+
+* *: refactor employee deactivation logic, add check on belongingness to acting client's legal entity
+
+* save sign content on employee request create process (#4859)
+
+* added jabba (#4823)
+
+* process medication dispense in transaction (#4851)
+
+* contractor_legal_entity name changed in contract sample (printout content) (#4845)
+
+* get medication requests rpc (#4831)
+
+* added function to check if service belongs to group to Rpc module (#4824)
+
+* mpi search  rpc only, #6019 (#4771)
+
+* added function to get service/group by id to Rpc module (#4800)
+
+* medication request innm_dosage validation changed to innm for the same period (#4794)
+
+* graphql: add atc_code to medication filter (#4795)
+
+* validate contractor divisions dls on create, sign, approve (#4784)
+
+* Discount amount validation (#4770)
+
+* owner pisition dictionary supplemented (#4745)
+
+* graphql: implement employee requests list and details (#4737)
+
+* Custom dictionaries#4624 (#4727)
+
+* graphql: move consent text for contract requests to own dictionary
+
+* graphql: add `createContractRequest` mutation
+
+* core: add create contract request from contract logic
+
+* medication_qty validation on medication dispense (qty equality) (#4688)
+
+* graphql: implement create employee request (#4679)
+
+* graphql: add `toCreateRequestContent` field to contract types (#4623)
+
+* push event to event manager via kafka (#4598)
+
+* changed/deleted some migrations, added new fields to fraud db (#4603)
+
+* graphql: add employee and party document fields (#4592)
 
 * graphql: add `edr_verified` to LegalEntity; `dlsVerified`, `dlsId` to Division (#4585)
 
@@ -172,6 +219,134 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 * licence and accreditation information of MSP added to a prescription (#4120)
 
 ### Bug Fixes:
+
+* improve declaration requests terminator (#4947)
+
+* mrr validate existing medication requests fixed (created_at validation removed) (#4948)
+
+* graphql: copy contract request files on create from contract proccess (#4928)
+
+* le v1 mis only header (#4930)
+
+* mrr validate existing medication requests fixed (started_at validation added) (#4927)
+
+* create le api key (#4926)
+
+* medication request request existing medication requests validation fixed (#4920)
+
+* set data on contract request create from contract (#4901)
+
+* update persons data via rpc on sign declaration process (#4893)
+
+* do not match on id (#4889)
+
+* add missed fields from contract request changesets (#4886)
+
+* add MSP_PHARMACY type on client type validation (#4879)
+
+* handle ael match error (#4870)
+
+* list medication requests rpc (#4863)
+
+* (graphql) search person with renamed rpc function (#4862)
+
+* medication_request is_active validation fixed (period validation removed) (#4857)
+
+* edr_verified field is updated on create or update legal entity (#4854)
+
+* jabba rpc config (#4853)
+
+* core: always check existence of contract request additional documents when generating get links
+
+* core: save signed content to storage on contract request create
+
+* medication request requests period validation improved (#4839)
+
+* edr validations (#4838)
+
+* dls, edr (#4821)
+
+* tests (#4812)
+
+* scheduler swarm (#4804)
+
+* make second name optional for employee in dispense (#4801)
+
+* graphql: don't return overdue contract employees in `toCreateRequestContent` field of contract types
+
+* graphql: fix employee assignment with `createContractRequest` mutation
+
+* deactivate owners roles (#4785)
+
+* Second name optional in json schema (#4788)
+
+* medication dispense create validation fix (contract that is valid in current period) (#4779)
+
+* drugs search fixed (simultaneous search by medication_code_atc and medical_program_id) (#4778)
+
+* *: use the same format for validation errors (#4768)
+
+* services list (#4763)
+
+* graphql: put external contractors to `toCreateRequestContent` only when contract have positive `external_contractor_flag`
+
+* drop division foreign key constraint in dls_registry (#4751)
+
+* graphql: remove `EmployeeType` enum since it is present in the dictionary
+
+* get contract request for msp_pharmacy (#4719)
+
+* *: use proper array path references in create contract request validations
+
+* edr worker config (#4710)
+
+* use separate rpc worker for edr (#4708)
+
+* deactivate owners on employee request approve (#4706)
+
+* get reason (#4703)
+
+* dispense rounding (#4700)
+
+* dispense program validations (#4690)
+
+* reimbursement amount rounding (#4681)
+
+* return 422 on duplicate sign medication request request (#4666)
+
+* medication dispense payment amount greater or equal zero (#4664)
+
+* fix for position p22 (#4658)
+
+* private entrepreneur legal entities position field render fixed (#4657)
+
+* change log level (#4653)
+
+* fraud db columns (#4651)
+
+* contract request printout form fix: contractor_legal_entity position (#4632)
+
+* declaration request create_declatation_req_data_index fixed (#4615)
+
+* do not validate le public_name and short_name for medication requests (#4634)
+
+* pablic_name and short_name for dispense process can be null (#4627)
+
+* make optional pablic_name and short_name for dispense process (#4622)
+
+* don't paginate persons search where it's not needed (#4616)
+
+* graphql: fix party email type (#4614)
+
+* add unique contract request id constraint to contracts (#4611)
+
+* graphql: rename RPC module (#4610)
+
+* handle invalid json error from ds on create legal entity (#4609)
+
+* *: fix dictionary typo on contract request (#4599)
+
+* topologies (#4596)
 
 * create dispense without a program (#4588)
 
