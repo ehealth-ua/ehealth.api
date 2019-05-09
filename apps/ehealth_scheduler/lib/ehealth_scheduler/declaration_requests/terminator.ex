@@ -147,6 +147,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
         dr.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^(-1 * String.to_integer(term)), ^unit)
       )
       |> subselect_condition.()
+      |> order_by([dr], desc: :inserted_at)
       |> limit(^limit)
 
     {rows_updated, _} =
