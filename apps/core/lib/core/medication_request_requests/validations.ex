@@ -318,8 +318,7 @@ defmodule Core.MedicationRequestRequest.Validations do
            {:greater_than_today, Date.compare(last_mr_ended_at, Date.utc_today()) in [:gt, :eq]},
          {:greater_than_mrr_standard_duration, true} <-
            {:greater_than_mrr_standard_duration, comparison_period >= mrr_standard_duration} do
-      if Date.compare(created_at, Date.add(last_mr_ended_at, -max_mrr_renew_days)) in [:gt, :eq] and
-           Date.compare(created_at, Date.utc_today()) in [:gt, :eq] do
+      if Date.compare(created_at, Date.add(last_mr_ended_at, -max_mrr_renew_days)) in [:gt, :eq] do
         {:ok, nil}
       else
         {:invalid_existing_medication_requests, nil}
@@ -329,8 +328,7 @@ defmodule Core.MedicationRequestRequest.Validations do
         {:ok, nil}
 
       {:greater_than_mrr_standard_duration, false} ->
-        if Date.compare(created_at, Date.add(last_mr_ended_at, -min_mrr_renew_days)) in [:gt, :eq] and
-             Date.compare(created_at, Date.utc_today()) in [:gt, :eq] do
+        if Date.compare(created_at, Date.add(last_mr_ended_at, -min_mrr_renew_days)) in [:gt, :eq] do
           {:ok, nil}
         else
           {:invalid_existing_medication_requests, nil}
