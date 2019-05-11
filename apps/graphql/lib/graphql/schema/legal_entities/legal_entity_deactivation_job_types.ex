@@ -5,7 +5,7 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   alias Absinthe.Relay.Node.ParseIDs
-  alias GraphQL.Middleware.FilterArgument
+  alias GraphQL.Middleware.{Filtering, TransformInput}
   alias GraphQL.Resolvers.LegalEntityDeactivationJob, as: LegalEntityDeactivationJobResolver
 
   object :legal_entity_deactivation_job_queries do
@@ -16,7 +16,20 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
       arg(:filter, :legal_entity_deactivation_job_filter)
       arg(:order_by, :legal_entity_deactivation_job_order_by, default_value: :started_at_desc)
 
-      middleware(FilterArgument)
+      middleware(TransformInput, %{
+        [:meta, :deactivated_legal_entity] => [:deactivated_legal_entity],
+        :status => [:status]
+      })
+
+      middleware(Filtering,
+        status: :equal,
+        meta: [
+          deactivated_legal_entity: [
+            edrpou: :equal
+          ]
+        ]
+      )
+
       resolve(&LegalEntityDeactivationJobResolver.search_jobs/2)
     end
 

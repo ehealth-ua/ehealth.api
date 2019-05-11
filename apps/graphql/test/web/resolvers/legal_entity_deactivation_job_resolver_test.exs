@@ -132,9 +132,17 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
       expect(RPCWorkerMock, :run, fn _, _, :search_jobs, args ->
         assert [filter, order_by, cursor] = args
-        assert type == filter[:type]
-        assert status == filter[:status]
-        assert %{edrpou: edrpou} == filter[:deactivated_legal_entity]
+
+        # filter for status
+        assert {:status, :equal, ^status} = hd(filter)
+
+        # filter for type
+        assert {:type, :equal, ^type} = List.last(filter)
+
+        # filter for jsonb field meta
+        assert {{:meta, nil, value}, _} = List.pop_at(filter, 1)
+        assert [{:deactivated_legal_entity, nil, [{:edrpou, :equal, edrpou}]}] == value
+
         assert [desc: :started_at] == order_by
         assert {3, 0} == cursor
 
@@ -185,11 +193,14 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         after: nil
       }
 
-      resp =
+      resp_body =
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legalEntityDeactivationJobs))
+
+      refute resp_body["errors"]
+
+      resp = get_in(resp_body, ~w(data legalEntityDeactivationJobs))
 
       assert 2 == length(resp["nodes"])
       assert resp["pageInfo"]["hasNextPage"]

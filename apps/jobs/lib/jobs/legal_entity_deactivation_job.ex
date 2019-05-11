@@ -29,7 +29,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   def search_jobs(filter, order_by, limit, offset) do
     filter
-    |> Keyword.put(:type, @legal_entity_deactivation_type)
+    |> Kernel.++([{:type, :equal, @legal_entity_deactivation_type}])
     |> JabbaClient.search_jobs(order_by, {limit, offset})
   end
 

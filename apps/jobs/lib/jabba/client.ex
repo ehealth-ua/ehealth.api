@@ -55,7 +55,8 @@ defmodule Jobs.Jabba.Client do
       |> Map.get(:meta)
       |> TypesConverter.strings_to_keys()
 
-    job = Map.put(job, :meta, meta)
+    # put meta fields to root, as defined in GraphQL schema
+    job = Map.merge(job, meta)
 
     # ToDo: use inserted_at instead
     job = Map.put(job, :started_at, job.inserted_at)

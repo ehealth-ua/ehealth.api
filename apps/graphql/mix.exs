@@ -52,7 +52,7 @@ defmodule GraphQL.Mixfile do
       {:absinthe_plug, "~> 1.4"},
       {:absinthe_relay, "~> 1.4"},
       {:dataloader, "~> 1.0.0"},
-      {:ecto_filter, git: "https://github.com/edenlabllc/ecto_filter", branch: "ecto_3"},
+      {:ecto_filter, git: "https://github.com/edenlabllc/ecto_filter"},
       {:jason, "~> 1.1"},
       {:phoenix, "~> 1.4.0", override: true},
       {:plug_cowboy, "~> 2.0"},

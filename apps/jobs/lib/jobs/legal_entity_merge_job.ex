@@ -44,7 +44,7 @@ defmodule Jobs.LegalEntityMergeJob do
 
   def search_jobs(filter, order_by, limit, offset) do
     filter
-    |> Keyword.put(:type, @merge_legal_entities_job_type)
+    |> Kernel.++([{:type, :equal, @merge_legal_entities_job_type}])
     |> JabbaClient.search_jobs(order_by, {limit, offset})
   end
 

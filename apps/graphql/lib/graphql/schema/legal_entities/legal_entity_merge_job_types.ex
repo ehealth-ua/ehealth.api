@@ -5,7 +5,7 @@ defmodule GraphQL.Schema.LegalEntityMergeJobTypes do
   use Absinthe.Relay.Schema.Notation, :modern
 
   alias Absinthe.Relay.Node.ParseIDs
-  alias GraphQL.Middleware.FilterArgument
+  alias GraphQL.Middleware.{Filtering, TransformInput}
   alias GraphQL.Resolvers.LegalEntityMergeJob, as: LegalEntityMergeJobResolver
 
   object :legal_entity_merge_job_queries do
@@ -16,7 +16,26 @@ defmodule GraphQL.Schema.LegalEntityMergeJobTypes do
       arg(:filter, :legal_entity_merge_job_filter)
       arg(:order_by, :legal_entity_merge_job_order_by, default_value: :started_at_desc)
 
-      middleware(FilterArgument)
+      middleware(TransformInput, %{
+        [:meta, :merged_to_legal_entity] => [:merged_to_legal_entity],
+        [:meta, :merged_from_legal_entity] => [:merged_from_legal_entity],
+        :status => [:status]
+      })
+
+      middleware(Filtering,
+        status: :equal,
+        meta: [
+          merged_to_legal_entity: [
+            edrpou: :equal,
+            is_active: :equal
+          ],
+          merged_from_legal_entity: [
+            edrpou: :equal,
+            is_active: :equal
+          ]
+        ]
+      )
+
       resolve(&LegalEntityMergeJobResolver.search_jobs/2)
     end
 

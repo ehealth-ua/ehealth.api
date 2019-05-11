@@ -3,13 +3,10 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
   use GraphQL.ConnCase, async: true
 
-  import Core.Expectations.Signature
   import Core.Factories
   import Mox
 
   alias Absinthe.Relay.Node
-  alias Core.LegalEntities.LegalEntity
-  alias Jobs.LegalEntityMergeJob
   alias Ecto.UUID
   alias Jobs.Jabba.Client, as: JabbaClient
 
@@ -52,9 +49,21 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
       expect(RPCWorkerMock, :run, fn _, _, :search_jobs, args ->
         assert [filter, order_by, cursor] = args
-        assert type == filter[:type]
-        assert status == filter[:status]
-        assert %{edrpou: edrpou} == filter[:merged_to_legal_entity]
+
+        # filter for status
+        assert {:status, :equal, ^status} = hd(filter)
+
+        # filter for type
+        assert {:type, :equal, ^type} = List.last(filter)
+
+        # filter for jsonb field meta
+        assert {{:meta, nil, value}, _} = List.pop_at(filter, 1)
+
+        assert [
+                 {:merged_to_legal_entity, nil, [{:edrpou, :equal, edrpou}, {:is_active, :equal, true}]}
+               ] == value
+
+        # order
         assert [desc: :started_at] == order_by
         assert {3, 0} == cursor
 
@@ -103,17 +112,21 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
         filter: %{
           status: status,
           mergedToLegalEntity: %{
-            edrpou: edrpou
+            edrpou: edrpou,
+            is_active: true
           }
         },
         order_by: "STARTED_AT_DESC"
       }
 
-      resp =
+      resp_body =
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legalEntityMergeJobs))
+
+      refute resp_body["errors"]
+
+      resp = get_in(resp_body, ~w(data legalEntityMergeJobs))
 
       assert 2 == length(resp["nodes"])
       assert resp["pageInfo"]["hasNextPage"]
@@ -282,33 +295,6 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
       },
       inserted_at: DateTime.utc_now(),
       ended_at: ended_at
-    }
-  end
-
-  defp merged_signed_content(merged_from, merged_to) do
-    %{
-      "merged_from_legal_entity" => %{
-        "id" => merged_from.id,
-        "name" => merged_from.name,
-        "edrpou" => merged_from.edrpou
-      },
-      "merged_to_legal_entity" => %{
-        "id" => merged_to.id,
-        "name" => merged_to.name,
-        "edrpou" => merged_to.edrpou
-      },
-      "reason" => "Because I can"
-    }
-  end
-
-  defp input_signed_content(content) do
-    %{
-      input: %{
-        signedContent: %{
-          content: content |> Jason.encode!() |> Base.encode64(),
-          encoding: "BASE64"
-        }
-      }
     }
   end
 end
