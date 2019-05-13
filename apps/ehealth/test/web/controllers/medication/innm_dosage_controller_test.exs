@@ -24,6 +24,34 @@ defmodule EHealth.Web.INNMDosageControllerTest do
       assert "Сульфід натрію" == innm_dosage["name"]
     end
 
+    test "paging with array of ingredients", %{conn: conn} do
+      %{id: innm_id} = insert(:prm, :innm)
+      innm_dosage = insert(:prm, :innm_dosage)
+
+      insert_list(3, :prm, :ingredient_innm_dosage,
+        innm_child_id: innm_id,
+        parent_id: innm_dosage.id
+      )
+
+      resp =
+        conn
+        |> get(innm_dosage_path(conn, :index), name: innm_dosage.name, page_size: 10, page: 1)
+        |> json_response(200)
+
+      resp_data = resp["data"]
+
+      page_meta = %{
+        "page_number" => 1,
+        "page_size" => 10,
+        "total_entries" => 1,
+        "total_pages" => 1
+      }
+
+      assert 1 == length(resp_data)
+      assert page_meta == resp["paging"]
+      assert 3 == resp_data |> hd() |> Map.get("ingredients") |> Enum.count()
+    end
+
     test "paging", %{conn: conn} do
       for _ <- 1..21, do: insert(:prm, :innm_dosage)
 
@@ -39,6 +67,31 @@ defmodule EHealth.Web.INNMDosageControllerTest do
       }
 
       assert page_meta == resp["paging"]
+    end
+
+    test "invalid search params", %{conn: conn} do
+      %{id: id} = insert(:prm, :innm_dosage, name: "Сульфід натрію")
+
+      resp =
+        conn
+        |> get(innm_dosage_path(conn, :index), name: 1)
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.name",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "is invalid",
+                       "params" => ["Elixir.Core.Ecto.StringLike"],
+                       "rule" => "cast"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 

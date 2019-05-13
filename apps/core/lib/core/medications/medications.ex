@@ -271,7 +271,7 @@ defmodule Core.Medications do
 
     %INNMDosageSearch{}
     |> cast(params, INNMDosageSearch.__schema__(:fields))
-    |> search(params, INNMDosage)
+    |> search_innm_dosages(params, INNMDosage)
   end
 
   def get_search_query(Medication, changes) do
@@ -291,13 +291,37 @@ defmodule Core.Medications do
   end
 
   def get_search_query(INNMDosage, changes) do
-    INNMDosage
-    |> super(changes)
-    |> preload(ingredients: [innm: []])
+    entries_query =
+      INNMDosage
+      |> super(changes)
+      |> join(:left, [i], ing in assoc(i, :ingredients))
+      |> join(:left, [i, ing], innm in assoc(ing, :innm))
+      |> preload([i, ing, innm], ingredients: {ing, innm: innm})
+
+    count_query =
+      INNMDosage
+      |> super(changes)
+      |> select([i], count(i.id))
+
+    {entries_query, count_query}
   end
 
   def get_search_query(entity, changes) do
     super(entity, changes)
+  end
+
+  defp search_innm_dosages(%Ecto.Changeset{valid?: true, changes: changes}, search_params, entity) do
+    entity
+    |> get_search_query(changes)
+    |> do_query(search_params)
+  end
+
+  defp search_innm_dosages(%Ecto.Changeset{valid?: false} = changeset, _search_params, _entity) do
+    {:error, changeset}
+  end
+
+  defp do_query({entries_query, count_query}, search_params) do
+    EctoPaginator.paginate(entries_query, count_query, @read_prm_repo.paginator_options(search_params))
   end
 
   defp where_medication_name(query, %{name: name}) do
