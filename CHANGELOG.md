@@ -5,6 +5,33 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [8.14.0](https://github.com/edenlabllc/ehealth.api/compare/8.13.2...8.14.0) (2019-5-13)
+
+
+
+
+### Features:
+
+* ehealth: add ability to search dictionaries by names; do not return big dictionaries (#4971)
+
+* graphql: added filter by status for LegalEntity (#4964)
+
+* ehealth: added jobs in EHealth API application for Jabba rpc (#4963)
+
+* graphql: removed result from response for jobs (#4961)
+
+### Bug Fixes:
+
+* get innm dosage list fixed (#4968)
+
+* graphql: fixed cursor order (#4966)
+
+* ehealth: use person id as atom key (#4954)
+
+* sign declaration request (#4958)
+
+* graphql: fixed search by jsonb fields in Jabba (#4951)
+
 ## [8.13.2](https://github.com/edenlabllc/ehealth.api/compare/8.13.2...8.13.2) (2019-5-9)
 
 
