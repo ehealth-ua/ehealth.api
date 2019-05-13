@@ -14,9 +14,10 @@ Feature: Get all legal entities
 
   Scenario: Request legal entities with filter by address type
     Given the following legal entities exist:
-      | databaseId                             | addresses  |
-      | "82eb02e0-cdab-4a1e-8901-70551bedbc4a" | [{"type": "REGISTRATION","country": "UA","area": "Житомирська","region": "Бердичівський","settlement": "Київ","settlement_type": "CITY","settlement_id": "c3b72da3-0f7e-4973-a810-da9b1d818569","street_type": "STREET","street": "вул. Ніжинська","building": "15-В","apartment": "23","zip": "02090"}] |
-      | "33413dc5-ca93-49ee-8bf2-57b4df4056c8" | [{"type": "REGISTRATION","country": "UA","area": "Одеська","region": "Затоцький","settlement": "Затока","settlement_type": "CITY","settlement_id": "2128e699-2efd-458a-8f58-1064bd470c44","street_type": "STREET","street": "вул. Ніжинська","building": "10-В","apartment": "223","zip": "03100"}, {"type": "RESIDENCE","country": "UA","area": "Житомирська","region": "Бердичівський","settlement": "Київ","settlement_type": "CITY","settlement_id": "40323775-6102-476d-861b-70413385a675","street_type": "STREET","street": "вул. Ніжинська","building": "15-В","apartment": "23","zip": "02090"}] |
+      | databaseId                             | status   | addresses  |
+      | "82eb02e0-cdab-4a1e-8901-70551bedbc4a" | "ACTIVE" | [{"type": "REGISTRATION","country": "UA","area": "Житомирська","region": "Бердичівський","settlement": "Київ","settlement_type": "CITY","settlement_id": "c3b72da3-0f7e-4973-a810-da9b1d818569","street_type": "STREET","street": "вул. Ніжинська","building": "15-В","apartment": "23","zip": "02090"}] |
+      | "33413dc5-ca93-49ee-8bf2-57b4df4056c8" | "ACTIVE" | [{"type": "REGISTRATION","country": "UA","area": "Одеська","region": "Затоцький","settlement": "Затока","settlement_type": "CITY","settlement_id": "2128e699-2efd-458a-8f58-1064bd470c44","street_type": "STREET","street": "вул. Ніжинська","building": "10-В","apartment": "223","zip": "03100"}, {"type": "RESIDENCE","country": "UA","area": "Житомирська","region": "Бердичівський","settlement": "Київ","settlement_type": "CITY","settlement_id": "40323775-6102-476d-861b-70413385a675","street_type": "STREET","street": "вул. Ніжинська","building": "15-В","apartment": "23","zip": "02090"}] |
+      | "163ffd7d-6eda-4448-812a-37bac6b182cc" | "CLOSED" | [] |
     And my scope is "legal_entity:read"
     When I request first 10 legal entities where type of the associated addresses is "RESIDENCE"
     Then no errors should be returned
@@ -43,3 +44,4 @@ Feature: Get all legal entities
       | nhsVerified | true                                   | true                                   | false                                  |
       | nhsReviewed | false                                  | false                                  | true                                   |
       | edrVerified | true                                   | true                                   | false                                  | 
+      | status      | "CLOSED"                               | "CLOSED"                               | "ACTIVE"                                  |

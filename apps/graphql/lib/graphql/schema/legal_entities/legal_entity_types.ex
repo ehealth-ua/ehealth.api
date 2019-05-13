@@ -24,6 +24,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
       middleware(Filtering,
         database_id: :equal,
         type: :in,
+        status: :equal,
         edrpou: :like,
         name: :like,
         nhs_verified: :equal,
@@ -53,6 +54,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:database_id, :uuid)
     # Dictionary: LEGAL_ENTITY_TYPE
     field(:type, list_of(:string))
+    field(:status, :legal_entity_status)
     field(:edrpou, :string)
     field(:name, :string)
     field(:nhs_verified, :boolean)
@@ -266,6 +268,8 @@ defmodule GraphQL.Schema.LegalEntityTypes do
   enum :legal_entity_status do
     value(:active, as: "ACTIVE")
     value(:closed, as: "CLOSED")
+    value(:reorganized, as: "REORGANIZED")
+    value(:suspended, as: "SUSPENDED")
   end
 
   enum :legal_entity_mis_verified do
