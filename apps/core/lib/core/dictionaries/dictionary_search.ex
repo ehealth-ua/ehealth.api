@@ -3,7 +3,7 @@ defmodule Core.Dictionaries.DictionarySearch do
 
   use Ecto.Schema
 
-  schema "dictionary_search" do
+  embedded_schema do
     field(:name, :string)
     field(:is_active, :boolean)
   end

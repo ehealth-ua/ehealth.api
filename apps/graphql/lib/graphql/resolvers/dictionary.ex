@@ -12,6 +12,7 @@ defmodule GraphQL.Resolvers.Dictionary do
   def list_dictionaries(%{filter: filter} = args, _resolution) do
     Dictionary
     |> filter(filter)
+    |> Dictionaries.query_without_big_dictionaries()
     |> Connection.from_query(&@read_repo.all/1, args)
   end
 

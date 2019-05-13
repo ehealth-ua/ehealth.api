@@ -163,6 +163,8 @@ config :core, Core.API.Report,
 
 config :core, Core.Bamboo.Emails.Sender, mailer: {:system, :module, "BAMBOO_MAILER"}
 
+config :core, Core.Dictionaries, big_dictionaries: {:system, :list, "BIG_DICTIONARIES", []}
+
 # configure emails
 config :core, :emails,
   default: %{

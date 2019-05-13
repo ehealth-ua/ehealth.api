@@ -3,13 +3,16 @@ defmodule Core.Dictionaries do
   The boundary for the Dictionaries system.
   """
 
-  require Logger
+  use Confex, otp_app: :core
+
   import Ecto.{Query, Changeset}, warn: false
 
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.Dictionaries.DictionarySearch
   alias Core.Repo
+
+  require Logger
 
   @read_repo Application.get_env(:core, :repos)[:read_repo]
 
@@ -55,14 +58,25 @@ defmodule Core.Dictionaries do
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: true, changes: changes}) when map_size(changes) > 0 do
-    params = Map.to_list(changes)
-    query = from(d in Dictionary, where: ^params)
+    query =
+      Dictionary
+      |> query_by(:is_active, changes[:is_active])
+      |> query_by(:name, changes[:name])
+
+    query =
+      if Map.has_key?(changes, :name) do
+        query
+      else
+        query_without_big_dictionaries(query)
+      end
 
     {:ok, @read_repo.all(query)}
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: true}) do
-    {:ok, @read_repo.all(Dictionary)}
+    query = query_without_big_dictionaries(Dictionary)
+
+    {:ok, @read_repo.all(query)}
   end
 
   defp search_dictionaries(%Ecto.Changeset{valid?: false} = changeset) do
@@ -130,18 +144,28 @@ defmodule Core.Dictionaries do
   defp fetch_dictionary_value(%Dictionary{values: values}, value), do: Map.get(values, value)
   defp fetch_dictionary_value(_, _value), do: nil
 
-  def get_dictionaries(dictionary_list) do
-    query = from(d in Dictionary, where: d.name in ^dictionary_list and d.is_active, select: {d.name, d.values})
+  defp query_by(query, _, nil), do: query
 
-    query
-    |> @read_repo.all()
-    |> Map.new()
+  defp query_by(query, :name, name) do
+    if String.contains?(name, ",") do
+      names =
+        name
+        |> String.split(",")
+        |> Enum.reject(&(String.trim(&1) == ""))
+        |> Enum.uniq()
+
+      where(query, [d], d.name in ^names)
+    else
+      where(query, [d], d.name == ^name)
+    end
   end
 
-  def get_dictionaries_keys(dictionary_list) do
-    dictionary_list
-    |> get_dictionaries()
-    |> Enum.reduce(%{}, fn {d_name, d_values}, acc -> Map.put(acc, d_name, Map.keys(d_values)) end)
+  defp query_by(query, key, value), do: where(query, [d], field(d, ^key) == ^value)
+
+  def query_without_big_dictionaries(query) do
+    big_dictionaries = config()[:big_dictionaries]
+
+    where(query, [d], d.name not in ^big_dictionaries)
   end
 
   defp validate_name(changeset) do

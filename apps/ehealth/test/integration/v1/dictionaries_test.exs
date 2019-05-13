@@ -2,12 +2,16 @@ defmodule EHealth.Integration.DictionariesTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
-  import Core.Expectations.Signature
 
-  alias Core.Dictionaries
+  import Core.Expectations.Signature
+  import Ecto.Query
+
+  alias Core.Dictionaries.Dictionary
   alias Core.EmployeeRequests
   alias Core.LegalEntities, as: API
   alias Core.Validators.KVEDs
+
+  @read_repo Application.get_env(:core, :repos)[:read_repo]
 
   @document_type_dict %{
     "PASSPORT" => "Паспорт",
@@ -83,25 +87,25 @@ defmodule EHealth.Integration.DictionariesTest do
     end
 
     test "get_dictionaries/1 can to get 1 dictionary by name" do
-      dict = Dictionaries.get_dictionaries(["DOCUMENT_TYPE"])
+      dict = get_dictionaries(["DOCUMENT_TYPE"])
 
       assert %{"DOCUMENT_TYPE" => @document_type_dict} == dict
     end
 
     test "get_dictionaries/1 can to get multiple dictionaries by name" do
-      dicts = Dictionaries.get_dictionaries(["DOCUMENT_TYPE", "PHONE_TYPE"])
+      dicts = get_dictionaries(["DOCUMENT_TYPE", "PHONE_TYPE"])
 
       assert %{"DOCUMENT_TYPE" => @document_type_dict, "PHONE_TYPE" => @phone_type_dict} == dicts
     end
 
     test "get_dictionaries_keys/1 can get keys from dictionary" do
-      keys = Dictionaries.get_dictionaries_keys(["PHONE_TYPE"])
+      keys = get_dictionaries_keys(["PHONE_TYPE"])
 
       assert %{"PHONE_TYPE" => ["LAND_LINE", "MOBILE"]} == keys
     end
 
     test "get_dictionaries_keys/1 can get keys from multiple dictionaries" do
-      keys = Dictionaries.get_dictionaries_keys(["DOCUMENT_TYPE", "PHONE_TYPE"])
+      keys = get_dictionaries_keys(["DOCUMENT_TYPE", "PHONE_TYPE"])
 
       assert %{"DOCUMENT_TYPE" => Map.keys(@document_type_dict), "PHONE_TYPE" => Map.keys(@phone_type_dict)} == keys
     end
@@ -195,6 +199,20 @@ defmodule EHealth.Integration.DictionariesTest do
       patch(conn, dictionary_path(conn, :update, "KVEDS"), @kveds)
       assert %Ecto.Changeset{valid?: false} = KVEDs.validate(["12.11"])
     end
+  end
+
+  defp get_dictionaries(dictionary_list) do
+    query = from(d in Dictionary, where: d.name in ^dictionary_list and d.is_active, select: {d.name, d.values})
+
+    query
+    |> @read_repo.all()
+    |> Map.new()
+  end
+
+  defp get_dictionaries_keys(dictionary_list) do
+    dictionary_list
+    |> get_dictionaries()
+    |> Enum.reduce(%{}, fn {d_name, d_values}, acc -> Map.put(acc, d_name, Map.keys(d_values)) end)
   end
 
   defp get_legal_entity_data do
