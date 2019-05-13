@@ -166,6 +166,7 @@ defmodule Core.DeclarationRequests.API.Sign do
     else
       nil -> {:error, {:conflict, "person is not found"}}
       {:error, {:conflict, _}} -> {:error, {:conflict, "person is not active"}}
+      {:error, :has_already_been_taken} -> {:error, {:conflict, "Such person already exists"}}
       error -> error
     end
   end
