@@ -44,6 +44,7 @@ defmodule EHealth.Mixfile do
   defp deps do
     [
       {:core, in_umbrella: true},
+      {:jobs, in_umbrella: true},
       {:confex, "~> 3.4"},
       {:confex_config_provider, "~> 0.1.0"},
       {:eview, "~> 0.15"},
