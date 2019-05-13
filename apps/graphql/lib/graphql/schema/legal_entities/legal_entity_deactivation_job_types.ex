@@ -90,7 +90,6 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
     field(:status, non_null(:legal_entity_deactivation_job_status))
     field(:started_at, non_null(:datetime))
     field(:ended_at, :datetime)
-    field(:result, :string)
     field(:deactivated_legal_entity, non_null(:mergee_legal_entity_metadata))
   end
 

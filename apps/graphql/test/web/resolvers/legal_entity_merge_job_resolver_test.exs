@@ -88,10 +88,8 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
             nodes {
               id
               status
-              result
               startedAt
               endedAt
-              result
               mergedToLegalEntity{
                 id
                 name
@@ -222,10 +220,8 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
           legalEntityMergeJob(id: $id) {
             id
             status
-            result
             startedAt
             endedAt
-            result
             mergedToLegalEntity{
               id
               name
@@ -280,7 +276,6 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
       id: UUID.generate(),
       type: type,
       status: status,
-      result: %{"success" => "ok"},
       meta: %{
         "merged_to_legal_entity" => %{
           "id" => merged_to.id,

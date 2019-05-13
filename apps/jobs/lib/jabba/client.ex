@@ -59,13 +59,7 @@ defmodule Jobs.Jabba.Client do
     job = Map.merge(job, meta)
 
     # ToDo: use inserted_at instead
-    job = Map.put(job, :started_at, job.inserted_at)
-
-    # ToDO: do not encode to JSON. Talk about that with frontend team
-    case Jason.encode(job.result) do
-      {:ok, json} -> Map.put(job, :result, json)
-      _ -> Map.put(job, :result, inspect(job.result))
-    end
+    Map.put(job, :started_at, job.inserted_at)
   end
 
   defp render(response), do: response

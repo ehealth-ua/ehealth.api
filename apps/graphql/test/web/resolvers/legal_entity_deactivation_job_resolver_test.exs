@@ -167,10 +167,8 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
             nodes {
               id
               status
-              result
               startedAt
               endedAt
-              result
               deactivatedLegalEntity {
                 id
                 name
@@ -272,10 +270,8 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
           legalEntityDeactivationJob(id: $id) {
             id
             status
-            result
             startedAt
             endedAt
-            result
             deactivatedLegalEntity{
               id
               name
@@ -298,7 +294,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
       assert legal_entity.edrpou == resp["deactivatedLegalEntity"]["edrpou"]
       assert "PROCESSED" == resp["status"]
-      assert Jason.encode!(%{success: "ok"}) == resp["result"]
+      refute resp["result"]
     end
 
     test "job not found", %{conn: conn} do
@@ -328,7 +324,6 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
       id: UUID.generate(),
       type: type,
       status: status,
-      result: %{"success" => "ok"},
       meta: %{
         "deactivated_legal_entity" => %{
           "id" => legal_entity.id,
