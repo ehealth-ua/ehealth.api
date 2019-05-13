@@ -144,7 +144,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         assert [{:deactivated_legal_entity, nil, [{:edrpou, :equal, edrpou}]}] == value
 
         assert [desc: :started_at] == order_by
-        assert {3, 0} == cursor
+        assert {0, 3} == cursor
 
         {:ok, [job, job, job]}
       end)

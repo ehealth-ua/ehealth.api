@@ -65,7 +65,7 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
         # order
         assert [desc: :started_at] == order_by
-        assert {3, 0} == cursor
+        assert {0, 3} == cursor
 
         {:ok, [job, job, job]}
       end)

@@ -30,7 +30,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
   def search_jobs(filter, order_by, limit, offset) do
     filter
     |> Kernel.++([{:type, :equal, @legal_entity_deactivation_type}])
-    |> JabbaClient.search_jobs(order_by, {limit, offset})
+    |> JabbaClient.search_jobs(order_by, {offset, limit})
   end
 
   def get_job(id) do
