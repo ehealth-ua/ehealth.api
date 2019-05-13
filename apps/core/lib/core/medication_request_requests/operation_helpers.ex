@@ -98,7 +98,7 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
   end
 
   def validate_medical_event_entity(operation, context) do
-    Validations.validate_medical_event_entity(context, operation.data.person["id"])
+    Validations.validate_medical_event_entity(context, operation.data.person.id)
   end
 
   def validate_dosage_instruction(_operation, dosage_instruction) do

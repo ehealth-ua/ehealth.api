@@ -693,7 +693,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       assert json_response(conn, 422)
 
-      error_msg =
+      error_message =
         conn
         |> json_response(422)
         |> get_in(["error", "invalid"])
@@ -702,7 +702,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> List.first()
         |> Map.get("description")
 
-      assert error_msg == "Only doctors with an active declaration with the patient can create medication request!"
+      assert error_message == "Only doctors with an active declaration with the patient can create medication request!"
     end
 
     test "render errors when ended_at < started_at", %{conn: conn} do
