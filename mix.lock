@@ -28,7 +28,7 @@
   "earmark": {:hex, :earmark, "1.3.1", "73812f447f7a42358d3ba79283cfa3075a7580a3a2ed457616d6517ac3738cb9", [:mix], [], "hexpm"},
   "ecto": {:hex, :ecto, "3.0.8", "9eb6a1fcfc593e6619d45ef51afe607f1554c21ca188a1cd48eecc27223567f1", [:mix], [{:decimal, "~> 1.6", [hex: :decimal, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}, {:poison, "~> 2.2 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: true]}], "hexpm"},
   "ecto_filter": {:git, "https://github.com/edenlabllc/ecto_filter", "0dfce536ba8051e862be2756bbbdcfd2e9be8535", []},
-  "ecto_paginator": {:git, "https://github.com/edenlabllc/ecto_paginator.git", "3ba20b16d935185fb495deea123330216608207d", []},
+  "ecto_paginator": {:git, "https://github.com/edenlabllc/ecto_paginator.git", "ba197d4d55fa1c91c03bf55225d85dbe65439f51", []},
   "ecto_sql": {:hex, :ecto_sql, "3.0.5", "7e44172b4f7aca4469f38d7f6a3da394dbf43a1bcf0ca975e958cb957becd74e", [:mix], [{:db_connection, "~> 2.0", [hex: :db_connection, repo: "hexpm", optional: false]}, {:ecto, "~> 3.0.6", [hex: :ecto, repo: "hexpm", optional: false]}, {:mariaex, "~> 0.9.1", [hex: :mariaex, repo: "hexpm", optional: true]}, {:postgrex, "~> 0.14.0", [hex: :postgrex, repo: "hexpm", optional: true]}, {:telemetry, "~> 0.3.0", [hex: :telemetry, repo: "hexpm", optional: false]}], "hexpm"},
   "ecto_trail": {:hex, :ecto_trail, "0.4.1", "95f2c1f14e7a54ca56ab5431753dc1fe56ec32e4cf64b9740b6d2018999d2056", [:mix], [{:ecto_sql, "~> 3.0.5", [hex: :ecto_sql, repo: "hexpm", optional: false]}, {:postgrex, "~> 0.14.1", [hex: :postgrex, repo: "hexpm", optional: true]}], "hexpm"},
   "ehealth_logger": {:git, "https://github.com/edenlabllc/ehealth_logger.git", "3384423611f914890ff9521fa21206d52b0f867e", []},

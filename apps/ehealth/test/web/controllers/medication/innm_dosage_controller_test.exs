@@ -16,11 +16,17 @@ defmodule EHealth.Web.INNMDosageControllerTest do
 
   describe "index" do
     test "search by name", %{conn: conn} do
-      %{id: id} = insert(:prm, :innm_dosage, name: "Сульфід натрію")
+      %{id: innm_id} = insert(:prm, :innm)
+      %{id: innm_dosage_id} = insert(:prm, :innm_dosage, name: "Сульфід натрію")
+
+      insert(:prm, :ingredient_innm_dosage,
+        innm_child_id: innm_id,
+        parent_id: innm_dosage_id
+      )
 
       conn = get(conn, innm_dosage_path(conn, :index), name: "фід на")
       assert [innm_dosage] = json_response(conn, 200)["data"]
-      assert id == innm_dosage["id"]
+      assert innm_dosage_id == innm_dosage["id"]
       assert "Сульфід натрію" == innm_dosage["name"]
     end
 
@@ -53,24 +59,41 @@ defmodule EHealth.Web.INNMDosageControllerTest do
     end
 
     test "paging", %{conn: conn} do
-      for _ <- 1..21, do: insert(:prm, :innm_dosage)
+      %{id: innm_id} = insert(:prm, :innm)
 
-      conn = get(conn, innm_dosage_path(conn, :index), page_size: 10, page: 2)
-      resp = json_response(conn, 200)
-      assert 10 == length(resp["data"])
+      for _ <- 1..21 do
+        innm_dosage = insert(:prm, :innm_dosage)
 
-      page_meta = %{
-        "page_number" => 2,
-        "page_size" => 10,
-        "total_pages" => 3,
-        "total_entries" => 21
-      }
+        insert_list(2, :prm, :ingredient_innm_dosage,
+          innm_child_id: innm_id,
+          parent_id: innm_dosage.id
+        )
+      end
 
-      assert page_meta == resp["paging"]
+      assert_endpoint_call = fn page_number, expected_entries_count ->
+        resp =
+          conn
+          |> get(innm_dosage_path(conn, :index), page_size: 10, page: page_number)
+          |> json_response(200)
+
+        assert expected_entries_count == length(resp["data"])
+
+        page_meta = %{
+          "page_number" => page_number,
+          "page_size" => 10,
+          "total_pages" => 3,
+          "total_entries" => 21
+        }
+
+        assert page_meta == resp["paging"]
+      end
+
+      assert_endpoint_call.(2, 10)
+      assert_endpoint_call.(3, 1)
     end
 
     test "invalid search params", %{conn: conn} do
-      %{id: id} = insert(:prm, :innm_dosage, name: "Сульфід натрію")
+      insert(:prm, :innm_dosage, name: "Сульфід натрію")
 
       resp =
         conn

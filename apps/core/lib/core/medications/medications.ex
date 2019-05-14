@@ -290,38 +290,44 @@ defmodule Core.Medications do
     |> preload(ingredients: [innm_dosage: []])
   end
 
-  def get_search_query(INNMDosage, changes) do
-    entries_query =
-      INNMDosage
-      |> super(changes)
-      |> join(:left, [i], ing in assoc(i, :ingredients))
-      |> join(:left, [i, ing], innm in assoc(ing, :innm))
-      |> preload([i, ing, innm], ingredients: {ing, innm: innm})
-
-    count_query =
-      INNMDosage
-      |> super(changes)
-      |> select([i], count(i.id))
-
-    {entries_query, count_query}
-  end
-
-  def get_search_query(entity, changes) do
-    super(entity, changes)
-  end
+  def get_search_query(entity, changes), do: super(entity, changes)
 
   defp search_innm_dosages(%Ecto.Changeset{valid?: true, changes: changes}, search_params, entity) do
     entity
     |> get_search_query(changes)
-    |> do_query(search_params)
+    |> get_innm_dosages_list(search_params)
   end
 
   defp search_innm_dosages(%Ecto.Changeset{valid?: false} = changeset, _search_params, _entity) do
     {:error, changeset}
   end
 
-  defp do_query({entries_query, count_query}, search_params) do
-    EctoPaginator.paginate(entries_query, count_query, @read_prm_repo.paginator_options(search_params))
+  defp get_innm_dosages_list(query, search_params) do
+    paginator_options =
+      search_params
+      |> Map.put(:options, paginate_entries: false)
+      |> @read_prm_repo.paginator_options()
+
+    %{page_number: page_number, page_size: page_size} = paginator_options
+    offset = page_size * (page_number - 1)
+
+    innm_dosage_ids =
+      query
+      |> select([i], i.id)
+      |> limit([i], ^page_size)
+      |> offset([i], ^offset)
+      |> @read_prm_repo.all()
+
+    entries_query =
+      query
+      |> join(:inner, [i], ing in assoc(i, :ingredients))
+      |> join(:inner, [i, ing], innm in assoc(ing, :innm))
+      |> preload([i, ing, innm], ingredients: {ing, innm: innm})
+      |> where([i, ...], i.id in ^innm_dosage_ids)
+
+    count_query = select(query, [i], count(i.id))
+
+    EctoPaginator.paginate(entries_query, count_query, paginator_options)
   end
 
   defp where_medication_name(query, %{name: name}) do
