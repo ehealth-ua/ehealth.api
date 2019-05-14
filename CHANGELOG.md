@@ -5,6 +5,17 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [8.14.1](https://github.com/edenlabllc/ehealth.api/compare/8.14.0...8.14.1) (2019-5-14)
+
+
+
+
+### Bug Fixes:
+
+* ehealth: fix postmark client flows to internal server error (#4983)
+
+* get innm dosage list pagination fixed (#4979)
+
 ## [8.14.0](https://github.com/edenlabllc/ehealth.api/compare/8.13.2...8.14.0) (2019-5-13)
 
 
