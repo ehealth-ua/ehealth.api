@@ -2669,6 +2669,38 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(
+    ~r/^I verify by NHS with (?<nhs_verified>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) legal entity where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{database_id: database_id, nhs_verified: nhs_verified} ->
+      query = """
+        mutation NHSVerifyLegalEntityMutation($input: NhsVerifyLegalEntityInput) {
+          nhsVerifyLegalEntity(input: $input) {
+            legalEntity {
+              nhsVerified
+              nhsUnverifiedAt
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", database_id),
+          nhsVerified: Jason.decode!(nhs_verified)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data nhsVerifyLegalEntity legalEntity))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
   then_(
     ~r/^event would be published to event manager$/,
     fn state, _ ->
@@ -2764,12 +2796,15 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{resp_entity: resp_entity} = state, %{field: field, value: value} ->
+    ~r/^the (?<field>\w+) of the requested item should be (?<negate>not )?(?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{resp_entity: resp_entity} = state, %{field: field, value: value, negate: negate} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entity[field]
 
-      assert expected_value == resp_value
+      case String.length(negate) do
+        0 -> assert expected_value == resp_value
+        _ -> assert expected_value != resp_value
+      end
 
       {:ok, state}
     end

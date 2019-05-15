@@ -72,6 +72,7 @@ defmodule Core.LegalEntities do
     status_reason
     reason
     nhs_verified
+    nhs_unverified_at
     nhs_reviewed
     nhs_comment
     created_by_mis_client_id
@@ -257,9 +258,16 @@ defmodule Core.LegalEntities do
          :ok <- check_legal_entity_active(legal_entity),
          :ok <- check_nhs_verify_transition(legal_entity, nhs_verified),
          :ok <- check_nhs_reviewed(legal_entity, check_nhs_reviewed?) do
-      update(legal_entity, %{nhs_verified: nhs_verified}, consumer_id)
+      params = nhs_verify_params(nhs_verified)
+      update(legal_entity, params, consumer_id)
     end
   end
+
+  defp check_legal_entity_active(%LegalEntity{status: status}) when status != @status_active do
+    {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
+  end
+
+  defp check_legal_entity_active(_), do: :ok
 
   defp check_nhs_verify_transition(%LegalEntity{nhs_verified: true}, true) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
@@ -267,11 +275,13 @@ defmodule Core.LegalEntities do
 
   defp check_nhs_verify_transition(_, _), do: :ok
 
-  defp check_legal_entity_active(%LegalEntity{status: status}) when status != @status_active do
-    {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
-  end
+  defp nhs_verify_params(true), do: %{nhs_verified: true, nhs_unverified_at: nil}
 
-  defp check_legal_entity_active(_), do: :ok
+  defp nhs_verify_params(false) do
+    updated_at = DateTime.utc_now()
+
+    %{nhs_verified: false, nhs_unverified_at: updated_at, updated_at: updated_at}
+  end
 
   # Create legal entity
 

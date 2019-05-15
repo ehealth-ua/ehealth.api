@@ -46,6 +46,7 @@ defmodule Core.LegalEntities.LegalEntity do
   schema "legal_entities" do
     field(:is_active, :boolean, default: false)
     field(:nhs_verified, :boolean, default: false)
+    field(:nhs_unverified_at, :utc_datetime_usec)
     field(:nhs_reviewed, :boolean, default: false)
     field(:nhs_comment, :string, default: "")
     field(:addresses, {:array, :map})

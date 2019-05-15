@@ -175,6 +175,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:receiver_funds_code, :string)
     field(:beneficiary, :string)
     field(:nhs_verified, :boolean)
+    field(:nhs_unverified_at, :datetime)
     field(:nhs_reviewed, :boolean)
     field(:nhs_comment, :string)
     field(:edr_verified, :boolean)
