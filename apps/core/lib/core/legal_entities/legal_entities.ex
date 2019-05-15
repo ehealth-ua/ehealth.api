@@ -341,17 +341,21 @@ defmodule Core.LegalEntities do
     # Creates new Legal Entity in PRM
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
+    inserted_at = DateTime.utc_now()
 
     creation_data =
       Map.merge(attrs, %{
         "status" => @status_active,
         "is_active" => true,
+        "nhs_verified" => false,
+        "nhs_unverified_at" => inserted_at,
+        "nhs_reviewed" => false,
+        "edr_verified" => true,
+        "created_by_mis_client_id" => client_id,
         "inserted_by" => consumer_id,
         "updated_by" => consumer_id,
-        "created_by_mis_client_id" => client_id,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false,
-        "edr_verified" => true
+        "inserted_at" => inserted_at,
+        "updated_at" => inserted_at
       })
 
     create(legal_entity, creation_data, consumer_id)
