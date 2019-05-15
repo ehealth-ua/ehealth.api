@@ -15,6 +15,7 @@ defmodule Core.LegalEntities do
   alias Core.Contracts.CapitationContract
   alias Core.EmployeeRequests
   alias Core.Employees.Employee
+  alias Core.EventManager
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Search
@@ -68,6 +69,8 @@ defmodule Core.LegalEntities do
     phones
     email
     is_active
+    status_reason
+    reason
     nhs_verified
     nhs_reviewed
     nhs_comment
@@ -81,8 +84,9 @@ defmodule Core.LegalEntities do
 
   @employee_request_status "NEW"
 
-  @status_closed LegalEntity.status(:closed)
   @status_active LegalEntity.status(:active)
+  @status_closed LegalEntity.status(:closed)
+  @status_suspended LegalEntity.status(:suspended)
 
   @mis_verified_verified LegalEntity.mis_verified(:verified)
   @mis_verified_not_verified LegalEntity.mis_verified(:not_verified)
@@ -242,6 +246,12 @@ defmodule Core.LegalEntities do
     end
   end
 
+  defp check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
+
+  defp check_mis_verify_transition(_) do
+    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
+  end
+
   def nhs_verify(%{id: id, nhs_verified: nhs_verified}, consumer_id, check_nhs_reviewed? \\ false) do
     with {:ok, legal_entity} <- fetch_by_id(id),
          :ok <- check_legal_entity_active(legal_entity),
@@ -251,23 +261,11 @@ defmodule Core.LegalEntities do
     end
   end
 
-  defp check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
-
-  defp check_mis_verify_transition(_) do
-    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
-  end
-
   defp check_nhs_verify_transition(%LegalEntity{nhs_verified: true}, true) do
     {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
   defp check_nhs_verify_transition(_, _), do: :ok
-
-  defp check_nhs_reviewed_transition(%LegalEntity{nhs_reviewed: true}) do
-    {:error, {:conflict, "LegalEntity has been already reviewed."}}
-  end
-
-  defp check_nhs_reviewed_transition(_), do: :ok
 
   defp check_legal_entity_active(%LegalEntity{status: status}) when status != @status_active do
     {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
@@ -414,6 +412,12 @@ defmodule Core.LegalEntities do
     end
   end
 
+  defp check_nhs_reviewed_transition(%LegalEntity{nhs_reviewed: true}) do
+    {:error, {:conflict, "LegalEntity has been already reviewed."}}
+  end
+
+  defp check_nhs_reviewed_transition(_), do: :ok
+
   def nhs_comment(%{id: id, nhs_comment: nhs_comment}, headers) do
     updated_by = get_consumer_id(headers)
 
@@ -424,6 +428,34 @@ defmodule Core.LegalEntities do
       {:ok, legal_entity}
     end
   end
+
+  def update_status(%{id: id, status: status, reason: reason}, headers) do
+    actor_id = get_consumer_id(headers)
+    params = %{status: status, reason: reason, status_reason: "MANUAL_LEGAL_ENTITY_STATUS_UPDATE"}
+
+    PRMRepo.transaction(fn ->
+      with {:ok, legal_entity} <- fetch_by_id(id),
+           :ok <- check_status_transition(legal_entity.status, status),
+           :ok <- maybe_suspend_contracts(legal_entity, status),
+           {:ok, legal_entity} <- update(legal_entity, params, actor_id) do
+        EventManager.publish_change_status(legal_entity, status, actor_id)
+
+        legal_entity
+      else
+        {:error, reason} -> PRMRepo.rollback(reason)
+      end
+    end)
+  end
+
+  defp check_status_transition(@status_active, @status_suspended), do: :ok
+  defp check_status_transition(@status_suspended, @status_active), do: :ok
+  defp check_status_transition(_, _), do: {:error, {:conflict, "Incorrect status transition."}}
+
+  defp maybe_suspend_contracts(legal_entity, @status_suspended) do
+    suspend_by_contractor_legal_entity_id(legal_entity.id)
+  end
+
+  defp maybe_suspend_contracts(_, _), do: :ok
 
   def check_nhs_reviewed(legal_entity, do_check? \\ true)
   def check_nhs_reviewed(_, false), do: :ok

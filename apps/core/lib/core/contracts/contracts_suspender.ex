@@ -27,10 +27,18 @@ defmodule Core.Contracts.ContractSuspender do
   def suspend_by_contractor_owner_ids([]), do: :ok
 
   def suspend_by_contractor_owner_ids(owner_ids) when is_list(owner_ids) do
-    CapitationContract
+    query_suspendable_contracts()
     |> where([c], c.contractor_owner_id in ^owner_ids)
-    |> where([c], c.status == @contract_status_verified)
-    |> where([c], c.is_suspended == false)
+    |> PRMRepo.update_all(set: [is_suspended: true])
+    |> case do
+      {_updated_count, nil} -> :ok
+      err -> err
+    end
+  end
+
+  def suspend_by_contractor_legal_entity_id(contractor_legal_entity_id) do
+    query_suspendable_contracts()
+    |> where([c], c.contractor_legal_entity_id == ^contractor_legal_entity_id)
     |> PRMRepo.update_all(set: [is_suspended: true])
     |> case do
       {_updated_count, nil} -> :ok
@@ -47,6 +55,12 @@ defmodule Core.Contracts.ContractSuspender do
     else
       {:error, reason} -> {:error, {reason, ids}}
     end
+  end
+
+  defp query_suspendable_contracts do
+    CapitationContract
+    |> where([c], c.status == @contract_status_verified)
+    |> where([c], c.is_suspended == false)
   end
 
   defp check_suspended_contracts_amount(ids, contracts_amount) when length(ids) == contracts_amount, do: :ok

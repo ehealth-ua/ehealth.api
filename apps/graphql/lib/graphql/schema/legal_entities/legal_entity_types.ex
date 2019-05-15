@@ -135,6 +135,28 @@ defmodule GraphQL.Schema.LegalEntityTypes do
       middleware(ParseIDs, id: :legal_entity)
       resolve(&LegalEntityResolver.nhs_comment/2)
     end
+
+    payload field(:update_legal_entity_status) do
+      meta(:scope, ~w(legal_entity:update))
+
+      input do
+        field(:id, non_null(:id))
+        field(:status, non_null(:legal_entity_updateable_status))
+        field(:reason, non_null(:string))
+      end
+
+      output do
+        field(:legal_entity, :legal_entity)
+      end
+
+      middleware(ParseIDs, id: :legal_entity)
+      resolve(&LegalEntityResolver.update_status/2)
+    end
+  end
+
+  enum :legal_entity_updateable_status do
+    value(:active, as: "ACTIVE")
+    value(:suspended, as: "SUSPENDED")
   end
 
   node object(:legal_entity) do
@@ -147,6 +169,8 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:edrpou, non_null(:string))
     field(:owner_property_type, non_null(:string))
     field(:legal_form, non_null(:string))
+    field(:status_reason, :string)
+    field(:reason, :string)
     field(:website, :string)
     field(:receiver_funds_code, :string)
     field(:beneficiary, :string)

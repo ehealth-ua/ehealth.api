@@ -95,4 +95,10 @@ defmodule GraphQL.Resolvers.LegalEntity do
       {:ok, %{legal_entity: legal_entity}}
     end
   end
+
+  def update_status(args, %{context: %{headers: headers}}) do
+    with {:ok, legal_entity} <- LegalEntities.update_status(args, headers) do
+      {:ok, %{legal_entity: legal_entity}}
+    end
+  end
 end

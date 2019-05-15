@@ -63,6 +63,8 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:public_name, :string)
     field(:short_name, :string)
     field(:status, :string)
+    field(:status_reason, :string)
+    field(:reason, :string)
     field(:mis_verified, :string)
     field(:type, :string)
     field(:inserted_by, Ecto.UUID)

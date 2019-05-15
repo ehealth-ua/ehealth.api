@@ -5,6 +5,7 @@ defmodule GraphQL.Features.Context do
   import Core.Expectations.Man, only: [template: 0]
   import Core.Expectations.Mithril, only: [get_client_type_name: 1]
   import Core.Factories, only: [build: 2, build_list: 2, insert: 3, insert_list: 3]
+  import Ecto.Query, only: [select: 3, where: 3]
   import Mox, only: [expect: 3, expect: 4, stub: 3]
 
   alias Absinthe.Relay.Node
@@ -2403,6 +2404,39 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I update the status to "(?<status>[^"]+)" with reason "(?<reason>[^"]+)" in legal entity where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn}, %{status: status, reason: reason, database_id: database_id} ->
+      query = """
+        mutation UpdateLegalEntityStatusMutation($input: UpdateLegalEntityStatusInput) {
+          updateLegalEntityStatus(input: $input) {
+            legalEntity {
+              status
+              statusReason
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("LegalEntity", database_id),
+          status: status,
+          reason: reason
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data updateLegalEntityStatus legalEntity))
+
+      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
       query = """
@@ -2765,6 +2799,38 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  then_(
+    ~r/^the (?<expected_field>\w+) of the (?<entity_name>(\w+\s?)+) where (?<lookup_field>\w+) is (?<lookup_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) should be (?<expected_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn state,
+       %{
+         entity_name: entity_name,
+         lookup_field: lookup_field,
+         lookup_value: lookup_value,
+         expected_field: expected_field,
+         expected_value: expected_value
+       } ->
+      entity_name = Inflex.singularize(entity_name)
+      model = entity_name_to_model(entity_name)
+      repo = model_to_repo(model)
+
+      lookup_field = prepare_field(lookup_field)
+      lookup_value = prepare_value!(model, lookup_field, lookup_value)
+
+      expected_field = prepare_field(expected_field)
+      expected_value = prepare_value!(model, expected_field, expected_value)
+
+      actual_value =
+        model
+        |> where([r], field(r, ^lookup_field) == ^lookup_value)
+        |> select([r], field(r, ^expected_field))
+        |> repo.one()
+
+      assert expected_value == actual_value
+
+      {:ok, state}
+    end
+  )
+
   def put_scope(conn, scope), do: put_req_header(conn, @endpoint.scope_header(), scope)
 
   def put_consumer_id(conn, id \\ UUID.generate()), do: put_req_header(conn, @consumer_id_header, id)
@@ -2838,6 +2904,32 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
   def entity_name_to_factory_args(entity_name), do: raise("Factory not found for #{inspect(entity_name)}")
 
+  @spec model_to_repo(model :: module) :: module
+  def model_to_repo(model)
+
+  def model_to_repo(Dictionary), do: Repo
+  def model_to_repo(LegalEntity), do: PRMRepo
+  def model_to_repo(RelatedLegalEntity), do: PRMRepo
+  def model_to_repo(Division), do: PRMRepo
+  def model_to_repo(Employee), do: PRMRepo
+  def model_to_repo(EmployeeRequest), do: Repo
+  def model_to_repo(Party), do: PRMRepo
+  def model_to_repo(PartyUser), do: PRMRepo
+  def model_to_repo(CapitationContractRequest), do: Repo
+  def model_to_repo(ReimbursementContractRequest), do: Repo
+  def model_to_repo(CapitationContract), do: PRMRepo
+  def model_to_repo(ReimbursementContract), do: PRMRepo
+  def model_to_repo(ContractDivision), do: PRMRepo
+  def model_to_repo(ContractEmployee), do: PRMRepo
+  def model_to_repo(MedicalProgram), do: PRMRepo
+  def model_to_repo(ProgramMedication), do: PRMRepo
+  def model_to_repo(Medication), do: PRMRepo
+  def model_to_repo(Medication.Ingredient), do: PRMRepo
+  def model_to_repo(INNMDosage), do: PRMRepo
+  def model_to_repo(INNMDosage.Ingredient), do: PRMRepo
+  def model_to_repo(INNM), do: PRMRepo
+  def model_to_repo(model), do: raise("Repo not found for #{inspect(model)}")
+
   def transpose_table(table_data) do
     Enum.into(table_data, %{}, &{&1.field, &1.value})
   end
@@ -2862,12 +2954,10 @@ defmodule GraphQL.Features.Context do
   def prepare_attrs(_, []), do: []
 
   def prepare_attrs(queryable, [{field, value} | tail]) do
-    with field <- prepare_field(field),
-         {:ok, value} <- prepare_value(queryable, field, value) do
-      [{field, value} | prepare_attrs(queryable, tail)]
-    else
-      _ -> raise "Unable to parse \"#{value}\" as value for field \"#{field}\"."
-    end
+    field = prepare_field(field)
+    value = prepare_value!(queryable, field, value)
+
+    [{field, value} | prepare_attrs(queryable, tail)]
   end
 
   defp prepare_field(:databaseId), do: :id
@@ -2883,6 +2973,14 @@ defmodule GraphQL.Features.Context do
     key
     |> Macro.underscore()
     |> String.to_atom()
+  end
+
+  defp prepare_value!(queryable, field, value) do
+    with {:ok, value} <- prepare_value(queryable, field, value) do
+      value
+    else
+      _ -> raise "Unable to parse \"#{value}\" as value for field \"#{field}\"."
+    end
   end
 
   defp prepare_value(_, _, "null"), do: {:ok, nil}
