@@ -73,7 +73,7 @@ defmodule Core.PRMFactories.ContractFactory do
           nhs_payment_method: "prepayment",
           nhs_signer_base: "на підставі наказу",
           issue_city: "Київ",
-          contract_number: "0000-9EAX-XT7X-3115",
+          contract_number: generate_contract_number(),
           contract_request_id: UUID.generate(),
           is_active: true,
           is_suspended: false,
@@ -106,6 +106,8 @@ defmodule Core.PRMFactories.ContractFactory do
           updated_by: UUID.generate()
         }
       end
+
+      def generate_contract_number, do: "#{sequence(:contract_number, &(&1 + 1000))}-9EAX-XT7X-3115"
 
       defp days_to_seconds(days_count), do: days_count * 24 * 60 * 60
       defp to_float(number) when is_integer(number), do: number + 0.0

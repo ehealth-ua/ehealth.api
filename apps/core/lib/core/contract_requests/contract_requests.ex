@@ -560,9 +560,9 @@ defmodule Core.ContractRequests do
       {:signed_nhs, false} ->
         Error.dump("Incorrect status for signing")
 
-      {:create_contract, err} ->
+      {:create_contract, error} ->
         # ToDo: validation errors showed as 502. Improve transaction error handling
-        Logger.error("Failed to save contract with `#{inspect(err)}}`")
+        Logger.error("Failed to save contract with `#{inspect(error)}}`")
         {:error, {:bad_gateway, "Failed to save contract"}}
 
       error ->

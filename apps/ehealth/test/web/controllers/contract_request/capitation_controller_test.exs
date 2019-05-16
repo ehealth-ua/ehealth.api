@@ -19,6 +19,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
   @contract_request_status_new CapitationContractRequest.status(:new)
   @contract_request_status_in_process CapitationContractRequest.status(:in_process)
   @contract_request_status_declined CapitationContractRequest.status(:declined)
+  @contract_status_verified CapitationContract.status(:verified)
 
   @forbidden_statuses_for_termination [
     CapitationContractRequest.status(:declined),
@@ -5909,6 +5910,77 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                  }
                ]
              } = resp["error"]
+    end
+
+    test "fail to sign contract_request because of contract_number exist", %{conn: conn} do
+      nhs()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+        assert :contract_bucket == bucket
+        {:ok, "success"}
+      end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => CapitationContractRequest.status(:nhs_signed)
+      }
+
+      contract_number = generate_contract_number()
+      insert(:prm, :capitation_contract, contract_number: contract_number, status: @contract_status_verified)
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          id: id,
+          data: data,
+          status: CapitationContractRequest.status(:nhs_signed),
+          contract_number: contract_number
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      assert resp =
+               conn
+               |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+                 "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+                 "signed_content_encoding" => "base64"
+               })
+               |> json_response(502)
     end
   end
 

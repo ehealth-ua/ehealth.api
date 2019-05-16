@@ -100,5 +100,9 @@ defmodule Core.Contracts.CapitationContract do
     |> cast_assoc(:contract_divisions)
     |> validate_required(@fields_required)
     |> unique_constraint(:contract_request_id)
+    |> unique_constraint(:contract_number,
+      name: :contract_number_status_verified_index,
+      message: "Verified contract with such number already exists"
+    )
   end
 end
