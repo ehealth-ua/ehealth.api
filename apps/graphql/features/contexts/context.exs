@@ -44,10 +44,19 @@ defmodule GraphQL.Features.Context do
     Mox.Server.verify_on_exit(self())
     Mox.Server.set_mode(self(), :global)
 
-    %{existing: %{}, conn: ConnTest.build_conn()}
+    %{
+      set_env_variables: [],
+      existing: %{},
+      conn: ConnTest.build_conn(),
+      resp_body: nil,
+      resp_entities: nil,
+      resp_entity: nil
+    }
   end)
 
   scenario_finalize(fn status, state ->
+    Enum.each(state.set_env_variables, &System.delete_env/1)
+
     Sandbox.checkin(Repo)
     Sandbox.checkin(PRMRepo)
 
@@ -56,6 +65,15 @@ defmodule GraphQL.Features.Context do
 
     state
   end)
+
+  given_(
+    ~r/^the environment variable "(?<name>[^"]+)" set to "(?<value>[^"]+)"$/,
+    fn %{set_env_variables: set_env_variables} = state, %{name: name, value: value} ->
+      System.put_env(name, value)
+
+      {:ok, %{state | set_env_variables: [name | set_env_variables]}}
+    end
+  )
 
   given_(~r/^my scope is "(?<scope>[^"]+)"$/, fn %{conn: conn} = state, %{scope: scope} ->
     {:ok, %{state | conn: put_scope(conn, scope)}}
@@ -258,7 +276,7 @@ defmodule GraphQL.Features.Context do
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListCapitationContractRequests($first: Int!) {
           capitationContractRequests(first: $first) {
@@ -279,13 +297,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListReimbursementContractRequests($first: Int!) {
           reimbursementContractRequests(first: $first) {
@@ -306,13 +324,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contracts$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListCapitationContracts($first: Int!) {
           capitationContracts(first: $first) {
@@ -333,13 +351,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contracts$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListReimbursementContracts($first: Int!) {
           reimbursementContracts(first: $first) {
@@ -360,13 +378,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medical programs$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListMedicalPrograms($first: Int!) {
           medicalPrograms(first: $first) {
@@ -387,13 +405,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNMs$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListINNMs($first: Int!) {
           innms(first: $first) {
@@ -414,13 +432,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employees$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListEmployees($first: Int!) {
           employees(first: $first) {
@@ -441,13 +459,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) settlements$/,
-    fn %{existing: existing, conn: conn}, %{count: count} ->
+    fn %{existing: existing, conn: conn} = state, %{count: count} ->
       expect(RPCWorkerMock, :run, fn
         _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, existing[Settlement]}
       end)
@@ -472,13 +490,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the first (?<count>\d+) settlements$/,
-    fn %{existing: existing, conn: conn}, %{nested_field: nested_field, field: field, count: count} ->
+    fn %{existing: existing, conn: conn} = state, %{nested_field: nested_field, field: field, count: count} ->
       expect(RPCWorkerMock, :run, fn
         _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, existing[Settlement]}
       end)
@@ -515,13 +533,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListCapitationContractRequestsWithFilter(
           $first: Int!
@@ -547,13 +565,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListReimbursementContractRequestsWithFilter(
           $first: Int!
@@ -579,13 +597,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListCapitationContractsWithFilter(
           $first: Int!
@@ -611,13 +629,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListReimbursementContractsWithFilter(
           $first: Int!
@@ -643,13 +661,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employees where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListEmployeesWithFilter(
           $first: Int!
@@ -675,13 +693,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListLegalEntitiesWithFilter(
           $first: Int!
@@ -707,13 +725,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medical programs where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListMedicalProgramsWithFilter(
           $first: Int!
@@ -739,13 +757,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medications where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListMedicationsWithFilter(
           $first: Int!
@@ -771,13 +789,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medications nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNMs where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListINNMsWithFilter(
           $first: Int!
@@ -803,13 +821,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNM dosages where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListINNMDosages($first: Int!, $filter: INNMDosageFilter!) {
           innmDosages(first: $first, filter: $filter) {
@@ -833,13 +851,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNM dosages where INNM (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListINNMDosages($first: Int!, $filter: INNMDosageFilter!) {
           innmDosages(first: $first, filter: $filter) {
@@ -862,13 +880,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{existing: existing, conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{existing: existing, conn: conn} = state, %{count: count, field: field, value: value} ->
       expect(RPCWorkerMock, :run, fn
         _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, tl(existing[Settlement])}
       end)
@@ -898,13 +916,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListCapitationContractRequestsWithAssocFilter(
           $first: Int!
@@ -930,13 +948,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListReimbursementContractRequestsWithAssocFilter(
           $first: Int!
@@ -962,13 +980,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListCapitationContractsWithAssocFilter(
           $first: Int!
@@ -994,13 +1012,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contracts where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListReimbursementContractsWithAssocFilter(
           $first: Int!
@@ -1026,13 +1044,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medications where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListMedicationsWithAssocFilter(
           $first: Int!
@@ -1058,13 +1076,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medications nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employees where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListEmployeesWithAssocFilter(
           $first: Int!
@@ -1090,13 +1108,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employee requests$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListEmployeeRequests($first: Int!) {
           employeeRequests(first: $first) {
@@ -1117,13 +1135,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employee requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
       query = """
         query ListEmployeeRequestsWithFilter($first: Int!, $filter: EmployeeRequestFilter) {
           employeeRequests(first: $first, filter: $filter) {
@@ -1146,13 +1164,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn},
+    fn %{conn: conn} = state,
        %{
          count: count,
          association_field: association_field,
@@ -1185,13 +1203,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn},
+    fn %{conn: conn} = state,
        %{
          count: count,
          association_field: association_field,
@@ -1224,13 +1242,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) legal entities where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn}, %{count: count, association_field: association_field, field: field, value: value} ->
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
         query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
           legalEntities(first: $first, filter: $filter) {
@@ -1253,13 +1271,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contract requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListCapitationContractRequestsWithOrderBy(
           $first: Int!
@@ -1285,13 +1303,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contract requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListReimbursementContractRequestsWithOrderBy(
           $first: Int!
@@ -1317,13 +1335,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContractRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) capitation contracts sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListCapitationContractsWithOrderBy(
           $first: Int!
@@ -1349,13 +1367,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data capitationContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) reimbursement contracts sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListReimbursementContractsWithOrderBy(
           $first: Int!
@@ -1381,13 +1399,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medical programs sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListMedicalProgramsWithOrderBy(
           $first: Int!
@@ -1413,13 +1431,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medicalPrograms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) medications sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListMedicationsWithOrderBy(
           $first: Int!
@@ -1445,13 +1463,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data medications nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNMs sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListINNMsWithOrderBy(
           $first: Int!
@@ -1477,13 +1495,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innms nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNM dosages$/,
-    fn %{conn: conn}, %{count: count} ->
+    fn %{conn: conn} = state, %{count: count} ->
       query = """
         query ListINNMDosages($first: Int!) {
           innmDosages(first: $first) {
@@ -1506,13 +1524,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) INNM dosages sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListINNMDosagesWithOrderBy(
           $first: Int!
@@ -1538,13 +1556,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employee requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query_field =
         case field do
           "fullName" -> "lastName"
@@ -1576,13 +1594,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query = """
         query ListEmployeesWithOrderBy(
           $first: Int!
@@ -1608,13 +1626,14 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) of the associated (?<association_field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn}, %{count: count, field: field, association_field: association_field, direction: direction} ->
+    fn %{conn: conn} = state,
+       %{count: count, field: field, association_field: association_field, direction: direction} ->
       query = """
         query ListEmployeesWithOrderBy(
           $first: Int!
@@ -1640,13 +1659,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request first (?<count>\d+) settlements sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{existing: existing, conn: conn}, %{count: count, field: field, direction: direction} ->
+    fn %{existing: existing, conn: conn} = state, %{count: count, field: field, direction: direction} ->
       expect(RPCWorkerMock, :run, fn
         _, Uaddresses.Rpc, :search_settlements, _ -> {:ok, Enum.reverse(existing[Settlement])}
       end)
@@ -1676,13 +1695,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
-      {:ok, %{resp_body: resp_body, resp_entities: resp_entities}}
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
   )
 
   when_(
     ~r/^I request capitation contract request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetCapitationContractRequestQuery($id: ID!) {
           capitationContractRequest(id: $id) {
@@ -1702,13 +1721,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data capitationContractRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetReimbursementContractRequestQuery($id: ID!) {
           reimbursementContractRequest(id: $id) {
@@ -1728,13 +1747,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request employee where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetEmployeeQuery($id: ID!) {
           employee(id: $id) {
@@ -1754,13 +1773,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employee))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request employee request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetEmployeeRequestQuery($id: ID!) {
           employeeRequest(id: $id) {
@@ -1778,13 +1797,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employeeRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetEmployeeRequestQuery($id: ID!) {
           employeeRequest(id: $id) {
@@ -1802,13 +1821,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employeeRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
         query GetEmployeeRequestQuery($id: ID!) {
           employeeRequest(id: $id) {
@@ -1828,13 +1847,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employeeRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request INNM where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetINNMQuery($id: ID!) {
           innm(id: $id) {
@@ -1854,13 +1873,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data innm))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the INNM dosage where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetINNMDosageQuery($id: ID!) {
           innmDosage(id: $id) {
@@ -1880,13 +1899,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data innmDosage))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request INNM dosage with INNM where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
         query GetINNMDosageQuery($id: ID!) {
           innmDosage(id: $id) {
@@ -1911,13 +1930,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data innmDosage))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the capitation contract where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetCapitationContractQuery($id: ID!) {
           capitationContract(id: $id) {
@@ -1937,13 +1956,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data capitationContract))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the reimbursement contract where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetReimbursementContractQuery($id: ID!) {
           reimbursementContract(id: $id) {
@@ -1963,13 +1982,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContract))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetReimbursementContractRequestQuery($id: ID!) {
           reimbursementContractRequest(id: $id) {
@@ -1989,13 +2008,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the medical program where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetMedicalProgramQuery($id: ID!) {
           medicalProgram(id: $id) {
@@ -2015,13 +2034,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data medicalProgram))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the medication where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetMedicationQuery($id: ID!) {
           medication(id: $id) {
@@ -2041,13 +2060,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data medication))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the INNM where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetINNMQuery($id: ID!) {
           innm(id: $id) {
@@ -2067,13 +2086,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data innm))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetEmployeeQuery($id: ID!) {
           employee(id: $id) {
@@ -2093,13 +2112,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employee))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<field>\w+) of the legal entity where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
         query GetLegalEntityQuery($id: ID!) {
           legalEntity(id: $id) {
@@ -2119,13 +2138,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data legalEntity))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
         query GetReimbursementContractRequestQuery($id: ID!) {
           reimbursementContractRequest(id: $id) {
@@ -2147,13 +2166,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data reimbursementContractRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the medication where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
         query GetMedicationQuery($id: ID!) {
           medication(id: $id) {
@@ -2175,13 +2194,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data medication))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the legal entity where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
         query GetLegalEntityQuery($id: ID!) {
           legalEntity(id: $id) {
@@ -2203,13 +2222,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data legalEntity))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{nested_field: nested_field, field: field, database_id: database_id} ->
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
         query GetEmployeeQuery($id: ID!) {
           employee(id: $id) {
@@ -2231,20 +2250,20 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data employee))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I create (?<entity>(\w+\s?)+) with attributes:$/,
-    fn %{conn: conn}, %{entity: entity, table_data: [row]} ->
-      call_create_entity_mutation(conn, entity, row)
+    fn %{conn: conn} = state, %{entity: entity, table_data: [row]} ->
+      {:ok, Map.merge(state, call_create_entity_mutation(conn, entity, row))}
     end
   )
 
   when_(
     ~r/^I merge legal entities with signed content$/,
-    fn %{conn: conn, content: content, signed_content: signed_content}, _ ->
+    fn %{conn: conn, content: content, signed_content: signed_content} = state, _ ->
       job = %{
         id: UUID.generate(),
         type: "merge_legal_entities",
@@ -2288,13 +2307,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data mergeLegalEntities legalEntityMergeJob))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I create employee request with signed content$/,
-    fn %{conn: conn, signed_content: signed_content}, _ ->
+    fn %{conn: conn, signed_content: signed_content} = state, _ ->
       template()
 
       expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
@@ -2323,23 +2342,23 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data createEmployeeRequest employeeRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I create contract request with signed content and attributes:$/,
-    fn %{conn: conn, signed_content: signed_content}, %{table_data: [row]} ->
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+    fn %{conn: conn, signed_content: signed_content} = state, %{table_data: [row]} ->
+      stub(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
         {:ok, "success"}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource, _, _ ->
+      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _, _ ->
         {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
       end)
 
-      expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      stub(MediaStorageMock, :get_signed_content, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
+      stub(MediaStorageMock, :save_file, fn _, _, _, _, _ -> {:ok, nil} end)
 
       query = """
         mutation CreateContractRequest($input: CreateContractRequestInput!) {
@@ -2369,13 +2388,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data createContractRequest contractRequest))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I create medical program with name "(?<name>[^"]+)"$/,
-    fn %{conn: conn}, %{name: name} ->
+    fn %{conn: conn} = state, %{name: name} ->
       query = """
       mutation CreateMedicalProgram($input: CreateMedicalProgramInput!) {
         createMedicalProgram(input: $input) {
@@ -2399,13 +2418,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data createMedicalProgram medicalProgram))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I update the status to "(?<status>[^"]+)" with reason "(?<reason>[^"]+)" in legal entity where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{status: status, reason: reason, database_id: database_id} ->
+    fn %{conn: conn} = state, %{status: status, reason: reason, database_id: database_id} ->
       query = """
         mutation UpdateLegalEntityStatusMutation($input: UpdateLegalEntityStatusInput) {
           updateLegalEntityStatus(input: $input) {
@@ -2432,13 +2451,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data updateLegalEntityStatus legalEntity))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id, field: field, value: value} ->
+    fn %{conn: conn} = state, %{database_id: database_id, field: field, value: value} ->
       query = """
         mutation UpdateProgramMedicationMutation($input: UpdateProgramMedicationInput!) {
           updateProgramMedication(input: $input) {
@@ -2463,13 +2482,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data updateProgramMedication programMedication))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I update the (?<nested_field>\w+) of the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id, field: field, nested_field: nested_field, value: value} ->
+    fn %{conn: conn} = state, %{database_id: database_id, field: field, nested_field: nested_field, value: value} ->
       query = """
         mutation UpdateProgramMedicationMutation($input: UpdateProgramMedicationInput!) {
           updateProgramMedication(input: $input) {
@@ -2498,13 +2517,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data updateProgramMedication programMedication))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I deactivate employee where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
       mutation DeactivateEmployee($input: DeactivateEmployeeInput!) {
         deactivateEmployee(input: $input) {
@@ -2529,13 +2548,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data deactivateEmployee employee))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I deactivate medical program where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
       mutation DeactivateMedicalProgram($input: DeactivateMedicalProgramInput!) {
         deactivateMedicalProgram(input: $input) {
@@ -2560,13 +2579,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data deactivateMedicalProgram medicalProgram))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I deactivate medication where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
       mutation DeactivateMedication($input: DeactivateMedicationInput!) {
         deactivateMedication(input: $input) {
@@ -2591,13 +2610,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data deactivateMedication medication))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I deactivate INNM dosage where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id} ->
+    fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
       mutation DeactivateINNMDosage($input: DeactivateINNMDosageInput!) {
         deactivateInnmDosage(input: $input) {
@@ -2622,13 +2641,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data deactivateInnmDosage innmDosage))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I suspend (?<contract_type>\w+) contract where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id, contract_type: contract_type} ->
+    fn %{conn: conn} = state, %{database_id: database_id, contract_type: contract_type} ->
       query = """
       mutation SuspendContract($input: SuspendContractInput!) {
         suspendContract(input: $input) {
@@ -2665,13 +2684,13 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data suspendContract contract))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
   when_(
     ~r/^I verify by NHS with (?<nhs_verified>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) legal entity where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn}, %{database_id: database_id, nhs_verified: nhs_verified} ->
+    fn %{conn: conn} = state, %{database_id: database_id, nhs_verified: nhs_verified} ->
       query = """
         mutation NHSVerifyLegalEntityMutation($input: NhsVerifyLegalEntityInput) {
           nhsVerifyLegalEntity(input: $input) {
@@ -2697,7 +2716,7 @@ defmodule GraphQL.Features.Context do
 
       resp_entity = get_in(resp_body, ~w(data nhsVerifyLegalEntity legalEntity))
 
-      {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
   )
 
@@ -3094,7 +3113,7 @@ defmodule GraphQL.Features.Context do
 
     resp_entity = get_in(resp_body, ~w(data createInnm INNM))
 
-    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    %{resp_body: resp_body, resp_entity: resp_entity}
   end
 
   defp call_create_entity_mutation(conn, "INNM dosage", input_attrs) do
@@ -3118,7 +3137,7 @@ defmodule GraphQL.Features.Context do
 
     resp_entity = get_in(resp_body, ~w(data createInnmDosage INNMDosage))
 
-    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    %{resp_body: resp_body, resp_entity: resp_entity}
   end
 
   defp call_create_entity_mutation(conn, entity, input_attrs) do
@@ -3144,7 +3163,7 @@ defmodule GraphQL.Features.Context do
 
     resp_entity = get_in(resp_body, ["data", "create#{capitalized}", downcased])
 
-    {:ok, %{resp_body: resp_body, resp_entity: resp_entity}}
+    %{resp_body: resp_body, resp_entity: resp_entity}
   end
 
   defp prepare_return_fields(input_attrs),
