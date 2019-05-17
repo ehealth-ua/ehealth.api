@@ -504,9 +504,15 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_contractor_divisions_dls(@capitation, _), do: :ok
+  def validate_contractor_divisions_dls(contract_type, contractor_divisions) do
+    dls_verify? = Confex.fetch_env!(:core, :dispense_division_dls_verify)
 
-  def validate_contractor_divisions_dls(@reimbursement, contractor_divisions) do
+    do_validate_contractor_divisions_dls(dls_verify?, contract_type, contractor_divisions)
+  end
+
+  defp do_validate_contractor_divisions_dls(true, @capitation, _), do: :ok
+
+  defp do_validate_contractor_divisions_dls(true, @reimbursement, contractor_divisions) do
     Division
     |> where([d], d.dls_verified == false or is_nil(d.dls_verified))
     |> where([d], d.id in ^contractor_divisions)
@@ -517,6 +523,8 @@ defmodule Core.ContractRequests.Validator do
       _ -> {:error, {:conflict, "All contractor divisions must be dls verified"}}
     end
   end
+
+  defp do_validate_contractor_divisions_dls(false, _, _), do: :ok
 
   # Signer
 
