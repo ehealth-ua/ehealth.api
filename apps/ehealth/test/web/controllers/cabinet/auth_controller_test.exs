@@ -144,7 +144,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(RPCWorkerMock, :run, 2, fn "man_api", Man.Rpc, :render_template, [_id, %{verification_code: jwt}] ->
+      expect(RPCWorkerMock, :run, 2, fn "man_api", Man.Rpc, :render_template, [_id, %{"verification_code" => jwt}] ->
         {:ok, claims} = decode_and_verify(jwt)
         assert Map.has_key?(claims, "email")
         assert "success-new-user@example.com" == claims["email"]

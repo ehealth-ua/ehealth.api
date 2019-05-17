@@ -10,14 +10,14 @@ defmodule EHealth.Integration.CorruptChainNotificationTest do
     test "it sends an email to specified recepient" do
       expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, data] ->
         assert %{
-                 failure_details: %{
+                 "failure_details" => %{
                    "data" => [
                      %{"a" => 1},
                      %{"b" => 2}
                    ]
                  },
-                 format: "text/html",
-                 locale: "uk_UA"
+                 "format" => "text/html",
+                 "locale" => "uk_UA"
                } = data
 
         {:ok, "<html><body>some_rendered_content</body></html>"}

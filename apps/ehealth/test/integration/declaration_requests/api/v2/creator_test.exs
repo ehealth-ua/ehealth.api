@@ -24,7 +24,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
           id when id in [4, "4"] ->
             printout_form =
               data
-              |> Map.drop(~w(locale format)a)
+              |> Map.drop(~w(locale format))
               |> Jason.encode!()
 
             {:ok, printout_form}
@@ -88,8 +88,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V2.CreateTest do
           unzr: "––",
           addresses: %{
             residence: %{
-              full_address: "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 16, квартира 41, \
-02090",
+              full_address:
+                "Житомирська область, Бердичівський район, місто Київ, вулиця Ніжинська 16, квартира 41, 02090",
               zip: "02090",
               type: "RESIDENCE",
               street_type: "вулиця",

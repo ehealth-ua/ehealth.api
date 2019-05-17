@@ -23,7 +23,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
           id when id in [4, "4"] ->
             printout_form =
               data
-              |> Map.drop(~w(locale format)a)
+              |> Map.drop(~w(locale format))
               |> Jason.encode!()
 
             {:ok, printout_form}

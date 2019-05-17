@@ -16,7 +16,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       tax_id = "3126509816"
 
       expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, template_data] ->
-        assert Map.has_key?(template_data, :verification_code)
+        assert Map.has_key?(template_data, "verification_code")
         {:ok, "<html></html>"}
       end)
 
@@ -180,7 +180,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       tax_id = "3126509816"
 
       expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, template_data] ->
-        assert Map.has_key?(template_data, :verification_code)
+        assert Map.has_key?(template_data, "verification_code")
 
         {:ok, "<html></html>"}
       end)
