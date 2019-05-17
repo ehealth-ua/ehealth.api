@@ -13,7 +13,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   @auth_na DeclarationRequest.authentication_method(:na)
   @channel_cabinet DeclarationRequest.channel(:cabinet)
 
-  def create(params, user_id, person, employee, division, legal_entity, headers) do
+  def create(params, user_id, person, employee, division, legal_entity) do
     global_parameters = GlobalParameters.get_values()
 
     auxiliary_entities = %{
@@ -29,7 +29,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
     Repo.transaction(fn ->
       cancel_declaration_requests(user_id, pending_declaration_requests)
 
-      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
+      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities),
            {:ok, declaration_request} <- finalize(declaration_request),
            {:ok, urgent_data} <- prepare_urgent_data(declaration_request) do
         %{urgent_data: urgent_data, finalize: declaration_request}
@@ -46,7 +46,7 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   defdelegate finalize(declaration_request), to: V1Creator
   defdelegate prepare_urgent_data(declaration_request), to: V1Creator
 
-  defdelegate changeset(attrs, user_id, auxiliary_entities, headers), to: V1Creator
+  defdelegate changeset(attrs, user_id, auxiliary_entities), to: V1Creator
 
   defdelegate generate_printout_form(changeset, employee), to: V1Creator
   defdelegate do_insert_declaration_request(changeset), to: V1Creator
@@ -55,9 +55,9 @@ defmodule Core.DeclarationRequests.API.V2.Creator do
   defdelegate validate_employee_status(employee), to: V1Creator
   defdelegate check_phone_number_auth_limit(search_result, chageset, auxiliary_entities), to: V1Creator
 
-  defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
+  defp insert_declaration_request(params, user_id, auxiliary_entities) do
     params
-    |> changeset(user_id, auxiliary_entities, headers)
+    |> changeset(user_id, auxiliary_entities)
     |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities)
     |> generate_printout_form(auxiliary_entities[:employee])
     |> do_insert_declaration_request()

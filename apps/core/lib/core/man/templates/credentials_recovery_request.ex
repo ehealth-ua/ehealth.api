@@ -2,9 +2,8 @@ defmodule Core.Man.Templates.CredentialsRecoveryRequest do
   @moduledoc false
   use Confex, otp_app: :core
 
+  alias Core.Man.Client, as: ManClient
   alias Core.Users.CredentialsRecoveryRequest
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%CredentialsRecoveryRequest{id: id, user_id: user_id}, client_id, redirect_uri) do
     template_data = %{
@@ -18,6 +17,6 @@ defmodule Core.Man.Templates.CredentialsRecoveryRequest do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, template_data, [])
+    ManClient.render_template(template_id, template_data)
   end
 end

@@ -2,8 +2,11 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+
   import Mox
   import Core.Expectations.Man
+  import Core.Expectations.OtpVerification
+
   alias Ecto.UUID
   alias Core.Repo
   alias Core.DeclarationRequests.DeclarationRequest
@@ -100,9 +103,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -217,9 +218,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -498,9 +497,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -569,9 +566,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          )}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -680,9 +675,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -881,9 +874,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -977,9 +968,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1091,9 +1080,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_verification_phone()
 
       legal_entity = insert(:prm, :legal_entity, id: "c3cc1def-48b6-4451-be9d-3b777ef06ff9")
       division = insert(:prm, :division, legal_entity: legal_entity)

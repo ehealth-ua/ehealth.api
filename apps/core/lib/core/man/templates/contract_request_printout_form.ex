@@ -10,11 +10,11 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
   alias Core.Dictionaries
   alias Core.Dictionaries.Dictionary
   alias Core.LegalEntities.LegalEntity
+  alias Core.Man.Client, as: ManClient
   alias Core.Validators.Preload
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
   @working_hours [
     mon: "Пн.",
     tue: "Вт.",
@@ -29,10 +29,9 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
 
   def render(
         %CapitationContractRequest{parent_contract_id: parent_contract_id, contract_number: contract_number} =
-          contract_request,
-        headers
+          contract_request
       )
-      when not is_nil(parent_contract_id) do
+      when parent_contract_id != nil do
     parent_contract =
       CapitationContract
       |> where([c], c.contract_number == ^contract_number and is_nil(c.parent_contract_id))
@@ -49,10 +48,10 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
       |> format_date(~w(parent nhs_signed_date))
 
     template_id = config()[:appendix_id]
-    @man_api.render_template(template_id, template_data, headers)
+    ManClient.render_template(template_id, template_data)
   end
 
-  def render(%CapitationContractRequest{} = contract_request, headers) do
+  def render(%CapitationContractRequest{} = contract_request) do
     template_data =
       contract_request
       |> Jason.encode!()
@@ -61,7 +60,7 @@ defmodule Core.Man.Templates.CapitationContractRequestPrintoutForm do
       |> Map.put("locale", config()[:locale])
 
     template_id = config()[:id]
-    @man_api.render_template(template_id, prepare_data(template_data), headers)
+    ManClient.render_template(template_id, prepare_data(template_data))
   end
 
   defp prepare_data(data) do

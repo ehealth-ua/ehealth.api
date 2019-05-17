@@ -56,7 +56,7 @@ defmodule Core.V2.DeclarationRequests do
          {:ok, %Division{} = division} <-
            Reference.validate(:division, params["division_id"], "$.declaration_request.division_id") do
       data = Map.put(params, "channel", DeclarationRequest.channel(:mis))
-      Creator.create(data, user_id, params["person"], employee, division, legal_entity, headers)
+      Creator.create(data, user_id, params["person"], employee, division, legal_entity)
     end
   end
 
@@ -83,7 +83,7 @@ defmodule Core.V2.DeclarationRequests do
         |> Map.put("employee", employee)
         |> Map.put("channel", DeclarationRequest.channel(:cabinet))
 
-      Creator.create(data, user_id, person, employee, division, legal_entity, headers)
+      Creator.create(data, user_id, person, employee, division, legal_entity)
     end
   end
 

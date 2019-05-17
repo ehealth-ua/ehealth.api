@@ -2,7 +2,9 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase
+
   import Core.Expectations.Signature
+  import Core.Expectations.OtpVerification
   import Mox
 
   alias Ecto.UUID
@@ -309,10 +311,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         {:ok, build(:person, id: person_id, tax_id: data["tax_id"])}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
         {:ok, %{"data" => %{"id" => id, "person_id" => person_id, "tax_id" => data["tax_id"]}}}
       end)
@@ -336,6 +334,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
+
       drfo_signed_content(data, data["tax_id"])
 
       assert conn
@@ -350,10 +350,6 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
 
       expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
         {:ok, build(:person, id: id, tax_id: data["tax_id"])}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
       end)
 
       expect(MithrilMock, :get_user_by_id, fn id, _ ->
@@ -382,6 +378,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         |> put_req_header("x-consumer-metadata", Jason.encode!(%{client_id: legal_entity.id}))
 
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       unzr = "#{String.replace(data["birth_date"], "-", "")}-01234"
       data = Map.put(data, "unzr", unzr)

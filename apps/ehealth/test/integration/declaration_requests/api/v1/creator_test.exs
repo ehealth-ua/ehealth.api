@@ -15,10 +15,10 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
 
   describe "generate_printout_form/1" do
     setup %{conn: _conn} do
-      expect(ManMock, :render_template, fn id, data, _ ->
+      expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [id, data] ->
         case id do
           "999" ->
-            {:error, "oops, I did it again"}
+            nil
 
           id when id in [4, "4"] ->
             printout_form =
@@ -383,7 +383,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
         |> put_change(:authentication_method_current, %{})
         |> Creator.generate_printout_form(employee)
 
-      assert ~s(Error during MAN interaction. Result from MAN: "oops, I did it again") ==
+      assert ~s(Error during MAN interaction. Result from MAN: "Remote server internal error") ==
                elem(changeset.errors[:printout_content], 0)
 
       System.put_env("DECLARATION_REQUEST_PRINTOUT_FORM_TEMPLATE_ID", "4")

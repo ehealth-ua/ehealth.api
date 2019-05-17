@@ -32,7 +32,7 @@ defmodule EHealth.Web.UserControllerTest do
         {:ok, %{"data" => [@user_attrs]}}
       end)
 
-      expect(ManMock, :render_template, fn 5, data, _ ->
+      expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [5, data] ->
         printout_form =
           "<html><body>Email for credentials recovery " <>
             "request ##{data.credentials_recovery_request_id}?client_id=#{data.client_id}&redirect_uri=#{

@@ -16,11 +16,10 @@ defmodule Core.Man.Templates.ReimbursementContractRequestPrintoutForm do
 
   alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Dictionaries
+  alias Core.Man.Client, as: ManClient
   alias Core.Validators.Preload
 
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
-
-  def render(%ReimbursementContractRequest{} = contract_request, headers) do
+  def render(%ReimbursementContractRequest{} = contract_request) do
     template_data =
       contract_request
       |> atoms_to_strings()
@@ -31,7 +30,7 @@ defmodule Core.Man.Templates.ReimbursementContractRequestPrintoutForm do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, prepare_data(template_data), headers)
+    ManClient.render_template(template_id, prepare_data(template_data))
   end
 
   defp prepare_data(data) do

@@ -2,14 +2,12 @@ use Mix.Config
 
 config :core,
   api_resolvers: [
-    man: ManMock,
     mpi: MPIMock,
     mithril: MithrilMock,
     digital_signature: SignatureMock,
     ops: OPSMock,
     report: ReportMock,
     media_storage: MediaStorageMock,
-    otp_verification: OTPVerificationMock,
     uaddresses: UAddressesMock,
     postmark: PostmarkMock,
     declaration_request_creator: DeclarationRequestsCreatorMock
@@ -32,9 +30,6 @@ config :core,
 # Configures PRM API
 config :core, Core.API.PRM, endpoint: {:system, "PRM_ENDPOINT", "http://localhost:4040"}
 
-# Configures Man API
-config :core, Core.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://localhost:4040"}
-
 # Configures OPS API
 config :core, Core.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://localhost:4040"}
 
@@ -42,8 +37,6 @@ config :core, Core.API.OPS, endpoint: {:system, "OPS_ENDPOINT", "http://localhos
 config :core, Core.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://localhost:4040"}
 
 config :core, Core.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://localhost:4040"}
-
-config :core, Core.API.OTPVerification, endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://localhost:4040"}
 
 config :core, Core.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://localhost:4040"}
 

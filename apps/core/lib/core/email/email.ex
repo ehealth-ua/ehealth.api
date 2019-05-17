@@ -6,9 +6,8 @@ defmodule Core.Email do
 
   alias Core.Bamboo.Emails.Sender
   alias Core.Email.Schema
+  alias Core.Man.Client, as: ManClient
   alias Ecto.Changeset
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def send(%{"id" => man_id, "to" => to} = attrs) do
     with receivers <- String.split(to, ","),
@@ -30,9 +29,9 @@ defmodule Core.Email do
       |> Map.merge(data)
       |> Map.delete("id")
 
-    case @man_api.render_template(id, data, []) do
+    case ManClient.render_template(id, data) do
       {:ok, body} -> {:ok, body}
-      {:error, err} -> {:error, {:bad_request, "Cannot render email template with: \"#{inspect(err)}\""}}
+      _ -> {:error, {:bad_request, "Cannot render email template"}}
     end
   end
 

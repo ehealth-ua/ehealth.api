@@ -119,7 +119,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
       insert_dictionaries()
       legal_entity_params = get_legal_entity_data()
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
@@ -136,6 +135,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -156,7 +156,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
       insert_dictionaries()
       legal_entity_data = get_legal_entity_data()
       [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
@@ -176,6 +175,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -195,7 +195,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
+
       insert_dictionaries()
       legal_entity_data = get_legal_entity_data()
       [license_msp, _license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
@@ -216,6 +216,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -234,7 +235,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       insert_dictionaries()
       legal_entity_params = get_legal_entity_data()
@@ -252,6 +252,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -271,7 +272,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       upsert_client_connection()
 
       validate_addresses()
-      template()
 
       insert_dictionaries()
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", "123456789")
@@ -289,6 +289,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -307,7 +308,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       insert_dictionaries()
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", "123456789")
@@ -337,6 +337,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp =
         conn
@@ -356,7 +357,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       upsert_client_connection()
 
       validate_addresses()
-      template()
 
       insert_dictionaries()
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", "123456789")
@@ -386,6 +386,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert %{"data" => resp_data} =
                conn
@@ -407,7 +408,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       upsert_client_connection()
 
       validate_addresses()
-      template()
 
       insert_dictionaries()
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", edrpou)
@@ -437,6 +437,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert %{"data" => resp_data} =
                conn
@@ -703,7 +704,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       legal_entity = insert(:prm, :legal_entity, type: @msp)
       legal_entity_data = get_legal_entity_data()
@@ -730,6 +730,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -745,7 +746,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       legal_entity = insert(:prm, :legal_entity, type: @msp)
 
@@ -766,6 +766,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -821,7 +822,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
 
@@ -842,6 +842,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -857,7 +858,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
       legal_entity_data = get_legal_entity_data()
@@ -884,6 +884,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -899,7 +900,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template()
 
       legal_entity = insert(:prm, :legal_entity, type: @msp_pharmacy)
 
@@ -920,6 +920,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -1149,7 +1150,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client(2)
       upsert_client_connection(2)
       validate_addresses()
-      template(2)
 
       insert_dictionaries()
       legal_entity_params = get_legal_entity_data()
@@ -1168,6 +1168,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp1 =
         conn
@@ -1205,6 +1206,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert conn
              |> put_req_header("content-type", "application/json")
@@ -1226,7 +1228,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client()
       upsert_client_connection()
       validate_addresses()
-      template(2)
       get_roles_by_name()
       get_user_roles()
       create_user_role()
@@ -1286,6 +1287,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template(2)
 
       employee_request_id =
         conn
@@ -1315,7 +1317,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client(2)
       upsert_client_connection(2)
       validate_addresses()
-      template(2)
 
       insert_dictionaries()
       legal_entity_params = get_legal_entity_data()
@@ -1334,6 +1335,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp1 =
         conn
@@ -1362,6 +1364,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp2 =
         conn
@@ -1381,7 +1384,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       put_client(2)
       upsert_client_connection(2)
       validate_addresses()
-      template(2)
 
       insert_dictionaries()
       legal_entity_params = get_legal_entity_data()
@@ -1400,6 +1402,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp1 =
         conn
@@ -1434,6 +1437,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       resp2 =
         conn

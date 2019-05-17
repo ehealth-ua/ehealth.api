@@ -86,7 +86,7 @@ defmodule GraphQL.Resolvers.ContractRequest do
     end
   end
 
-  def get_printout_content(%{__struct__: _, status: @status_pending_nhs_sign} = contract_request, _, %{context: context}) do
+  def get_printout_content(%{__struct__: _, status: @status_pending_nhs_sign} = contract_request, _, _) do
     contract_request = Map.put(contract_request, :nhs_signed_date, Date.utc_today())
 
     form_renderer =
@@ -95,7 +95,7 @@ defmodule GraphQL.Resolvers.ContractRequest do
         %ReimbursementContractRequest{} -> ReimbursementContractRequestPrintoutForm
       end
 
-    with {:ok, printout_content} <- form_renderer.render(contract_request, context.headers) do
+    with {:ok, printout_content} <- form_renderer.render(contract_request) do
       {:ok, printout_content}
     end
   end

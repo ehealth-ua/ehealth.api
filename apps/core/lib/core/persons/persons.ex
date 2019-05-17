@@ -50,11 +50,7 @@ defmodule Core.Persons do
          :ok <- Addresses.validate(content["addresses"], "RESIDENCE"),
          :ok <- PersonsValidator.validate_birth_certificate_number(content),
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
-         :ok <-
-           validate_authentication_method_phone(
-             Map.get(changes, :authentication_methods),
-             headers
-           ),
+         :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods)),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers),
          :ok <- save_signed_content(data["id"], params, headers) do
       {:ok, data}
@@ -146,8 +142,8 @@ defmodule Core.Persons do
     end
   end
 
-  defp validate_authentication_method_phone(methods, headers) do
-    case PersonsValidator.validate_authentication_method_phone_number(methods, headers) do
+  defp validate_authentication_method_phone(methods) do
+    case PersonsValidator.validate_authentication_method_phone_number(methods) do
       :ok ->
         :ok
 

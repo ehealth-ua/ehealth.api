@@ -100,7 +100,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         }
       }
 
-      assert {:ok, %{"data" => %{"status" => "verified"}}} = verify_auth(declaration_request, "99911")
+      assert {:ok, %{status: "verified"}} = verify_auth(declaration_request, "99911")
     end
 
     test "phone is not verified verification" do
@@ -113,7 +113,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         }
       }
 
-      assert {:error, %{"error" => %{}}} = verify_auth(declaration_request, "11999")
+      assert {:error, {:forbidden, _}} = verify_auth(declaration_request, "11999")
     end
 
     test "auth method NA is not required verification" do
@@ -129,17 +129,11 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
   end
 
   defp otp_verification_expect(count \\ 1) do
-    expect(OTPVerificationMock, :complete, count, fn _number, params, _headers ->
-      case params.code do
-        "99911" ->
-          {:ok, %{"meta" => %{"code" => 200}, "data" => %{"status" => "verified"}}}
-
-        "11999" ->
-          {:error,
-           %{"meta" => %{"code" => 422}, "error" => %{"type" => "forbidden", "message" => "invalid verification code"}}}
-
-        _ ->
-          nil
+    expect(RPCWorkerMock, :run, count, fn "otp_verification_api", OtpVerification.Rpc, :complete, [_, code] ->
+      case code do
+        "99911" -> {:ok, %{status: "verified"}}
+        "11999" -> {:error, {:forbidden, "Invalid verification code"}}
+        _ -> nil
       end
     end)
   end

@@ -56,26 +56,12 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | OAUTH_ENDPOINT        | not set         | Endpoint for [Mithril](http://docs.mithril1.apiary.io/#). |
 | OAUTH_REQUEST_TIMEOUT | `30_000`        | HTTP timeout for hackney. |
 
-## Man
-
-| VAR_NAME            | Default Value | Description |
-| ------------------- | --------------| ----------- |
-| MAN_ENDPOINT        | not set       | Endpoint for [Man](http://docs.man2.apiary.io/#). |
-| MAN_REQUEST_TIMEOUT | `30_000`      | HTTP timeout for hackney. |
-
 ## UAddresses
 
 | VAR_NAME                  | Default Value  | Description |
 | ------------------------- | -------------- | ----------- |
 | UADDRESS_ENDPOINT         | not set        | Endpoint for [UAdress](http://docs.uaddress.apiary.io/). |
 | UADDRESS_ENDPOINT_TIMEOUT | `30_000`       | HTTP timeout for hackney. |
-
-## OTP
-
-| VAR_NAME                         | Default Value  | Description |
-| -------------------------------- | -------------- | ----------- |
-| OTP_VERIFICATION_ENDPOINT        | not set        | Endpoint for [OTP](http://docs.ehealthapi1.apiary.io/#reference/public.-medical-service-provider-integration-layer/otp-verification). |
-| OTP_VERIFICATION_REQUEST_TIMEOUT | `30_000`       | HTTP timeout for hackney. |
 
 ## OPS
 
@@ -164,7 +150,6 @@ Also sample `.env` can be used as payload for `docker run` cli.
 | -------------------------------------------- | ------------- | ----------- |
 | LEGAL_ENTITY_MSP_EMPLOYEE_TYPES              | not set       | List of available Employee types in Legal Entity
 | LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES         | not set       | List of available Pharmacy Employee types in Legal Entity
-ored
 
 # Legal Entity division types for contracts
 | VAR_NAME                                     | Default Value                      | Description |

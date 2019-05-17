@@ -112,7 +112,7 @@ defmodule Core.Persons.V2.Validator do
 
   defdelegate(validate_birth_date(birth_date, path), to: V1Validator)
 
-  defdelegate validate_authentication_method_phone_number(authentication_methods, headers), to: V1Validator
+  defdelegate validate_authentication_method_phone_number(authentication_methods), to: V1Validator
 
   defdelegate validate_birth_certificate_number(person), to: V1Validator
 

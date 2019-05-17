@@ -10,8 +10,8 @@ defmodule Core.DeclarationRequests.API.Approve do
   alias Core.Validators.Error
   require Logger
 
+  @rpc_worker Application.get_env(:core, :rpc_worker)
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
-  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @read_repo Application.get_env(:core, :repos)[:read_repo]
@@ -32,7 +32,11 @@ defmodule Core.DeclarationRequests.API.Approve do
   end
 
   def verify_auth(%{authentication_method_current: %{"type" => @auth_otp, "number" => phone}}, code) do
-    @otp_verification_api.complete(phone, %{code: code}, [])
+    case @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :complete, [phone, code]) do
+      {:ok, _verification} = result -> result
+      nil -> {:error, {:not_found, "Verification not found"}}
+      error -> error
+    end
   end
 
   def verify_auth(_, _), do: {:ok, true}

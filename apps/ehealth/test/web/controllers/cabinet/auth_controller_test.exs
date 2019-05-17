@@ -1,9 +1,11 @@
 defmodule Mithril.Web.RegistrationControllerTest do
   use EHealth.Web.ConnCase
 
-  import Mox
-  import Core.Guardian
   import Core.Expectations.Man
+  import Core.Expectations.OtpVerification
+  import Core.Guardian
+  import Mox
+
   alias Ecto.UUID
 
   # For Mox lib. Make sure mocks are verified when the test exits
@@ -142,7 +144,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(ManMock, :render_template, 2, fn _id, %{verification_code: jwt}, _ ->
+      expect(RPCWorkerMock, :run, 2, fn "man_api", Man.Rpc, :render_template, [_id, %{verification_code: jwt}] ->
         {:ok, claims} = decode_and_verify(jwt)
         assert Map.has_key?(claims, "email")
         assert "success-new-user@example.com" == claims["email"]
@@ -318,6 +320,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "create new person and user", %{conn: conn, params: params} do
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect_persons_search_result([])
@@ -350,10 +353,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -364,6 +363,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "create new user and update MPI person", %{conn: conn, params: params} do
       person_id = UUID.generate()
 
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _,
@@ -399,10 +399,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -411,6 +407,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "MPI persons duplicated", %{conn: conn, params: params} do
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
@@ -418,10 +415,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
       end)
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
-        {:ok, %{"data" => []}}
-      end)
-
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
         {:ok, %{"data" => []}}
       end)
 
@@ -454,6 +447,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     @tag :pending
     test "update user and create new MPI person", %{conn: conn, params: params} do
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
@@ -495,10 +489,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -508,6 +498,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "update user and update MPI person", %{conn: conn, params: params} do
       person_id = UUID.generate()
 
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
@@ -543,10 +534,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, "success"}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       conn
       |> post(cabinet_auth_path(conn, :registration, params))
       |> json_response(201)
@@ -572,6 +559,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user exists with tax_id", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
@@ -580,10 +568,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890"}]}}
-      end)
-
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
       end)
 
       assert "tax_id_exists" ==
@@ -597,16 +581,13 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "user blocked", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect_persons_search_result([])
 
       expect(MithrilMock, :search_user, fn %{email: "email@example.com"}, _headers ->
         {:ok, %{"data" => [%{"tax_id" => "1234567890", "is_blocked" => true}]}}
-      end)
-
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
       end)
 
       assert "User blocked" ==
@@ -625,9 +606,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       params = Map.put(params, :signed_content, signed_content)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       resp =
         conn
@@ -675,9 +654,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
       params = Map.put(params, :signed_content, signed_content)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       resp =
         conn
@@ -719,9 +696,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -754,9 +729,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -790,9 +763,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -825,9 +796,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -843,9 +812,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
       use SignatureExpect
       {:ok, jwt, _} = encode_and_sign(get_aud(:registration), %{email: "not-matched@example.com"})
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -917,9 +884,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         {:ok, %{"data" => data}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       expect_uaddresses_validate()
 
@@ -962,9 +927,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid person data", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       signed_content =
         %{
@@ -994,6 +957,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "422 response code on MPI", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
+      expect_otp_verification_complete()
       expect_uaddresses_validate()
 
       expect_persons_search_result([])
@@ -1028,10 +992,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       assert [err] =
                conn
                |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -1045,8 +1005,8 @@ defmodule Mithril.Web.RegistrationControllerTest do
     test "invalid OTP for user factor", %{conn: conn, params: params, jwt: jwt} do
       use SignatureExpect
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:error, %{"error" => %{"message" => "Invalid verification code"}}}
+      expect(RPCWorkerMock, :run, fn "otp_verification_api", OtpVerification.Rpc, :complete, [_phone_number, _code] ->
+        {:error, {:forbidden, "Invalid verification code"}}
       end)
 
       assert resp =

@@ -18,14 +18,12 @@ config :ecto_trail, table_name: "audit_log"
 
 config :core,
   api_resolvers: [
-    man: Core.API.Man,
     mpi: Core.API.MPI,
     mithril: Core.API.Mithril,
     digital_signature: Core.API.Signature,
     ops: Core.API.OPS,
     report: Core.API.Report,
     media_storage: Core.API.MediaStorage,
-    otp_verification: Core.API.OTPVerification,
     uaddresses: Core.API.UAddress,
     postmark: Core.API.Postmark,
     declaration_request_creator: Core.DeclarationRequests.API.V1.Creator
@@ -107,15 +105,6 @@ config :core, Core.API.Mithril,
     timeout: {:system, :integer, "OAUTH_REQUEST_TIMEOUT", 30_000}
   ]
 
-# Configures Man API
-config :core, Core.API.Man,
-  endpoint: {:system, "MAN_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "MAN_REQUEST_TIMEOUT", 30_000}
-  ]
-
 # Configures UAddress API
 config :core, Core.API.UAddress,
   endpoint: {:system, "UADDRESS_ENDPOINT"},
@@ -123,15 +112,6 @@ config :core, Core.API.UAddress,
     connect_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     recv_timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000},
     timeout: {:system, :integer, "UADDRESS_REQUEST_TIMEOUT", 30_000}
-  ]
-
-# Configures OTP Verification API
-config :core, Core.API.OTPVerification,
-  endpoint: {:system, "OTP_VERIFICATION_ENDPOINT"},
-  hackney_options: [
-    connect_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
-    recv_timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000},
-    timeout: {:system, :integer, "OTP_VERIFICATION_REQUEST_TIMEOUT", 30_000}
   ]
 
 # Configures MPI API

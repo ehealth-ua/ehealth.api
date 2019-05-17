@@ -2,9 +2,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   @moduledoc false
 
   use EHealth.Web.ConnCase, async: false
-  import Mox
+
+  import Core.Expectations.OtpVerification
   import Core.Expectations.RPC
   import Core.Expectations.Signature
+  import Mox
 
   alias Core.GlobalParameters
   alias Core.MedicationRequestRequest
@@ -2083,10 +2085,6 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       expect_ops_get_declarations()
       expect_encounter_status("finished")
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
-
       expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
@@ -2100,6 +2098,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
 
       expect_encounter_status("finished")
+      expect_otp_verification_send_sms()
 
       {medication_id, pm} = create_medications_structure()
 
@@ -2142,14 +2141,11 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
       expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
-
       expect_ops_get_declarations()
       expect_encounter_status("finished")
       expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
       expect_encounter_status("finished")
+      expect_otp_verification_send_sms()
 
       expect(OPSMock, :create_medication_request, fn params, _headers ->
         medication_request = build(:medication_request, id: params.medication_request.id)

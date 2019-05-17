@@ -5,9 +5,8 @@ defmodule Core.Man.Templates.EmployeeRequestUpdateInvitation do
 
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.LegalEntities
+  alias Core.Man.Client, as: ManClient
   alias Core.Man.Templates.EmployeeRequestInvitation
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -16,7 +15,7 @@ defmodule Core.Man.Templates.EmployeeRequestUpdateInvitation do
       |> LegalEntities.get_by_id()
       |> EmployeeRequestInvitation.get_clinic_info()
 
-    @man_api.render_template(
+    ManClient.render_template(
       config()[:id],
       %{
         format: config()[:format],
@@ -26,8 +25,7 @@ defmodule Core.Man.Templates.EmployeeRequestUpdateInvitation do
         clinic_address: Map.get(clinic_info, :address),
         doctor_role: EmployeeRequestInvitation.get_position(data),
         request_id: id |> Cipher.encrypt() |> Base.encode64()
-      },
-      []
+      }
     )
   end
 end

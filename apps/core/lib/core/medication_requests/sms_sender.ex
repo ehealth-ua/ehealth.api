@@ -1,22 +1,19 @@
 defmodule Core.MedicationRequests.SMSSender do
   @moduledoc false
 
-  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def maybe_send_sms(mrr, person, template_fun) do
     otp = Enum.find(person.authentication_methods, nil, fn method -> method["type"] == "OTP" end)
 
     if otp do
       {:ok, _} =
-        @otp_verification_api.send_sms(
-          %{
-            phone_number: otp["phone_number"],
-            body: template_fun.(mrr),
-            type: "medication_request",
-            provider: Confex.fetch_env!(:core, :sms_provider)
-          },
-          []
-        )
+        @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :send_sms, [
+          otp["phone_number"],
+          template_fun.(mrr),
+          "medication_request",
+          Confex.fetch_env!(:core, :sms_provider)
+        ])
     end
   end
 

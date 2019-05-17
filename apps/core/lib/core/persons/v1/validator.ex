@@ -6,7 +6,8 @@ defmodule Core.Persons.V1.Validator do
   alias Core.Validators.Error
   alias Core.Validators.JsonObjects
 
-  @verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
+
   @auth_method_error "Must be one and only one authentication method."
   @birth_certificate_number_regex ~r/^([A-Za-zА-яіІїЇєЄґҐё\d\#\№\–\-\—\－\_\'\,\s\/\\\=\|\!\<\;\?\%\:\]\*\+\.\√])+$/u
 
@@ -30,31 +31,31 @@ defmodule Core.Persons.V1.Validator do
     end
   end
 
-  def validate_authentication_method_phone_number(authentication_methods, headers)
+  def validate_authentication_method_phone_number(authentication_methods)
       when is_list(authentication_methods) do
     authentication_methods
     |> Enum.map(& &1["phone_number"])
-    |> Enum.filter(&(!is_nil(&1)))
-    |> verify_phone_numbers(headers)
+    |> Enum.reject(&is_nil/1)
+    |> verify_phone_numbers()
   end
 
-  def validate_authentication_method_phone_number(_, _), do: :ok
+  def validate_authentication_method_phone_number(_), do: :ok
 
-  defp verify_phone_numbers([], _), do: :ok
+  defp verify_phone_numbers([]), do: :ok
 
-  defp verify_phone_numbers(phone_numbers, headers) do
-    case Enum.any?(phone_numbers, &phone_number_verified?(&1, headers)) do
+  defp verify_phone_numbers(phone_numbers) do
+    case Enum.any?(phone_numbers, &phone_number_verified?(&1)) do
       true -> :ok
       false -> {:error, "The phone number is not verified."}
     end
   end
 
-  defp phone_number_verified?(phone_number, headers) do
-    case @verification_api.search(phone_number, headers) do
+  defp phone_number_verified?(phone_number) do
+    case @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :verification_phone, [phone_number]) do
       {:ok, _} ->
         true
 
-      {:error, _} ->
+      nil ->
         false
 
       result ->

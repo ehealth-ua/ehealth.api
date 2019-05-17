@@ -3,6 +3,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   use EHealth.Web.ConnCase
 
+  import Core.Expectations.OtpVerification
   import Core.Expectations.Signature
   import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import Ecto.Changeset, only: [add_error: 3]
@@ -635,9 +636,7 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration request fields are correct", %{conn: conn} do
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{"status" => "NEW"}}
-      end)
+      expect_otp_verification_initialize()
 
       conn = put_client_id_header(conn, UUID.generate())
 

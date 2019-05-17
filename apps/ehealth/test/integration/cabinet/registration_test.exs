@@ -1,8 +1,9 @@
 defmodule EHealth.Integration.Cabinet.RegistrationTest do
   use EHealth.Web.ConnCase, async: false
 
-  import Mox
+  import Core.Expectations.OtpVerification
   import Core.Guardian
+  import Mox
 
   alias Core.Cabinet.API, as: CabinetAPI
   alias Ecto.UUID
@@ -14,7 +15,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       email = "email@example.com"
       tax_id = "3126509816"
 
-      expect(ManMock, :render_template, fn _id, template_data, _ ->
+      expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, template_data] ->
         assert Map.has_key?(template_data, :verification_code)
         {:ok, "<html></html>"}
       end)
@@ -40,12 +41,6 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         }
 
         {:ok, %{"data" => data}}
-      end)
-
-      expect_uaddresses_validate()
-
-      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
-        {:ok, []}
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
@@ -160,8 +155,11 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         signed_content_encoding: "base64"
       }
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
+      expect_otp_verification_complete()
+      expect_uaddresses_validate()
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_persons, [%{"tax_id" => "3126509816", "birth_date" => _}] ->
+        {:ok, []}
       end)
 
       patient =
@@ -181,7 +179,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
       email = "email@example.com"
       tax_id = "3126509816"
 
-      expect(ManMock, :render_template, fn _id, template_data, _ ->
+      expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, template_data] ->
         assert Map.has_key?(template_data, :verification_code)
 
         {:ok, "<html></html>"}
@@ -214,9 +212,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, %{"data" => []}}
       end)
 
-      expect(OTPVerificationMock, :complete, fn _, _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_otp_verification_complete()
 
       %{conn: conn, email: email, tax_id: tax_id}
     end

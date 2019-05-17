@@ -228,17 +228,11 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
   end
 
   defp otp_verification_expect(count \\ 1) do
-    expect(OTPVerificationMock, :complete, count, fn _number, params, _headers ->
-      case params.code do
-        "12345" ->
-          {:ok, %{"meta" => %{"code" => 200}, "data" => %{"status" => "verified"}}}
-
-        "54321" ->
-          {:error, %{"meta" => %{"code" => 404}, "error" => %{"type" => "not_found"}}}
-
-        _ ->
-          {:error,
-           %{"meta" => %{"code" => 422}, "error" => %{"type" => "forbidden", "message" => "invalid verification code"}}}
+    expect(RPCWorkerMock, :run, count, fn "otp_verification_api", OtpVerification.Rpc, :complete, [_, code] ->
+      case code do
+        "12345" -> {:ok, %{status: "verified"}}
+        "54321" -> nil
+        _ -> {:error, {:forbidden, "Invalid verification code"}}
       end
     end)
   end

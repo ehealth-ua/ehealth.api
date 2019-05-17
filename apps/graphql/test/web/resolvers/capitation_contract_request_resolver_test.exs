@@ -4,7 +4,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
   use GraphQL.ConnCase, async: true
 
   import Core.Factories, only: [insert: 2, insert: 3, build: 2]
-  import Core.Expectations.Man, only: [template: 0]
+  import Core.Expectations.Man, only: [template: 0, template: 1]
   import Core.Expectations.Mithril, only: [msp: 0, nhs: 0]
   import Core.Expectations.Signature
   import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
@@ -359,8 +359,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
   describe "get with printout_content field" do
     test "success with pending status", %{conn: conn} do
       nhs()
-      template()
-      template()
+      template(2)
       insert(:il, :dictionary, name: "SETTLEMENT_TYPE", values: %{})
       insert(:il, :dictionary, name: "STREET_TYPE", values: %{})
       insert(:il, :dictionary, name: "SPECIALITY_TYPE", values: %{})

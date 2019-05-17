@@ -8,7 +8,7 @@ defmodule EHealth.Integration.CorruptChainNotificationTest do
 
   describe "Sending mangled chain notification" do
     test "it sends an email to specified recepient" do
-      expect(ManMock, :render_template, fn _id, data, _ ->
+      expect(RPCWorkerMock, :run, fn "man_api", Man.Rpc, :render_template, [_id, data] ->
         assert %{
                  failure_details: %{
                    "data" => [

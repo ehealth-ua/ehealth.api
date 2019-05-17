@@ -25,7 +25,7 @@ defmodule Core.Cabinet.API do
   @mpi_api Application.get_env(:core, :api_resolvers)[:mpi]
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
-  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   @person_active "active"
   @authentication_otp "OTP"
@@ -35,7 +35,7 @@ defmodule Core.Cabinet.API do
          %Ecto.Changeset{valid?: true, changes: changes} <- validate_params(:patient, params),
          {:ok, %{"content" => content, "signers" => [signer]}} <-
            SignatureValidator.validate(params["signed_content"], params["signed_content_encoding"], headers),
-         :ok <- verify_auth(content, changes, headers),
+         :ok <- verify_auth(content, changes),
          :ok <- JsonSchema.validate(:person, content),
          :ok <- PersonsValidator.validate_unzr(content),
          :ok <- PersonsValidator.validate_national_id(content),
@@ -254,20 +254,20 @@ defmodule Core.Cabinet.API do
     end
   end
 
-  def verify_auth(%{"authentication_methods" => authentication_methods}, %{otp: code}, headers) do
+  defp verify_auth(%{"authentication_methods" => authentication_methods}, %{otp: code}) do
     case Enum.find(authentication_methods, &otp_params?(&1)) do
       nil ->
         {:error, :access_denied}
 
       %{"phone_number" => phone_number} ->
-        case @otp_verification_api.complete(phone_number, %{code: code}, headers) do
+        case @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :complete, [phone_number, code]) do
           {:ok, _} -> :ok
           _error -> Error.dump(%ValidationError{description: "Invalid verification code", path: "$.otp"})
         end
     end
   end
 
-  def verify_auth(_, _, _), do: {:error, :access_denied}
+  defp verify_auth(_, _), do: {:error, :access_denied}
 
   defp otp_params?(%{"phone_number" => _, "type" => @authentication_otp}), do: true
   defp otp_params?(_), do: false

@@ -44,7 +44,7 @@ defmodule EHealth.Web.DeclarationRequestController do
            DeclarationRequests.approve(id, params["verification_code"], conn.req_headers) do
       render(conn, "declaration_request.json", declaration_request: declaration_request)
     else
-      {:error, _, %{"meta" => %{"code" => 404}}, _} ->
+      {:error, _, {:not_found, _}, _} ->
         Logger.error("Phone was not found for declaration request #{id}")
         {:error, %{"type" => "internal_error"}}
 
@@ -56,6 +56,12 @@ defmodule EHealth.Web.DeclarationRequestController do
 
       {:error, :verification, {:conflict, message}, _} ->
         {:error, {:conflict, message}}
+
+      # handle old behaviour
+      {:error, :verification, {:forbidden, message}, _} ->
+        conn
+        |> put_status(422)
+        |> json(%{"type" => "forbidden", "message" => message})
 
       {:error, :verification, {:"422", message}, _} ->
         {:error, {:"422", message}}
@@ -79,7 +85,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   end
 
   def resend_otp(conn, %{"id" => id}) do
-    with {:ok, otp} <- DeclarationRequests.resend_otp(id, conn.req_headers) do
+    with {:ok, otp} <- DeclarationRequests.resend_otp(id) do
       render(conn, "otp.json", otp: otp)
     end
   end

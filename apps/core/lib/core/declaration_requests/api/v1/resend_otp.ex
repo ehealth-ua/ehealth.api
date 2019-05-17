@@ -4,16 +4,16 @@ defmodule Core.DeclarationRequests.API.ResendOTP do
   alias Core.DeclarationRequests
   alias Core.DeclarationRequests.DeclarationRequest
 
-  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   @status_new DeclarationRequest.status(:new)
   @auth_otp DeclarationRequest.authentication_method(:otp)
 
-  def resend_otp(id, headers) do
+  def resend_otp(id) do
     with %DeclarationRequest{} = declaration_request <- DeclarationRequests.get_by_id!(id),
          :ok <- check_status(declaration_request),
          {:ok, number} <- get_otp_number(declaration_request) do
-      init_otp(number, headers)
+      init_otp(number)
     end
   end
 
@@ -29,7 +29,7 @@ defmodule Core.DeclarationRequests.API.ResendOTP do
       {:error,
        [{%{description: "Auth method is not OTP", params: [], rule: :invalid}, "$.authentication_method_current"}]}
 
-  defp init_otp(number, headers) do
-    with {:ok, %{"data" => data}} <- @otp_verification_api.initialize(number, headers), do: {:ok, data}
+  defp init_otp(number) do
+    @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :initialize, [number])
   end
 end

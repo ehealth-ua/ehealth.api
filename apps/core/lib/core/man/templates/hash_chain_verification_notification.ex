@@ -3,17 +3,16 @@ defmodule Core.Man.Templates.HashChainVerificationNotification do
 
   use Confex, otp_app: :core
 
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
+  alias Core.Man.Client, as: ManClient
 
   def render(failure_details) do
-    @man_api.render_template(
+    ManClient.render_template(
       config()[:id],
       %{
         format: config()[:format],
         locale: config()[:locale],
         failure_details: failure_details
-      },
-      []
+      }
     )
   end
 end

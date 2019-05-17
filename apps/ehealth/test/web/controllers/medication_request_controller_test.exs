@@ -4,6 +4,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   use EHealth.Web.ConnCase, async: true
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
+  import Core.Expectations.OtpVerification
   import Mox
 
   alias Core.LegalEntities.LegalEntity
@@ -966,9 +967,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
+      expect_otp_verification_send_sms()
 
       reject_reason = "TEST"
 
@@ -1081,9 +1080,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
+      expect_otp_verification_send_sms()
 
       reject_reason = "TEST"
 
@@ -1199,9 +1196,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         {:ok, %{"data" => Map.merge(medication_request, params)}}
       end)
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
+      expect_otp_verification_send_sms()
 
       reject_reason = "TEST"
 
@@ -1844,9 +1839,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OTPVerificationMock, :send_sms, fn %{phone_number: phone_number, body: body, type: type}, _ ->
-        {:ok, %{"data" => %{"body" => body, "phone_number" => phone_number, "type" => type}}}
-      end)
+      expect_otp_verification_send_sms()
 
       expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
         {:ok,

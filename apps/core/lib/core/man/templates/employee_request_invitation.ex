@@ -7,9 +7,8 @@ defmodule Core.Man.Templates.EmployeeRequestInvitation do
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
+  alias Core.Man.Client, as: ManClient
   alias Core.Utils.AddressMerger
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -18,19 +17,15 @@ defmodule Core.Man.Templates.EmployeeRequestInvitation do
       |> LegalEntities.get_by_id()
       |> get_clinic_info()
 
-    @man_api.render_template(
-      config()[:id],
-      %{
-        format: config()[:format],
-        locale: config()[:locale],
-        date: current_date("Europe/Kiev", "%d.%m.%y"),
-        clinic_name: Map.get(clinic_info, :name),
-        clinic_address: Map.get(clinic_info, :address),
-        doctor_role: get_position(data),
-        request_id: id |> Cipher.encrypt() |> Base.encode64()
-      },
-      []
-    )
+    ManClient.render_template(config()[:id], %{
+      format: config()[:format],
+      locale: config()[:locale],
+      date: current_date("Europe/Kiev", "%d.%m.%y"),
+      clinic_name: Map.get(clinic_info, :name),
+      clinic_address: Map.get(clinic_info, :address),
+      doctor_role: get_position(data),
+      request_id: id |> Cipher.encrypt() |> Base.encode64()
+    })
   end
 
   def get_position(data) do

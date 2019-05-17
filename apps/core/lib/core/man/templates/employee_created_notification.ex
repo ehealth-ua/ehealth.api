@@ -5,9 +5,8 @@ defmodule Core.Man.Templates.EmployeeCreatedNotification do
 
   alias Core.EmployeeRequests.EmployeeRequest, as: Request
   alias Core.LegalEntities
+  alias Core.Man.Client, as: ManClient
   alias Core.Man.Templates.EmployeeRequestInvitation
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   def render(%Request{id: id, data: data}) do
     clinic_info =
@@ -28,6 +27,6 @@ defmodule Core.Man.Templates.EmployeeCreatedNotification do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, template_data, [])
+    ManClient.render_template(template_id, template_data)
   end
 end

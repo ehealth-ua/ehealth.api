@@ -5,6 +5,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
   import Mox
   import Core.Expectations.Man
+  import Core.Expectations.OtpVerification
 
   alias Core.DeclarationRequests
   alias Core.DeclarationRequests.DeclarationRequest
@@ -52,15 +53,11 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request `mpi_id` is not saved for children", %{conn: conn} do
       gen_sequence_number()
-      template()
 
       expect_uaddresses_validate()
-
+      expect_otp_verification_verification_phone()
       expect_persons_search_result([])
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      template()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -112,10 +109,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request doctor speciality doesn't match patient's age", %{conn: conn} do
       gen_sequence_number()
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       age = 17
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
@@ -135,8 +130,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
         |> put_in(["declaration_request", "employee_id"], employee_id)
 
-      expect_uaddresses_validate()
-
       resp =
         conn
         |> put_req_header("x-consumer-id", "ce377dea-d8c4-4dd8-9328-de24b1ee3879")
@@ -150,10 +143,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request doctor speciality doesn't match patient's adult age", %{conn: conn} do
       gen_sequence_number()
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       age = 18
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
@@ -172,8 +163,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> Jason.decode!()
         |> put_in(["declaration_request", "person", "birth_date"], person_birth_date)
         |> put_in(["declaration_request", "employee_id"], employee_id)
-
-      expect_uaddresses_validate()
 
       resp =
         conn
@@ -211,10 +200,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request with non verified phone for OTP auth", %{conn: conn} do
       gen_sequence_number()
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:error, nil}
-      end)
+      expect_uaddresses_validate()
+      expect_otp_verification_verification_phone(nil)
 
       auth_methods = [%{"type" => "OTP", "phone_number" => "+380508887404"}]
 
@@ -223,8 +210,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         |> File.read!()
         |> Jason.decode!()
         |> put_in(~W(declaration_request person authentication_methods), auth_methods)
-
-      expect_uaddresses_validate()
 
       conn =
         conn
@@ -273,9 +258,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:error, [:any]}
       end)
 
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       declaration_request_params =
         "../core/test/data/declaration_request.json"
@@ -288,8 +272,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
           ~W(declaration_request person),
           Map.delete(declaration_request_params["declaration_request"]["person"], "phones")
         )
-
-      expect_uaddresses_validate()
 
       resp =
         conn
@@ -316,9 +298,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request without person.phone", %{conn: conn} do
       gen_sequence_number()
-      template()
-
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
@@ -327,13 +308,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         ]
       })
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      template()
+      expect_otp_verification_initialize()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -384,18 +360,14 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       %{"phone_number_auth_limit" => phone_number_auth_limit} = GlobalParameters.get_values()
 
       gen_sequence_number()
-
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result([])
 
       1..5
       |> Enum.map(fn _ -> %{} end)
       |> expect_persons_search_result()
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -439,9 +411,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
            conn: conn
          } do
       gen_sequence_number()
-      template()
-
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result([
         %{
@@ -454,13 +425,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         }
       ])
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      template()
+      expect_otp_verification_initialize()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -506,6 +472,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       gen_sequence_number()
 
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result([
         %{
@@ -521,10 +488,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       1..5
       |> Enum.map(fn _ -> %{} end)
       |> expect_persons_search_result()
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -614,6 +577,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       role_id = UUID.generate()
 
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
@@ -638,14 +602,6 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
-
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "99bc78ba577a95a11f1a344d4d2ae55f2f857b98"}}}
       end)
@@ -657,6 +613,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       tax_id = get_in(params, ~w(declaration_request person tax_id))
       html_template("<html><body>Printout form for declaration request. tax_id = #{tax_id}</body></html>")
+      expect_otp_verification_initialize()
 
       tax_id = get_in(params["declaration_request"], ["person", "tax_id"])
       employee_id = "ce377dea-d8c4-4dd8-9328-de24b1ee3879"
@@ -827,16 +784,15 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     end
 
     test "declaration request is created for person without tax_id", %{conn: conn} do
-      template()
-
       gen_sequence_number()
-
       expect_uaddresses_validate()
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
         authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
+
+      template()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -861,9 +817,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
+      expect_otp_verification_initialize()
 
       age = 16
       person_birth_date = Timex.shift(Timex.today(), years: -age) |> to_string()
@@ -912,14 +866,9 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request is created without verification", %{conn: conn} do
       gen_sequence_number()
-
       expect_uaddresses_validate()
-
+      expect_otp_verification_verification_phone()
       expect_persons_search_result([], 2)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -1049,22 +998,16 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request document validation: series_number_document", %{conn: conn} do
       gen_sequence_number()
-      template()
-
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
         authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      template()
+      expect_otp_verification_initialize()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -1152,22 +1095,16 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
     test "declaration request document validation: id_card", %{conn: conn} do
       gen_sequence_number()
-      template()
-
       expect_uaddresses_validate()
+      expect_otp_verification_verification_phone()
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
         authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
       })
 
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
-
-      expect(OTPVerificationMock, :search, fn _, _ ->
-        {:ok, %{"data" => []}}
-      end)
+      template()
+      expect_otp_verification_initialize()
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)

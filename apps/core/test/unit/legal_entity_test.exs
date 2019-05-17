@@ -222,8 +222,6 @@ defmodule Core.Unit.LegalEntityTest do
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
-      template()
-
       data =
         Map.merge(get_legal_entity_data(), %{
           "short_name" => "edenlab",
@@ -245,6 +243,7 @@ defmodule Core.Unit.LegalEntityTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
 
@@ -273,8 +272,6 @@ defmodule Core.Unit.LegalEntityTest do
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
       end)
 
-      template()
-
       data =
         Map.merge(get_legal_entity_data(), %{
           "short_name" => "edenlab",
@@ -298,6 +295,7 @@ defmodule Core.Unit.LegalEntityTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
       # test legal entity data
@@ -322,7 +320,6 @@ defmodule Core.Unit.LegalEntityTest do
   describe "update Legal Entity" do
     setup _context do
       insert_dictionaries()
-      template()
       :ok
     end
 
@@ -358,6 +355,7 @@ defmodule Core.Unit.LegalEntityTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
@@ -406,6 +404,7 @@ defmodule Core.Unit.LegalEntityTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
       assert true = legal_entity.is_active
@@ -437,7 +436,6 @@ defmodule Core.Unit.LegalEntityTest do
   describe "update Legal Entity with OPS contract suspend" do
     test "successfully update name" do
       put_client()
-      template()
 
       expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
         {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
@@ -462,6 +460,7 @@ defmodule Core.Unit.LegalEntityTest do
       )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      template()
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 

@@ -4,6 +4,7 @@ defmodule Core.Unit.DeclarationRequests.API.ResendOTPTest do
   use Core.ConnCase
 
   import Core.DeclarationRequests.API.ResendOTP
+  import Core.Expectations.OtpVerification
   import Mox
 
   alias Core.DeclarationRequests.DeclarationRequest
@@ -14,7 +15,7 @@ defmodule Core.Unit.DeclarationRequests.API.ResendOTPTest do
   describe "resent_otp" do
     test "invalid id" do
       assert_raise Ecto.NoResultsError, fn ->
-        resend_otp(UUID.generate(), [])
+        resend_otp(UUID.generate())
       end
     end
 
@@ -24,7 +25,7 @@ defmodule Core.Unit.DeclarationRequests.API.ResendOTPTest do
       assert {:error,
               [
                 {%{description: "incorrect status", params: [], rule: :invalid}, "$.status"}
-              ]} == resend_otp(declaration_request.id, [])
+              ]} == resend_otp(declaration_request.id)
     end
 
     test "invalid auth method" do
@@ -34,13 +35,11 @@ defmodule Core.Unit.DeclarationRequests.API.ResendOTPTest do
               [
                 {%{description: "Auth method is not OTP", params: [], rule: :invalid},
                  "$.authentication_method_current"}
-              ]} == resend_otp(declaration_request.id, [])
+              ]} == resend_otp(declaration_request.id)
     end
 
     test "success send otp" do
-      expect(OTPVerificationMock, :initialize, fn _number, _headers ->
-        {:ok, %{}}
-      end)
+      expect_otp_verification_initialize()
 
       declaration_request =
         insert(
@@ -52,7 +51,7 @@ defmodule Core.Unit.DeclarationRequests.API.ResendOTPTest do
           }
         )
 
-      assert {:ok, _} = resend_otp(declaration_request.id, [])
+      assert {:ok, _} = resend_otp(declaration_request.id)
     end
   end
 end

@@ -6,9 +6,8 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
 
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Dictionaries
+  alias Core.Man.Client, as: ManClient
   alias Core.Utils.AddressMerger
-
-  @man_api Application.get_env(:core, :api_resolvers)[:man]
 
   @auth_otp DeclarationRequest.authentication_method(:otp)
   @auth_offline DeclarationRequest.authentication_method(:offline)
@@ -30,7 +29,7 @@ defmodule Core.Man.Templates.DeclarationRequestPrintoutForm do
 
     template_id = config()[:id]
 
-    @man_api.render_template(template_id, template_data, [])
+    ManClient.render_template(template_id, template_data)
   end
 
   defp map_declaration_data(nil, declaration_number, _), do: %{declaration_number: declaration_number}

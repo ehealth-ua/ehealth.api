@@ -466,10 +466,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_owner_id(contract_request),
          printout_form_renderer <- printout_form_renderer(contract_request),
          {:ok, printout_content} <-
-           printout_form_renderer.render(
-             %{contract_request | nhs_signed_date: Date.utc_today()},
-             headers
-           ),
+           printout_form_renderer.render(%{contract_request | nhs_signed_date: Date.utc_today()}),
          :ok <- validate_content(contract_request, printout_content, content),
          :ok <- validate_contract_id(pack),
          :ok <- validate_employee_divisions(contract_request, contract_request.contractor_legal_entity_id),
@@ -604,7 +601,7 @@ defmodule Core.ContractRequests do
            ),
          printout_form_renderer <- printout_form_renderer(contract_request),
          {:ok, printout_content} <-
-           printout_form_renderer.render(%{contract_request | nhs_signed_date: Date.utc_today()}, headers) do
+           printout_form_renderer.render(%{contract_request | nhs_signed_date: Date.utc_today()}) do
       {:ok, contract_request, printout_content}
     end
   end

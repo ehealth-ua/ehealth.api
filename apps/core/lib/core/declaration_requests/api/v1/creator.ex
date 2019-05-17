@@ -30,7 +30,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
 
   require Logger
 
-  @otp_verification_api Application.get_env(:core, :api_resolvers)[:otp_verification]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
   @declaration_request_creator Application.get_env(:core, :api_resolvers)[:declaration_request_creator]
 
   @auth_na DeclarationRequest.authentication_method(:na)
@@ -50,7 +50,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @read_repo Application.get_env(:core, :repos)[:read_repo]
 
-  def create(params, user_id, person, employee, division, legal_entity, headers) do
+  def create(params, user_id, person, employee, division, legal_entity) do
     global_parameters = GlobalParameters.get_values()
 
     auxiliary_entities = %{
@@ -66,7 +66,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     Repo.transaction(fn ->
       cancel_declaration_requests(user_id, pending_declaration_requests)
 
-      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities, headers),
+      with {:ok, declaration_request} <- insert_declaration_request(params, user_id, auxiliary_entities),
            {:ok, declaration_request} <- finalize(declaration_request),
            {:ok, urgent_data} <- prepare_urgent_data(declaration_request) do
         %{urgent_data: urgent_data, finalize: declaration_request}
@@ -93,9 +93,9 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     )
   end
 
-  defp insert_declaration_request(params, user_id, auxiliary_entities, headers) do
+  defp insert_declaration_request(params, user_id, auxiliary_entities) do
     params
-    |> changeset(user_id, auxiliary_entities, headers)
+    |> changeset(user_id, auxiliary_entities)
     |> determine_auth_method_for_mpi(params["channel"], auxiliary_entities)
     |> generate_printout_form(auxiliary_entities[:employee])
     |> do_insert_declaration_request()
@@ -230,7 +230,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   defp do_finalize(declaration_request, %{"type" => @auth_na}, _), do: {:ok, declaration_request}
 
   defp do_finalize(declaration_request, %{"type" => @auth_otp, "number" => auth_number}, true) do
-    case @otp_verification_api.initialize(auth_number, []) do
+    case @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :initialize, [auth_number]) do
       {:ok, _} ->
         generate_links(declaration_request, ["PUT"], true)
 
@@ -240,7 +240,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   end
 
   defp do_finalize(declaration_request, %{"type" => @auth_otp, "number" => auth_number}, _) do
-    case @otp_verification_api.initialize(auth_number, []) do
+    case @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :initialize, [auth_number]) do
       {:ok, _} ->
         {:ok, declaration_request}
 
@@ -331,7 +331,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     |> where([p], p.data_legal_entity_id == ^legal_entity_id)
   end
 
-  def changeset(attrs, user_id, auxiliary_entities, headers) do
+  def changeset(attrs, user_id, auxiliary_entities) do
     %{
       employee: employee,
       global_parameters: global_parameters,
@@ -355,7 +355,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
     |> validate_employee_type(employee)
     |> validate_patient_birth_date()
     |> validate_patient_age(employee_speciality_officio, global_parameters["adult_age"])
-    |> validate_authentication_method_phone_number(headers)
+    |> validate_authentication_method_phone_number()
     |> validate_tax_id()
     |> validate_person_addresses()
     |> validate_confidant_persons_tax_id()
@@ -443,12 +443,12 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   def belongs_to(age, adult_age, @pediatrician), do: age < string_to_integer(adult_age)
   def belongs_to(_age, _adult_age, @family_doctor), do: true
 
-  defp validate_authentication_method_phone_number(changeset, headers) do
+  defp validate_authentication_method_phone_number(changeset) do
     validate_change(changeset, :data, fn :data, data ->
       result =
         data
         |> get_in(["person", "authentication_methods"])
-        |> PersonsValidator.validate_authentication_method_phone_number(headers)
+        |> PersonsValidator.validate_authentication_method_phone_number()
 
       case result do
         :ok -> []
@@ -798,8 +798,8 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
       {:ok, printout_content} ->
         put_change(changeset, :printout_content, printout_content)
 
-      {:error, error_response} ->
-        add_error(changeset, :printout_content, format_error_response("MAN", error_response))
+      {:error, _} ->
+        add_error(changeset, :printout_content, format_error_response("MAN", "Remote server internal error"))
     end
   end
 

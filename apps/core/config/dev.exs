@@ -6,14 +6,8 @@ config :core, Core.API.Signature, endpoint: {:system, "DIGITAL_SIGNATURE_ENDPOIN
 # Configures OAuth API
 config :core, Core.API.Mithril, endpoint: {:system, "OAUTH_ENDPOINT", "http://api-svc.mithril"}
 
-# Configures Man API
-config :core, Core.API.Man, endpoint: {:system, "MAN_ENDPOINT", "http://api-svc.man"}
-
 # Configures UAddress API
 config :core, Core.API.UAddress, endpoint: {:system, "UADDRESS_ENDPOINT", "http://api-svc.uaddresses"}
-
-# Configures OTP Verification API
-config :core, Core.API.OTPVerification, endpoint: {:system, "OTP_VERIFICATION_ENDPOINT", "http://api-svc.verification"}
 
 # Configures MPI API
 config :core, Core.API.MPI, endpoint: {:system, "MPI_ENDPOINT", "http://api-svc.mpi"}
