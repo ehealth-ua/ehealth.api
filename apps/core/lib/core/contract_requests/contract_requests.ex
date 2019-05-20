@@ -147,12 +147,11 @@ defmodule Core.ContractRequests do
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
-             "id" => id,
              "status" => @new,
              "inserted_by" => user_id,
              "updated_by" => user_id
            }),
-         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
+         %Changeset{valid?: true} = changes <- changeset(%{contract_request | id: id}, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
@@ -191,13 +190,12 @@ defmodule Core.ContractRequests do
          _ <- terminate_pending_contracts(pack.type, content),
          insert_params <-
            Map.merge(content, %{
-             "id" => id,
              "status" => @approved,
              "assignee_id" => assignee_id,
              "inserted_by" => user_id,
              "updated_by" => user_id
            }),
-         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
+         %Changeset{valid?: true} = changes <- changeset(%{contract_request | id: id}, insert_params),
          data <- render_contract_request_data(changes),
          %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
          :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_contract"),

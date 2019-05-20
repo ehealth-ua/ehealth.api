@@ -1049,17 +1049,23 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn
-      |> put_client_id_header(legal_entity.id)
-      |> put_consumer_id_header(user_id)
-      |> put_req_header("drfo", legal_entity.edrpou)
-      |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
-        "signed_content" => params |> Jason.encode!() |> Base.encode64(),
-        "signed_content_encoding" => "base64"
-      })
-      |> json_response(201)
-      |> get_in(~w(data external_contractors))
-      |> Enum.each(fn external_contractor ->
+      contract_request_id = UUID.generate()
+
+      data =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, @capitation, contract_request_id), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert contract_request_id == data["id"]
+
+      Enum.each(data["external_contractors"], fn external_contractor ->
         legal_entity = Map.get(external_contractor, "legal_entity")
         assert Map.has_key?(legal_entity, "id")
         assert Map.has_key?(legal_entity, "name")
