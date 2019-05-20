@@ -179,7 +179,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
-      assert %{"edr_verified" => true} = resp_data
+      assert %{"edr_verified" => nil} = resp_data
     end
 
     test "create legal entity sign edrpou", %{conn: conn} do
@@ -405,7 +405,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
                |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
-      assert %{"nhs_reviewed" => false, "nhs_verified" => false, "edr_verified" => true} = resp_data
+      assert %{"nhs_reviewed" => false, "nhs_verified" => false, "edr_verified" => nil} = resp_data
     end
 
     test "fail to create legal entity sign drfo passport number is not allowed", %{conn: conn} do

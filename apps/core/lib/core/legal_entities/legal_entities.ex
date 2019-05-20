@@ -350,7 +350,6 @@ defmodule Core.LegalEntities do
         "nhs_verified" => false,
         "nhs_unverified_at" => inserted_at,
         "nhs_reviewed" => false,
-        "edr_verified" => true,
         "created_by_mis_client_id" => client_id,
         "inserted_by" => consumer_id,
         "updated_by" => consumer_id,
@@ -376,8 +375,7 @@ defmodule Core.LegalEntities do
         "updated_by" => consumer_id,
         "is_active" => true,
         "nhs_verified" => false,
-        "nhs_reviewed" => false,
-        "edr_verified" => true
+        "nhs_reviewed" => false
       })
 
     legal_entity
