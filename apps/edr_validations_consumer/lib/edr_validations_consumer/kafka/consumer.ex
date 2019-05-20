@@ -97,7 +97,7 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
     legal_entity_address = legal_entity_data["address"]
 
     same_address? =
-      legal_entity_address &&
+      legal_entity_address && edr_data["address"] &&
         String.starts_with?(edr_data["address"], String.replace_trailing(legal_entity_address, "0", ""))
 
     same_legal_form? =
