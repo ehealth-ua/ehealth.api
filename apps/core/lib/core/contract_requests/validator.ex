@@ -638,14 +638,18 @@ defmodule Core.ContractRequests.Validator do
          :ok <- validate_employee_divisions(content, contractor_legal_entity_id),
          :ok <- validate_external_contractors(content),
          :ok <- validate_external_contractor_flag(content) do
-      {:ok, %CapitationContractRequest{}}
+      :ok
     end
   end
 
-  def validate_contract_request_content(:create, %RequestPack{type: @reimbursement} = pack, _client_id) do
-    with medical_program <- MedicalPrograms.get_by_id(pack.decoded_content["medical_program_id"]),
+  def validate_contract_request_content(
+        :create,
+        %RequestPack{type: @reimbursement, decoded_content: content},
+        _client_id
+      ) do
+    with medical_program <- MedicalPrograms.get_by_id(content["medical_program_id"]),
          :ok <- validate_medical_program(medical_program) do
-      {:ok, %ReimbursementContractRequest{}}
+      :ok
     end
   end
 

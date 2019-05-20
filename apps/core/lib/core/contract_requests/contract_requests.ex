@@ -113,7 +113,7 @@ defmodule Core.ContractRequests do
 
   defdelegate gen_relevant_get_links(id, status), to: Storage, as: :gen_relevant_get_links
 
-  def create_from_draft(headers, %{"id" => id} = params) do
+  def create_from_draft(headers, params) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
@@ -134,7 +134,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_dates(content),
          content <- set_dates(contract, content),
          pack <- RequestPack.put_decoded_content(pack, content),
-         {:ok, contract_request} <- validate_contract_request_content(:create, pack, client_id),
+         :ok <- validate_contract_request_content(:create, pack, contractor_legal_entity.id),
+         contract_request <- new(pack),
          :ok <- validate_unique_contractor_divisions(content),
          :ok <- validate_contractor_divisions(pack.type, content),
          :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
@@ -143,22 +144,22 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_owner_id_on_create(pack.type, content),
          :ok <- validate_documents(pack, headers),
          :ok <- move_uploaded_documents(pack, headers),
-         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_draft"),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             params,
+             headers,
+             "signed_content/contract_request_created_from_draft"
+           ),
          _ <- terminate_pending_contracts(pack.type, content),
-         insert_params <-
-           Map.merge(content, %{
-             "status" => @new,
-             "inserted_by" => user_id,
-             "updated_by" => user_id
-           }),
-         %Changeset{valid?: true} = changes <- changeset(%{contract_request | id: id}, insert_params),
+         insert_params <- Map.merge(content, %{"status" => @new, "inserted_by" => user_id, "updated_by" => user_id}),
+         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
   end
 
   def create_from_contract(headers, %{"assignee_id" => assignee_id} = params) do
-    id = UUID.generate()
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
     pack = RequestPack.new(params)
@@ -182,7 +183,8 @@ defmodule Core.ContractRequests do
          :ok <- validate_dates(content),
          content <- set_dates(contract, content),
          pack <- RequestPack.put_decoded_content(pack, content),
-         {:ok, contract_request} <- validate_contract_request_content(:create, pack, contractor_legal_entity_id),
+         :ok <- validate_contract_request_content(:create, pack, contractor_legal_entity_id),
+         contract_request <- new(pack),
          :ok <- validate_unique_contractor_divisions(content),
          :ok <- validate_contractor_divisions(pack.type, content),
          :ok <- validate_contractor_divisions_dls(pack.type, content["contractor_divisions"] || []),
@@ -197,11 +199,17 @@ defmodule Core.ContractRequests do
              "inserted_by" => user_id,
              "updated_by" => user_id
            }),
-         %Changeset{valid?: true} = changes <- changeset(%{contract_request | id: id}, insert_params),
+         %Changeset{valid?: true} = changes <- changeset(contract_request, insert_params),
          data <- render_contract_request_data(changes),
          %Changeset{valid?: true} = changes <- put_change(changes, :data, data),
-         :ok <- save_signed_content(id, params, headers, "signed_content/contract_request_created_from_contract"),
-         :ok <- copy_contract_request_documents(id, contract.contract_request_id, headers),
+         :ok <-
+           save_signed_content(
+             contract_request.id,
+             params,
+             headers,
+             "signed_content/contract_request_created_from_contract"
+           ),
+         :ok <- copy_contract_request_documents(contract_request.id, contract.contract_request_id, headers),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
@@ -219,6 +227,12 @@ defmodule Core.ContractRequests do
          {:ok, %{"content" => content, "signers" => [signer]}} <- decode_signed_content(params, headers) do
       {:ok, %{pack | decoded_content: content, signer: signer}}
     end
+  end
+
+  defp new(%RequestPack{schema: schema, contract_request_id: id}) do
+    id = id || UUID.generate()
+
+    struct(schema, id: id)
   end
 
   def update(headers, %{"id" => _} = params) do
