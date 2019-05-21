@@ -643,7 +643,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       params = %{
         "nhs_signer_base" => "на підставі наказу",
@@ -1601,6 +1601,138 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
       |> Map.get("data")
       |> assert_show_response_schema("contract", "reimbursement_contract")
     end
+
+    test "fail with incorrect contractor legal entity status", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer,
+        "division" => %{id: division_id}
+      } =
+        prepare_nhs_sign_params(
+          [id: id, data: data, status: ReimbursementContractRequest.status(:nhs_signed), contract_number: "1345"],
+          status: LegalEntity.status(:closed)
+        )
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not active"}]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "fail with contractor legal entity not passed NHS verification", %{conn: conn} do
+      nhs()
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => ReimbursementContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer,
+        "division" => %{id: division_id}
+      } =
+        prepare_nhs_sign_params(
+          [id: id, data: data, status: ReimbursementContractRequest.status(:nhs_signed), contract_number: "1345"],
+          nhs_verified: false
+        )
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+        |> patch(contract_request_path(conn, :sign_msp, @path_type, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "decline contract_request" do
@@ -1693,7 +1825,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       employee_owner =
         insert(:prm, :employee,
@@ -1813,7 +1945,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "success", %{conn: conn} do
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
-      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy, nhs_verified: true)
 
       employee_owner =
         insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
@@ -1851,7 +1983,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "fails on inactive medical program", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy, nhs_verified: true)
 
       employee_owner =
         insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
@@ -1889,6 +2021,101 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
                |> json_response(409)
 
       assert "Reimbursement program is not active" == error["message"]
+    end
+
+    test "fail with incorrect contractor legal entity status", %{conn: conn} do
+      legal_entity =
+        insert(:prm, :legal_entity, type: @pharmacy, status: LegalEntity.status(:closed), nhs_verified: true)
+
+      employee_owner =
+        insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
+
+      division =
+        insert(
+          :prm,
+          :division,
+          type: Division.type(:drugstore),
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header()
+        |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not active"}]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "fail with contractor legal entity not passed NHS verification", %{conn: conn} do
+      legal_entity = insert(:prm, :legal_entity, type: @pharmacy, nhs_verified: false)
+
+      employee_owner =
+        insert(:prm, :employee, legal_entity_id: legal_entity.id, employee_type: Employee.type(:pharmacy_owner))
+
+      division =
+        insert(
+          :prm,
+          :division,
+          type: Division.type(:drugstore),
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      now = Date.utc_today()
+      start_date = Date.add(now, 10)
+
+      contract_request =
+        insert(
+          :il,
+          :reimbursement_contract_request,
+          status: ReimbursementContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          start_date: start_date
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header()
+        |> patch(contract_request_path(conn, :approve_msp, @path_type, contract_request.id))
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 
@@ -2011,7 +2238,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
   defp prepare_data(legal_entity_type \\ @pharmacy) do
     user_id = UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
-    legal_entity = insert(:prm, :legal_entity, type: legal_entity_type)
+    legal_entity = insert(:prm, :legal_entity, type: legal_entity_type, nhs_verified: true)
     medical_program = insert(:prm, :medical_program)
 
     division =
@@ -2051,7 +2278,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do
     client_id = UUID.generate()
-    params = Keyword.merge([id: client_id, type: "PHARMACY"], legal_entity_params)
+    params = Keyword.merge([id: client_id, type: "PHARMACY", nhs_verified: true], legal_entity_params)
     legal_entity = insert(:prm, :legal_entity, params)
     nhs_legal_entity = insert(:prm, :legal_entity)
 

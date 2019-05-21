@@ -483,7 +483,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
     setup %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       employee_owner =
         insert(
@@ -997,7 +997,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
     user_id = UUID.generate()
     nhs_signer_id = UUID.generate()
 
-    legal_entity = insert(:prm, :legal_entity)
+    legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
     %{party: nhs_signer_party} = build(:party_user, user_id: nhs_signer_id)
 
     insert(

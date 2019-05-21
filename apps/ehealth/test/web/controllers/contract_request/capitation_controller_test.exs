@@ -2359,7 +2359,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "contract_request has wrong status", %{conn: conn} do
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       contract_request =
         insert(
@@ -2457,23 +2457,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           "signed_content" => data |> Jason.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-        |> json_response(422)
-
-      assert %{
-               "invalid" => [
-                 %{
-                   "entry" => "$.contractor_legal_entity_id",
-                   "entry_type" => "json_data_property",
-                   "rules" => [
-                     %{
-                       "description" => "Legal entity not found",
-                       "params" => [],
-                       "rule" => "invalid"
-                     }
-                   ]
-                 }
-               ]
-             } = resp["error"]
+        |> json_response(404)
     end
 
     test "contractor_legal_entity is not active", %{conn: conn} do
@@ -2487,7 +2471,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed))
+      legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed), nhs_verified: true)
 
       contract_request = insert(:il, :capitation_contract_request, contractor_legal_entity_id: legal_entity.id)
 
@@ -2552,7 +2536,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       contract_request =
         insert(
@@ -2623,7 +2607,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
       employee = insert(:prm, :employee, status: Employee.status(:new))
 
       contract_request =
@@ -2696,7 +2680,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
       employee = insert(:prm, :employee)
 
       contract_request =
@@ -2766,7 +2750,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, "success"}
       end)
 
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
       employee = insert(:prm, :employee, legal_entity_id: legal_entity.id)
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
@@ -2839,7 +2823,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       user_id = UUID.generate()
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
       party_user = insert(:prm, :party_user, user_id: user_id)
       contractor_division_1 = insert(:prm, :division, legal_entity: legal_entity)
       contractor_division_2 = insert(:prm, :division, legal_entity: legal_entity)
@@ -2956,7 +2940,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       end)
 
       user_id = UUID.generate()
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
       party_user = insert(:prm, :party_user, user_id: user_id)
 
       employee_owner =
@@ -3060,7 +3044,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       employee_owner =
         insert(
@@ -3155,7 +3139,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "success approve by msp", %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
-      legal_entity = insert(:prm, :legal_entity)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
@@ -3227,6 +3211,136 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       conn = put_client_id_header(conn, UUID.generate())
       conn = patch(conn, contract_request_path(conn, :approve_msp, @capitation, UUID.generate()))
       assert json_response(conn, 404)
+    end
+
+    test "fail with incorrect contractor legal entity status" do
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed), nhs_verified: true)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      start_date = contract_start_date()
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ],
+          start_date: start_date
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> patch(contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not active"}]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "fail with contractor legal entity not passed NHS verification" do
+      user_id = UUID.generate()
+      party_user = insert(:prm, :party_user, user_id: user_id)
+      legal_entity = insert(:prm, :legal_entity, nhs_verified: false)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      employee_owner =
+        insert(
+          :prm,
+          :employee,
+          legal_entity_id: legal_entity.id,
+          employee_type: Employee.type(:owner),
+          party: party_user.party
+        )
+
+      division =
+        insert(
+          :prm,
+          :division,
+          legal_entity: legal_entity,
+          phones: [%{"type" => "MOBILE", "number" => "+380631111111"}]
+        )
+
+      employee_doctor = insert(:prm, :employee, legal_entity_id: legal_entity.id, division: division)
+
+      start_date = contract_start_date()
+
+      contract_request =
+        insert(
+          :il,
+          :capitation_contract_request,
+          status: CapitationContractRequest.status(:approved),
+          contractor_legal_entity_id: legal_entity.id,
+          contractor_owner_id: employee_owner.id,
+          contractor_divisions: [division.id],
+          contractor_employee_divisions: [
+            %{
+              "employee_id" => employee_doctor.id,
+              "staff_units" => 0.5,
+              "declaration_limit" => 2000,
+              "division_id" => division.id
+            }
+          ],
+          start_date: start_date
+        )
+
+      resp =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> patch(contract_request_path(conn, :approve_msp, @capitation, contract_request.id))
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
+                 }
+               ]
+             } = resp["error"]
     end
   end
 
@@ -5988,6 +6102,158 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                })
                |> json_response(502)
     end
+
+    test "fail with incorrect contractor legal entity status" do
+      msp()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+        assert :contract_bucket == bucket
+        {:ok, "success"}
+      end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => CapitationContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          [id: id, data: data, status: CapitationContractRequest.status(:nhs_signed), contract_number: "1345"],
+          status: LegalEntity.status(:closed)
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not active"}]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "fail with contractor legal entity not passed NHS verification" do
+      msp()
+      template()
+
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+        assert :contract_bucket == bucket
+        {:ok, "success"}
+      end)
+
+      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
+
+      id = UUID.generate()
+
+      data = %{
+        "id" => id,
+        "printout_content" => nil,
+        "status" => CapitationContractRequest.status(:nhs_signed)
+      }
+
+      %{
+        "client_id" => client_id,
+        "user_id" => user_id,
+        "contract_request" => contract_request,
+        "legal_entity" => legal_entity,
+        "contractor_owner_id" => employee_owner,
+        "nhs_signer" => nhs_signer
+      } =
+        prepare_nhs_sign_params(
+          [id: id, data: data, status: CapitationContractRequest.status(:nhs_signed), contract_number: "1345"],
+          nhs_verified: false
+        )
+
+      conn =
+        conn
+        |> put_client_id_header(client_id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("msp_drfo", legal_entity.edrpou)
+
+      expect_signed_content(data, [
+        %{
+          edrpou: legal_entity.edrpou,
+          drfo: employee_owner.party.tax_id,
+          surname: employee_owner.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name
+        },
+        %{
+          edrpou: nhs_signer.legal_entity.edrpou,
+          drfo: nhs_signer.party.tax_id,
+          surname: nhs_signer.party.last_name,
+          is_stamp: true
+        }
+      ])
+
+      resp =
+        conn
+        |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
+          "signed_content" => data |> Poison.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "type" => "validation_failed",
+               "invalid" => [
+                 %{
+                   "entry" => "$.contractor_legal_entity_id",
+                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "get printout_form" do
@@ -6034,7 +6300,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
     user_id = UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
-    legal_entity = insert(:prm, :legal_entity)
+    legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
 
     division =
       insert(
@@ -6123,7 +6389,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
   defp prepare_nhs_sign_params(contract_request_params, legal_entity_params \\ []) do
     client_id = UUID.generate()
-    params = Keyword.merge([id: client_id], legal_entity_params)
+    params = Keyword.merge([id: client_id, nhs_verified: true], legal_entity_params)
     legal_entity = insert(:prm, :legal_entity, params)
     nhs_legal_entity = insert(:prm, :legal_entity)
 

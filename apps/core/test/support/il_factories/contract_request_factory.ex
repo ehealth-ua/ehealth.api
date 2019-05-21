@@ -8,7 +8,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
   defmacro __using__(_opts) do
     quote do
       def capitation_contract_request_factory do
-        legal_entity = insert(:prm, :legal_entity)
+        legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
         employee = insert(:prm, :employee)
 
         division =
@@ -53,7 +53,7 @@ defmodule Core.ILFactories.ContractRequestFactory do
       end
 
       def reimbursement_contract_request_factory do
-        legal_entity = insert(:prm, :legal_entity)
+        legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
         employee = insert(:prm, :employee)
         %{id: medical_program_id} = insert(:prm, :medical_program)
 

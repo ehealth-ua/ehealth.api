@@ -35,6 +35,8 @@ defmodule Core.ContractRequests.Validator do
   @pharmacy LegalEntity.type(:pharmacy)
   @msp_pharmacy LegalEntity.type(:msp_pharmacy)
 
+  @status_active LegalEntity.status(:active)
+
   @allowed_types [@capitation, @reimbursement]
 
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
@@ -305,33 +307,30 @@ defmodule Core.ContractRequests.Validator do
 
   # Contractor
 
-  def validate_contractor_legal_entity(legal_entity_id) do
-    with {:ok, legal_entity} <-
-           Reference.validate(
-             :legal_entity,
-             legal_entity_id,
-             "$.contractor_legal_entity_id"
-           ),
-         true <- legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active do
-      :ok
-    else
-      false ->
-        Error.dump(%ValidationError{
-          description: "Legal entity in contract request should be active",
-          path: "$.contractor_legal_entity_id"
-        })
-
-      error ->
-        error
-    end
-  end
-
   def validate_contractor_legal_entity_id(_, nil), do: :ok
 
   def validate_contractor_legal_entity_id(id, %{contractor_legal_entity_id: id}), do: :ok
 
   def validate_contractor_legal_entity_id(_, _),
     do: {:error, {:forbidden, "You are not allowed to change this contract"}}
+
+  def validate_contractor_legal_entity_status(%{status: @status_active, is_active: true}), do: :ok
+
+  def validate_contractor_legal_entity_status(_) do
+    Error.dump(%ValidationError{
+      description: "Legal entity is not active",
+      path: "$.contractor_legal_entity_id"
+    })
+  end
+
+  def validate_contractor_legal_entity_nhs_verification(%{nhs_verified: true}), do: :ok
+
+  def validate_contractor_legal_entity_nhs_verification(_) do
+    Error.dump(%ValidationError{
+      description: "Legal entity is not verified by NHS",
+      path: "$.contractor_legal_entity_id"
+    })
+  end
 
   def validate_contractor_owner_id(%{
         type: type,
