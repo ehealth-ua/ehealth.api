@@ -5,6 +5,7 @@ defmodule Core.MedicationRequestRequest do
   """
   use Ecto.Schema
   alias Core.MedicationRequestRequest.EmbeddedData
+  alias Ecto.UUID
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
@@ -13,10 +14,13 @@ defmodule Core.MedicationRequestRequest do
     embeds_one(:data, EmbeddedData)
     field(:request_number, :string, null: false)
     field(:verification_code, :string, null: true)
-    field(:inserted_by, Ecto.UUID, null: false)
+    field(:inserted_by, UUID, null: false)
     field(:status, :string, null: false)
-    field(:updated_by, Ecto.UUID, null: false)
-    field(:medication_request_id, Ecto.UUID, null: false)
+    field(:updated_by, UUID, null: false)
+    field(:medication_request_id, UUID, null: false)
+    field(:data_person_id, UUID)
+    field(:data_employee_id, UUID)
+    field(:data_intent, :string)
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -36,6 +40,8 @@ defmodule Core.MedicationRequestRequest.EmbeddedData do
   @moduledoc false
   use Ecto.Schema
 
+  alias Ecto.UUID
+
   @intent_order "order"
   @intent_plan "plan"
 
@@ -46,13 +52,13 @@ defmodule Core.MedicationRequestRequest.EmbeddedData do
     field(:ended_at, :date, null: false)
     field(:dispense_valid_from, :date)
     field(:dispense_valid_to, :date)
-    field(:person_id, Ecto.UUID, null: false)
-    field(:employee_id, Ecto.UUID, null: false)
-    field(:division_id, Ecto.UUID, null: false)
-    field(:medication_id, Ecto.UUID, null: false)
-    field(:legal_entity_id, Ecto.UUID, null: false)
+    field(:person_id, UUID, null: false)
+    field(:employee_id, UUID, null: false)
+    field(:division_id, UUID, null: false)
+    field(:medication_id, UUID, null: false)
+    field(:legal_entity_id, UUID, null: false)
     field(:medication_qty, :integer, null: false)
-    field(:medical_program_id, Ecto.UUID)
+    field(:medical_program_id, UUID)
     field(:intent, :string, null: false)
     field(:category, :string, null: false)
     field(:context, :map)

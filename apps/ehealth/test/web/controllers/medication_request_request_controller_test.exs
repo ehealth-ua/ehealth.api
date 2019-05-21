@@ -15,6 +15,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   alias Core.Repo
   alias Core.Rpc.Error, as: RpcError
   alias Core.Utils.Phone
+  alias Ecto.Changeset
   alias Ecto.UUID
   alias EHealth.MockServer
 
@@ -64,7 +65,23 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         @legal_entity_id
       )
 
-    medication_request_request
+    mrr_update_params =
+      medication_request_request
+      |> Map.get(:medication_request_request)
+      |> Map.from_struct()
+      |> Map.get(:data)
+      |> Map.take(~w(person_id employee_id intent)a)
+
+    updated_mrr =
+      medication_request_request.medication_request_request
+      |> Changeset.change(%{
+        data_person_id: mrr_update_params.person_id,
+        data_employee_id: mrr_update_params.employee_id,
+        data_intent: mrr_update_params.intent
+      })
+      |> Repo.update!()
+
+    %{medication_request_request | medication_request_request: updated_mrr}
   end
 
   setup %{conn: conn} do

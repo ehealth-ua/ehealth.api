@@ -73,15 +73,12 @@ defmodule Core.MedicationRequestRequests do
   end
 
   defp filter_by_employee_id(query, %{employee_id: employee_id}, _) do
-    where(query, [r], fragment("?->'employee_id' = ?", r.data, ^employee_id))
+    where(query, [r], r.data_employee_id == ^employee_id)
   end
 
   defp filter_by_employee_id(query, _, headers) do
     employee_ids = get_employee_ids_from_headers(headers)
-
-    Enum.reduce(employee_ids, query, fn id, query ->
-      or_where(query, [r], fragment("?->'employee_id' = ?", r.data, ^id))
-    end)
+    where(query, [r], r.data_employee_id in ^employee_ids)
   end
 
   defp preload_fk(page) do
@@ -109,13 +106,13 @@ defmodule Core.MedicationRequestRequests do
   defp filter_by_status(query, _), do: query
 
   defp filter_by_person_id(query, %{person_id: person_id}) when is_binary(person_id) do
-    where(query, [r], fragment("?->'person_id' = ?", r.data, ^person_id))
+    where(query, [r], r.data_person_id == ^person_id)
   end
 
   defp filter_by_person_id(query, _), do: query
 
   defp filter_by_intent(query, %{intent: intent}) when is_binary(intent) do
-    where(query, [r], fragment("?->'intent' = ?", r.data, ^intent))
+    where(query, [r], r.data_intent == ^intent)
   end
 
   defp filter_by_intent(query, _), do: query
@@ -205,12 +202,6 @@ defmodule Core.MedicationRequestRequests do
   end
 
   defp put_verification_code(_), do: nil
-
-  def changeset(%MedicationRequestRequest{} = medication_request_request, attrs) do
-    medication_request_request
-    |> cast(attrs, [:data, :request_number, :status, :inserted_by, :updated_by])
-    |> validate_required([:data, :request_number, :status, :inserted_by, :updated_by])
-  end
 
   defp prequalify_programs(mrr, programs) do
     programs
