@@ -293,7 +293,8 @@
             ],
             "additionalProperties": false
           },
-          "minItems": 1
+          "minItems": 1,
+          "maxItems": 1
         },
         "accreditation": {
           "type": "object",

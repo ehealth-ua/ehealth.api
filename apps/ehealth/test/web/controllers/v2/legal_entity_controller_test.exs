@@ -8,16 +8,12 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
   import Core.Expectations.Man
   import Core.Expectations.Mithril
 
-  alias Ecto.UUID
-  alias Core.PRMRepo
-  alias Core.Employees.Employee
-  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Contracts.CapitationContract
+  alias Core.LegalEntities.License
+  alias Ecto.UUID
 
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)
-  @msp_pharmacy LegalEntity.type(:msp_pharmacy)
 
   setup :verify_on_exit!
   setup :set_mox_global
@@ -38,10 +34,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
@@ -85,10 +77,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
@@ -96,25 +84,24 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
     end
 
     test "fail to create legal_entity with pharmacy type without licence_number", %{conn: conn} do
-      {_, legal_entity_params} =
-        pop_in(get_legal_entity_data(), ["medical_service_provider", "licenses", Access.all(), "license_number"])
+      legal_entity_params =
+        get_legal_entity_data()
+        |> Map.put("type", LegalEntity.type(:pharmacy))
+        |> put_in(~w(license type), License.type(:pharmacy))
 
+      {_, legal_entity_params} = pop_in(legal_entity_params, ~w(license license_number))
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
-      assert %{"error" => %{"invalid" => [%{"entry" => "$.medical_service_provider.licenses.1.license_number"}]}} = resp
+      assert %{"error" => %{"invalid" => [%{"entry" => "$.license.license_number"}]}} = resp
     end
 
-    test "create legal entity with type pharmacy and msp correct kveds and type", %{conn: conn} do
+    test "create legal entity with type PRIMARY_CARE", %{conn: conn} do
       get_client_type_by_name()
       put_client()
       upsert_client_connection()
@@ -124,110 +111,36 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(200)
 
-      assert ["47.73", "86.10"] == resp["data"]["kveds"]
-      assert "MSP_PHARMACY" == resp["data"]["type"]
-      refute resp["data"]["edr_verified"]
-    end
-
-    test "create legal entity with type pharmacy and msp correct kveds and type do not duplicate kveds", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-      insert_dictionaries()
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [Map.put(license_msp, "kveds", ["47.73" | license_msp["kveds"]]), license_pharmasy]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      assert ["47.73", "86.10"] == resp["data"]["kveds"]
-      assert "MSP_PHARMACY" == resp["data"]["type"]
-    end
-
-    test "create legal entity with type MSP", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-
-      insert_dictionaries()
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, _license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_msp]
-
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      assert "MSP" == resp["data"]["type"]
+      assert "PRIMARY_CARE" == resp["data"]["type"]
     end
 
     test "create legal entity sign edrpou", %{conn: conn} do
@@ -241,25 +154,32 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(200)
 
@@ -278,25 +198,32 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_passport(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(200)
 
@@ -326,32 +253,39 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(200)
 
       assert resp
     end
 
-    test "create legal entity sign drfo code when edrpou nil string", %{conn: conn} do
+    test "create legal entity sign drfo code when edrpou nil", %{conn: conn} do
       get_client_type_by_name()
       put_client()
       upsert_client_connection()
@@ -375,32 +309,39 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       assert %{"data" => resp_data} =
                conn
-               |> put_req_header("content-type", "application/json")
-               |> put_req_header("content-length", "7000")
-               |> put_req_header("x-consumer-id", UUID.generate())
-               |> put_req_header("edrpou", legal_entity_params["edrpou"])
                |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
       assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
     end
 
-    test "update legal entity sign drfo code when edrpou nil string", %{conn: conn} do
+    test "update legal entity sign drfo code when edrpou nil", %{conn: conn} do
       %{edrpou: edrpou} = insert(:prm, :legal_entity)
 
       get_client_type_by_name()
@@ -426,25 +367,32 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+      template()
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
       assert %{"data" => resp_data} =
                conn
-               |> put_req_header("content-type", "application/json")
-               |> put_req_header("content-length", "7000")
-               |> put_req_header("x-consumer-id", UUID.generate())
-               |> put_req_header("edrpou", legal_entity_params["edrpou"])
                |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
                |> json_response(200)
 
@@ -459,10 +407,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
@@ -492,10 +436,6 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
@@ -525,14 +465,10 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code({:error, :timeout})
+      expect_search_legal_entity({:error, :timeout})
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(409)
 
@@ -547,200 +483,33 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code({:ok, %{"state" => 0}})
+      expect_search_legal_entity({:ok, [%{"state" => 0, "id" => 1}]})
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(409)
-
-      assert get_in(resp, ~w(error message)) == "Invalid Legal Entity status in EDR"
-    end
-
-    test "fail to create legal entity when EDR API returns response with invalid legal entity attrs", %{conn: conn} do
-      validate_addresses()
-      insert_dictionaries()
-
-      legal_entity_params = get_legal_entity_data()
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6010100000"}},
-           "names" => %{"display" => "TEST"},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
         |> json_response(422)
 
       assert %{
-               "error" => %{
-                 "invalid" => [
-                   %{
-                     "entry" => "$.name",
-                     "entry_type" => "json_data_property",
-                     "rules" => [
-                       %{
-                         "description" => "Legal entity name doesn't match with EDR data",
-                         "params" => [],
-                         "rule" => "invalid"
-                       }
-                     ]
-                   }
-                 ],
-                 "type" => "validation_failed"
-               }
-             } = resp
-    end
-
-    test "fail to create legal entity when EDR API returns response with invalid legal address", %{conn: conn} do
-      validate_addresses()
-      insert_dictionaries()
-
-      legal_entity_params = get_legal_entity_data()
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6010100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
-
-      assert %{
-               "error" => %{
-                 "invalid" => [
-                   %{
-                     "entry" => "$.addresses.[0]",
-                     "entry_type" => "json_data_property",
-                     "rules" => [
-                       %{
-                         "description" => "Legal entity registration address doesn't match with EDR data",
-                         "params" => [],
-                         "rule" => "invalid"
-                       }
-                     ]
-                   }
-                 ],
-                 "type" => "validation_failed"
-               }
-             } = resp
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.edrpou",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Provided EDRPOU is not active in EDR",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ],
+               "type" => "validation_failed"
+             } = resp["error"]
     end
   end
 
   describe "update legal_entity type flow" do
-    test "MSP to PHARMACY", %{conn: conn} do
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @msp)
-      legal_entity_data = get_legal_entity_data()
-      [_license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_pharmasy]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.merge(%{"edrpou" => legal_entity.edrpou})
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(409)
-
-      assert "LegalEntity with MSP could not be updated to PHARMACY for now" == resp["error"]["message"]
-    end
-
-    test "MSP to MSP_PHARMACY", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @msp)
-      legal_entity_data = get_legal_entity_data()
-      [_license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_msp_pharmacy = Map.merge(license_pharmasy, %{"type" => @msp_pharmacy, "kveds" => ["86.21", "47.73"]})
-      new_licences = [license_msp_pharmacy]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.put("edrpou", legal_entity.edrpou)
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("x-consumer-id", UUID.generate())
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
-    end
-
     test "MSP to MSP", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -755,66 +524,33 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
       template()
 
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("x-consumer-id", UUID.generate())
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
-    end
-
-    test "PHARMACY to MSP", %{conn: conn} do
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, _license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_msp]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.merge(%{"edrpou" => legal_entity.edrpou})
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
 
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(409)
-
-      assert "LegalEntity with PHARMACY could not be updated to MSP for now" == resp["error"]["message"]
+      assert conn
+             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+             |> json_response(200)
     end
 
     test "PHARMACY to PHARMACY", %{conn: conn} do
@@ -831,627 +567,73 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
       template()
 
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("x-consumer-id", UUID.generate())
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
-    end
-
-    test "PHARMACY to MSP_PHARMACY", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @pharmacy)
-      legal_entity_data = get_legal_entity_data()
-      [_license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_msp_pharmacy = Map.merge(license_pharmasy, %{"type" => @msp_pharmacy, "kveds" => ["86.21", "47.73"]})
-      new_licences = [license_msp_pharmacy]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.put("edrpou", legal_entity.edrpou)
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => 1,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
            "olf_code" => legal_entity_params["legal_form"],
            "state" => 1
          }}
       )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
 
       assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("x-consumer-id", UUID.generate())
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
              |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
              |> json_response(200)
-    end
-
-    test "MSP_PHARMACY to MSP_PHARMACY", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @msp_pharmacy)
-
-      legal_entity_params =
-        Map.merge(get_legal_entity_data(), %{"website" => "https://new.example.com", "edrpou" => legal_entity.edrpou})
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("x-consumer-id", UUID.generate())
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
-    end
-
-    test "MSP_PHARMACY to MSP", %{conn: conn} do
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @msp_pharmacy)
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, _license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_msp]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.put("edrpou", legal_entity.edrpou)
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert resp =
-               conn
-               |> put_req_header("content-type", "application/json")
-               |> put_req_header("content-length", "7000")
-               |> put_req_header("x-consumer-id", UUID.generate())
-               |> put_req_header("edrpou", legal_entity_params["edrpou"])
-               |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-               |> json_response(409)
-
-      assert "LegalEntity with MSP_PHARMACY could not be updated to MSP for now" == resp["error"]["message"]
-    end
-
-    test "MSP_PHARMACY to PHARMACY", %{conn: conn} do
-      validate_addresses()
-
-      legal_entity = insert(:prm, :legal_entity, type: @msp_pharmacy)
-      legal_entity_data = get_legal_entity_data()
-      [_license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_pharmasy]
-
-      legal_entity_params =
-        legal_entity_data
-        |> put_in(~w(medical_service_provider licenses), new_licences)
-        |> Map.put("edrpou", legal_entity.edrpou)
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert resp =
-               conn
-               |> put_req_header("content-type", "application/json")
-               |> put_req_header("content-length", "7000")
-               |> put_req_header("x-consumer-id", UUID.generate())
-               |> put_req_header("edrpou", legal_entity_params["edrpou"])
-               |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-               |> json_response(409)
-
-      assert "LegalEntity with MSP_PHARMACY could not be updated to PHARMACY for now" == resp["error"]["message"]
     end
   end
 
   describe "create or update legal enitity new validations" do
-    test "licenses types is not uniq", %{conn: conn} do
-      legal_entity_data = get_legal_entity_data()
-      [_license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      new_licences = [license_pharmasy, license_pharmasy]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
+    test "license wrong type", %{conn: conn} do
+      insert_dictionaries()
+      validate_addresses()
+      legal_entity_params = put_in(get_legal_entity_data(), ~w(license type), License.type(:pharmacy))
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+
+      expect_search_legal_entity({:ok, [%{"state" => 1, "id" => 1}]})
+
+      expect_get_legal_entity_detailed_info(
+        {:ok,
+         %{
+           "id" => 1,
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{
+             "name" => "test",
+             "display" => "foo"
+           },
+           "activity_kinds" => [
+             %{
+               "name" => "Видання іншого програмного забезпечення",
+               "code" => "58.29",
+               "is_primary" => false
+             }
+           ],
+           "olf_code" => legal_entity_params["legal_form"],
+           "state" => 1
+         }}
+      )
 
       resp =
         conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
         |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
+        |> json_response(409)
 
-      assert "Only unique with types (MSP or PHARMACY) could be created" == resp["error"]["message"]
-    end
-
-    test "licanse wrong type", %{conn: conn} do
-      insert_dictionaries()
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_mis = Map.put(license_pharmasy, "type", "MIS")
-      new_licences = [license_mis, license_msp]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
-
-      assert resp["error"]["message"] == "Only legal_entity with type MSP or PHARMACY or MSP_PHARMACY could be created"
-    end
-
-    test "licanse number for pharmacy-typed legal entity required", %{conn: conn} do
-      insert_dictionaries()
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_msp_pharmasy = license_pharmasy |> Map.put("type", "MSP_PHARMACY") |> Map.delete("license_number")
-      new_licences = [license_msp_pharmasy, license_msp]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
-
-      assert [
-               %{
-                 "entry" => "$.medical_service_provider.licenses.0.license_number",
-                 "rules" => [%{"description" => "license_number is required for legal_entity with type-based PHARMACY"}]
-               }
-             ] = resp["error"]["invalid"]
-    end
-
-    test "wrong kved", %{conn: conn} do
-      insert(
-        :il,
-        :dictionary,
-        %{
-          name: "KVEDS_ALLOWED_MSP",
-          values: %{"86.10" => "Діяльність лікарняних закладів", "86.21" => "Загальна медична практика"}
-        }
-      )
-
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_msp_pharmasy = Map.put(license_pharmasy, "type", "MSP_PHARMACY")
-      new_licences = [license_msp, license_msp_pharmasy]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
-
-      assert [
-               %{
-                 "entry" => "$.kveds",
-                 "rules" => [%{"description" => "At least one KVED code must be from list [\"86.10\", \"86.21\"]"}]
-               }
-             ] = resp["error"]["invalid"]
-    end
-
-    test "wrong kved no pharmacy", %{conn: conn} do
-      legal_entity_data = get_legal_entity_data()
-      [license_msp, _license_pharmasy] = legal_entity_data["medical_service_provider"]["licenses"]
-      license_msp_pharmasy = Map.put(license_msp, "type", "MSP_PHARMACY")
-      new_licences = [license_msp, license_msp_pharmasy]
-      legal_entity_params = put_in(legal_entity_data["medical_service_provider"]["licenses"], new_licences)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      resp =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(422)
-
-      assert [
-               %{
-                 "entry" => "$.kveds",
-                 "rules" => [%{"description" => "At least one KVED code must be from list [\"47.73\"]"}]
-               }
-             ] = resp["error"]["invalid"]
-    end
-  end
-
-  describe "contract suspend on update legal entity" do
-    test "contract suspend on change legal entity name", %{conn: conn} do
-      get_client_type_by_name(2)
-      put_client(2)
-      upsert_client_connection(2)
-      validate_addresses()
-
-      insert_dictionaries()
-      legal_entity_params = get_legal_entity_data()
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      consumer_id = UUID.generate()
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp1 =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", consumer_id)
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      id = resp1["data"]["id"]
-      legal_entity = LegalEntities.get_by_id(id)
-
-      %{id: contract_id} =
-        insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity, is_suspended: false)
-
-      %{id: contract_id2} = insert(:prm, :capitation_contract, is_suspended: false)
-
-      legal_entity_params = Map.put(legal_entity_params, "name", "Institute of medical researches ISMT")
-      legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      validate_addresses()
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      assert conn
-             |> put_req_header("content-type", "application/json")
-             |> put_req_header("content-length", "7000")
-             |> put_req_header("edrpou", legal_entity_params["edrpou"])
-             |> put_consumer_id_header()
-             |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-             |> json_response(200)
-
-      contract = PRMRepo.get(CapitationContract, contract_id)
-      contract2 = PRMRepo.get(CapitationContract, contract_id2)
-
-      assert contract.is_suspended
-      refute contract2.is_suspended
-    end
-
-    test "contract suspend on changed legal entity owner", %{conn: conn} do
-      get_client_type_by_name()
-      put_client()
-      upsert_client_connection()
-      validate_addresses()
-      get_roles_by_name()
-      get_user_roles()
-      create_user_role()
-
-      expect(MithrilMock, :get_user_by_id, fn id, _ ->
-        {:ok,
-         %{
-           "data" => %{
-             "id" => id,
-             "email" => "new-owner@example.com",
-             "type" => "user"
-           }
-         }}
-      end)
-
-      expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
-
-      legal_entity = insert(:prm, :legal_entity)
-      insert(:prm, :employee, employee_type: Employee.type(:owner), legal_entity_id: legal_entity.id)
-
-      %{id: contract_id} =
-        insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity, is_suspended: false)
-
-      %{id: contract_id2} = insert(:prm, :capitation_contract, is_suspended: false)
-
-      owner = %{
-        "birth_date" => "1988-08-19",
-        "documents" => [%{"number" => "120518", "type" => "PASSPORT"}],
-        "email" => "new-owner@example.com",
-        "first_name" => "Олесь",
-        "gender" => "MALE",
-        "last_name" => "Головко",
-        "no_tax_id" => false,
-        "phones" => [%{"number" => "+380701112233", "type" => "MOBILE"}],
-        "position" => "P1",
-        "second_name" => "Миколайович",
-        "tax_id" => "3243004010"
-      }
-
-      legal_entity_params =
-        Map.merge(get_legal_entity_data(), %{
-          "edrpou" => legal_entity.edrpou,
-          "owner" => owner
-        })
-
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template(2)
-
-      employee_request_id =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put_consumer_id_header()
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-        |> get_in(~w(urgent employee_request_id))
-
-      conn
-      |> put_consumer_id_header()
-      |> put_client_id_header(legal_entity.id)
-      |> post(employee_request_path(conn, :approve, employee_request_id))
-      |> json_response(200)
-
-      contract = PRMRepo.get(CapitationContract, contract_id)
-      contract2 = PRMRepo.get(CapitationContract, contract_id2)
-
-      assert contract.is_suspended
-      refute contract2.is_suspended
-    end
-
-    test "contract suspend on change status", %{conn: conn} do
-      get_client_type_by_name(2)
-      put_client(2)
-      upsert_client_connection(2)
-      validate_addresses()
-
-      insert_dictionaries()
-      legal_entity_params = get_legal_entity_data()
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      consumer_id = UUID.generate()
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp1 =
-        conn
-        |> put_req_header("x-consumer-id", consumer_id)
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      id = resp1["data"]["id"]
-      legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
-      legal_entity_params = Map.put(legal_entity_params, "status", "CLOSED")
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      validate_addresses()
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp2 =
-        conn
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      assert resp2
-
-      contract = PRMRepo.get(CapitationContract, contract_id)
-      assert contract.is_suspended
-    end
-
-    test "contract suspend on change address", %{conn: conn} do
-      get_client_type_by_name(2)
-      put_client(2)
-      upsert_client_connection(2)
-      validate_addresses()
-
-      insert_dictionaries()
-      legal_entity_params = get_legal_entity_data()
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      consumer_id = UUID.generate()
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp1 =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", consumer_id)
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      id = resp1["data"]["id"]
-
-      legal_entity = LegalEntities.get_by_id(id)
-      %{id: contract_id} = insert(:prm, :capitation_contract, contractor_legal_entity: legal_entity)
-
-      [address | addresses] = legal_entity_params["addresses"]
-      addresses = [%{address | "apartment" => "42/12"} | addresses]
-      legal_entity_params = Map.put(legal_entity_params, "addresses", addresses)
-      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
-
-      validate_addresses()
-
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-      template()
-
-      resp2 =
-        conn
-        |> put_req_header("content-type", "application/json")
-        |> put_req_header("content-length", "7000")
-        |> put_req_header("x-consumer-id", UUID.generate())
-        |> put_req_header("edrpou", legal_entity_params["edrpou"])
-        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-        |> json_response(200)
-
-      assert resp2
-
-      contract = PRMRepo.get(CapitationContract, contract_id)
-      assert contract.is_suspended
+      assert resp["error"]["message"] == "Legal entity type and license type mismatch"
     end
   end
 

@@ -38,9 +38,7 @@ defmodule Core.Contracts do
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
-  def list(params, client_type, headers) do
-    client_id = get_client_id(headers)
-
+  def list(params, client_type, client_id) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- Search.changeset(params),
          {:edrpou, {:ok, changes}} <- {:edrpou, validate_edrpou(changes)},
          {:ok, changes} <- validate_client_type(client_id, client_type, changes),

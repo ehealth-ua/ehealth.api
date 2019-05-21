@@ -15,7 +15,6 @@ defmodule EHealth.Web.V2.LegalEntityView do
     owner_property_type
     legal_form
     edrpou
-    addresses
     phones
     email
     is_active
@@ -34,6 +33,8 @@ defmodule EHealth.Web.V2.LegalEntityView do
     kveds
     type
     edr_verified
+    residence_address
+    accreditation
   )a
 
   def render("show.json", %{legal_entity: legal_entity}) do
@@ -41,15 +42,30 @@ defmodule EHealth.Web.V2.LegalEntityView do
   end
 
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
-    %{medical_service_provider: msp} = legal_entity
-
     legal_entity
     |> Map.take(@fields)
-    |> Map.put(:medical_service_provider, render_one(msp, __MODULE__, "medical_service_provider.json"))
+    |> Map.put(:license, render_one(legal_entity.license, __MODULE__, "license.json"))
   end
 
   def render("legal_entity.json", %{legal_entity: legal_entity}), do: legal_entity
 
-  def render("medical_service_provider.json", %{legal_entity: msp}),
-    do: Map.take(msp, ~w(licenses accreditation)a)
+  def render("license.json", %{legal_entity: license}) do
+    Map.take(license, ~w(
+      active_from_date
+      expiry_date
+      id
+      inserted_at
+      inserted_by
+      is_active
+      issued_by
+      issued_date
+      issuer_status
+      license_number
+      order_no
+      type
+      updated_at
+      updated_by
+      what_licensed
+    )a)
+  end
 end

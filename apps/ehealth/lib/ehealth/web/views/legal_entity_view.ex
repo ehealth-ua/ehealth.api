@@ -20,7 +20,6 @@ defmodule EHealth.Web.LegalEntityView do
     legal_form
     edrpou
     kveds
-    addresses
     phones
     email
     is_active
@@ -52,11 +51,31 @@ defmodule EHealth.Web.LegalEntityView do
   end
 
   def render("legal_entity.json", %{legal_entity: %LegalEntity{} = legal_entity}) do
-    %{medical_service_provider: msp} = legal_entity
+    %{license: license} = legal_entity
 
     legal_entity
     |> Map.take(@fields)
-    |> Map.put(:medical_service_provider, render_one(msp, __MODULE__, "medical_service_provider.json"))
+    |> Map.put(:addresses, render("address.json", legal_entity))
+    |> Map.put(
+      :medical_service_provider,
+      render_one(
+        %{license: license, accreditation: legal_entity.accreditation},
+        __MODULE__,
+        "medical_service_provider.json"
+      )
+    )
+  end
+
+  def render("address.json", %LegalEntity{} = legal_entity) do
+    Enum.reduce(~w(registration_address residence_address)a, [], fn key, acc ->
+      value = Map.get(legal_entity, key)
+
+      if value do
+        [value | acc]
+      else
+        acc
+      end
+    end)
   end
 
   def render("legal_entity.json", %{legal_entity: %RelatedLegalEntity{} = legal_entity}) do
@@ -75,11 +94,31 @@ defmodule EHealth.Web.LegalEntityView do
     legal_entity
   end
 
-  def render("medical_service_provider.json", %{legal_entity: msp}) do
+  def render("medical_service_provider.json", %{legal_entity: %{license: license, accreditation: accreditation}}) do
     %{
-      licenses: msp.licenses,
-      accreditation: msp.accreditation
+      licenses: [render_one(license, __MODULE__, "license.json")],
+      accreditation: accreditation
     }
+  end
+
+  def render("license.json", %{legal_entity: license}) do
+    Map.take(license, ~w(
+      active_from_date
+      expiry_date
+      id
+      inserted_at
+      inserted_by
+      is_active
+      issued_by
+      issued_date
+      issuer_status
+      license_number
+      order_no
+      type
+      updated_at
+      updated_by
+      what_licensed
+    )a)
   end
 
   def render("legal_entity_short.json", %{"legal_entity" => legal_entity}) do

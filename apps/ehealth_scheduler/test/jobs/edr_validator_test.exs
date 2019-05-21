@@ -6,11 +6,11 @@ defmodule EHealthScheduler.Jobs.EdrValidatorTest do
   alias EHealthScheduler.Jobs.EdrValidator
 
   test "run/0" do
-    for _ <- 1..10 do
-      insert(:prm, :legal_entity)
+    for i <- 1..10 do
+      insert(:prm, :edr_data, edr_id: i)
     end
 
-    expect(KafkaMock, :publish_verify_legal_entity, 10, fn _event -> :ok end)
+    expect(KafkaMock, :publish_sync_edr_data, 10, fn _event -> :ok end)
 
     EdrValidator.run()
   end

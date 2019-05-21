@@ -23,13 +23,11 @@ defmodule GraphQL.LegalEntityResolverTest do
     query ListLegalEntitiesQuery{
       legalEntities(first: 10){
         nodes{
-          medicalServiceProvider{
-            licenses{
-              orderNo
-            }
-            accreditation{
-              category
-            }
+          license{
+            orderNo
+          }
+          accreditation{
+            category
           }
         }
       }
@@ -465,7 +463,7 @@ defmodule GraphQL.LegalEntityResolverTest do
 
       resp_entities = get_in(resp_body, ~w(data legalEntities nodes))
 
-      assert Enum.all?(resp_entities, &(get_in(&1, ~w(medicalServiceProvider accreditation category)) != nil))
+      assert Enum.all?(resp_entities, &(get_in(&1, ~w(accreditation category)) != nil))
     end
 
     test "success without medical_service_provider", %{conn: conn} do
@@ -505,6 +503,13 @@ defmodule GraphQL.LegalEntityResolverTest do
       query = """
         query GetLegalEntityQuery($id: ID) {
           legalEntity(id: $id) {
+            accreditation{
+              category
+              order_no
+              order_date
+              issued_date
+              expiry_date
+            }
             id
             publicName
             nhsVerified
@@ -520,23 +525,14 @@ defmodule GraphQL.LegalEntityResolverTest do
               date
               place
             }
-            medicalServiceProvider{
-              licenses {
-                license_number
-                issued_by
-                issued_date
-                active_from_date
-                order_no
-                expiry_date
-                what_licensed
-              }
-              accreditation{
-                category
-                order_no
-                order_date
-                issued_date
-                expiry_date
-              }
+            license {
+              license_number
+              issued_by
+              issued_date
+              active_from_date
+              order_no
+              expiry_date
+              what_licensed
             }
             receiverFundsCode
             owner {
@@ -622,8 +618,8 @@ defmodule GraphQL.LegalEntityResolverTest do
       assert legal_entity.public_name == resp["publicName"]
       assert legal_entity.phones == resp["phones"]
       assert legal_entity.archive == resp["archive"]
-      assert Map.has_key?(resp["medicalServiceProvider"], "licenses")
-      assert "some" == get_in(resp, ~w(medicalServiceProvider accreditation category))
+      assert Map.has_key?(resp, "license")
+      assert "some" == get_in(resp, ~w(accreditation category))
 
       # mergedToLegalEntity
       assert related_merged_to.id == resp["mergedToLegalEntity"]["databaseId"]
@@ -653,9 +649,17 @@ defmodule GraphQL.LegalEntityResolverTest do
       end)
 
       # msp
-      msp = legal_entity.medical_service_provider |> Jason.encode!() |> Jason.decode!()
-      assert msp["accreditation"] == resp["medicalServiceProvider"]["accreditation"]
-      assert msp["licenses"] == resp["medicalServiceProvider"]["licenses"]
+      assert legal_entity.accreditation |> Jason.encode!() |> Jason.decode!() == resp["accreditation"]
+
+      assert legal_entity.license |> Map.take(~w(
+        license_number
+        issued_by
+        issued_date
+        active_from_date
+        order_no
+        expiry_date
+        what_licensed
+      )a) |> Jason.encode!() |> Jason.decode!() == resp["license"]
 
       # divisions
       assert 1 == length(resp["divisions"]["nodes"])

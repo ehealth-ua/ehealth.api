@@ -154,11 +154,6 @@ config :core, Core.Bamboo.Emails.Sender, mailer: Core.Bamboo.TestMailer
 
 config :core, Core.Bamboo.TestMailer, adapter: Bamboo.TestAdapter
 
-config :core, :legal_entity_employee_types,
-  nhs: {:system, :list, "LEGAL_ENTITY_NHS_EMPLOYEE_TYPES", ["NHS ADMIN", "NHS ADMIN SIGNER", "NHS LE VERIFIER"]},
-  msp: {:system, :list, "LEGAL_ENTITY_MSP_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "ACCOUNTANT"]},
-  pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST"]}
-
 # Configures Cabinet
 config :core, Core.Cabinet.API,
   # hours

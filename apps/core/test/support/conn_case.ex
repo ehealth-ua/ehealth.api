@@ -22,6 +22,7 @@ defmodule Core.ConnCase do
       import Core.Expectations.RPC
       import Core.Factories
       import Core.ConnCase
+      import ExUnit.CaptureLog
     end
   end
 

@@ -5,6 +5,7 @@ defmodule Core.Factories do
 
   # PRM
   use Core.PRMFactories.LegalEntityFactory
+  use Core.PRMFactories.LicenseFactory
   use Core.PRMFactories.MedicalServiceProviderFactory
   use Core.PRMFactories.GlobalParameterFactory
   use Core.PRMFactories.UkrMedRegistryFactory
@@ -16,6 +17,7 @@ defmodule Core.Factories do
   use Core.PRMFactories.BlackListUserFactory
   use Core.PRMFactories.ContractFactory
   use Core.PRMFactories.ServiceFactory
+  use Core.PRMFactories.EdrDataFactory
 
   # IL
   use Core.ILFactories.RegisterFactory

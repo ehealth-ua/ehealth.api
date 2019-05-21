@@ -15,14 +15,14 @@ defmodule Core.Expectations.RPC do
     end)
   end
 
-  def expect_edr_by_code(response, times \\ 1) do
-    expect(RPCEdrWorkerMock, :run, times, fn _, _, :legal_entity_by_code, _ ->
+  def expect_search_legal_entity(response, times \\ 1) do
+    expect(RPCEdrWorkerMock, :run, times, fn _, _, :search_legal_entity, _ ->
       response
     end)
   end
 
-  def expect_edr_by_passport(response, times \\ 1) do
-    expect(RPCEdrWorkerMock, :run, times, fn _, _, :legal_entity_by_passport, _ ->
+  def expect_get_legal_entity_detailed_info(response, times \\ 1) do
+    expect(RPCEdrWorkerMock, :run, times, fn _, _, :get_legal_entity_detailed_info, _ ->
       response
     end)
   end

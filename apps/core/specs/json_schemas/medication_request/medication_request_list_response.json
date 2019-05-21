@@ -708,10 +708,16 @@
                       "format": "date"
                     },
                     "what_licensed": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "order_no": {
-                      "type": "string",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "номер наказу"
                     }
                   },

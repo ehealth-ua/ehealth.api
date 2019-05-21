@@ -3,6 +3,7 @@ defmodule EHealthScheduler.Jobs.EdrValidator do
   Publish kafka events to validate legal entities by EDR service
   """
 
+  alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
   import Ecto.Query
@@ -10,12 +11,18 @@ defmodule EHealthScheduler.Jobs.EdrValidator do
   @producer Application.get_env(:core, :kafka)[:producer]
 
   def run do
-    LegalEntity
-    |> select([le], [:id])
-    |> where([le], le.status == ^LegalEntity.status(:active) and le.is_active)
+    EdrData
+    |> select([ed], [:id])
+    |> distinct([ed], ed.id)
+    |> join(:left, [ed], l in assoc(ed, :legal_entities))
+    |> where(
+      [ed, le],
+      le.status in ^[LegalEntity.status(:active), LegalEntity.status(:suspended), LegalEntity.status(:reorganized)] and
+        le.is_active
+    )
     |> PRMRepo.all()
     |> Enum.each(fn %{id: id} ->
-      :ok = @producer.publish_verify_legal_entity(%{"legal_entity_id" => id})
+      :ok = @producer.publish_sync_edr_data(%{"id" => id})
     end)
   end
 end

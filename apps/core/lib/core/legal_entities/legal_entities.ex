@@ -6,26 +6,21 @@ defmodule Core.LegalEntities do
   use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
-  import Core.Contracts.ContractSuspender
   import Ecto.Query, except: [update: 3]
 
   alias Core.API.MediaStorage
   alias Core.Context
-  alias Core.Contracts
-  alias Core.Contracts.CapitationContract
+  alias Core.Contracts.ContractSuspender
   alias Core.EmployeeRequests
   alias Core.Employees.Employee
   alias Core.EventManager
   alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.LegalEntityCreator
   alias Core.LegalEntities.Search
+  alias Core.LegalEntities.SignedContent
   alias Core.LegalEntities.Validator
   alias Core.OAuth.API, as: OAuth
   alias Core.PRMRepo
-  alias Core.Registries
-  alias Ecto.Changeset
-  alias Ecto.Schema.Metadata
-  alias Ecto.UUID
   alias Scrivener.Page
 
   require Logger
@@ -59,8 +54,7 @@ defmodule Core.LegalEntities do
     addresses
     inserted_by
     updated_by
-    mis_verified
-  )a
+    )a
 
   @optional_fields ~w(
     id
@@ -81,33 +75,20 @@ defmodule Core.LegalEntities do
     website
     beneficiary
     edr_verified
+    mis_verified
+    edr_data_id
+    accreditation
   )a
 
   @employee_request_status "NEW"
 
   @status_active LegalEntity.status(:active)
-  @status_closed LegalEntity.status(:closed)
   @status_suspended LegalEntity.status(:suspended)
-
-  @mis_verified_verified LegalEntity.mis_verified(:verified)
-  @mis_verified_not_verified LegalEntity.mis_verified(:not_verified)
 
   def list(params \\ %{}) do
     %Search{}
     |> changeset(params)
     |> search(params, LegalEntity)
-  end
-
-  def list_legators(%{"id" => id} = params, id) do
-    RelatedLegalEntity
-    |> where([rle], rle.merged_to_id == ^id)
-    |> join(:left, [rle], from_le in assoc(rle, :merged_from))
-    |> preload([rle, from_le], merged_from: from_le)
-    |> @read_prm_repo.paginate(Map.delete(params, "id"))
-  end
-
-  def list_legators(_, _) do
-    {:error, {:forbidden, "User is not allowed to view"}}
   end
 
   def get_search_query(LegalEntity = entity, %{ids: _ids} = changes) do
@@ -153,7 +134,9 @@ defmodule Core.LegalEntities do
     LegalEntity
     |> where([le], le.id == ^id)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
+    |> join(:left, [le], l in assoc(le, :license))
     |> preload([le, msp], medical_service_provider: msp)
+    |> preload([le, msp, l], license: l)
   end
 
   def get_by_id(id, headers) do
@@ -174,17 +157,18 @@ defmodule Core.LegalEntities do
     |> @read_prm_repo.all()
   end
 
-  def get_related_by(args), do: @read_prm_repo.get_by(RelatedLegalEntity, args)
+  def active_by_edr_data_id(edr_data_id) do
+    edr_active_statuses = [LegalEntity.status(:active), LegalEntity.status(:suspended)]
+
+    LegalEntity
+    |> where([le], le.edr_data_id == ^edr_data_id)
+    |> where([le], le.status in ^edr_active_statuses)
+    |> @read_prm_repo.all
+  end
 
   def create(%LegalEntity{} = legal_entity, attrs, author_id) do
     legal_entity
     |> changeset(attrs)
-    |> PRMRepo.insert_and_log(author_id)
-  end
-
-  def create(%RelatedLegalEntity{} = related_legal_entity, attrs, author_id) do
-    related_legal_entity
-    |> RelatedLegalEntity.changeset(attrs)
     |> PRMRepo.insert_and_log(author_id)
   end
 
@@ -196,38 +180,6 @@ defmodule Core.LegalEntities do
     |> PRMRepo.update_and_log(author_id)
   end
 
-  def update_with_ops_contract(%Changeset{valid?: true} = changeset, headers) do
-    if suspend_contracts?(changeset, :legal_entity) do
-      transaction_update_with_contract(changeset, headers)
-    else
-      PRMRepo.update_and_log(changeset, get_consumer_id(headers))
-    end
-  end
-
-  def update_with_ops_contract(changeset, _headers), do: changeset
-
-  def transaction_update_with_contract(%Ecto.Changeset{valid?: true} = changeset, headers) do
-    get_contracts_params = %{
-      legal_entity_id: Changeset.get_field(changeset, :id),
-      status: CapitationContract.status(:verified),
-      is_suspended: false
-    }
-
-    PRMRepo.transaction(fn ->
-      {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
-      {:ok, _} = suspend_contracts(contracts)
-
-      with {:ok, result} <- EctoTrail.update_and_log(PRMRepo, changeset, get_consumer_id(headers)) do
-        result
-      else
-        {:error, reason} ->
-          PRMRepo.rollback(reason)
-      end
-    end)
-  end
-
-  def transaction_update_with_contract(changeset, _), do: changeset
-
   defp load_legal_entity(id) do
     %{"id" => id, "is_active" => true}
     |> list()
@@ -236,21 +188,6 @@ defmodule Core.LegalEntities do
       %Page{entries: data} -> {:ok, List.first(data)}
       err -> err
     end
-  end
-
-  def mis_verify(id, consumer_id) do
-    update_data = %{mis_verified: @mis_verified_verified}
-
-    with {:ok, legal_entity} <- fetch_by_id(id),
-         :ok <- check_mis_verify_transition(legal_entity) do
-      update(legal_entity, update_data, consumer_id)
-    end
-  end
-
-  defp check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
-
-  defp check_mis_verify_transition(_) do
-    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
   def nhs_verify(%{id: id, nhs_verified: nhs_verified}, consumer_id, check_nhs_reviewed? \\ false) do
@@ -292,95 +229,70 @@ defmodule Core.LegalEntities do
         _ -> headers
       end
 
-    with {:ok, request_params} <- Validator.decode_and_validate(params, headers),
-         edrpou <- Map.fetch!(request_params, "edrpou"),
-         type <- Map.fetch!(request_params, "type"),
-         legal_entity <- get_or_create_by_edrpou_type(edrpou, type),
-         :ok <- check_status(legal_entity),
-         {:ok, _} <- store_signed_content(legal_entity.id, params, headers),
-         request_params <- put_mis_verified_state(request_params),
-         {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
-         {:ok, client_type_id} <- get_client_type_id(type, headers),
-         {:ok, client, client_connection} <-
-           OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
-         {:ok, security} <- prepare_security_data(client, client_connection),
-         {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
-      {:ok,
-       %{
-         legal_entity: legal_entity,
-         employee_request: employee_request,
-         security: security
-       }}
+    with {:ok, request_params, legal_entity_code} <- Validator.decode_and_validate(params, headers),
+         %LegalEntityCreator{} = state <-
+           LegalEntityCreator.get_or_create(
+             request_params,
+             legal_entity_code,
+             headers
+           ) do
+      with {:ok, %LegalEntity{} = legal_entity} <-
+             PRMRepo.transaction(fn ->
+               legal_entity_transaction(state, params["signed_legal_entity_request"], headers)
+             end),
+           {:ok, client_type_id} <- get_client_type_id(Map.fetch!(request_params, "type"), headers),
+           {:ok, client, client_connection} <-
+             OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
+           {:ok, security} <- prepare_security_data(client, client_connection),
+           {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
+        {:ok,
+         %{
+           legal_entity: legal_entity,
+           employee_request: employee_request,
+           security: security
+         }}
+      end
     end
   end
 
-  defp get_or_create_by_edrpou_type(edrpou, type) do
-    case list(%{edrpou: edrpou, type: type}) do
-      %Page{entries: []} -> %LegalEntity{id: UUID.generate()}
-      %Page{entries: [legal_entity]} -> legal_entity
+  def legal_entity_transaction(%LegalEntityCreator{} = state, signed_content, headers) do
+    legal_entity =
+      Enum.reduce(state.inserts ++ state.updates, nil, fn fun, acc ->
+        case fun.() do
+          {:ok, %LegalEntity{} = legal_entity} ->
+            save_signed_content(signed_content, legal_entity.id, headers)
+            legal_entity
+
+          {:ok, _} ->
+            acc
+
+          {:error, reason} ->
+            PRMRepo.rollback(reason)
+        end
+      end)
+
+    case legal_entity do
+      {:ok, legal_entity} ->
+        Enum.each(state.update_all, fn fun -> fun.() end)
+        {:ok, legal_entity}
+
+      error ->
+        error
     end
   end
 
-  def check_status(%LegalEntity{status: @status_closed}) do
-    {:error, {:conflict, "LegalEntity can't be updated"}}
-  end
+  defp save_signed_content(signed_content, id, headers) do
+    filename = DateTime.to_unix(DateTime.utc_now())
 
-  def check_status(_), do: :ok
-
-  def store_signed_content(id, input, headers) do
-    input
-    |> Map.fetch!("signed_legal_entity_request")
-    |> MediaStorage.store_signed_content(:legal_entity_bucket, id, "signed_content", headers)
-  end
-
-  def put_legal_entity_to_prm(
-        %LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity,
-        attrs,
-        headers
-      ) do
-    # Creates new Legal Entity in PRM
-    consumer_id = get_consumer_id(headers)
-    client_id = get_client_id(headers)
-    inserted_at = DateTime.utc_now()
-
-    creation_data =
-      Map.merge(attrs, %{
-        "status" => @status_active,
-        "is_active" => true,
-        "nhs_verified" => false,
-        "nhs_unverified_at" => inserted_at,
-        "nhs_reviewed" => false,
-        "created_by_mis_client_id" => client_id,
-        "inserted_by" => consumer_id,
-        "updated_by" => consumer_id,
-        "inserted_at" => inserted_at,
-        "updated_at" => inserted_at
-      })
-
-    create(legal_entity, creation_data, consumer_id)
-  end
-
-  def put_legal_entity_to_prm(
-        %LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity,
-        attrs,
-        headers
-      ) do
-    # Updates Legal Entity
-    consumer_id = get_consumer_id(headers)
-    # filter immutable data
-    update_data =
-      attrs
-      |> Map.delete("edrpou")
-      |> Map.merge(%{
-        "updated_by" => consumer_id,
-        "is_active" => true,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false
-      })
-
-    legal_entity
-    |> changeset(update_data)
-    |> update_with_ops_contract(headers)
+    with {:ok, _} <- MediaStorage.store_signed_content(signed_content, :legal_entity_bucket, id, filename, headers),
+         {:ok, _} <-
+           %SignedContent{}
+           |> SignedContent.changeset(%{"filename" => to_string(filename), "legal_entity_id" => id})
+           |> PRMRepo.insert() do
+      :ok
+    else
+      {:error, reason} -> PRMRepo.rollback(reason)
+    end
   end
 
   def prepare_security_data(client, client_connection) do
@@ -391,10 +303,6 @@ defmodule Core.LegalEntities do
     }
 
     {:ok, security}
-  end
-
-  def put_mis_verified_state(%{"edrpou" => edrpou, "type" => type} = request_params) do
-    Map.put(request_params, "mis_verified", Registries.get_edrpou_verified_status(edrpou, type))
   end
 
   def create_employee_request(%LegalEntity{id: id, type: type}, request_params) do
@@ -464,7 +372,7 @@ defmodule Core.LegalEntities do
   defp check_status_transition(_, _), do: {:error, {:conflict, "Incorrect status transition."}}
 
   defp maybe_suspend_contracts(legal_entity, @status_suspended) do
-    suspend_by_contractor_legal_entity_id(legal_entity.id)
+    ContractSuspender.suspend_by_contractor_legal_entity_id(legal_entity.id)
   end
 
   defp maybe_suspend_contracts(_, _), do: :ok
@@ -474,14 +382,23 @@ defmodule Core.LegalEntities do
   def check_nhs_reviewed(%LegalEntity{nhs_reviewed: true}, _), do: :ok
   def check_nhs_reviewed(_, _), do: {:error, {:conflict, "Legal entity should be reviewed first"}}
 
-  def prepare_employee_request_data(legal_entity_id, party) do
+  def prepare_employee_request_data(legal_entity_id, data) do
     request = %{
       "legal_entity_id" => legal_entity_id,
-      "position" => Map.fetch!(party, "position"),
+      "position" => Map.fetch!(data, "position"),
       "status" => @employee_request_status,
       "start_date" => Date.to_iso8601(Date.utc_today()),
-      "party" => Map.delete(party, "position")
+      "party" => Map.drop(data, ~w(position employee_id))
     }
+
+    employee_id = data["employee_id"]
+
+    request =
+      if employee_id do
+        Map.put(request, "employee_id", employee_id)
+      else
+        request
+      end
 
     %{"employee_request" => request}
   end
@@ -500,7 +417,10 @@ defmodule Core.LegalEntities do
   end
 
   defp load_references(%Ecto.Query{} = query) do
-    preload(query, :medical_service_provider)
+    query
+    |> preload(:license)
+    |> preload(:edr_data)
+    |> preload(:signed_content_history)
   end
 
   def changeset(%Search{} = legal_entity, params) do
@@ -513,7 +433,7 @@ defmodule Core.LegalEntities do
     |> cast_assoc(:medical_service_provider)
     |> validate_required(@required_fields)
     |> validate_msp_required()
-    |> unique_constraint(:edrpou)
+    |> unique_constraint(:edrpou, name: :legal_entities_edrpou_type_status_index)
   end
 
   defp validate_msp_required(%Ecto.Changeset{changes: %{type: "MSP"}} = changeset) do

@@ -5,15 +5,19 @@ defmodule Core.LegalEntities.LegalEntity do
 
   alias Core.Divisions.Division
   alias Core.Employees.Employee
+  alias Core.LegalEntities.EdrData
+  alias Core.LegalEntities.License
   alias Core.LegalEntities.MedicalServiceProvider
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.SignedContent
+  alias Ecto.UUID
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
   @status_active "ACTIVE"
+  @status_suspended "SUSPENDED"
   @status_closed "CLOSED"
   @status_reorganized "REORGANIZED"
-  @status_suspended "SUSPENDED"
 
   @type_mis "MIS"
   @type_msp "MSP"
@@ -38,9 +42,9 @@ defmodule Core.LegalEntities.LegalEntity do
   def mis_verified(:not_verified), do: @mis_verified_not_verified
 
   def status(:active), do: @status_active
+  def status(:suspended), do: @status_suspended
   def status(:closed), do: @status_closed
   def status(:reorganized), do: @status_reorganized
-  def status(:suspended), do: @status_suspended
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "legal_entities" do
@@ -64,8 +68,6 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:public_name, :string)
     field(:short_name, :string)
     field(:status, :string)
-    field(:status_reason, :string)
-    field(:reason, :string)
     field(:mis_verified, :string)
     field(:type, :string)
     field(:inserted_by, Ecto.UUID)
@@ -73,6 +75,11 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:capitation_contract_id, :id)
     field(:created_by_mis_client_id, Ecto.UUID)
     field(:edr_verified, :boolean)
+    field(:registration_address, :map)
+    field(:residence_address, :map)
+    field(:accreditation, :map)
+    field(:status_reason, :string)
+    field(:reason, :string)
 
     has_one(:medical_service_provider, MedicalServiceProvider, on_replace: :delete, foreign_key: :legal_entity_id)
     has_one(:merged_to_legal_entity, RelatedLegalEntity, foreign_key: :merged_from_id)
@@ -80,6 +87,9 @@ defmodule Core.LegalEntities.LegalEntity do
     has_many(:employees, Employee, foreign_key: :legal_entity_id)
     has_many(:divisions, Division, foreign_key: :legal_entity_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
+    has_many(:signed_content_history, SignedContent, foreign_key: :legal_entity_id)
+    belongs_to(:edr_data, EdrData, type: UUID)
+    belongs_to(:license, License, type: UUID)
 
     timestamps(type: :utc_datetime_usec)
   end

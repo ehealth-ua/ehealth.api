@@ -1,26 +1,20 @@
 {
-  "name": "Клініка Борис",
-  "short_name": "Борис",
-  "public_name": "Борис",
-  "owner_property_type": "STATE",
-  "legal_form": "ПІДПРИЄМЕЦЬ",
   "edrpou": "37367387",
-  "addresses": [
-    {
-      "type": "REGISTRATION",
-      "country": "UA",
-      "area": "Житомирська",
-      "region": "Бердичівський",
-      "settlement": "Київ",
-      "settlement_type": "CITY",
-      "settlement_id": "f2d556b4-86d5-4afe-87b8-3908ad947106",
-      "street": "вул. Ніжинська",
-      "street_type": "STREET",
-      "building": "15-В",
-      "apartment": "23",
-      "zip": "02090"
-    }
-  ],
+  "type": "PRIMARY_CARE",
+  "residence_address": {
+    "type": "RESIDENCE",
+    "country": "UA",
+    "area": "Житомирська",
+    "region": "Бердичівський",
+    "settlement": "Київ",
+    "settlement_type": "CITY",
+    "settlement_id": "f2d556b4-86d5-4afe-87b8-3908ad947106",
+    "street": "вул. Ніжинська",
+    "street_type": "STREET",
+    "building": "15-В",
+    "apartment": "23",
+    "zip": "02090"
+  },
   "phones": [
     {
       "type": "MOBILE",
@@ -34,7 +28,6 @@
     "second_name": "Миколайович",
     "position": "P1",
     "tax_id": "3067305998",
-    "no_tax_id": false,
     "birth_date": "1991-08-19",
     "gender": "MALE",
     "email": "email@example.com",
@@ -51,42 +44,22 @@
       }
     ]
   },
-  "medical_service_provider": {
-    "licenses": [
-      {
-        "type": "MSP",
-        "kveds": [
-          "86.10"
-        ],
-        "license_number": "fd123443",
-        "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19",
-        "expiry_date": "1991-08-19",
-        "active_from_date": "1991-08-19",
-        "order_no": "fd123443",
-        "what_licensed": "збут наркотичних засобів"
-      },
-      {
-        "type": "PHARMACY",
-        "kveds": [
-          "47.73"
-        ],
-        "license_number": "fd123445",
-        "issued_by": "Кваліфікацйна комісія",
-        "issued_date": "1991-08-19",
-        "expiry_date": "1991-08-19",
-        "active_from_date": "1991-08-19",
-        "order_no": "fd123443",
-        "what_licensed": "виготовлення наркотичних засобів"
-      }
-    ],
-    "accreditation": {
-      "category": "ДРУГА",
-      "issued_date": "1991-08-19",
-      "expiry_date": "1991-08-19",
-      "order_no": "fd123443",
-      "order_date": "1991-08-19"
-    }
+  "accreditation": {
+    "category": "ДРУГА",
+    "issued_date": "1991-08-19",
+    "expiry_date": "1991-08-19",
+    "order_no": "fd123443",
+    "order_date": "1991-08-19"
+  },
+  "license": {
+    "type": "MSP",
+    "license_number": "fd123443",
+    "issued_by": "Кваліфікацйна комісія",
+    "issued_date": "1991-08-19",
+    "expiry_date": "2991-08-19",
+    "active_from_date": "1991-08-19",
+    "order_no": "fd123443",
+    "what_licensed": "збут наркотичних засобів"
   },
   "security": {
     "redirect_uri": "https://example.com/redirect_uri"

@@ -10,6 +10,7 @@ defmodule EHealth.Web.ContractController do
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
   alias Scrivener.Page
+  import Core.API.Helpers.Connection, only: [get_client_id: 1]
 
   @capitation CapitationContract.type()
   @reimbursement ReimbursementContract.type()
@@ -18,8 +19,9 @@ defmodule EHealth.Web.ContractController do
 
   def index(%Plug.Conn{req_headers: headers} = conn, %{"type" => _type} = params) do
     client_type = conn.assigns.client_type
+    client_id = get_client_id(headers)
 
-    with {:ok, %Page{} = paging, references} <- Contracts.list(params, client_type, headers) do
+    with {:ok, %Page{} = paging, references} <- Contracts.list(params, client_type, client_id) do
       render(conn, "index.json", contracts: paging.entries, paging: paging, references: references)
     end
   end

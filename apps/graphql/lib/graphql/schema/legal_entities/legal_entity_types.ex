@@ -179,6 +179,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:nhs_reviewed, :boolean)
     field(:nhs_comment, :string)
     field(:edr_verified, :boolean)
+    field(:accreditation, :accreditation)
 
     # enums
 
@@ -191,7 +192,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:phones, non_null(list_of(:phone)))
     field(:addresses, non_null(list_of(:address)))
     field(:archive, list_of(:legal_entity_archive))
-    field(:medical_service_provider, :msp, resolve: dataloader(PRM))
+    field(:license, :license, resolve: dataloader(PRM))
 
     # relations
     field(:owner, :employee, resolve: &LegalEntityResolver.load_owner/3)
@@ -260,12 +261,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
 
   # embed
 
-  object :msp do
-    field(:licenses, list_of(:msp_license))
-    field(:accreditation, :msp_accreditation)
-  end
-
-  object :msp_license do
+  object :license do
     field(:license_number, :string)
     field(:issued_by, :string)
     field(:issued_date, :string)
@@ -275,7 +271,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:what_licensed, :string)
   end
 
-  object :msp_accreditation do
+  object :accreditation do
     field(:category, :string)
     field(:order_no, :string)
     field(:order_date, :string)

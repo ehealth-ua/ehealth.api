@@ -644,8 +644,8 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
       "public_name" => legal_entity.public_name,
       "email" => legal_entity.email,
       "addresses" => legal_entity.addresses,
-      "accreditation" => legal_entity.medical_service_provider.accreditation,
-      "licenses" => legal_entity.medical_service_provider.licenses
+      "accreditation" => legal_entity.accreditation,
+      "licenses" => [legal_entity.license]
     }
   end
 

@@ -9,6 +9,13 @@ defmodule Core.PRMFactories.LegalEntityFactory do
 
       def legal_entity_factory do
         %LegalEntity{
+          accreditation: %{
+            category: "some",
+            order_date: "some",
+            expiry_date: "some",
+            issued_date: "some",
+            order_no: "some"
+          },
           is_active: true,
           addresses: [
             %{
@@ -48,7 +55,7 @@ defmodule Core.PRMFactories.LegalEntityFactory do
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
           created_by_mis_client_id: UUID.generate(),
-          medical_service_provider: build(:medical_service_provider)
+          license: build(:license)
         }
       end
 

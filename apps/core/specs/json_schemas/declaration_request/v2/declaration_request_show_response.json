@@ -372,7 +372,6 @@
             },
             "licenses": {
               "items": {
-                "additionalProperties": false,
                 "properties": {
                   "active_from_date": {
                     "type": "string"
@@ -390,10 +389,16 @@
                     "type": "string"
                   },
                   "what_licensed": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "order_no": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -722,7 +727,7 @@
             },
             "no_tax_id": {
               "type": "boolean",
-              "description":  "Status person refused tax_id"
+              "description": "Status person refused tax_id"
             },
             "invalid_tax_id": {
               "type": "boolean"

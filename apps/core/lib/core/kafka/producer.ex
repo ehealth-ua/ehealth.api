@@ -13,7 +13,7 @@ defmodule Core.Kafka.Producer do
 
   def publish_deactivate_declaration_event(event), do: produce(@deactivate_declaration_events_topic, event)
 
-  def publish_verify_legal_entity(event), do: produce(@edr_verification_events_topic, event)
+  def publish_sync_edr_data(event), do: produce(@edr_verification_events_topic, event)
 
   defp produce(topic, event) do
     case Kaffe.Producer.produce_sync(topic, 0, "", :erlang.term_to_binary(event)) do

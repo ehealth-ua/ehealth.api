@@ -10,6 +10,8 @@ defmodule Core.Validators.Addresses do
 
   def validate(addresses) when is_list(addresses), do: validate_addresses_values(addresses)
 
+  def validate(address) when is_map(address), do: validate_addresses_values(address)
+
   def validate(addresses, required_type) when is_list(addresses) do
     with :ok <- validate_addresses_type(addresses, required_type) do
       validate_addresses_values(addresses)

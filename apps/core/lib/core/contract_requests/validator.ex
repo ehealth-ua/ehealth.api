@@ -1,7 +1,7 @@
 defmodule Core.ContractRequests.Validator do
   @moduledoc false
 
-  import Core.API.Helpers.Connection, only: [get_header: 2]
+  import Core.API.Helpers.Connection, only: [get_header: 2, get_client_id: 1]
   import Core.Users.Validator, only: [user_has_role: 2]
   import Ecto.Query, only: [where: 3]
 
@@ -250,6 +250,8 @@ defmodule Core.ContractRequests.Validator do
   end
 
   def validate_contract_number(type, %{"contractor_legal_entity_id" => legal_entity_id} = params, headers) do
+    client_id = get_client_id(headers)
+
     search_params =
       %{
         "type" => type,
@@ -260,7 +262,7 @@ defmodule Core.ContractRequests.Validator do
       }
       |> put_medical_program_id(type, params)
 
-    with {:ok, %Page{entries: [_ | _]}, _} <- Contracts.list(search_params, nil, headers) do
+    with {:ok, %Page{entries: [_ | _]}, _} <- Contracts.list(search_params, nil, client_id) do
       Error.dump("Active contract is found. Contract number must be sent in request")
     else
       _ -> {:ok, params, nil}

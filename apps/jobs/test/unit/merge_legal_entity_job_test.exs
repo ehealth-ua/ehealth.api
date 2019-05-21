@@ -7,10 +7,11 @@ defmodule Unit.LegalEntityMergeJobTest do
   import Core.Expectations.Mithril
   import Core.Expectations.Signature
 
-  alias Ecto.UUID
   alias Core.Employees
   alias Core.Employees.Employee
   alias Core.LegalEntities
+  alias Core.LegalEntities.RelatedLegalEntities
+  alias Ecto.UUID
   alias Jobs.Jabba.Task, as: JabbaTask
   alias Jobs.LegalEntityMergeJob
 
@@ -161,7 +162,7 @@ defmodule Unit.LegalEntityMergeJobTest do
       assert related_id == :ets.lookup(:related_legal_entity, :id)[:id]
 
       # related legal entity created
-      related = LegalEntities.get_related_by(id: related_id)
+      related = RelatedLegalEntities.get_related_by(id: related_id)
       assert merged_to.id == related.merged_to_id
       assert merged_from.id == related.merged_from_id
     end
@@ -180,7 +181,7 @@ defmodule Unit.LegalEntityMergeJobTest do
 
       # related legal entity created
       assert related_id == :ets.lookup(:related_legal_entity, :id)[:id]
-      related = LegalEntities.get_related_by(id: related_id)
+      related = RelatedLegalEntities.get_related_by(id: related_id)
       assert merged_to.id == related.merged_to_id
       assert merged_from.id == related.merged_from_id
     end

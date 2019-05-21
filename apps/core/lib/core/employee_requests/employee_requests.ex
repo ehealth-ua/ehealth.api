@@ -466,7 +466,7 @@ defmodule Core.EmployeeRequests do
     end
   end
 
-  defp insert_employee_request(%{"employee_id" => employee_id} = params) do
+  defp insert_employee_request(%{"employee_id" => employee_id} = params) when not is_nil(employee_id) do
     employee = Employees.get_by_id(employee_id)
 
     if is_nil(employee) do

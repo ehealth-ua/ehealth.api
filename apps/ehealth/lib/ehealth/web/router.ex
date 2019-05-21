@@ -175,7 +175,6 @@ defmodule EHealthWeb.Router do
     # Legal Entities
     get("/legal_entities/:id", LegalEntityController, :show)
     get("/legal_entities/:id/related", LegalEntityController, :list_legators)
-    patch("/legal_entities/:id/actions/mis_verify", LegalEntityController, :mis_verify)
     patch("/legal_entities/:id/actions/nhs_verify", LegalEntityController, :nhs_verify)
     patch("/legal_entities/:id/actions/deactivate", LegalEntityController, :deactivate)
 

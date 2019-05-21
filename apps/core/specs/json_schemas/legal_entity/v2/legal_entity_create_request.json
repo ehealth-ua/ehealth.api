@@ -66,7 +66,9 @@
       "properties": {
         "type": {
           "type": "string",
-          "description": "Dictionary: ADDRESS_TYPE"
+          "enum": [
+            "RESIDENCE"
+          ]
         },
         "country": {
           "type": "string"
@@ -131,33 +133,16 @@
   },
   "type": "object",
   "properties": {
-    "name": {
-      "$ref": "#/definitions/name"
-    },
-    "short_name": {
-      "$ref": "#/definitions/name"
-    },
-    "public_name": {
-      "$ref": "#/definitions/name"
-    },
-    "owner_property_type": {
-      "type": "string",
-      "description": "Dictionary: OWNER_PROPERTY_TYPE"
-    },
-    "legal_form": {
-      "type": "string",
-      "description": "Dictionary: LEGAL_FORM"
-    },
     "edrpou": {
       "type": "string",
       "pattern": "^[0-9]{8,10}|[0-9]{9,10}$"
     },
-    "addresses": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/address"
-      },
-      "minItems": 1
+    "type": {
+      "type": "string",
+      "description": "Dictionary: LEGAL_ENTITY_TYPE_V2"
+    },
+    "residence_address": {
+      "$ref": "#/definitions/address"
     },
     "phones": {
       "type": "array",
@@ -172,7 +157,7 @@
     },
     "website": {
       "type": "string",
-      "pattern": "^(http://|https://)?([a-z0-9][a-z0-9\\-]*\\.)+[a-z0-9][a-z0-9\\-]*$"
+      "pattern": "^(http:\/\/|https:\/\/)?([a-z0-9][a-z0-9\\-]*\\.)+[a-z0-9][a-z0-9\\-]*$"
     },
     "receiver_funds_code": {
       "type": "string",
@@ -185,6 +170,10 @@
     "owner": {
       "type": "object",
       "properties": {
+        "employee_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
         "first_name": {
           "$ref": "#/definitions/person_name"
         },
@@ -240,93 +229,78 @@
         "gender",
         "documents",
         "email"
-      ]
+      ],
+      "additionalProperties": false
     },
-    "medical_service_provider": {
+    "accreditation": {
       "type": "object",
       "properties": {
-        "licenses": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "description": "Dictionary: LICENSE_TYPE"
-              },
-              "kveds": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "description": "Dictionary: KVEDS_ALLOWED_MSP or KVEDS_ALLOWED_PHARMACY"
-                },
-                "minItems": 1
-              },
-              "license_number": {
-                "$ref": "#/definitions/name"
-              },
-              "issued_by": {
-                "$ref": "#/definitions/name"
-              },
-              "issued_date": {
-                "$ref": "#/definitions/date"
-              },
-              "expiry_date": {
-                "$ref": "#/definitions/date"
-              },
-              "active_from_date": {
-                "$ref": "#/definitions/date"
-              },
-              "what_licensed": {
-                "$ref": "#/definitions/name"
-              },
-              "order_no": {
-                "$ref": "#/definitions/name",
-                "description": "номер наказу"
-              }
-            },
-            "required": [
-              "type",
-              "kveds",
-              "issued_by",
-              "issued_date",
-              "active_from_date",
-              "order_no"
-            ]
-          },
-          "minItems": 1,
-          "maxItems": 2
+        "category": {
+          "type": "string",
+          "description": "Dictionary: ACCREDITATION_CATEGORY"
         },
-        "accreditation": {
-          "type": "object",
-          "properties": {
-            "category": {
-              "type": "string",
-              "description": "Dictionary: ACCREDITATION_CATEGORY"
-            },
-            "issued_date": {
-              "$ref": "#/definitions/date"
-            },
-            "expiry_date": {
-              "$ref": "#/definitions/date"
-            },
-            "order_no": {
-              "$ref": "#/definitions/name",
-              "description": "номер наказу МОЗ"
-            },
-            "order_date": {
-              "$ref": "#/definitions/date"
-            }
-          },
-          "required": [
-            "category",
-            "order_no"
-          ]
+        "issued_date": {
+          "$ref": "#/definitions/date"
+        },
+        "expiry_date": {
+          "$ref": "#/definitions/date"
+        },
+        "order_no": {
+          "$ref": "#/definitions/name",
+          "description": "номер наказу МОЗ"
+        },
+        "order_date": {
+          "$ref": "#/definitions/date"
         }
       },
       "required": [
-        "licenses"
-      ]
+        "category",
+        "order_no"
+      ],
+      "additionalProperties": false
+    },
+    "license": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{4}(-?)[0-9a-f]{12}$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Dictionary: LICENSE_TYPE"
+        },
+        "license_number": {
+          "$ref": "#/definitions/name"
+        },
+        "issued_by": {
+          "$ref": "#/definitions/name"
+        },
+        "issued_date": {
+          "$ref": "#/definitions/date"
+        },
+        "expiry_date": {
+          "$ref": "#/definitions/date"
+        },
+        "active_from_date": {
+          "$ref": "#/definitions/date"
+        },
+        "what_licensed": {
+          "$ref": "#/definitions/name"
+        },
+        "order_no": {
+          "$ref": "#/definitions/name",
+          "description": "номер наказу"
+        }
+      },
+      "required": [
+        "type",
+        "issued_by",
+        "issued_date",
+        "active_from_date",
+        "order_no"
+      ],
+      "additionalProperties": false
     },
     "status": {
       "type": "string",
@@ -341,20 +315,13 @@
         "$ref": "#/definitions/archive"
       }
     },
-    "mis_verified": {
-      "type": "string",
-      "enum": [
-        "VERIFIED",
-        "NOT_VERIFIED"
-      ]
-    },
     "security": {
       "type": "object",
       "properties": {
         "redirect_uri": {
           "type": "string",
           "format": "uri",
-          "pattern": "^(https)://.+"
+          "pattern": "^(https):\/\/.+"
         }
       },
       "required": [
@@ -377,19 +344,17 @@
       "required": [
         "consent",
         "consent_text"
-      ]
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
-    "name",
-    "owner_property_type",
-    "legal_form",
     "edrpou",
-    "addresses",
+    "type",
+    "residence_address",
     "phones",
     "email",
     "owner",
-    "medical_service_provider",
     "security",
     "public_offer"
   ],
