@@ -9,6 +9,7 @@ defmodule Core.LegalEntities.License do
   @derive {Jason.Encoder, except: [:__meta__, :edr_data, :legal_entities]}
 
   @fields_required ~w(
+    id
     is_active
     type
     issued_by
@@ -32,7 +33,7 @@ defmodule Core.LegalEntities.License do
   def type(:msp), do: @type_msp
   def type(:pharmacy), do: @type_pharmacy
 
-  @primary_key {:id, :binary_id, autogenerate: true}
+  @primary_key {:id, :binary_id, autogenerate: false}
   schema "licenses" do
     field(:is_active, :boolean, default: true)
     field(:license_number, :string)

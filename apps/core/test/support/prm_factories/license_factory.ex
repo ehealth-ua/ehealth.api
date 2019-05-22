@@ -11,6 +11,7 @@ defmodule Core.PRMFactories.LicenseFactory do
         uuid = UUID.generate()
 
         %License{
+          id: UUID.generate(),
           is_active: true,
           license_number: "1234567",
           type: License.type(:msp),

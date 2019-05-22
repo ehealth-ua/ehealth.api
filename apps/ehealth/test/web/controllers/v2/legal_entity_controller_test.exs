@@ -101,6 +101,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert %{"error" => %{"invalid" => [%{"entry" => "$.license.license_number"}]}} = resp
     end
 
+    @tag :pending
     test "create legal entity with type PRIMARY_CARE", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -143,6 +144,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert "PRIMARY_CARE" == resp["data"]["type"]
     end
 
+    @tag :pending
     test "create legal entity sign edrpou", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -186,6 +188,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert resp
     end
 
+    @tag :pending
     test "create legal entity sign drfo code", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -230,6 +233,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert resp
     end
 
+    @tag :pending
     test "create legal entity sign drfo code when edrpou empty string", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -285,6 +289,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert resp
     end
 
+    @tag :pending
     test "create legal entity sign drfo code when edrpou nil", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -341,6 +346,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert %{"nhs_reviewed" => false, "nhs_verified" => false} = resp_data
     end
 
+    @tag :pending
     test "update legal entity sign drfo code when edrpou nil", %{conn: conn} do
       %{edrpou: edrpou} = insert(:prm, :legal_entity)
 
@@ -510,6 +516,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
   end
 
   describe "update legal_entity type flow" do
+    @tag :pending
     test "MSP to MSP", %{conn: conn} do
       get_client_type_by_name()
       put_client()
@@ -553,6 +560,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
              |> json_response(200)
     end
 
+    @tag :pending
     test "PHARMACY to PHARMACY", %{conn: conn} do
       get_client_type_by_name()
       put_client()

@@ -10,11 +10,10 @@ defmodule Core.LegalEntities.LegalEntityCreator do
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Ecto.UUID
-  alias Scrivener.Page
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1, get_header: 2]
   import Ecto.Query
 
-  defstruct legal_entity: nil, inserts: [], updates: [], update_all: []
+  defstruct legal_entity: nil, edr_data_id: nil, inserts: [], updates: [], update_all: []
 
   @status_active LegalEntity.status(:active)
 
@@ -29,14 +28,15 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     client_id = get_client_id(headers)
     edrpou = Map.fetch!(params, "edrpou")
     type = Map.fetch!(params, "type")
-    edr_data_header = get_header(headers, "edr-data")
+    edr_data_list_header = get_header(headers, "edr-data-list")
+    edr_data_id_header = get_header(headers, "edr-data-id")
 
     case get_legal_entities(type, edrpou, @status_active) do
-      %Page{entries: []} ->
-        new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_header)
+      [] ->
+        new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_list_header, edr_data_id_header)
 
-      %Page{entries: [%LegalEntity{edr_data: %EdrData{} = edr_data} = legal_entity]} ->
-        with {:ok, response} <- get_legal_entity_from_edr(edr_data.edr_id),
+      [%LegalEntity{edr_data: %EdrData{} = edr_data} = legal_entity] ->
+        with {:ok, response} <- get_legal_entity_from_edr(edr_data.edr_id, edr_data_id_header),
              :ok <-
                Validator.validate_edr_data_fields(
                  response,
@@ -55,7 +55,13 @@ defmodule Core.LegalEntities.LegalEntityCreator do
             "updated_by" => consumer_id
           }
 
-          state = suspend_legal_entities(%__MODULE__{}, response, edr_data, consumer_id)
+          state =
+            suspend_legal_entities(
+              %__MODULE__{legal_entity: legal_entity, edr_data_id: legal_entity.edr_data_id},
+              response,
+              edr_data,
+              consumer_id
+            )
 
           state = %{
             state
@@ -69,14 +75,33 @@ defmodule Core.LegalEntities.LegalEntityCreator do
           }
 
           update_changeset(
-            %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id}},
+            state,
+            params,
+            consumer_id
+          )
+        end
+
+      [%LegalEntity{} = legal_entity] ->
+        state = %__MODULE__{legal_entity: legal_entity}
+
+        with state <-
+               upsert_edr_data(
+                 state,
+                 legal_entity_code,
+                 params,
+                 consumer_id,
+                 edr_data_list_header,
+                 edr_data_id_header
+               ) do
+          update_changeset(
+            state,
             params,
             consumer_id
           )
         end
 
       _ ->
-        new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_header)
+        new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_list_header, edr_data_id_header)
     end
   end
 
@@ -85,6 +110,10 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     |> where([le], le.type in [@type_primary_care, @type_msp])
     |> where([le], le.edrpou == ^edrpou)
     |> where([le], le.status == ^status)
+    |> join(:left, [le], msp in assoc(le, :medical_service_provider))
+    |> join(:left, [le, msp], ed in assoc(le, :edr_data))
+    |> join(:left, [le, msp, ed], l in assoc(le, :license))
+    |> preload([le, msp, ed, l], medical_service_provider: msp, edr_data: ed, license: l)
     |> limit(2)
     |> @read_prm_repo.all
   end
@@ -94,6 +123,10 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     |> where([le], le.type == ^type)
     |> where([le], le.edrpou == ^edrpou)
     |> where([le], le.status == ^status)
+    |> join(:left, [le], msp in assoc(le, :medical_service_provider))
+    |> join(:left, [le, msp], ed in assoc(le, :edr_data))
+    |> join(:left, [le, msp, ed], l in assoc(le, :license))
+    |> preload([le, msp, ed, l], medical_service_provider: msp, edr_data: ed, license: l)
     |> limit(2)
     |> @read_prm_repo.all
   end
@@ -118,23 +151,27 @@ defmodule Core.LegalEntities.LegalEntityCreator do
       })
       |> add_accreditation(attrs)
 
+    license_id = UUID.generate()
+    creation_data = Map.put(creation_data, "license_id", license_id)
+
     %{
       state
       | inserts:
           state.inserts ++
             [
-              fn -> LegalEntities.create(legal_entity, creation_data, consumer_id) end,
               fn ->
                 %License{}
                 |> License.changeset(
                   Map.merge(List.first(attrs["medical_service_provider"]["licenses"]), %{
+                    "id" => license_id,
                     "inserted_by" => consumer_id,
                     "updated_by" => consumer_id,
                     "type" => creation_data["type"]
                   })
                 )
                 |> PRMRepo.insert_and_log(consumer_id)
-              end
+              end,
+              fn -> LegalEntities.create(legal_entity, creation_data, consumer_id) end
             ]
     }
   end
@@ -156,45 +193,57 @@ defmodule Core.LegalEntities.LegalEntityCreator do
       })
       |> add_accreditation(attrs)
 
-    state =
+    {state, license_id} =
       case legal_entity.license do
         %License{} = license ->
-          %{
-            state
-            | updates: [
-                fn ->
-                  license
-                  |> license.changeset(
-                    Map.merge(
-                      List.first(attrs["medical_service_provider"]["licenses"]),
-                      %{"updated_by" => consumer_id, "type" => legal_entity.type}
-                    )
-                  )
-                  |> PRMRepo.update_and_log(consumer_id)
-                end
-                | state.updates
-              ]
-          }
+          {%{
+             state
+             | updates: [
+                 fn ->
+                   license
+                   |> License.changeset(
+                     Map.merge(
+                       List.first(attrs["medical_service_provider"]["licenses"]),
+                       %{"updated_by" => consumer_id, "type" => legal_entity.type}
+                     )
+                   )
+                   |> PRMRepo.update_and_log(consumer_id)
+                 end
+                 | state.updates
+               ]
+           }, license.id}
 
         _ ->
-          %{
-            state
-            | inserts:
-                state.inserts ++
-                  [
-                    fn ->
-                      %License{}
-                      |> License.changeset(
-                        Map.merge(List.first(attrs["medical_service_provider"]["licenses"]), %{
-                          "type" => legal_entity.type,
-                          "inserted_by" => consumer_id,
-                          "updated_by" => consumer_id
-                        })
-                      )
-                      |> PRMRepo.insert_and_log(consumer_id)
-                    end
-                  ]
-          }
+          license_id = UUID.generate()
+
+          {%{
+             state
+             | inserts:
+                 state.inserts ++
+                   [
+                     fn ->
+                       %License{}
+                       |> License.changeset(
+                         Map.merge(List.first(attrs["medical_service_provider"]["licenses"]), %{
+                           "id" => license_id,
+                           "type" => legal_entity.type,
+                           "inserted_by" => consumer_id,
+                           "updated_by" => consumer_id
+                         })
+                       )
+                       |> PRMRepo.insert_and_log(consumer_id)
+                     end
+                   ]
+           }, license_id}
+      end
+
+    update_data = Map.put(update_data, "license_id", license_id)
+
+    {legal_entity, update_data} =
+      if state.edr_data_id do
+        {legal_entity, update_data}
+      else
+        {%{legal_entity | edr_data_id: nil}, Map.put(update_data, "edr_data_id", legal_entity.edr_data_id)}
       end
 
     changes = LegalEntities.changeset(legal_entity, update_data)
@@ -229,10 +278,11 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     end
   end
 
-  defp new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_header) do
+  defp new_legal_entity(legal_entity_code, params, consumer_id, client_id, edr_data_list_header, edr_data_id_header) do
     state = %__MODULE__{legal_entity: %LegalEntity{id: UUID.generate()}}
 
-    with %__MODULE__{} = state <- upsert_edr_data(state, legal_entity_code, params, consumer_id, edr_data_header) do
+    with %__MODULE__{} = state <-
+           upsert_edr_data(state, legal_entity_code, params, consumer_id, edr_data_list_header, edr_data_id_header) do
       new_changeset(
         state,
         params,
@@ -242,16 +292,30 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     end
   end
 
-  def upsert_edr_data(%__MODULE__{} = state, %{edrpou: value}, params, consumer_id, edr_data_header) do
-    do_upsert_edr_data(state, value, params, consumer_id, edr_data_header)
+  def upsert_edr_data(
+        %__MODULE__{} = state,
+        %{edrpou: value},
+        params,
+        consumer_id,
+        edr_data_list_header,
+        edr_data_id_header
+      ) do
+    do_upsert_edr_data(state, value, params, consumer_id, edr_data_list_header, edr_data_id_header)
   end
 
-  def upsert_edr_data(%__MODULE__{} = state, %{drfo: value}, params, consumer_id, edr_data_header) do
-    do_upsert_edr_data(state, value, params, consumer_id, edr_data_header)
+  def upsert_edr_data(
+        %__MODULE__{} = state,
+        %{drfo: value},
+        params,
+        consumer_id,
+        edr_data_list_header,
+        edr_data_id_header
+      ) do
+    do_upsert_edr_data(state, value, params, consumer_id, edr_data_list_header, edr_data_id_header)
   end
 
-  def do_upsert_edr_data(state, value, params, consumer_id, edr_data_header) do
-    with {:ok, items} <- search_edr_legal_entities(value, edr_data_header) do
+  def do_upsert_edr_data(state, value, params, consumer_id, edr_data_list_header, edr_data_id_header) do
+    with {:ok, items} <- search_edr_legal_entities(value, edr_data_list_header) do
       active_items =
         Enum.reduce(items, 0, fn item, acc ->
           if item["state"] == 1 do
@@ -273,7 +337,7 @@ defmodule Core.LegalEntities.LegalEntityCreator do
             :ok ->
               item = Enum.find(items, &(Map.get(&1, "state") == 1))
 
-              with {:ok, response} <- get_legal_entity_from_edr(item["id"]),
+              with {:ok, response} <- get_legal_entity_from_edr(item["id"], edr_data_id_header),
                    :ok <-
                      Validator.validate_edr_data_fields(
                        response,
@@ -336,10 +400,14 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     end
   end
 
-  defp get_legal_entity_from_edr(id) do
-    case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [id]) do
-      {:ok, response} -> {:ok, response}
-      {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
+  defp get_legal_entity_from_edr(id, edr_data_header) do
+    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
+      case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [id]) do
+        {:ok, response} -> {:ok, response}
+        {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
+      end
+    else
+      {:ok, Jason.decode!(edr_data_header)}
     end
   end
 

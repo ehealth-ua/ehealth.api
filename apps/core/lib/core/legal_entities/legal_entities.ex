@@ -78,6 +78,7 @@ defmodule Core.LegalEntities do
     mis_verified
     edr_data_id
     accreditation
+    license_id
   )a
 
   @employee_request_status "NEW"
@@ -282,12 +283,12 @@ defmodule Core.LegalEntities do
   end
 
   defp save_signed_content(signed_content, id, headers) do
-    filename = DateTime.to_unix(DateTime.utc_now())
+    filename = to_string(DateTime.to_unix(DateTime.utc_now()))
 
     with {:ok, _} <- MediaStorage.store_signed_content(signed_content, :legal_entity_bucket, id, filename, headers),
          {:ok, _} <-
            %SignedContent{}
-           |> SignedContent.changeset(%{"filename" => to_string(filename), "legal_entity_id" => id})
+           |> SignedContent.changeset(%{"filename" => filename, "legal_entity_id" => id})
            |> PRMRepo.insert() do
       :ok
     else
