@@ -7,9 +7,9 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.LegalEntityCreator
-  alias Core.LegalEntities.License
   alias Core.PRMRepo
   alias Core.V2.LegalEntities, as: V2LegalEntities
+  alias Core.V2.LegalEntities.Licenses
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Ecto.UUID
@@ -24,7 +24,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
   @rpc_edr_worker Application.get_env(:core, :rpc_edr_worker)
 
-  def get_or_create(params, legal_entity_code, license_id, headers) do
+  def get_or_create(params, legal_entity_code, license_required, headers) do
     params = Map.put(params, "addresses", [params["residence_address"]])
     consumer_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
@@ -32,6 +32,8 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     type = Map.fetch!(params, "type")
     edr_data_list_header = get_header(headers, "edr-data-list")
     edr_data_id_header = get_header(headers, "edr-data-id")
+    request_license = Map.get(params, "license", %{})
+    license_id = Map.get(request_license, "id", UUID.generate())
 
     case get_legal_entities(type, edrpou, @status_active) do
       [] ->
@@ -39,6 +41,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           legal_entity_code,
           params,
           license_id,
+          license_required,
           consumer_id,
           client_id,
           edr_data_list_header,
@@ -76,6 +79,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
             %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id}},
             params,
             license_id,
+            license_required,
             consumer_id
           )
         end
@@ -85,6 +89,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           legal_entity_code,
           params,
           license_id,
+          license_required,
           consumer_id,
           client_id,
           edr_data_list_header,
@@ -150,9 +155,10 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   end
 
   defp new_changeset(
-         %LegalEntityCreator{legal_entity: legal_entity} = state,
+         %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id} = state,
          attrs,
          license_id,
+         license_required,
          consumer_id,
          client_id
        ) do
@@ -171,32 +177,17 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
 
     creation_data = Map.put(creation_data, "license_id", license_id)
 
-    %{
-      state
-      | inserts:
-          state.inserts ++
-            [
-              fn ->
-                %License{}
-                |> License.changeset(
-                  Map.merge(attrs["license"], %{
-                    "id" => license_id,
-                    "inserted_by" => consumer_id,
-                    "updated_by" => consumer_id,
-                    "type" => creation_data["type"]
-                  })
-                )
-                |> PRMRepo.insert_and_log(consumer_id)
-              end,
-              fn -> V2LegalEntities.create(legal_entity, creation_data, consumer_id) end
-            ]
-    }
+    with %LegalEntityCreator{} = state <-
+           Licenses.check_license(state, attrs["license"], license_required, edr_data_id, consumer_id, license_id) do
+      %{state | inserts: state.inserts ++ [fn -> V2LegalEntities.create(legal_entity, creation_data, consumer_id) end]}
+    end
   end
 
   def update_changeset(
-        %LegalEntityCreator{legal_entity: legal_entity} = state,
+        %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id} = state,
         attrs,
         license_id,
+        license_required,
         consumer_id
       ) do
     update_data =
@@ -210,46 +201,13 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         "edr_verified" => nil
       })
 
-    state =
-      case legal_entity.license do
-        %License{} = license ->
-          %{
-            state
-            | updates: [
-                fn ->
-                  license
-                  |> License.changeset(Map.merge(attrs["license"], %{"updated_by" => consumer_id}))
-                  |> PRMRepo.update_and_log(consumer_id)
-                end
-                | state.updates
-              ]
-          }
-
-        _ ->
-          %{
-            state
-            | inserts:
-                state.inserts ++
-                  [
-                    fn ->
-                      %License{}
-                      |> License.changeset(
-                        Map.merge(attrs["license"], %{
-                          "id" => license_id,
-                          "type" => legal_entity.type,
-                          "inserted_by" => consumer_id,
-                          "updated_by" => consumer_id
-                        })
-                      )
-                      |> PRMRepo.insert_and_log(consumer_id)
-                    end
-                  ]
-          }
-      end
-
     update_data = Map.put(update_data, "license_id", license_id)
     changes = V2LegalEntities.changeset(legal_entity, update_data)
-    %{state | updates: [fn -> PRMRepo.update_and_log(changes, consumer_id) end | state.updates]}
+
+    with %LegalEntityCreator{} = state <-
+           Licenses.check_license(state, attrs["license"], license_required, edr_data_id, consumer_id, license_id) do
+      %{state | updates: [fn -> PRMRepo.update_and_log(changes, consumer_id) end | state.updates]}
+    end
   end
 
   def suspend_legal_entities(%LegalEntityCreator{} = state, edr_response, edr_data, consumer_id) do
@@ -277,6 +235,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
          legal_entity_code,
          params,
          license_id,
+         license_required,
          consumer_id,
          client_id,
          edr_data_list_header,
@@ -290,6 +249,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         state,
         params,
         license_id,
+        license_required,
         consumer_id,
         client_id
       )

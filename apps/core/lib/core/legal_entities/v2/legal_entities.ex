@@ -16,16 +16,9 @@ defmodule Core.V2.LegalEntities do
   alias Core.OAuth.API, as: OAuth
   alias Core.PRMRepo
   alias Core.V2.LegalEntities.Validator
-  alias Core.ValidationError
-  alias Core.Validators.Error
-  alias Ecto.Changeset
-  alias Ecto.UUID
   import Ecto.Query
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
 
   require Logger
-
-  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   @pharmacy LegalEntity.type(:pharmacy)
   @outpatient LegalEntity.type(:outpatient)
@@ -62,26 +55,14 @@ defmodule Core.V2.LegalEntities do
   # Create legal entity
 
   def create(params, headers) do
-    consumer_id = get_consumer_id(headers)
-
     with {:ok, request_params, legal_entity_code} <- Validator.decode_and_validate(params, headers),
          license_required <- get_required_license(request_params["type"]),
-         license_id <- get_license_id(request_params["license"]),
          %V1LegalEntityCreator{} = state <-
            LegalEntityCreator.get_or_create(
              request_params,
              legal_entity_code,
-             license_id,
-             headers
-           ),
-         %V1LegalEntityCreator{} = state <-
-           check_license(
-             state,
-             request_params["license"],
              license_required,
-             state.legal_entity.edr_data_id,
-             consumer_id,
-             license_id
+             headers
            ) do
       with {:ok, %LegalEntity{} = legal_entity} <-
              PRMRepo.transaction(fn ->
@@ -112,122 +93,6 @@ defmodule Core.V2.LegalEntities do
   defp get_required_license(@outpatient), do: License.type(:msp)
   defp get_required_license(@pharmacy), do: License.type(:pharmacy)
   defp get_required_license(_), do: nil
-
-  defp get_license_id(%{"id" => id}), do: id
-  defp get_license_id(_), do: UUID.generate()
-
-  defp check_license(state, nil, nil, _, _, _), do: state
-  defp check_license(_, nil, _, _, _, _), do: {:error, {:conflict, "License is needed for chosen legal entity type"}}
-
-  defp check_license(_, license, nil, _, _, _) when license != %{} do
-    {:error, {:conflict, "License is not needed for chosen legal entity type"}}
-  end
-
-  defp check_license(state, license, required_license, edr_data_id, consumer_id, license_id) do
-    case Map.pop(license, "id") do
-      # insert, validate license
-      {nil, license_data} ->
-        license_data =
-          Map.merge(license_data, %{
-            "id" => license_id,
-            "is_active" => true,
-            "inserted_by" => consumer_id,
-            "updated_by" => consumer_id
-          })
-
-        with %Changeset{valid?: true} = changeset <- License.changeset(%License{}, license_data),
-             {_, true} <- {:required_license, get_change(changeset, :type) == required_license},
-             expiry_date <- get_change(changeset, :expiry_date),
-             {_, true} <-
-               {:expiry_date, expiry_date && Date.compare(expiry_date, Date.utc_today()) != :lt} do
-          %{state | inserts: [fn -> PRMRepo.insert_and_log(changeset, consumer_id) end | state.inserts]}
-        else
-          {:required_license, _} ->
-            {:error, {:conflict, "Legal entity type and license type mismatch"}}
-
-          {:expiry_date, _} ->
-            {:error, {:conflict, "License is expired"}}
-
-          error ->
-            error
-        end
-
-      # validate license
-      {_, license_data} when license_data == %{} ->
-        with {:ok, license} <- get_license(license_id),
-             {_, true} <- {:required_license, license.type == required_license},
-             {_, true} <- {:edr_data, edr_data_id in license.edr_data},
-             {_, true} <-
-               {:expiry_date, license.expiry_date && Date.compare(license.expiry_date, Date.utc_today()) != :lt} do
-          state
-        else
-          nil ->
-            Error.dump(%ValidationError{
-              description: "License not found",
-              path: "$.license.id"
-            })
-
-          {:required_license, _} ->
-            {:error, {:conflict, "Legal entity type and license type mismatch"}}
-
-          {:edr_data, _} ->
-            {:error, {:conflict, "License doesn't correspond to your legal entity"}}
-
-          {:expiry_date, _} ->
-            {:error, {:conflict, "License is expired"}}
-        end
-
-      # update, validate license
-      {_, license_data} ->
-        license_data =
-          Map.merge(license_data, %{
-            "inserted_by" => consumer_id,
-            "updated_by" => consumer_id
-          })
-
-        with {:ok, license} <- get_license(license_id),
-             %Changeset{valid?: true} = changeset <- License.changeset(license, license_data),
-             {_, false} <- {:license_type, Map.has_key?(changeset.changes, :type)},
-             {_, true} <- {:required_license, license.type == required_license},
-             {_, true} <- {:edr_data, edr_data_id in license.edr_data},
-             changes <- Changeset.apply_changes(changeset),
-             {_, true} <-
-               {:expiry_date, changes.expiry_date && Date.compare(changes.expiry_date, Date.utc_today()) != :lt} do
-          %{state | inserts: state.inserts ++ [fn -> PRMRepo.update_and_log(changeset, consumer_id) end]}
-        else
-          nil ->
-            Error.dump(%ValidationError{
-              description: "License not found",
-              path: "$.license.id"
-            })
-
-          {:license_type, _} ->
-            Error.dump(%ValidationError{
-              description: "License type can not be updated",
-              path: "$.license.type"
-            })
-
-          {:required_license, _} ->
-            {:error, {:conflict, "Legal entity type and license type mismatch"}}
-
-          {:edr_data, _} ->
-            {:error, {:conflict, "License doesn't correspond to your legal entity"}}
-
-          {:expiry_date, _} ->
-            {:error, {:conflict, "License is expired"}}
-
-          error ->
-            error
-        end
-    end
-  end
-
-  defp get_license(license_id) do
-    License
-    |> where([l], l.id == ^license_id)
-    |> preload(:edr_data)
-    |> @read_prm_repo.all()
-  end
 
   defp create_employee_request(%LegalEntity{id: id}, request_params) do
     owner = Map.fetch!(request_params, "owner")

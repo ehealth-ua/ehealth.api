@@ -40,9 +40,9 @@ defmodule Core.LegalEntities.LegalEntityCreator do
              :ok <-
                Validator.validate_edr_data_fields(
                  response,
-                 legal_entity.legal_form,
-                 legal_entity.name,
-                 legal_entity.addresses
+                 params["legal_form"],
+                 params["name"],
+                 params["addresses"]
                ) do
           data = %{
             "name" => response["names"]["name"],

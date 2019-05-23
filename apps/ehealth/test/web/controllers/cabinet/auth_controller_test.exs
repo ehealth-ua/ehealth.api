@@ -445,7 +445,6 @@ defmodule Mithril.Web.RegistrationControllerTest do
       |> json_response(201)
     end
 
-    @tag :pending
     test "update user and create new MPI person", %{conn: conn, params: params} do
       expect_otp_verification_complete()
       expect_uaddresses_validate()
