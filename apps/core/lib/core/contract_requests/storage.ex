@@ -34,10 +34,10 @@ defmodule Core.ContractRequests.Storage do
   def draft do
     id = UUID.generate()
 
-    with {:ok, %{"data" => %{"secret_url" => statute_url}}} <-
-           @media_storage_api.create_signed_url("PUT", get_bucket(), @statute.upload_path, id, []),
-         {:ok, %{"data" => %{"secret_url" => additional_document_url}}} <-
-           @media_storage_api.create_signed_url("PUT", get_bucket(), @additional_document.upload_path, id, []) do
+    with {:ok, %{secret_url: statute_url}} <-
+           @media_storage_api.create_signed_url("PUT", get_bucket(), @statute.upload_path, id),
+         {:ok, %{secret_url: additional_document_url}} <-
+           @media_storage_api.create_signed_url("PUT", get_bucket(), @additional_document.upload_path, id) do
       %{
         "id" => id,
         "statute_url" => statute_url,
@@ -48,8 +48,8 @@ defmodule Core.ContractRequests.Storage do
 
   def gen_relevant_get_links(id, status) do
     Enum.reduce_while(get_document_attributes_by_status(status), {:ok, []}, fn doc, {:ok, acc} ->
-      with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
-             @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, id, []) do
+      with {:ok, %{secret_url: secret_url}} <-
+             @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, id) do
         case file_uploaded?(secret_url) do
           true -> {:cont, {:ok, [%{"type" => doc.dictionary_name, "url" => secret_url} | acc]}}
           _ -> {:cont, {:ok, acc}}
@@ -89,11 +89,10 @@ defmodule Core.ContractRequests.Storage do
   def save_signed_content(
         id,
         %{"signed_content" => content},
-        headers,
         resource_name,
         bucket \\ :contract_request_bucket
       ) do
-    case @media_storage_api.store_signed_content(content, bucket, id, resource_name, headers) do
+    case @media_storage_api.store_signed_content(content, bucket, id, resource_name) do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}
     end
@@ -109,13 +108,12 @@ defmodule Core.ContractRequests.Storage do
   end
 
   def decode_and_validate_signed_content(%{id: id}, headers) do
-    with {:ok, %{"data" => %{"secret_url" => secret_url}}} <-
+    with {:ok, %{secret_url: secret_url}} <-
            @media_storage_api.create_signed_url(
              "GET",
              MediaStorage.config()[:contract_request_bucket],
              @signed_content.permanent_path,
-             id,
-             headers
+             id
            ),
          {:ok, %{body: content, status_code: 200}} <- @media_storage_api.get_signed_content(secret_url),
          {:ok, %{"data" => %{"content" => content}}} <-
@@ -128,7 +126,7 @@ defmodule Core.ContractRequests.Storage do
     end
   end
 
-  def resolve_partially_signed_content_url(contract_request_id, headers) do
+  def resolve_partially_signed_content_url(contract_request_id) do
     bucket = get_bucket()
     resource_name = "contract_request_content.pkcs7"
 
@@ -137,32 +135,30 @@ defmodule Core.ContractRequests.Storage do
         "GET",
         bucket,
         contract_request_id,
-        resource_name,
-        headers
+        resource_name
       )
 
     case media_storage_response do
-      {:ok, %{"data" => %{"secret_url" => url}}} -> {:ok, url}
+      {:ok, %{secret_url: url}} -> {:ok, url}
       _ -> {:error, :media_storage_error}
     end
   end
 
-  def move_uploaded_documents(%RequestPack{} = pack, headers) do
+  def move_uploaded_documents(%RequestPack{} = pack) do
     Enum.reduce_while([@statute, @additional_document], :ok, fn doc, _ ->
       case md5_request_param_exist?(pack, doc.request_param_key) do
-        true -> move_file(pack, doc.upload_path, doc.permanent_path, headers)
+        true -> move_file(pack, doc.upload_path, doc.permanent_path)
         false -> {:cont, :ok}
       end
     end)
   end
 
-  defp move_file(%RequestPack{contract_request_id: id}, temp_resource_name, resource_name, headers) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("GET", get_bucket(), temp_resource_name, id, []),
+  defp move_file(%RequestPack{contract_request_id: id}, temp_resource_name, resource_name) do
+    with {:ok, %{secret_url: url}} <- @media_storage_api.create_signed_url("GET", get_bucket(), temp_resource_name, id),
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
-         {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name, headers),
-         {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id, []),
+         {:ok, _} <- @media_storage_api.save_file(id, signed_content, get_bucket(), resource_name),
+         {:ok, %{secret_url: url}} <-
+           @media_storage_api.create_signed_url("DELETE", get_bucket(), temp_resource_name, id),
          {:ok, _} <- @media_storage_api.delete_file(url) do
       {:cont, :ok}
     else
@@ -170,18 +166,17 @@ defmodule Core.ContractRequests.Storage do
     end
   end
 
-  def copy_contract_request_documents(new_contract_request_id, prev_contract_request_id, headers) do
+  def copy_contract_request_documents(new_contract_request_id, prev_contract_request_id) do
     Enum.reduce_while([@statute, @additional_document], :ok, fn doc, _ ->
-      with {:ok, %{"data" => %{"secret_url" => url}}} <-
-             @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, prev_contract_request_id, []),
+      with {:ok, %{secret_url: url}} <-
+             @media_storage_api.create_signed_url("GET", get_bucket(), doc.permanent_path, prev_contract_request_id),
            {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(url),
            {:ok, _} <-
              @media_storage_api.save_file(
                new_contract_request_id,
                signed_content,
                get_bucket(),
-               doc.permanent_path,
-               headers
+               doc.permanent_path
              ) do
         {:cont, :ok}
       else

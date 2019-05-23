@@ -63,8 +63,7 @@ defmodule Core.DeclarationRequests.API.Approve do
     resource_name = "declaration_request_#{type}.jpeg"
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:declaration_request_bucket]
 
-    {:ok, %{"data" => %{"secret_url" => url}} = result} =
-      @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, [])
+    {:ok, %{secret_url: url} = result} = @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id)
 
     Logger.info("Microservice ael response: #{inspect(result)}")
 

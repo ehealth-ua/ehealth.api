@@ -176,7 +176,7 @@ defmodule Core.MedicationDispense.API do
          :ok <- validate_status_transition(medication_dispense, "PROCESSED"),
          :ok <- JsonSchema.validate(:medication_dispense_process_content, content),
          :ok <- compare_with_db(content, medication_dispense, references),
-         :ok <- save_signed_content(id, params, headers),
+         :ok <- save_signed_content(id, params),
          attrs <-
            content
            |> Map.take(~w(payment_id payment_amount))
@@ -232,13 +232,12 @@ defmodule Core.MedicationDispense.API do
     ContentValidator.compare_with_db(content, db_content, "medication_dispense_process")
   end
 
-  defp save_signed_content(id, %{"signed_medication_dispense" => signed_content}, headers) do
+  defp save_signed_content(id, %{"signed_medication_dispense" => signed_content}) do
     signed_content
     |> @media_storage_api.store_signed_content(
       :medication_dispense_bucket,
       id,
-      "medication_dispense_process",
-      headers
+      "medication_dispense_process"
     )
     |> case do
       {:ok, _} -> :ok

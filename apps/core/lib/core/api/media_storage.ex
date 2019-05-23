@@ -7,15 +7,18 @@ defmodule Core.API.MediaStorage do
   require Logger
 
   @behaviour Core.API.MediaStorageBehaviour
+
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def verify_uploaded_file(url, resource_name) do
     HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name))
   end
 
-  def create_signed_url(action, bucket, resource_name, resource_id, headers \\ []) do
-    data = %{"secret" => generate_sign_url_data(action, bucket, resource_name, resource_id)}
-    create_signed_url(data, headers)
+  def create_signed_url(action, bucket, resource_name, resource_id) do
+    action
+    |> generate_sign_url_data(bucket, resource_name, resource_id)
+    |> create_signed_url()
   end
 
   defp generate_sign_url_data(action, bucket, resource_name, resource_id) do
@@ -34,17 +37,22 @@ defmodule Core.API.MediaStorage do
     Map.put(data, "content_type", MIME.from_path(resource_name))
   end
 
-  def create_signed_url(data, headers) do
-    post!("/media_content_storage_secrets", Jason.encode!(data), headers)
+  def create_signed_url(%{} = sign_url_data) do
+    with {:ok, secret} <- @rpc_worker.run("ael_api", Ael.Rpc, :signed_url, [sign_url_data]) do
+      {:ok, secret}
+    else
+      error ->
+        Logger.error("Failed to create signed url with error #{inspect(error)}")
+        {:error, :internal_server_error}
+    end
   end
 
-  def store_signed_content(signed_content, bucket, id, resource_name, headers) do
-    store_signed_content(config()[:enabled?], bucket, signed_content, id, resource_name, headers)
+  def store_signed_content(signed_content, bucket, id, resource_name) do
+    store_signed_content(config()[:enabled?], bucket, signed_content, id, resource_name)
   end
 
-  def store_signed_content(true, bucket, signed_content, id, resource_name, headers) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("PUT", config()[bucket], resource_name, id, headers) do
+  def store_signed_content(true, bucket, signed_content, id, resource_name) do
+    with {:ok, %{secret_url: url}} <- @media_storage_api.create_signed_url("PUT", config()[bucket], resource_name, id) do
       headers = [{"Content-Type", "application/octet-stream"}]
       content = Base.decode64!(signed_content, ignore: :whitespace, padding: false)
 
@@ -54,12 +62,11 @@ defmodule Core.API.MediaStorage do
     end
   end
 
-  def store_signed_content(false, _bucket, _signed_content, _id, _, _headers) do
+  def store_signed_content(false, _bucket, _signed_content, _id, _resource_name) do
     {:ok, "Media Storage is disabled in config"}
   end
 
-  def check_gcs_response({:ok, %HTTPoison.Response{status_code: code} = response})
-      when code in [200, 201] do
+  def check_gcs_response({:ok, %HTTPoison.Response{status_code: code} = response}) when code in [200, 201] do
     check_gcs_response(response)
   end
 
@@ -83,13 +90,13 @@ defmodule Core.API.MediaStorage do
         Logger.warn("Failed to get signed_content, details: #{inspect(body)}")
         {:error, {:conflict, "Failed to get signed_content"}}
 
-      err ->
-        err
+      error ->
+        error
     end
   end
 
-  def save_file(id, content, bucket, resource_name, headers \\ []) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <- create_signed_url("PUT", bucket, resource_name, id, headers) do
+  def save_file(id, content, bucket, resource_name) do
+    with {:ok, %{secret_url: url}} <- create_signed_url("PUT", bucket, resource_name, id) do
       url
       |> put_signed_content(content, [{"Content-Type", MIME.from_path(resource_name)}], config()[:hackney_options])
       |> check_gcs_response()

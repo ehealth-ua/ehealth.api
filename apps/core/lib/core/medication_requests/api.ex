@@ -91,7 +91,7 @@ defmodule Core.MedicationRequests.API do
          schema <- String.to_atom("medication_request_reject_content_" <> content["intent"]),
          :ok <- JsonSchema.validate(schema, content),
          :ok <- compare_with_db(content, medication_request),
-         :ok <- save_signed_content(params["id"], params, headers),
+         :ok <- save_signed_content(params["id"], params),
          update_params <-
            content
            |> Map.take(~w(reject_reason))
@@ -438,13 +438,12 @@ defmodule Core.MedicationRequests.API do
     ContentValidator.compare_with_db(content, db_content, "medication_request_reject")
   end
 
-  defp save_signed_content(id, %{"signed_medication_reject" => signed_content}, headers) do
+  defp save_signed_content(id, %{"signed_medication_reject" => signed_content}) do
     signed_content
     |> @media_storage_api.store_signed_content(
       :medication_request_bucket,
       id,
-      "medication_request_reject",
-      headers
+      "medication_request_reject"
     )
     |> case do
       {:ok, _} -> :ok

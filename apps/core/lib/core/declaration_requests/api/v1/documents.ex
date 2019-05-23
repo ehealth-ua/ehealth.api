@@ -44,12 +44,11 @@ defmodule Core.DeclarationRequests.API.Documents do
             verb,
             bucket,
             "declaration_request_#{document_type}.jpeg",
-            declaration_request_id,
-            []
+            declaration_request_id
           )
 
         case result do
-          {:ok, %{"data" => %{"secret_url" => url}}} ->
+          {:ok, %{secret_url: url}} ->
             url_details = %{
               "type" => document_type,
               "verb" => verb,

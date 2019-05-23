@@ -9,7 +9,6 @@ defmodule Unit.LegalEntityMergeJobTest do
 
   alias Core.Employees
   alias Core.Employees.Employee
-  alias Core.LegalEntities
   alias Core.LegalEntities.RelatedLegalEntities
   alias Ecto.UUID
   alias Jobs.Jabba.Task, as: JabbaTask
@@ -130,11 +129,7 @@ defmodule Unit.LegalEntityMergeJobTest do
         :ok
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn signed_content,
-                                                         bucket,
-                                                         related_le_id,
-                                                         resource_name,
-                                                         _headers ->
+      expect(MediaStorageMock, :store_signed_content, fn signed_content, bucket, related_le_id, resource_name ->
         assert "some-base-64-encoded-content" == signed_content
         assert :related_legal_entity_bucket == bucket
         assert "merged_legal_entities" == resource_name
@@ -172,7 +167,7 @@ defmodule Unit.LegalEntityMergeJobTest do
       put_client()
       deactivate_client_tokens()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, related_le_id, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, related_le_id, _ ->
         :ets.insert(:related_legal_entity, {:id, related_le_id})
         {:ok, %{"success" => true}}
       end)
@@ -196,7 +191,7 @@ defmodule Unit.LegalEntityMergeJobTest do
     end
 
     test "related legal entity exist", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:ok, %{"success" => true}} end)
       put_client()
       deactivate_client_tokens()
       insert(:prm, :related_legal_entity, merged_from: merged_from, merged_to: merged_to)
@@ -206,7 +201,7 @@ defmodule Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot terminate declaration", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:ok, %{"success" => true}} end)
 
       expect(KafkaMock, :publish_deactivate_declaration_event, fn _ ->
         {:error, %{"data" => "Declaration does not exist"}}
@@ -219,7 +214,7 @@ defmodule Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot update client_type", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:ok, %{"success" => true}} end)
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:error, %{"error" => "db connection"}} end)
 
       assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
@@ -227,7 +222,7 @@ defmodule Unit.LegalEntityMergeJobTest do
     end
 
     test "cannot store signed content", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:error, %{"error_code" => 500}} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:error, %{"error_code" => 500}} end)
 
       assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
       assert reason =~ "Failed to save signed content"
@@ -235,7 +230,7 @@ defmodule Unit.LegalEntityMergeJobTest do
 
     test "when raised an error", %{merged_to: merged_to, merged_from: merged_from, consumer_id: consumer_id} do
       expect(MithrilMock, :put_client, fn %{"id" => _id}, _headers -> {:response_not_expected} end)
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, %{"success" => true}} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:ok, %{"success" => true}} end)
 
       assert {:error, reason} = emulate_jabba_callback(merged_from, merged_to, consumer_id)
       assert %CaseClauseError{term: {:response_not_expected}} == reason

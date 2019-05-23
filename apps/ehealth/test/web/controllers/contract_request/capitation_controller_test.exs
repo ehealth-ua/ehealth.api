@@ -38,8 +38,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "success create draft", %{conn: conn} do
       msp()
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       resp =
@@ -67,8 +67,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -130,8 +130,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -168,8 +168,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -219,8 +219,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -270,8 +270,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -302,8 +302,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       %{legal_entity: legal_entity, employee: employee, party_user: party_user} = prepare_data()
       division = insert(:prm, :division)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -350,8 +350,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -415,8 +415,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -506,8 +506,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -557,8 +557,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -604,8 +604,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -652,8 +652,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -696,8 +696,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -745,8 +745,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -796,12 +796,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -864,12 +864,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -932,12 +932,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -1000,19 +1000,19 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1082,8 +1082,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -1138,8 +1138,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -1190,19 +1190,19 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1257,19 +1257,19 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1316,8 +1316,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         party_user: party_user
       } = prepare_data()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn "HEAD", _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
@@ -1451,12 +1451,12 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     setup %{conn: conn} do
       msp_pharmacy()
 
-      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       stub(MediaStorageMock, :get_signed_content, fn _ -> {:ok, %{body: ""}} end)
-      stub(MediaStorageMock, :save_file, fn _, _, _, _, _ -> {:ok, nil} end)
+      stub(MediaStorageMock, :save_file, fn _, _, _, _ -> {:ok, nil} end)
       stub(MediaStorageMock, :delete_file, fn _ -> {:ok, nil} end)
 
       stub(MediaStorageMock, :verify_uploaded_file, fn _, resource ->
@@ -1497,7 +1497,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
 
     test "success", context do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1940,8 +1940,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
           ]
         )
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -1989,8 +1989,8 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "success showing any contract_request for NHS ADMIN client", %{conn: conn} = context do
       nhs(2)
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 4, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -2373,7 +2373,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2445,19 +2445,15 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         surname: party_user.party.last_name
       })
 
-      conn =
-        conn
-        |> put_consumer_id_header(user_id)
-        |> put_client_id_header(legal_entity.id)
-        |> put_req_header("drfo", legal_entity.edrpou)
-
-      resp =
-        conn
-        |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
-          "signed_content" => data |> Jason.encode!() |> Base.encode64(),
-          "signed_content_encoding" => "base64"
-        })
-        |> json_response(404)
+      conn
+      |> put_consumer_id_header(user_id)
+      |> put_client_id_header(legal_entity.id)
+      |> put_req_header("drfo", legal_entity.edrpou)
+      |> patch(contract_request_path(conn, :approve, @capitation, contract_request.id), %{
+        "signed_content" => data |> Jason.encode!() |> Base.encode64(),
+        "signed_content_encoding" => "base64"
+      })
+      |> json_response(404)
     end
 
     test "contractor_legal_entity is not active", %{conn: conn} do
@@ -2465,7 +2461,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2530,7 +2526,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2601,7 +2597,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2674,7 +2670,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2746,7 +2742,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2818,7 +2814,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2935,7 +2931,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -3036,7 +3032,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -3213,7 +3209,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       assert json_response(conn, 404)
     end
 
-    test "fail with incorrect contractor legal entity status" do
+    test "fail with incorrect contractor legal entity status", %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity, status: LegalEntity.status(:closed), nhs_verified: true)
@@ -3278,7 +3274,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
              } = resp["error"]
     end
 
-    test "fail with contractor legal entity not passed NHS verification" do
+    test "fail with contractor legal entity not passed NHS verification", %{conn: conn} do
       user_id = UUID.generate()
       party_user = insert(:prm, :party_user, user_id: user_id)
       legal_entity = insert(:prm, :legal_entity, nhs_verified: false)
@@ -3989,7 +3985,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4048,7 +4044,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4118,7 +4114,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4189,7 +4185,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4316,7 +4312,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       insert(:il, :dictionary, name: "MEDICAL_SERVICE", values: %{})
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
@@ -4382,7 +4378,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4444,7 +4440,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
 
   describe "decline contract_request" do
     setup %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -4916,8 +4912,9 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "returns url successfully to owner", %{conn: conn} do
       msp()
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      # TODO: swap parameters `resource_name` and `id`
+      expect(MediaStorageMock, :create_signed_url, fn _, _, id, resource_name ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       %{user_id: user_id, owner: employee} = prepare_data()
@@ -4971,7 +4968,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "media storage fail to resolve url", %{conn: conn} do
       msp()
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
         {:ok, %{"error" => %{}}}
       end)
 
@@ -5246,7 +5243,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "failed to save signed content", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
@@ -5308,7 +5305,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     test "failed to create contract", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5371,7 +5368,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5472,7 +5469,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5575,7 +5572,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5648,7 +5645,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5724,7 +5721,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5800,7 +5797,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _ ->
         assert :contract_bucket == bucket
         {:ok, "success"}
       end)
@@ -5875,7 +5872,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -5952,7 +5949,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -6036,7 +6033,7 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _ ->
         assert :contract_bucket == bucket
         {:ok, "success"}
       end)
@@ -6103,11 +6100,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
                |> json_response(502)
     end
 
-    test "fail with incorrect contractor legal entity status" do
+    test "fail with incorrect contractor legal entity status", %{conn: conn} do
       msp()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _ ->
         assert :contract_bucket == bucket
         {:ok, "success"}
       end)
@@ -6179,11 +6176,11 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
              } = resp["error"]
     end
 
-    test "fail with contractor legal entity not passed NHS verification" do
+    test "fail with contractor legal entity not passed NHS verification", %{conn: conn} do
       msp()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _ ->
         assert :contract_bucket == bucket
         {:ok, "success"}
       end)

@@ -142,13 +142,12 @@ defmodule Core.ContractRequests do
          :ok <- validate_start_date_year(content),
          :ok <- validate_end_date(content),
          :ok <- validate_contractor_owner_id_on_create(pack.type, content),
-         :ok <- validate_documents(pack, headers),
-         :ok <- move_uploaded_documents(pack, headers),
+         :ok <- validate_documents(pack),
+         :ok <- move_uploaded_documents(pack),
          :ok <-
            save_signed_content(
              contract_request.id,
              params,
-             headers,
              "signed_content/contract_request_created_from_draft"
            ),
          _ <- terminate_pending_contracts(pack.type, content),
@@ -206,10 +205,9 @@ defmodule Core.ContractRequests do
            save_signed_content(
              contract_request.id,
              params,
-             headers,
              "signed_content/contract_request_created_from_contract"
            ),
-         :ok <- copy_contract_request_documents(contract_request.id, contract.contract_request_id, headers),
+         :ok <- copy_contract_request_documents(contract_request.id, contract.contract_request_id),
          {:ok, contract_request} <- Repo.insert(changes) do
       {:ok, contract_request, preload_references(contract_request)}
     end
@@ -312,7 +310,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contractor_legal_entity_nhs_verification(contractor_legal_entity),
          :ok <- validate_approve_content(content, contract_request, references),
          :ok <- validate_status(contract_request, @in_process),
-         :ok <- save_signed_content(contract_request.id, params, headers, "signed_content/contract_request_approved"),
+         :ok <- save_signed_content(contract_request.id, params, "signed_content/contract_request_approved"),
          :ok <- validate_contract_id(pack),
          :ok <- validate_contractor_owner_id(contract_request),
          :ok <- validate_nhs_signer_id(contract_request, client_id),
@@ -394,7 +392,6 @@ defmodule Core.ContractRequests do
            save_signed_content(
              contract_request.id,
              pack.request_params,
-             headers,
              "signed_content/contract_request_declined"
            ),
          update_params <-
@@ -499,7 +496,6 @@ defmodule Core.ContractRequests do
            save_signed_content(
              contract_request.id,
              pack.request_params,
-             headers,
              "signed_content/signed_content"
            ),
          update_params <-
@@ -559,7 +555,6 @@ defmodule Core.ContractRequests do
            save_signed_content(
              contract_id,
              pack.request_params,
-             headers,
              "signed_content/signed_content",
              :contract_bucket
            ),
@@ -596,7 +591,7 @@ defmodule Core.ContractRequests do
     with %CapitationContractRequest{} = contract_request <- @read_repo.get(CapitationContractRequest, id),
          {_, true} <- {:signed_nhs, contract_request.status == @nhs_signed},
          :ok <- validate_client_id(client_id, contract_request.contractor_legal_entity_id, :forbidden),
-         {:ok, url} <- resolve_partially_signed_content_url(contract_request.id, headers) do
+         {:ok, url} <- resolve_partially_signed_content_url(contract_request.id) do
       {:ok, url}
     else
       {:signed_nhs, _} ->

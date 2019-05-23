@@ -143,8 +143,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
     test "success with attached documents", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://example.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -186,8 +186,8 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
     test "success without attached documents", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://example.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn url ->
@@ -523,7 +523,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -590,7 +590,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -663,7 +663,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
       insert(:il, :dictionary, name: "POSITION", values: %{})
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -907,7 +907,7 @@ defmodule GraphQL.ReimbursementContractRequestResolverTest do
 
   describe "decline contract_request" do
     test "success decline contract request", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

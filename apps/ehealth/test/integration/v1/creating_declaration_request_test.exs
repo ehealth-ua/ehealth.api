@@ -697,8 +697,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
       gen_sequence_number()
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       expect_uaddresses_validate()

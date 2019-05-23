@@ -2,7 +2,7 @@ defmodule Core.Contracts do
   @moduledoc false
 
   import Core.API.Helpers.Connection, only: [get_client_id: 1, get_consumer_id: 1]
-  import Core.Contracts.Storage, only: [save_signed_content: 4]
+  import Core.Contracts.Storage, only: [save_signed_content: 3]
   import Core.Contracts.Validator
   import Ecto.Changeset
   import Ecto.Query
@@ -161,13 +161,7 @@ defmodule Core.Contracts do
          :ok <- validate_status(contract, CapitationContract.status(:verified)),
          :ok <- validate_update_json_schema(content),
          {:ok, _} <- process_employee_division(contract, content, user_id, client_id),
-         :ok <-
-           save_signed_content(
-             contract.id,
-             params,
-             headers,
-             content["employee_id"]
-           ) do
+         :ok <- save_signed_content(contract.id, params, content["employee_id"]) do
       now = DateTime.utc_now()
 
       query =

@@ -239,7 +239,7 @@ defmodule Core.LegalEntities do
            ) do
       with {:ok, %LegalEntity{} = legal_entity} <-
              PRMRepo.transaction(fn ->
-               legal_entity_transaction(state, params["signed_legal_entity_request"], headers)
+               legal_entity_transaction(state, params["signed_legal_entity_request"])
              end),
            {:ok, client_type_id} <- get_client_type_id(Map.fetch!(request_params, "type"), headers),
            {:ok, client, client_connection} <-
@@ -256,12 +256,12 @@ defmodule Core.LegalEntities do
     end
   end
 
-  def legal_entity_transaction(%LegalEntityCreator{} = state, signed_content, headers) do
+  def legal_entity_transaction(%LegalEntityCreator{} = state, signed_content) do
     legal_entity =
       Enum.reduce(state.inserts ++ state.updates, nil, fn fun, acc ->
         case fun.() do
           {:ok, %LegalEntity{} = legal_entity} ->
-            save_signed_content(signed_content, legal_entity.id, headers)
+            save_signed_content(signed_content, legal_entity.id)
             legal_entity
 
           {:ok, _} ->
@@ -282,10 +282,10 @@ defmodule Core.LegalEntities do
     end
   end
 
-  defp save_signed_content(signed_content, id, headers) do
+  defp save_signed_content(signed_content, id) do
     filename = to_string(DateTime.to_unix(DateTime.utc_now()))
 
-    with {:ok, _} <- MediaStorage.store_signed_content(signed_content, :legal_entity_bucket, id, filename, headers),
+    with {:ok, _} <- MediaStorage.store_signed_content(signed_content, :legal_entity_bucket, id, filename),
          {:ok, _} <-
            %SignedContent{}
            |> SignedContent.changeset(%{"filename" => filename, "legal_entity_id" => id})

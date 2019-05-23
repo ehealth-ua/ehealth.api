@@ -37,7 +37,7 @@ defmodule Core.DeclarationRequests.API.Sign do
          :ok <- compare_with_db(content, declaration_request, headers),
          :ok <- check_employee_id(content, headers),
          :ok <- SignatureValidator.check_drfo(signer, consumer_id, "declaration_request_sign"),
-         :ok <- store_signed_content(declaration_request, params, headers),
+         :ok <- store_signed_content(declaration_request, params),
          {:ok, person} <- create_or_update_person(declaration_request, content, consumer_id),
          {:ok, declaration} <- create_declaration_with_termination_logic(person, declaration_request, headers),
          :ok <- update_casher_person_data(declaration["data"]["employee_id"]),
@@ -139,14 +139,13 @@ defmodule Core.DeclarationRequests.API.Sign do
     end
   end
 
-  def store_signed_content(%DeclarationRequest{} = declaration_request, input, headers) do
+  def store_signed_content(%DeclarationRequest{} = declaration_request, input) do
     input
     |> Map.fetch!("signed_declaration_request")
     |> MediaStorage.store_signed_content(
       :declaration_bucket,
       Map.fetch!(declaration_request, :declaration_id),
-      "signed_content",
-      headers
+      "signed_content"
     )
     |> case do
       {:ok, _} -> :ok

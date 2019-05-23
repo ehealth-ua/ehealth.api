@@ -10,8 +10,8 @@ defmodule Core.Unit.DeclarationRequests.API.DocumentsTest do
 
   describe "render_links/3" do
     test "generates links & updates declaration request" do
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       result = render_links("98e0a42f-20fe-472c-a614-0ea99426a3fb", ["PUT"], ["Passport", "tax_id"])
@@ -33,7 +33,7 @@ defmodule Core.Unit.DeclarationRequests.API.DocumentsTest do
     end
 
     test "returns error on documents field" do
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
         {:error, %{"something" => "went wrong with declaration_request_Passport.jpeg"}}
       end)
 

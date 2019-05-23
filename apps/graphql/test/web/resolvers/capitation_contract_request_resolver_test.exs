@@ -255,8 +255,8 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
     test "success with attached documents", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://example.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -682,7 +682,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -842,7 +842,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ -> {:ok, "success"} end)
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ -> {:ok, "success"} end)
       expect(KafkaMock, :publish_to_event_manager, fn _ -> :ok end)
 
       user_id = UUID.generate()
@@ -933,7 +933,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
       nhs()
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

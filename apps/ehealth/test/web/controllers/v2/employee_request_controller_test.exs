@@ -11,7 +11,7 @@ defmodule EHealth.Web.V2.EmployeeRequestControllerTest do
 
   describe "create employee request" do
     test "success", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

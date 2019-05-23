@@ -52,7 +52,7 @@ defmodule Core.Persons do
          %Ecto.Changeset{valid?: true, changes: changes} <- Person.changeset(content),
          :ok <- validate_authentication_method_phone(Map.get(changes, :authentication_methods)),
          {:ok, %{"data" => data}} <- @mpi_api.update_person(id, changes, headers),
-         :ok <- save_signed_content(data["id"], params, headers) do
+         :ok <- save_signed_content(data["id"], params) do
       {:ok, data}
     end
   end
@@ -162,11 +162,10 @@ defmodule Core.Persons do
   defp save_signed_content(
          id,
          %{"signed_content" => signed_content},
-         headers,
          resource_name \\ "signed_content"
        ) do
     signed_content
-    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name, headers)
+    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name)
     |> case do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}

@@ -181,8 +181,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"count" => 1}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
@@ -214,8 +214,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"count" => 4}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
@@ -302,8 +302,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"count" => 3}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
@@ -391,8 +391,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
         {:ok, %{"data" => %{"count" => 3}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, fn _, _ ->
@@ -504,8 +504,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
 
   describe "approve declaration request without documents" do
     test "approve NEW declaration_request with OFFLINE authentication method", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 3, fn
@@ -665,8 +665,8 @@ defmodule EHealth.Web.DeclarationRequestControllerTest do
     end
 
     test "when declaration id is valid", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       params =

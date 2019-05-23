@@ -24,8 +24,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "finds contract successfully and nhs can see any contracts", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 3, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -97,8 +97,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "contract employees are only with nil end_date", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 3, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -179,8 +179,8 @@ defmodule EHealth.Web.ContractControllerTest do
     end
 
     test "ensure TOKENS_TYPES_PERSONAL has access to own contracts", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -1142,7 +1142,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success update employee", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1216,7 +1216,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success update employee set inactive", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1293,7 +1293,7 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success insert employees", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1537,8 +1537,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success get printout_form for capitation contract", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       printout_content = "<html></html>"
@@ -1584,8 +1584,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success get printout_form for reimbursement contract", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       printout_content = "<html></html>"
@@ -1958,8 +1958,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "success", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
@@ -2030,8 +2030,8 @@ defmodule EHealth.Web.ContractControllerTest do
     test "show contract", %{conn: conn, contract: contract} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)

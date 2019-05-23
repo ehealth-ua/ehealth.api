@@ -643,8 +643,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
 
       expect_persons_search_result([], 2)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       role_id = UUID.generate()
@@ -713,8 +713,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
     test "declaration request is created with 'Offline' verification", %{conn: conn} do
       gen_sequence_number()
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       expect_uaddresses_validate()
@@ -805,8 +805,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
       expect_persons_search_result([])
       template()
 
-      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 4, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       role_id = UUID.generate()
@@ -1419,8 +1419,8 @@ defmodule EHealth.Integration.V2.DeclarationRequestCreateTest do
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://a.link.for/#{resource_id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, resource_name, resource_id ->
+        {:ok, %{secret_url: "http://a.link.for/#{resource_id}/#{resource_name}"}}
       end)
 
       age = 13

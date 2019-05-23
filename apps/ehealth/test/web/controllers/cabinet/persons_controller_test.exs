@@ -323,7 +323,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         get_person(id, 200, %{documents: get_person_documents(), addresses: get_person_addresses()})
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -367,7 +367,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
       party = insert(:prm, :party, tax_id: data["tax_id"])
       insert(:prm, :party_user, party: party, user_id: "8069cb5c-3156-410b-9039-a1b2f2a4136c")
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

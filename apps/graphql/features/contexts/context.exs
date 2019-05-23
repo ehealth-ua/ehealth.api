@@ -2316,7 +2316,7 @@ defmodule GraphQL.Features.Context do
     fn %{conn: conn, signed_content: signed_content} = state, _ ->
       template()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -2349,16 +2349,16 @@ defmodule GraphQL.Features.Context do
   when_(
     ~r/^I create contract request with signed content and attributes:$/,
     fn %{conn: conn, signed_content: signed_content} = state, %{table_data: [row]} ->
-      stub(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      stub(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
-      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      stub(MediaStorageMock, :create_signed_url, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       stub(MediaStorageMock, :get_signed_content, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
-      stub(MediaStorageMock, :save_file, fn _, _, _, _, _ -> {:ok, nil} end)
+      stub(MediaStorageMock, :save_file, fn _, _, _, _ -> {:ok, nil} end)
 
       query = """
         mutation CreateContractRequest($input: CreateContractRequestInput!) {

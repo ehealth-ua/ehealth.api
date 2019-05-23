@@ -114,8 +114,8 @@ defmodule Core.Unit.ValidatorTest do
   test "base64 decode signed_content with white spaces" do
     signed_content = File.read!("test/data/signed_content_whitespace.txt")
 
-    expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
-      {:ok, %{"data" => %{"secret_url" => "http://example.com/signed_url_test"}}}
+    expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+      {:ok, %{secret_url: "http://example.com/signed_url_test"}}
     end)
 
     expect(MediaStorageMock, :put_signed_content, fn _, _, _, _ ->
@@ -128,8 +128,7 @@ defmodule Core.Unit.ValidatorTest do
                :test_bucket,
                signed_content,
                UUID.generate(),
-               "signed_content",
-               []
+               "signed_content"
              )
   end
 

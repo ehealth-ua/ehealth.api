@@ -89,9 +89,9 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contractor_owner_id: employee_id
         )
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id ->
         assert id == resource_id
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{id}/#{resource_name}"}}}
+        {:ok, %{secret_url: "http://url.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
@@ -140,9 +140,9 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           contractor_owner_id: employee_id
         )
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, resource_name, resource_id ->
         assert id == resource_id
-        {:ok, %{"data" => %{"secret_url" => "http://url.com/#{resource_id}/#{resource_name}"}}}
+        {:ok, %{secret_url: "http://url.com/#{resource_id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200}} end)
@@ -174,18 +174,18 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, resource_id, _ ->
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, resource_id ->
         assert id == resource_id
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -244,17 +244,17 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "without contract_number", %{conn: conn} do
       expect(MediaStorageMock, :get_signed_content, 2, fn _ -> {:ok, %{body: ""}} end)
       expect(MediaStorageMock, :delete_file, 2, fn _ -> {:ok, nil} end)
-      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _, _ -> {:ok, nil} end)
+      expect(MediaStorageMock, :save_file, 2, fn _, _, _, _ -> {:ok, nil} end)
 
-      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://some_url/#{resource}"}}}
+      expect(MediaStorageMock, :create_signed_url, 6, fn _, _, resource, _ ->
+        {:ok, %{secret_url: "http://some_url/#{resource}"}}
       end)
 
       expect(MediaStorageMock, :verify_uploaded_file, 2, fn _, resource ->
         {:ok, %HTTPoison.Response{status_code: 200, headers: [{"ETag", Jason.encode!(resource)}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -289,7 +289,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     end
 
     test "without uploaded documents", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -906,7 +906,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "failed to save signed content", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:error, "failed to save content"}
       end)
 
@@ -968,7 +968,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "failed to create contract", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1465,7 +1465,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "success to sign contract_request", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, bucket, _, _ ->
         assert :contract_bucket == bucket
         {:ok, "success"}
       end)
@@ -1535,7 +1535,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
     test "success to sign contract_request with existing parent_contract_id", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1619,8 +1619,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "contractor_owner_id" => employee_owner,
-        "nhs_signer" => nhs_signer,
-        "division" => %{id: division_id}
+        "nhs_signer" => nhs_signer
       } =
         prepare_nhs_sign_params(
           [id: id, data: data, status: ReimbursementContractRequest.status(:nhs_signed), contract_number: "1345"],
@@ -1685,8 +1684,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         "contract_request" => contract_request,
         "legal_entity" => legal_entity,
         "contractor_owner_id" => employee_owner,
-        "nhs_signer" => nhs_signer,
-        "division" => %{id: division_id}
+        "nhs_signer" => nhs_signer
       } =
         prepare_nhs_sign_params(
           [id: id, data: data, status: ReimbursementContractRequest.status(:nhs_signed), contract_number: "1345"],
@@ -1737,7 +1735,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
 
   describe "decline contract_request" do
     test "success decline contract request and event manager registration", %{conn: conn} do
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1819,7 +1817,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         {:ok, %{"data" => [%{"role_name" => "NHS ADMIN SIGNER"}]}}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

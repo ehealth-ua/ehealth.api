@@ -162,15 +162,14 @@ defmodule Core.Declarations.API do
 
   defp put_signed_content(declaration_data, headers) do
     with id <- Map.get(declaration_data, "id"),
-         {:ok, %{"data" => data}} <-
+         {:ok, data} <-
            @media_storage_api.create_signed_url(
              "GET",
              MediaStorage.config()[:declaration_bucket],
              "signed_content",
-             id,
-             headers
+             id
            ),
-         {:ok, secret_url} <- Map.fetch(data, "secret_url"),
+         {:ok, secret_url} <- Map.fetch(data, :secret_url),
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(secret_url),
          {:ok, %{"data" => %{"content" => content}}} <-
            @signature_api.decode_and_validate(Base.encode64(signed_content), "base64", headers) do

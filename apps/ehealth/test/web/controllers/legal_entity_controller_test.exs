@@ -683,7 +683,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
     test "with x-consumer-metadata that contains MIS client_id", %{conn: conn} do
       msp()
-      legal_entity = %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
+      %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
 
       resp =
         conn

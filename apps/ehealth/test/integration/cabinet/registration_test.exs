@@ -134,7 +134,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         signed_content_encoding: "base64"
       }
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

@@ -340,8 +340,8 @@ defmodule GraphQL.ReimbursementContractResolverTest do
     test "success for printoutContent field", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _, _, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://localhost/good_upload_1"}}}
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 1, fn _ ->
@@ -516,8 +516,8 @@ defmodule GraphQL.ReimbursementContractResolverTest do
     test "success with attached documents", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, id, resource_name, _ ->
-        {:ok, %{"data" => %{"secret_url" => "http://example.com/#{id}/#{resource_name}"}}}
+      expect(MediaStorageMock, :create_signed_url, 3, fn _, _, resource_name, id ->
+        {:ok, %{secret_url: "http://example.com/#{id}/#{resource_name}"}}
       end)
 
       expect(MediaStorageMock, :get_signed_content, 2, fn _url -> {:ok, %{status_code: 200, body: ""}} end)
@@ -562,7 +562,7 @@ defmodule GraphQL.ReimbursementContractResolverTest do
     test "Media Storage invalid response for attachedDocuments", %{conn: conn} do
       nhs()
 
-      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _id, _resource_name, _ ->
+      expect(MediaStorageMock, :create_signed_url, 1, fn _, _, _resource_name, _id ->
         {:error, %{"error" => %{"message" => "not found"}}}
       end)
 

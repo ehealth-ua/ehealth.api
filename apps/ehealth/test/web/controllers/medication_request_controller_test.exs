@@ -998,7 +998,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1111,7 +1111,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 
@@ -1227,7 +1227,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
          }}
       end)
 
-      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _, _ ->
+      expect(MediaStorageMock, :store_signed_content, fn _, _, _, _ ->
         {:ok, "success"}
       end)
 

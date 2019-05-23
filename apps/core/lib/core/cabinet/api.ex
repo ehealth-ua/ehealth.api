@@ -54,7 +54,7 @@ defmodule Core.Cabinet.API do
          :ok <- check_user_by_tax_id(mithril_user),
          person_params <- prepare_person_params(content),
          {:ok, %{"data" => person}} <- create_or_update_person(mpi_response, person_params, headers),
-         :ok <- save_signed_content(person["id"], params, headers),
+         :ok <- save_signed_content(person["id"], params),
          user_params <- prepare_user_params(tax_id, person["id"], email, params, content),
          {:ok, %{"data" => user}} <- create_or_update_user(mithril_user, user_params, headers),
          conf <- Confex.fetch_env!(:core, __MODULE__),
@@ -245,9 +245,9 @@ defmodule Core.Cabinet.API do
 
   defp conflict(message, type), do: {:error, {:conflict, %{message: message, type: type}}}
 
-  defp save_signed_content(id, %{"signed_content" => signed_content}, headers, resource_name \\ "signed_content") do
+  defp save_signed_content(id, %{"signed_content" => signed_content}, resource_name \\ "signed_content") do
     signed_content
-    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name, headers)
+    |> @media_storage_api.store_signed_content(:person_bucket, id, resource_name)
     |> case do
       {:ok, _} -> :ok
       _error -> {:error, {:bad_gateway, "Failed to save signed content"}}

@@ -85,7 +85,7 @@ defmodule Core.V2.LegalEntities do
            ) do
       with {:ok, %LegalEntity{} = legal_entity} <-
              PRMRepo.transaction(fn ->
-               legal_entity_transaction(state, params["signed_legal_entity_request"], headers)
+               legal_entity_transaction(state, params["signed_legal_entity_request"])
              end),
            {:ok, client_type_id} <- get_client_type_id(Map.fetch!(request_params, "type"), headers),
            {:ok, client, client_connection} <-
@@ -255,5 +255,5 @@ defmodule Core.V2.LegalEntities do
   defdelegate get_client_type_id(type, headers), to: LegalEntities
   defdelegate prepare_security_data(client, client_connection), to: LegalEntities
   defdelegate prepare_employee_request_data(legal_entity_id, party), to: LegalEntities
-  defdelegate legal_entity_transaction(state, params, headers), to: LegalEntities
+  defdelegate legal_entity_transaction(state, params), to: LegalEntities
 end

@@ -167,7 +167,7 @@ defmodule Core.EmployeeRequests do
          :ok <- check_is_user_blacklisted(params) do
       Repo.transaction(fn ->
         with {:ok, employee_request} <- insert_employee_request(params),
-             :ok <- save_signed_content(signed_content, employee_request.id, headers) do
+             :ok <- save_signed_content(signed_content, employee_request.id) do
           {:ok, employee_request}
         else
           err -> Repo.rollback(err)
@@ -613,15 +613,14 @@ defmodule Core.EmployeeRequests do
   end
 
   # Signed content is saved only for employee requests v2
-  defp save_signed_content(nil, _, _), do: :ok
+  defp save_signed_content(nil, _), do: :ok
 
-  defp save_signed_content(signed_content, employee_request_id, headers) do
+  defp save_signed_content(signed_content, employee_request_id) do
     signed_content
     |> @media_storage_api.store_signed_content(
       :employee_request_bucket,
       employee_request_id,
-      "signed_content/signed_content",
-      headers
+      "signed_content/signed_content"
     )
     |> case do
       {:ok, _} -> :ok

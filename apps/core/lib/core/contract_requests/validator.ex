@@ -710,21 +710,21 @@ defmodule Core.ContractRequests.Validator do
     end
   end
 
-  def validate_documents(%RequestPack{} = pack, headers) do
+  def validate_documents(%RequestPack{} = pack) do
     Enum.reduce_while(@upload_docs, :ok, fn {key, resource_name}, _ ->
-      case validate_document(pack.type, pack.contract_request_id, resource_name, pack.decoded_content[key], headers) do
+      case validate_document(pack.type, pack.contract_request_id, resource_name, pack.decoded_content[key]) do
         :ok -> {:cont, :ok}
-        err -> {:halt, err}
+        error -> {:halt, error}
       end
     end)
   end
 
-  defp validate_document(@reimbursement, _id, _resource, md5, _headers) when is_nil(md5), do: :ok
-  defp validate_document(_type, id, resource, md5, headers), do: validate_document(id, resource, md5, headers)
+  defp validate_document(@reimbursement, _id, _resource, md5) when is_nil(md5), do: :ok
+  defp validate_document(_type, id, resource, md5), do: validate_document(id, resource, md5)
 
-  defp validate_document(id, resource_name, md5, headers) do
-    with {:ok, %{"data" => %{"secret_url" => url}}} <-
-           @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id, headers),
+  defp validate_document(id, resource_name, md5) do
+    with {:ok, %{secret_url: url}} <-
+           @media_storage_api.create_signed_url("HEAD", get_bucket(), resource_name, id),
          {:ok, %HTTPoison.Response{status_code: 200, headers: resource_headers}} <-
            @media_storage_api.verify_uploaded_file(url, resource_name),
          true <- md5 == resource_headers |> get_header("ETag") |> Jason.decode!() do
