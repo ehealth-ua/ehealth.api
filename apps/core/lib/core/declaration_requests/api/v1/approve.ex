@@ -8,6 +8,7 @@ defmodule Core.DeclarationRequests.API.Approve do
   alias Core.Employees.Employee
   alias Core.Parties.Party
   alias Core.Validators.Error
+  alias HTTPoison.Response
   require Logger
 
   @rpc_worker Application.get_env(:core, :rpc_worker)
@@ -54,32 +55,42 @@ defmodule Core.DeclarationRequests.API.Approve do
       # ael bad response
       {:error, {:ael_bad_response, _}} = err ->
         err
+
+      {:error, :internal_server_error} ->
+        {:error, :internal_server_error}
+
+      error ->
+        Logger.error("Failed to check documents: #{inspect(error)}")
+        {:error, :internal_server_error}
     end
   end
 
   def check_documents(_, _declaration_request_id, acc), do: acc
 
   def uploaded?(id, %{"type" => type}) do
-    resource_name = "declaration_request_#{type}.jpeg"
+    resource = "declaration_request_#{type}.jpeg"
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:declaration_request_bucket]
 
-    {:ok, %{secret_url: url} = result} = @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id)
+    with {:ok, %{secret_url: url}} <- @media_storage_api.create_signed_url("HEAD", bucket, resource, id) do
+      verify_uploaded_file(url, resource, type)
+    end
+  end
 
-    Logger.info("Microservice ael response: #{inspect(result)}")
-
+  defp verify_uploaded_file(url, resource_name, type) do
     case @media_storage_api.verify_uploaded_file(url, resource_name) do
-      {:ok, resp} ->
-        case resp do
-          %HTTPoison.Response{status_code: 200} ->
-            {:ok, true}
+      {:ok, %Response{status_code: 200}} ->
+        {:ok, true}
 
-          _ ->
-            {:error, {:not_uploaded, type}}
-        end
+      {:ok, _} ->
+        {:error, {:not_uploaded, type}}
 
       {:error, reason} ->
-        Logger.info("Microservice ael response: #{reason}")
+        Logger.info("Failed to verify uploaded file: #{inspect(reason)}")
         {:error, {:ael_bad_response, reason}}
+
+      error ->
+        Logger.error("Failed to verify uploaded file: #{inspect(error)}")
+        {:error, :internal_server_error}
     end
   end
 
