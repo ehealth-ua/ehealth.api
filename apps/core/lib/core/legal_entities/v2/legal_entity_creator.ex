@@ -76,7 +76,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           }
 
           update_changeset(
-            %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id}},
+            %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id, edr_response: data}},
             params,
             license_id,
             license_required,
@@ -155,7 +155,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   end
 
   defp new_changeset(
-         %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id} = state,
+         %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id, edr_response: edr_response} = state,
          attrs,
          license_id,
          license_required,
@@ -165,6 +165,9 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     creation_data =
       attrs
       |> Map.merge(%{
+        "name" => edr_response["name"],
+        "public_name" => edr_response["public_name"],
+        "short_name" => edr_response["short_name"],
         "status" => @status_active,
         "is_active" => true,
         "inserted_by" => consumer_id,
@@ -184,7 +187,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   end
 
   def update_changeset(
-        %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id} = state,
+        %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id, edr_response: edr_response} = state,
         attrs,
         license_id,
         license_required,
@@ -194,6 +197,9 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
       attrs
       |> Map.delete("edrpou")
       |> Map.merge(%{
+        "name" => edr_response["name"],
+        "public_name" => edr_response["public_name"],
+        "short_name" => edr_response["short_name"],
         "updated_by" => consumer_id,
         "is_active" => true,
         "nhs_verified" => false,
@@ -313,7 +319,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
                   "updated_by" => consumer_id
                 }
 
-                save_edr_data(state, data, consumer_id)
+                save_edr_data(%{state | edr_response: data}, data, consumer_id)
               end
 
             error ->

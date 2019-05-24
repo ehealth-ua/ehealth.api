@@ -132,7 +132,7 @@ defmodule Core.LegalEntities do
     |> @read_prm_repo.one!()
   end
 
-  defp get_by_id_query(id) do
+  def get_by_id_query(id) do
     LegalEntity
     |> where([le], le.id == ^id)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))

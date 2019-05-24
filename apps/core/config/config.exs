@@ -233,7 +233,9 @@ config :core, :legal_entity_employee_types,
   msp_pharmacy:
     {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN", "PHARMACIST"]},
   pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACY_EMPLOYEE_TYPES", ["PHARMACY_OWNER", "PHARMACIST", "HR"]},
-  primary_care: {:system, :list, "LEGAL_ENTITY_PRIMARY_CARE_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN"]}
+  primary_care: {:system, :list, "LEGAL_ENTITY_PRIMARY_CARE_EMPLOYEE_TYPES", ["OWNER", "HR", "DOCTOR", "ADMIN"]},
+  outpatient:
+    {:system, :list, "LEGAL_ENTITY_OUTPATIENT_EMPLOYEE_TYPES", ["OWNER", "HR", "ASSISTANT", "SPECIALIST", "ADMIN"]}
 
 config :core, :legal_entity_division_types,
   msp: {:system, :list, "LEGAL_ENTITY_MSP_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},

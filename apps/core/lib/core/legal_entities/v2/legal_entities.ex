@@ -25,6 +25,7 @@ defmodule Core.V2.LegalEntities do
   @primary_care LegalEntity.type(:primary_care)
 
   @required_fields ~w(
+    name
     status
     type
     edrpou
@@ -50,6 +51,8 @@ defmodule Core.V2.LegalEntities do
     edr_data_id
     accreditation
     license_id
+    public_name
+    short_name
   )a
 
   # Create legal entity
@@ -72,7 +75,8 @@ defmodule Core.V2.LegalEntities do
            {:ok, client, client_connection} <-
              OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
            {:ok, security} <- prepare_security_data(client, client_connection),
-           {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
+           {:ok, employee_request} <- create_employee_request(legal_entity, request_params),
+           legal_entity <- legal_entity.id |> LegalEntities.get_by_id_query() |> PRMRepo.one!() do
         {:ok,
          %{
            legal_entity: legal_entity,
