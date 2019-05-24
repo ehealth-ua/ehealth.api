@@ -246,7 +246,8 @@ defmodule Core.LegalEntities do
            {:ok, client, client_connection} <-
              OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
            {:ok, security} <- prepare_security_data(client, client_connection),
-           {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
+           {:ok, employee_request} <- create_employee_request(legal_entity, request_params),
+           legal_entity <- legal_entity.id |> get_by_id_query() |> PRMRepo.one!() do
         {:ok,
          %{
            legal_entity: legal_entity,
