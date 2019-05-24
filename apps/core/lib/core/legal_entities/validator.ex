@@ -73,8 +73,8 @@ defmodule Core.LegalEntities.Validator do
     content
     |> get_in(~w(medical_service_provider licenses))
     |> Enum.with_index()
-    |> Enum.reduce_while(:ok, fn {licence, index}, _acc ->
-      case Map.has_key?(licence, "license_number") do
+    |> Enum.reduce_while(:ok, fn {license, index}, _acc ->
+      case Map.has_key?(license, "license_number") do
         true ->
           {:cont, :ok}
 

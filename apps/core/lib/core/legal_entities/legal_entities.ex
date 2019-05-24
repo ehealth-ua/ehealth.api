@@ -79,6 +79,7 @@ defmodule Core.LegalEntities do
     edr_data_id
     accreditation
     license_id
+    residence_address
   )a
 
   @employee_request_status "NEW"

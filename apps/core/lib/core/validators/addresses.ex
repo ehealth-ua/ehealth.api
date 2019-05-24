@@ -10,7 +10,7 @@ defmodule Core.Validators.Addresses do
 
   def validate(addresses) when is_list(addresses), do: validate_addresses_values(addresses)
 
-  def validate(address) when is_map(address), do: validate_addresses_values(address)
+  def validate(address) when is_map(address), do: validate_address_values(address)
 
   def validate(addresses, required_type) when is_list(addresses) do
     with :ok <- validate_addresses_type(addresses, required_type) do
@@ -43,22 +43,29 @@ defmodule Core.Validators.Addresses do
   end
 
   defp validate_addresses_values(addresses) do
-    case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :validate, [addresses]) do
-      :ok ->
-        :ok
-
-      {:error, %{invalid: errors}} ->
-        Error.dump(
-          Enum.map(errors, fn %{rules: rules, entry: entry} ->
-            %ValidationError{
-              description: rules |> hd |> Map.get(:description),
-              path: entry
-            }
-          end)
-        )
-
-      _ ->
-        Error.dump("Invalid params")
-    end
+    "uaddresses_api"
+    |> @rpc_worker.run(Uaddresses.Rpc, :validate, [addresses])
+    |> process_rpc_response()
   end
+
+  defp validate_address_values(address) do
+    "uaddresses_api"
+    |> @rpc_worker.run(Uaddresses.Rpc, :validate, [address])
+    |> process_rpc_response
+  end
+
+  defp process_rpc_response(:ok), do: :ok
+
+  defp process_rpc_response({:error, %{invalid: errors}}) do
+    Error.dump(
+      Enum.map(errors, fn %{rules: rules, entry: entry} ->
+        %ValidationError{
+          description: rules |> hd |> Map.get(:description),
+          path: entry
+        }
+      end)
+    )
+  end
+
+  defp process_rpc_response(_), do: Error.dump("Invalid params")
 end

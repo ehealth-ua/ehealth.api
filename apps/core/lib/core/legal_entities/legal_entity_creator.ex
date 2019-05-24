@@ -147,7 +147,8 @@ defmodule Core.LegalEntities.LegalEntityCreator do
         "created_by_mis_client_id" => client_id,
         "nhs_verified" => false,
         "nhs_reviewed" => false,
-        "edr_verified" => nil
+        "edr_verified" => nil,
+        "residence_address" => get_residence_address(attrs)
       })
       |> add_accreditation(attrs)
 
@@ -189,7 +190,8 @@ defmodule Core.LegalEntities.LegalEntityCreator do
         "is_active" => true,
         "nhs_verified" => false,
         "nhs_reviewed" => false,
-        "edr_verified" => nil
+        "edr_verified" => nil,
+        "residence_address" => get_residence_address(attrs)
       })
       |> add_accreditation(attrs)
 
@@ -473,5 +475,9 @@ defmodule Core.LegalEntities.LegalEntityCreator do
          path: "$.data.edrpou"
        })}
     end
+  end
+
+  defp get_residence_address(attrs) do
+    Enum.find(attrs["addresses"], &(Map.get(&1, "type") == "RESIDENCE"))
   end
 end
