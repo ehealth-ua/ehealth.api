@@ -22,7 +22,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
     {:ok, state}
   end
 
-  def state_options do
+  defp expiration_options do
     parameters = GlobalParameters.get_values()
 
     is_valid? =
@@ -44,7 +44,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
       {:ok, user_id} = UUID.dump(Confex.fetch_env!(:core, :system_user))
       limit = config()[:termination_batch_size]
 
-      %{term: term, normalized_unit: normalized_unit, user_id: user_id, limit: limit}
+      %{term: term, unit: normalized_unit, user_id: user_id, limit: limit}
     else
       Logger.error(fn ->
         "Autoterminate declaration requests is not working, parameters invalid!"
@@ -58,42 +58,34 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
   end
 
   @impl true
-  def handle_cast(
-        {:process_signed, caller},
-        %{term: term, normalized_unit: unit, user_id: user_id, limit: limit} = state
-      ) do
+  def handle_cast({:process_signed, caller}, state) do
+    options = expiration_options()
+
     subselect_condition = fn query ->
-      where(
-        query,
-        [dr],
-        dr.status == ^DeclarationRequest.status(:signed) and not is_nil(dr.data)
-      )
+      where(query, [dr], dr.status == ^DeclarationRequest.status(:signed) and not is_nil(dr.data))
     end
 
     rows_number =
       change_status_declaration_requests(
         subselect_condition,
         DeclarationRequest.status(:signed),
-        term,
-        unit,
-        user_id,
-        limit
+        options.term,
+        options.unit,
+        options.user_id,
+        options.limit
       )
 
-    if rows_number >= limit do
-      GenServer.cast(:declaration_request_cleaner, {:process_signed, caller})
-    else
-      send(caller, :terminated_signed)
-    end
+    if rows_number >= options.limit,
+      do: GenServer.cast(:declaration_request_cleaner, {:process_signed, caller}),
+      else: send(caller, :terminated_signed)
 
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast(
-        {:process_expired, caller},
-        %{term: term, normalized_unit: unit, user_id: user_id, limit: limit} = state
-      ) do
+  def handle_cast({:process_expired, caller}, state) do
+    options = expiration_options()
+
     subselect_condition = fn query ->
       where(
         query,
@@ -106,17 +98,15 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
       change_status_declaration_requests(
         subselect_condition,
         DeclarationRequest.status(:expired),
-        term,
-        unit,
-        user_id,
-        limit
+        options.term,
+        options.unit,
+        options.user_id,
+        options.limit
       )
 
-    if rows_number >= limit do
-      GenServer.cast(:declaration_request_terminator, {:process_expired, caller})
-    else
-      send(caller, :terminated_expired)
-    end
+    if rows_number >= options.limit,
+      do: GenServer.cast(:declaration_request_terminator, {:process_expired, caller}),
+      else: send(caller, :terminated_expired)
 
     {:noreply, state}
   end
@@ -126,17 +116,8 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
     {:noreply, state}
   end
 
-  def terminate_declaration_requests do
-    state = state_options()
-
-    Enum.each(
-      [:declaration_request_terminator, :declaration_request_cleaner],
-      &(:ok = GenServer.call(&1, {:update_state, state}))
-    )
-
-    GenServer.cast(:declaration_request_cleaner, {:process_signed, self()})
-    GenServer.cast(:declaration_request_terminator, {:process_expired, self()})
-  end
+  def clean_declaration_requests, do: GenServer.cast(:declaration_request_cleaner, {:process_signed, self()})
+  def terminate_declaration_requests, do: GenServer.cast(:declaration_request_terminator, {:process_expired, self()})
 
   def change_status_declaration_requests(subselect_condition, status, term, unit, user_id, limit) do
     subselect_ids =

@@ -9,7 +9,7 @@ defmodule EHealthScheduler.Worker do
   alias Crontab.CronExpression.Parser
   alias EHealthScheduler.Contracts.Terminator, as: ContractsTerminator
   alias EHealthScheduler.DeclarationRequests.Terminator, as: DeclarationRequestsTerminator
-  alias EHealthScheduler.Jobs.ContractRequestsTerminator
+  # alias EHealthScheduler.Jobs.ContractRequestsTerminator
   alias EHealthScheduler.Jobs.EdrValidator
   alias Quantum.Job
   alias Quantum.RunStrategy.Local
@@ -28,6 +28,11 @@ defmodule EHealthScheduler.Worker do
 
   def create_jobs do
     # create_job(&ContractRequestsTerminator.run/0, :contract_requests_terminator_schedule)
+
+    create_job(
+      &DeclarationRequestsTerminator.clean_declaration_requests/0,
+      :declaration_request_autocleaning
+    )
 
     create_job(
       &DeclarationRequestsTerminator.terminate_declaration_requests/0,

@@ -7,6 +7,7 @@ config :ehealth_scheduler, EHealthScheduler.Worker,
     {:system, :string, "CONTRACT_REQUESTS_AUTO_TERMINATOR_SCHEDULE", "0 0,12 * * *"},
   medication_request_request_autotermination_schedule:
     {:system, :string, "MEDICATION_REQUEST_REQUEST_AUTOTERMINATION_SCHEDULE", "* * * * *"},
+  declaration_request_autocleaning: {:system, :string, "DECLARATION_REQUEST_AUTOTCLEANING_SCHEDULE", "0 0-4 * * *"},
   declaration_request_autotermination:
     {:system, :string, "DECLARATION_REQUEST_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
   employee_request_autotermination: {:system, :string, "EMPLOYEE_REQUEST_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
