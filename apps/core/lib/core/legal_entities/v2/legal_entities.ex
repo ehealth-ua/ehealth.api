@@ -53,6 +53,7 @@ defmodule Core.V2.LegalEntities do
     license_id
     public_name
     short_name
+    residence_address
   )a
 
   # Create legal entity

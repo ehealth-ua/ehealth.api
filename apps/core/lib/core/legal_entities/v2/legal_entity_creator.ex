@@ -76,7 +76,12 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           }
 
           update_changeset(
-            %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id, edr_response: data}},
+            %{
+              state
+              | legal_entity: %{legal_entity | edr_data_id: edr_data.id},
+                edr_data_id: edr_data.id,
+                edr_response: data
+            },
             params,
             license_id,
             license_required,

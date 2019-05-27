@@ -16,7 +16,7 @@ defmodule Core.V2.LegalEntities.Licenses do
     License
     |> where([l], l.id == ^license_id)
     |> preload(:edr_data)
-    |> @read_prm_repo.all()
+    |> @read_prm_repo.one()
   end
 
   def check_license(%LegalEntityCreator{} = state, nil, nil, _, _, _), do: state
@@ -57,9 +57,9 @@ defmodule Core.V2.LegalEntities.Licenses do
 
       # validate license
       {_, license_data} when license_data == %{} ->
-        with {:ok, license} <- get_license(license_id),
+        with %License{} = license <- get_license(license_id),
              {_, true} <- {:required_license, license.type == required_license},
-             {_, true} <- {:edr_data, edr_data_id in license.edr_data},
+             {_, true} <- {:edr_data, license_correspond_to_legal_entity?(edr_data_id, license)},
              {_, true} <-
                {:expiry_date, license.expiry_date && Date.compare(license.expiry_date, Date.utc_today()) != :lt} do
           state
@@ -88,11 +88,11 @@ defmodule Core.V2.LegalEntities.Licenses do
             "updated_by" => consumer_id
           })
 
-        with {:ok, license} <- get_license(license_id),
+        with %License{} = license <- get_license(license_id),
              %Changeset{valid?: true} = changeset <- License.changeset(license, license_data),
              {_, false} <- {:license_type, Map.has_key?(changeset.changes, :type)},
              {_, true} <- {:required_license, license.type == required_license},
-             {_, true} <- {:edr_data, edr_data_id in license.edr_data},
+             {_, true} <- {:edr_data, license_correspond_to_legal_entity?(edr_data_id, license)},
              changes <- Changeset.apply_changes(changeset),
              {_, true} <-
                {:expiry_date, changes.expiry_date && Date.compare(changes.expiry_date, Date.utc_today()) != :lt} do
@@ -123,5 +123,9 @@ defmodule Core.V2.LegalEntities.Licenses do
             error
         end
     end
+  end
+
+  defp license_correspond_to_legal_entity?(edr_data_id, %License{edr_data: edr_data}) do
+    !is_nil(Enum.find(edr_data, &(Map.get(&1, :id) == edr_data_id)))
   end
 end
