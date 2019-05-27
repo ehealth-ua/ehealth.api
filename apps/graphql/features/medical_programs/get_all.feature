@@ -23,6 +23,7 @@ Feature: Get all medical programs
       | databaseId | "2fded273-ee70-4b1a-a64e-bef6eaee2c4e" | "2fded273-ee70-4b1a-a64e-bef6eaee2c4e" | "6b31e3af-9c24-4991-9ef3-dbec0494e589" |
       | name       | "ліки"                                 | "Доступні ліки"                        | "Безкоштовні вакцини"                  |
       | isActive   | true                                   | true                                   | false                                  |
+      | type       | "MEDICATION"                           | "MEDICATION"                           | "SERVICE"                              |
 
   Scenario Outline: Request items ordered by field values
     Given the following medical programs exist:

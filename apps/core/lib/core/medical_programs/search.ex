@@ -4,9 +4,10 @@ defmodule Core.MedicalPrograms.Search do
   use Ecto.Schema
 
   @primary_key false
-  schema "medical_programs_search" do
+  embedded_schema do
     field(:id, Ecto.UUID)
     field(:name, Core.Ecto.StringLike)
+    field(:type, :string)
     field(:is_active, :boolean)
   end
 end

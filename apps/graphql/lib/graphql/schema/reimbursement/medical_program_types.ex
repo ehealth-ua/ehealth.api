@@ -19,7 +19,7 @@ defmodule GraphQL.Schema.MedicalProgramTypes do
       arg(:filter, :medical_program_filter)
       arg(:order_by, :medical_program_order_by, default_value: :inserted_at_desc)
 
-      middleware(Filtering, database_id: :equal, name: :like, is_active: :equal)
+      middleware(Filtering, database_id: :equal, name: :like, type: :equal, is_active: :equal)
 
       resolve(&MedicalProgramResolver.list_medical_programs/2)
     end
