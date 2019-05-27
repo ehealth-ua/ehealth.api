@@ -323,11 +323,8 @@ defmodule Core.Contracts do
     |> @read_prm_repo.one()
   end
 
-  def decode_signed_content(
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
-        headers
-      ) do
-    SignatureValidator.validate(signed_content, encoding, headers)
+  def decode_signed_content(%{"signed_content" => signed_content}, headers) do
+    SignatureValidator.validate(signed_content, headers)
   end
 
   def get_by_id(id, @capitation) do

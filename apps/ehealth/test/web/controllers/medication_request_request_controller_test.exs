@@ -2291,7 +2291,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
         |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
         |> Map.get(:tax_id)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:error, {:bad_request, "Invalid signature"}}
       end)
 

@@ -99,12 +99,12 @@ defmodule Core.ContractRequests.Storage do
   end
 
   def decode_signed_content(
-        %{"signed_content" => signed_content, "signed_content_encoding" => encoding},
+        %{"signed_content" => signed_content},
         headers,
         required_signatures_count \\ 1,
         required_stamps_count \\ 0
       ) do
-    SignatureValidator.validate(signed_content, encoding, headers, required_signatures_count, required_stamps_count)
+    SignatureValidator.validate(signed_content, headers, required_signatures_count, required_stamps_count)
   end
 
   def decode_and_validate_signed_content(%{id: id}, headers) do
@@ -116,12 +116,7 @@ defmodule Core.ContractRequests.Storage do
              id
            ),
          {:ok, %{body: content, status_code: 200}} <- @media_storage_api.get_signed_content(secret_url),
-         {:ok, %{"data" => %{"content" => content}}} <-
-           @signature_api.decode_and_validate(
-             Base.encode64(content),
-             "base64",
-             headers
-           ) do
+         {:ok, %{"content" => content}} <- @signature_api.decode_and_validate(Base.encode64(content), headers) do
       {:ok, content}
     end
   end

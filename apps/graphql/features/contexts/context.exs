@@ -253,20 +253,18 @@ defmodule GraphQL.Features.Context do
     fn %{content: content} = state, %{table_data: table_data} ->
       signers = Enum.map(table_data, &prepare_input_attrs/1)
 
-      stub(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      stub(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" =>
-               Enum.map(signers, fn signer ->
-                 %{
-                   "is_valid" => Map.get(signer, :is_valid, true),
-                   "is_stamp" => Map.get(signer, :is_stamp, false),
-                   "signer" => %{"edrpou" => signer[:edrpou], "drfo" => signer[:drfo], "surname" => signer[:surname]}
-                 }
-               end)
-           }
+           "content" => content,
+           "signatures" =>
+             Enum.map(signers, fn signer ->
+               %{
+                 "is_valid" => Map.get(signer, :is_valid, true),
+                 "is_stamp" => Map.get(signer, :is_stamp, false),
+                 "signer" => %{"edrpou" => signer[:edrpou], "drfo" => signer[:drfo], "surname" => signer[:surname]}
+               }
+             end)
          }}
       end)
 

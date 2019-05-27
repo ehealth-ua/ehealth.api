@@ -410,11 +410,8 @@ defmodule Core.MedicationRequests.API do
     {:conflict, "Invalid status Medication request for qualify action!"}
   end
 
-  defp decode_signed_content(
-         %{"signed_medication_reject" => signed_content, "signed_content_encoding" => encoding},
-         headers
-       ) do
-    SignatureValidator.validate(signed_content, encoding, headers)
+  defp decode_signed_content(%{"signed_medication_reject" => signed_content}, headers) do
+    SignatureValidator.validate(signed_content, headers)
   end
 
   defp check_medication_dispenses(%{"id" => medication_request_id}, headers) do

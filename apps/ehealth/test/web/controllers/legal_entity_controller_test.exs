@@ -67,18 +67,16 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "signer" => %{}
-               }
-             ]
-           }
+           "content" => legal_entity_params,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "signer" => %{}
+             }
+           ]
          }}
       end)
 
@@ -353,16 +351,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
       template()
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => ""}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => ""}}
+             end)
          }}
       end)
 
@@ -422,16 +418,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
       template()
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+             end)
          }}
       end)
 
@@ -493,16 +487,14 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
       template()
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+             end)
          }}
       end)
 

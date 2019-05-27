@@ -3,6 +3,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
   import Core.Expectations.Man
   import Core.Expectations.OtpVerification
+  import Core.Expectations.Signature
   import Core.Guardian
   import Mox
 
@@ -19,7 +20,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
 
     defmacro __using__(_) do
       quote do
-        expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+        expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
           content = signed_content |> Base.decode64!() |> Jason.decode!()
 
           first_name = content |> Map.get("first_name", "") |> String.upcase()
@@ -40,7 +41,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
             ]
           }
 
-          {:ok, %{"data" => data}}
+          {:ok, data}
         end)
       end
     end
@@ -674,7 +675,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "different last_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -692,7 +693,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect_otp_verification_complete()
@@ -708,7 +709,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "no surname in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -725,7 +726,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect_otp_verification_complete()
@@ -741,7 +742,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "different first_name in signed content and DS", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -759,7 +760,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect_otp_verification_complete()
@@ -775,7 +776,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "no given_name in Signer from DS", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -792,7 +793,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect_otp_verification_complete()
@@ -824,37 +825,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "DS cannot decode signed content", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn _signed_content, "base64", _headers ->
-        err_data = %{
-          "error" => %{
-            "invalid" => [
-              %{
-                "entry" => "$.signed_content",
-                "entry_type" => "json_data_property",
-                "rules" => [
-                  %{
-                    "description" => "Not a base64 string",
-                    "params" => [],
-                    "rule" => "invalid"
-                  }
-                ]
-              }
-            ],
-            "message" =>
-              "Validation failed. You can find validators description at our API Manifest:" <>
-                " http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
-            "type" => "validation_failed"
-          },
-          "meta" => %{
-            "code" => 422,
-            "request_id" => "2kmaguf9ec791885t40008s2",
-            "type" => "object",
-            "url" => "http://www.example.com/digital_signatures"
-          }
-        }
-
-        {:error, %{"data" => err_data, "meta" => %{"code" => 422, "type" => "list"}}}
-      end)
+      invalid_signed_content()
 
       conn
       |> Plug.Conn.put_req_header("authorization", "Bearer " <> jwt)
@@ -863,7 +834,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "different tax_id in signed content and digital signature", %{conn: conn, params: params, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
         assert Map.has_key?(content, "tax_id")
 
@@ -880,7 +851,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect_otp_verification_complete()
@@ -1130,7 +1101,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "Empty drfo in Signer from DS", %{conn: conn, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -1147,7 +1118,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect(MithrilMock, :search_user, fn params, _headers ->
@@ -1169,7 +1140,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
     end
 
     test "No drfo in Signer from DS", %{conn: conn, jwt: jwt} do
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
 
         data = %{
@@ -1185,7 +1156,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect(MithrilMock, :search_user, fn params, _headers ->

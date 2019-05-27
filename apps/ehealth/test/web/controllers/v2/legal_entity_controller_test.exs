@@ -60,18 +60,16 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params = get_legal_entity_data()
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "signer" => %{}
-               }
-             ]
-           }
+           "content" => legal_entity_params,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "signer" => %{}
+             }
+           ]
          }}
       end)
 
@@ -240,16 +238,14 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", "123456789")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => ""}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => ""}}
+             end)
          }}
       end)
 
@@ -296,16 +292,14 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", "123456789")
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+             end)
          }}
       end)
 
@@ -354,16 +348,14 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params = Map.put(get_legal_entity_data(), "edrpou", edrpou)
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => legal_entity_params,
-             "signatures" =>
-               Enum.map([legal_entity_params["edrpou"]], fn drfo ->
-                 %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
-               end)
-           }
+           "content" => legal_entity_params,
+           "signatures" =>
+             Enum.map([legal_entity_params["edrpou"]], fn drfo ->
+               %{"is_valid" => true, "signer" => %{"drfo" => drfo, "edrpou" => nil}}
+             end)
          }}
       end)
 

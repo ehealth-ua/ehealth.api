@@ -731,34 +731,7 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
     end
 
     test "invalid response from DS", context do
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
-        {:error,
-         %{
-           "meta" => %{
-             "url" => "http://api-svc.digital-signature.svc.cluster.local/digital_signatures",
-             "type" => "object",
-             "request_id" => "b006b174-42ff-4199-9a2e-88381e34392e#77823",
-             "code" => 422
-           },
-           "error" => %{
-             "type" => "validation_failed",
-             "message" => "Validation failed. You can find validators ...",
-             "invalid" => [
-               %{
-                 "rules" => [
-                   %{
-                     "rule" => "invalid",
-                     "params" => [],
-                     "description" => "Not a base64 string"
-                   }
-                 ],
-                 "entry_type" => "json_data_property",
-                 "entry" => "$.signed_content"
-               }
-             ]
-           }
-         }}
-      end)
+      invalid_signed_content()
 
       %{
         conn: conn,
@@ -791,46 +764,6 @@ defmodule GraphQL.CapidationContractRequestResolverTest do
 
       assert match?(
                %{"extensions" => %{"code" => "UNPROCESSABLE_ENTITY"}},
-               hd(resp_body["errors"])
-             )
-    end
-
-    test "invalid HTTP error", context do
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
-        {:error, {:errconn, "Bad Gateway"}}
-      end)
-
-      %{
-        conn: conn,
-        contract_request: contract_request,
-        legal_entity: legal_entity,
-        party_user: party_user
-      } = context
-
-      content = %{
-        "id" => contract_request.id,
-        "next_status" => "APPROVED",
-        "contractor_legal_entity" => %{
-          "id" => contract_request.contractor_legal_entity_id,
-          "name" => legal_entity.name,
-          "edrpou" => legal_entity.edrpou
-        },
-        "text" => "something"
-      }
-
-      resp_body =
-        conn
-        |> put_client_id(legal_entity.id)
-        |> put_consumer_id(party_user.user_id)
-        |> put_req_header("drfo", legal_entity.edrpou)
-        |> put_scope("contract_request:update")
-        |> post_query(@approve_query, input_signed_content(contract_request.id, content))
-        |> json_response(200)
-
-      refute resp_body["data"]["approveContractRequest"]
-
-      assert match?(
-               %{"message" => "Something went wrong", "extensions" => %{"code" => "INTERNAL_SERVER_ERROR"}},
                hd(resp_body["errors"])
              )
     end

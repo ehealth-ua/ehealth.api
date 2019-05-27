@@ -171,8 +171,7 @@ defmodule Core.Declarations.API do
            ),
          {:ok, secret_url} <- Map.fetch(data, :secret_url),
          {:ok, %{body: signed_content}} <- @media_storage_api.get_signed_content(secret_url),
-         {:ok, %{"data" => %{"content" => content}}} <-
-           @signature_api.decode_and_validate(Base.encode64(signed_content), "base64", headers) do
+         {:ok, %{"content" => content}} <- @signature_api.decode_and_validate(Base.encode64(signed_content), headers) do
       {:ok, Map.put(declaration_data, "content", content["content"])}
     end
   end

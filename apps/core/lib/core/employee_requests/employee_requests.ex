@@ -145,8 +145,7 @@ defmodule Core.EmployeeRequests do
     user_id = get_consumer_id(headers)
 
     with :ok <- JsonSchema.validate(:employee_request_sign, attrs),
-         {:ok, %{"content" => content, "signers" => [signer]}} <-
-           Signature.validate(attrs["signed_content"], attrs["signed_content_encoding"], headers),
+         {:ok, %{"content" => content, "signers" => [signer]}} <- Signature.validate(attrs["signed_content"], headers),
          :ok <- Signature.check_drfo(signer, user_id, "create_signed_employee_request") do
       create(content, headers, attrs["signed_content"])
     end

@@ -102,12 +102,11 @@ defmodule Jobs.LegalEntityMergeJob do
       {:error, e}
   end
 
-  def create(%{signed_content: %{content: encoded_content, encoding: encoding}}, headers) do
+  def create(%{signed_content: %{content: encoded_content}}, headers) do
     user_id = get_consumer_id(headers)
     client_id = get_client_id(headers)
 
-    with {:ok, %{"content" => content, "signers" => [signer]}} <-
-           Signature.validate(encoded_content, encoding, headers),
+    with {:ok, %{"content" => content, "signers" => [signer]}} <- Signature.validate(encoded_content, headers),
          :ok <- Signature.check_drfo(signer, user_id, "merge_legal_entities"),
          :ok <- JsonSchema.validate(:legal_entity_merge_job, content),
          {:ok, legal_entity} <- LegalEntities.fetch_by_id(client_id),

@@ -66,11 +66,7 @@ defmodule Core.DeclarationRequests.API.Sign do
 
   def validate_signature(%Ecto.Changeset{valid?: true, changes: changes}, headers) do
     with {:ok, %{"content" => content, "signers" => [signer]}} <-
-           SignatureValidator.validate(
-             Map.get(changes, :signed_declaration_request),
-             Map.get(changes, :signed_content_encoding),
-             headers
-           ) do
+           SignatureValidator.validate(Map.get(changes, :signed_declaration_request), headers) do
       {:ok, %{"content" => content, "signers" => [signer]}}
     else
       error -> normalize_signature_error(error)

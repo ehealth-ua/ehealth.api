@@ -213,11 +213,8 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
-  def decode_signed_content(
-        %{"signed_medication_dispense" => signed_content, "signed_content_encoding" => encoding},
-        headers
-      ) do
-    SignatureValidator.validate(signed_content, encoding, headers)
+  def decode_signed_content(%{"signed_medication_dispense" => signed_content}, headers) do
+    SignatureValidator.validate(signed_content, headers)
   end
 
   defp compare_with_db(content, medication_dispense, references) do

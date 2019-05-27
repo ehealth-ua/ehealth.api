@@ -12,9 +12,9 @@ defmodule Core.Validators.Signature do
 
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
 
-  def validate(signed_content, encoding, headers, required_signatures_count \\ 1, required_stamps_count \\ 0) do
-    with {:ok, %{"data" => data}} <- @signature_api.decode_and_validate(signed_content, encoding, headers) do
-      process_data(data, required_signatures_count, required_stamps_count)
+  def validate(signed_content, headers, required_signatures_count \\ 1, required_stamps_count \\ 0) do
+    with {:ok, result} <- @signature_api.decode_and_validate(signed_content, headers) do
+      process_data(result, required_signatures_count, required_stamps_count)
     end
   end
 

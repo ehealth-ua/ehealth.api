@@ -20,7 +20,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, "<html></html>"}
       end)
 
-      expect(SignatureMock, :decode_and_validate, 2, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, 2, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
         assert Map.has_key?(content, "tax_id")
 
@@ -40,7 +40,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect(MPIMock, :create_or_update_person!, fn params, _headers ->
@@ -185,7 +185,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
         {:ok, "<html></html>"}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn signed_content, "base64", _headers ->
+      expect(SignatureMock, :decode_and_validate, fn signed_content, _headers ->
         content = signed_content |> Base.decode64!() |> Jason.decode!()
         assert Map.has_key?(content, "tax_id")
 
@@ -205,7 +205,7 @@ defmodule EHealth.Integration.Cabinet.RegistrationTest do
           ]
         }
 
-        {:ok, %{"data" => data}}
+        {:ok, data}
       end)
 
       expect(MithrilMock, :search_user, 2, fn %{email: ^email}, _headers ->

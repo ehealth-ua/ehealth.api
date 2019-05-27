@@ -3,32 +3,50 @@ defmodule Core.API.Signature do
   Signature validator and data mapper
   """
 
-  use Core.API.Helpers.MicroserviceBase
+  use Confex, otp_app: :core
+
   import Core.API.Helpers.Connection, only: [get_header: 2]
-  alias Core.API.Helpers.ResponseDecoder
+  import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
+
+  alias Core.ValidationError
+  alias Core.Validators.Error
+
+  require Logger
 
   @behaviour Core.API.SignatureBehaviour
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
-  def decode_and_validate(signed_content, signed_content_encoding, headers) do
-    if config()[:enabled] do
-      params = %{
-        "signed_content" => signed_content,
-        "signed_content_encoding" => signed_content_encoding
-      }
+  def decode_and_validate(signed_content, headers) do
+    # explicit cast to boolean because of confex does not resolve env in tests
+    enabled? = config()[:enabled] == true
 
-      post!("/digital_signatures", Jason.encode!(params), headers)
+    do_decode_and_validate(enabled?, signed_content, headers)
+  end
+
+  defp do_decode_and_validate(true, signed_content, _) do
+    signature_result = @rpc_worker.run("ds_api", API.Rpc, :decode_signed_content, [signed_content])
+
+    with {:ok, %{content: content, signatures: signatures}} <- signature_result do
+      {:ok, %{"content" => atoms_to_strings(content), "signatures" => atoms_to_strings(signatures)}}
     else
-      with {:ok, binary} <- Base.decode64(signed_content),
-           {:ok, data} <- Jason.decode(binary) do
-        data_is_valid_resp(data, headers)
-      else
-        _ ->
-          data_is_invalid_resp()
-      end
+      {:error, {:invalid_content, _, _}} ->
+        {:error, {:bad_request, "Invalid signature"}}
+
+      _ ->
+        base64_error()
     end
   end
 
-  defp data_is_valid_resp(data, headers) do
+  defp do_decode_and_validate(false, signed_content, headers) do
+    with {:ok, json_content} <- Base.decode64(signed_content),
+         {:ok, content} <- Jason.decode(json_content) do
+      format_content_and_signatures(content, headers)
+    else
+      _ -> base64_error()
+    end
+  end
+
+  defp format_content_and_signatures(content, headers) do
     signatures = [
       %{
         "is_valid" => true,
@@ -59,61 +77,13 @@ defmodule Core.API.Signature do
           [msp_signature | signatures]
       end
 
-    data =
-      %{
-        "content" => data,
-        "signatures" => signatures
-      }
-      |> wrap_response(200)
-      |> Jason.encode!()
-
-    ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 200})
+    {:ok, %{"content" => content, "signatures" => signatures}}
   end
 
-  defp uri_decode(string) when is_binary(string), do: string |> URI.decode()
+  defp base64_error do
+    Error.dump(%ValidationError{description: "Not a base64 string", rule: "invalid", path: "$.signed_content"})
+  end
+
+  defp uri_decode(string) when is_binary(string), do: URI.decode(string)
   defp uri_decode(string), do: string
-
-  defp data_is_invalid_resp do
-    data =
-      %{
-        "error" => %{
-          "invalid" => [
-            %{
-              "entry" => "$.signed_content",
-              "entry_type" => "json_data_property",
-              "rules" => [
-                %{
-                  "description" => "Not a base64 string",
-                  "params" => [],
-                  "rule" => "invalid"
-                }
-              ]
-            }
-          ],
-          "message" =>
-            "Validation failed. You can find validators description at our API Manifest:" <>
-              " http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
-          "type" => "validation_failed"
-        },
-        "meta" => %{
-          "code" => 422,
-          "request_id" => "2kmaguf9ec791885t40008s2",
-          "type" => "object",
-          "url" => "http://www.example.com/digital_signatures"
-        }
-      }
-      |> Jason.encode!()
-
-    ResponseDecoder.check_response(%HTTPoison.Response{body: data, status_code: 422})
-  end
-
-  defp wrap_response(data, code) do
-    %{
-      "meta" => %{
-        "code" => code,
-        "type" => "list"
-      },
-      "data" => data
-    }
-  end
 end

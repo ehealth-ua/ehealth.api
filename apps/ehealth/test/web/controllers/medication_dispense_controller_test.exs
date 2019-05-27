@@ -1888,23 +1888,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           "payment_amount" => payment_amount
         })
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2003,23 +2001,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           "payment_amount" => payment_amount
         })
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2162,23 +2158,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_dispense]}}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => %{},
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => %{},
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2299,23 +2293,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> json_response(200)
         |> Map.get("data")
 
-      expect(SignatureMock, :decode_and_validate, 3, fn content, _, _ ->
+      expect(SignatureMock, :decode_and_validate, 3, fn content, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content |> Base.decode64!() |> Jason.decode!(),
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content |> Base.decode64!() |> Jason.decode!(),
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2453,23 +2445,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_dispense]}}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => %{},
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => "test",
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => %{},
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => "test",
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2524,22 +2514,20 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_dispense]}}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => %{},
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => %{},
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2598,23 +2586,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_dispense]}}
       end)
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => %{},
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => "test"
-                 }
+           "content" => %{},
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => "test"
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2729,23 +2715,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           "payment_amount" => payment_amount
         })
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => "test",
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => "test",
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -2858,22 +2842,20 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           "payment_amount" => payment_amount
         })
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -3035,23 +3017,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           "payment_amount" => payment_amount
         })
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity_action.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity_action.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
@@ -3144,23 +3124,21 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         |> Map.get("data")
         |> Map.put("updated_by", UUID.generate())
 
-      expect(SignatureMock, :decode_and_validate, fn _, _, _ ->
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
          %{
-           "data" => %{
-             "content" => content,
-             "signatures" => [
-               %{
-                 "is_valid" => true,
-                 "is_stamp" => false,
-                 "signer" => %{
-                   "edrpou" => legal_entity.edrpou,
-                   "drfo" => party_user.party.tax_id,
-                   "surname" => party_user.party.last_name
-                 }
+           "content" => content,
+           "signatures" => [
+             %{
+               "is_valid" => true,
+               "is_stamp" => false,
+               "signer" => %{
+                 "edrpou" => legal_entity.edrpou,
+                 "drfo" => party_user.party.tax_id,
+                 "surname" => party_user.party.last_name
                }
-             ]
-           }
+             }
+           ]
          }}
       end)
 
