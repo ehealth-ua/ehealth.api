@@ -11,6 +11,14 @@ defmodule Core.API.MediaStorageBehaviour do
               resource_id :: binary
             ) :: {:ok, result :: term} | {:error, reason :: term}
 
+  @callback create_signed_url(
+              action :: binary,
+              bucket :: binary,
+              resource_name :: binary,
+              resource_id :: binary,
+              ops :: keyword
+            ) :: {:ok, result :: term} | {:error, reason :: term}
+
   @callback store_signed_content(
               signed_content :: binary,
               bucket :: binary,

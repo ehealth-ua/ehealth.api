@@ -15,10 +15,13 @@ defmodule Core.API.MediaStorage do
     HTTPoison.head(url, "Content-Type": MIME.from_path(resource_name))
   end
 
-  def create_signed_url(action, bucket, resource_name, resource_id) do
+  def create_signed_url(action, bucket, resource_name, resource_id),
+    do: create_signed_url(action, bucket, resource_name, resource_id, [])
+
+  def create_signed_url(action, bucket, resource_name, resource_id, ops) do
     action
     |> generate_sign_url_data(bucket, resource_name, resource_id)
-    |> create_signed_url()
+    |> create_signed_url(ops)
   end
 
   defp generate_sign_url_data(action, bucket, resource_name, resource_id) do
@@ -37,8 +40,8 @@ defmodule Core.API.MediaStorage do
     Map.put(data, "content_type", MIME.from_path(resource_name))
   end
 
-  def create_signed_url(%{} = sign_url_data) do
-    with {:ok, secret} <- @rpc_worker.run("ael_api", Ael.Rpc, :signed_url, [sign_url_data]) do
+  defp create_signed_url(%{} = sign_url_data, ops) do
+    with {:ok, secret} <- @rpc_worker.run("ael_api", Ael.Rpc, :signed_url, [sign_url_data, ops]) do
       {:ok, secret}
     else
       error ->

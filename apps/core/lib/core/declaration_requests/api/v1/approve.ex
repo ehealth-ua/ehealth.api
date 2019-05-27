@@ -68,11 +68,12 @@ defmodule Core.DeclarationRequests.API.Approve do
   def check_documents(_, _declaration_request_id, acc), do: acc
 
   def uploaded?(id, %{"type" => type}) do
-    resource = "declaration_request_#{type}.jpeg"
+    resource_name = "declaration_request_#{type}.jpeg"
     bucket = Confex.fetch_env!(:core, Core.API.MediaStorage)[:declaration_request_bucket]
 
-    with {:ok, %{secret_url: url}} <- @media_storage_api.create_signed_url("HEAD", bucket, resource, id) do
-      verify_uploaded_file(url, resource, type)
+    with {:ok, %{secret_url: url}} <-
+           @media_storage_api.create_signed_url("HEAD", bucket, resource_name, id, access_type: :internal) do
+      verify_uploaded_file(url, resource_name, type)
     end
   end
 

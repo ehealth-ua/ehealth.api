@@ -123,7 +123,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
         {:ok, %{"data" => %{"count" => 1}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
@@ -165,7 +165,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "offline documents was not uploaded. Declaration cannot be approved", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
@@ -197,7 +197,7 @@ defmodule EHealth.Integraiton.DeclarationRequestApproveTest do
     end
 
     test "Ael not responding. Declaration cannot be approved", %{conn: conn} do
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 

@@ -13,7 +13,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
         {:ok, %{"data" => %{"count" => 1}}}
       end)
 
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
@@ -43,7 +43,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "there's a missing upload" do
-      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, 2, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
@@ -67,7 +67,7 @@ defmodule EHealth.Integraiton.DeclarationRequests.API.ApproveTest do
     end
 
     test "response error" do
-      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _ ->
+      expect(MediaStorageMock, :create_signed_url, fn _, _, _, _, _ ->
         {:ok, %{secret_url: "http://localhost/good_upload_1"}}
       end)
 
