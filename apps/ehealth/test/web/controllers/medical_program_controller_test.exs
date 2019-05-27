@@ -53,12 +53,14 @@ defmodule EHealth.Web.MedicalProgramControllerTest do
   end
 
   describe "create medical program" do
+    @tag :pending
     test "invalid name", %{conn: conn} do
       conn = post(conn, medical_program_path(conn, :create))
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.name"}]}} = resp
     end
 
+    @tag :pending
     test "success create medical program", %{conn: conn} do
       conn
       |> post(medical_program_path(conn, :create), name: "Тест")

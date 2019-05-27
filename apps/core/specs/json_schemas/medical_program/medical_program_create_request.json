@@ -6,10 +6,15 @@
         "type": "string",
         "pattern":"^[А-Яа-яЁёЇїІіЄєҐґ'\\- ]*$",
         "description":"Local name of medicine"
+    },
+    "type": {
+      "type": "string",
+      "description": "Dictionary: MEDICAL_PROGRAM_TYPE"
     }
   },
   "required": [
-    "name"  
+    "name",
+    "type"
   ],
   "additionalProperties": false
 }

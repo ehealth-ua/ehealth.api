@@ -7,10 +7,11 @@ defmodule Core.MedicalPrograms do
   alias Core.MedicalPrograms.Search
   alias Core.Medications
   alias Core.PRMRepo
+  alias Core.Validators.JsonSchema
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
-  @fields_required ~w(name)a
+  @fields_required ~w(name type)a
   @fields_optional ~w(is_active)a
 
   @search_fields ~w(
@@ -45,11 +46,13 @@ defmodule Core.MedicalPrograms do
   def get_by!(params), do: @read_prm_repo.get_by!(MedicalProgram, params)
 
   def create(params, actor_id) do
-    %MedicalProgram{}
-    |> changeset(params)
-    |> put_change(:inserted_by, actor_id)
-    |> put_change(:updated_by, actor_id)
-    |> PRMRepo.insert_and_log(actor_id)
+    with :ok <- JsonSchema.validate(:medical_program, params) do
+      %MedicalProgram{}
+      |> changeset(params)
+      |> put_change(:inserted_by, actor_id)
+      |> put_change(:updated_by, actor_id)
+      |> PRMRepo.insert_and_log(actor_id)
+    end
   end
 
   def deactivate(%MedicalProgram{id: id} = medical_program, actor_id) do

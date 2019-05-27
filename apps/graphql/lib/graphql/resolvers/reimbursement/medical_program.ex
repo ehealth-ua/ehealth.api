@@ -1,6 +1,7 @@
 defmodule GraphQL.Resolvers.MedicalProgram do
   @moduledoc false
 
+  import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
   import GraphQL.Filters.Base, only: [filter: 2]
   import Ecto.Query, only: [order_by: 2]
 
@@ -18,7 +19,7 @@ defmodule GraphQL.Resolvers.MedicalProgram do
   end
 
   def create(args, %{context: %{consumer_id: consumer_id}}) do
-    with {:ok, medical_program} <- MedicalPrograms.create(args, consumer_id) do
+    with {:ok, medical_program} <- MedicalPrograms.create(atoms_to_strings(args), consumer_id) do
       {:ok, %{medical_program: medical_program}}
     end
   end

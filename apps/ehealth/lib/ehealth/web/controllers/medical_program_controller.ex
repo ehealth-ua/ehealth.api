@@ -3,7 +3,6 @@ defmodule EHealth.Web.MedicalProgramController do
 
   use EHealth.Web, :controller
   alias Core.MedicalPrograms
-  alias Core.Validators.JsonSchema
   alias Scrivener.Page
   require Logger
 
@@ -18,8 +17,7 @@ defmodule EHealth.Web.MedicalProgramController do
   def create(%Plug.Conn{req_headers: headers} = conn, params) do
     consumer_id = get_consumer_id(headers)
 
-    with :ok <- JsonSchema.validate(:medical_program, params),
-         {:ok, medical_program} <- MedicalPrograms.create(params, consumer_id) do
+    with {:ok, medical_program} <- MedicalPrograms.create(params, consumer_id) do
       conn
       |> put_status(:created)
       |> render("show.json", medical_program: medical_program)

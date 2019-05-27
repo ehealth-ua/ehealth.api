@@ -9,6 +9,7 @@ defmodule Core.PRMFactories.MedicalProgramFactory do
         %Core.MedicalPrograms.MedicalProgram{
           name: "Доступні ліки",
           is_active: true,
+          type: "MEDICATION",
           inserted_by: UUID.generate(),
           updated_by: UUID.generate()
         }

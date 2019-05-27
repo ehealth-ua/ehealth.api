@@ -38,6 +38,8 @@ defmodule GraphQL.Schema.MedicalProgramTypes do
   input_object :medical_program_filter do
     field(:database_id, :uuid)
     field(:name, :string)
+    # Dictionary: MEDICAL_PROGRAM_TYPE
+    field(:type, :string)
     field(:is_active, :boolean)
   end
 
@@ -64,6 +66,7 @@ defmodule GraphQL.Schema.MedicalProgramTypes do
 
       input do
         field(:name, non_null(:string))
+        field(:type, non_null(:string))
       end
 
       output do
@@ -95,6 +98,7 @@ defmodule GraphQL.Schema.MedicalProgramTypes do
   node object(:medical_program) do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
+    field(:type, non_null(:string))
     field(:is_active, non_null(:boolean))
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))

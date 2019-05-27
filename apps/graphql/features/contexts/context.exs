@@ -2391,36 +2391,6 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I create medical program with name "(?<name>[^"]+)"$/,
-    fn %{conn: conn} = state, %{name: name} ->
-      query = """
-      mutation CreateMedicalProgram($input: CreateMedicalProgramInput!) {
-        createMedicalProgram(input: $input) {
-          medicalProgram {
-            name
-          }
-        }
-      }
-      """
-
-      variables = %{
-        input: %{
-          name: name
-        }
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data createMedicalProgram medicalProgram))
-
-      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  when_(
     ~r/^I update the status to "(?<status>[^"]+)" with reason "(?<reason>[^"]+)" in legal entity where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{status: status, reason: reason, database_id: database_id} ->
       query = """
@@ -2736,6 +2706,8 @@ defmodule GraphQL.Features.Context do
   then_(
     ~r/^the "(?<code>[^"]+)" error should be returned$/,
     fn %{resp_body: resp_body} = state, %{code: code} ->
+      assert Map.has_key?(resp_body, "errors"), "Response body does not have `errors` field"
+
       assert Enum.any?(
                resp_body["errors"],
                fn error -> %{"extensions" => %{"code" => ^code}} = error end
@@ -3141,8 +3113,8 @@ defmodule GraphQL.Features.Context do
   defp call_create_entity_mutation(conn, entity, input_attrs) do
     input_attrs = prepare_input_attrs(input_attrs)
     return_fields = prepare_return_fields(input_attrs)
-    capitalized = String.capitalize(entity)
-    downcased = String.downcase(entity)
+    capitalized = entity |> String.capitalize() |> camelcase()
+    downcased = entity |> String.downcase() |> camelcase()
 
     query = """
     mutation Create#{capitalized}($input: Create#{capitalized}Input!) {
@@ -3176,4 +3148,8 @@ defmodule GraphQL.Features.Context do
   defp prepare_return_fields({_field, value}, acc) when is_list(value), do: acc
 
   defp prepare_return_fields({field, _value}, acc), do: [field | acc]
+
+  defp camelcase(string) do
+    Regex.replace(~r/(.+)\ (.+)/, string, fn _, b, c -> "#{b}" <> String.capitalize(c) end)
+  end
 end
