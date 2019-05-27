@@ -122,6 +122,7 @@ defmodule Core.V2.LegalEntities do
   end
 
   defdelegate list(params), to: LegalEntities
+  defdelegate get_by_id(id, headers), to: LegalEntities
   defdelegate get_client_type_id(type, headers), to: LegalEntities
   defdelegate prepare_security_data(client, client_connection), to: LegalEntities
   defdelegate prepare_employee_request_data(legal_entity_id, party), to: LegalEntities

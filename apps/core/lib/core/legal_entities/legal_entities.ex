@@ -40,7 +40,6 @@ defmodule Core.LegalEntities do
     is_active
     settlement_id
     created_by_mis_client_id
-    mis_verified
   )a
 
   @required_fields ~w(

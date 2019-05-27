@@ -21,7 +21,6 @@ defmodule EHealth.Web.V2.LegalEntityView do
     nhs_verified
     nhs_reviewed
     nhs_comment
-    mis_verified
     archive
     website
     beneficiary
@@ -37,6 +36,10 @@ defmodule EHealth.Web.V2.LegalEntityView do
     accreditation
   )a
 
+  def render("index.json", %{legal_entities: legal_entities}) do
+    render_many(legal_entities, __MODULE__, "legal_entity.json")
+  end
+
   def render("show.json", %{legal_entity: legal_entity}) do
     render_one(legal_entity, __MODULE__, "legal_entity.json")
   end
@@ -45,6 +48,7 @@ defmodule EHealth.Web.V2.LegalEntityView do
     legal_entity
     |> Map.take(@fields)
     |> Map.put(:license, render_one(legal_entity.license, __MODULE__, "license.json"))
+    |> Map.put(:edr, render_one(legal_entity.edr_data, __MODULE__, "edr_data.json"))
   end
 
   def render("legal_entity.json", %{legal_entity: legal_entity}), do: legal_entity
@@ -67,5 +71,9 @@ defmodule EHealth.Web.V2.LegalEntityView do
       updated_by
       what_licensed
     )a)
+  end
+
+  def render("edr_data.json", %{legal_entity: edr_data}) do
+    Map.take(edr_data, ~w(id name short_name public_name legal_form edrpou kveds registration_address state)a)
   end
 end

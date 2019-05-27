@@ -688,7 +688,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert_list_response_schema(resp["data"], "legal_entity")
 
       Enum.each(resp["data"], fn resp_entity ->
-        assert %{"mis_verified" => _, "nhs_verified" => _, "nhs_reviewed" => _} = resp_entity
+        assert %{"nhs_verified" => _, "nhs_reviewed" => _} = resp_entity
       end)
 
       assert_list_response_schema(resp["data"], "legal_entity")
@@ -825,7 +825,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
         |> get(legal_entity_path(conn, :show, id))
         |> json_response(200)
 
-      assert match?(%{"mis_verified" => "VERIFIED", "nhs_reviewed" => _}, resp["data"])
+      assert match?(%{"nhs_reviewed" => _}, resp["data"])
       refute resp["data"]["nhs_verified"]
     end
 

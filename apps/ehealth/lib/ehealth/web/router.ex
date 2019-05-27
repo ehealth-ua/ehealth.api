@@ -76,10 +76,19 @@ defmodule EHealthWeb.Router do
 
     # Legal Entities
     scope "/v2" do
-      put("/legal_entities", V2.LegalEntityController, :create_or_update, as: :v2_legal_entity)
+      pipe_through([:api_client_id, :client_context_list])
+
+      get("/legal_entities", V2.LegalEntityController, :index, as: :v2_legal_entity)
+    end
+
+    scope "/v2" do
+      pipe_through([:api_client_id])
+
+      get("/legal_entities/:id", V2.LegalEntityController, :show, as: :v2_legal_entity)
     end
 
     put("/legal_entities", LegalEntityController, :create_or_update)
+    put("/v2/legal_entities", V2.LegalEntityController, :create_or_update, as: :v2_legal_entity)
 
     get("/services", ServiceController, :index)
     get("/dictionaries", DictionaryController, :index)

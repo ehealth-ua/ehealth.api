@@ -643,7 +643,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       resp =
         conn
         |> put_client_id_header(id)
-        |> get(legal_entity_path(conn, :index, edrpou: edrpou))
+        |> get(v2_legal_entity_path(conn, :index, edrpou: edrpou))
         |> json_response(200)
 
       assert Map.has_key?(resp, "data")
@@ -651,7 +651,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert_list_response_schema(resp["data"], "legal_entity")
 
       Enum.each(resp["data"], fn resp_entity ->
-        assert %{"mis_verified" => _, "nhs_verified" => _, "nhs_reviewed" => _} = resp_entity
+        assert %{"nhs_verified" => _, "nhs_reviewed" => _} = resp_entity
       end)
 
       assert_list_response_schema(resp["data"], "legal_entity")
@@ -662,7 +662,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       nhs()
       %{id: id, edrpou: edrpou} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :index, edrpou: edrpou))
+      conn = get(conn, v2_legal_entity_path(conn, :index, edrpou: edrpou))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -675,7 +675,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       insert(:prm, :legal_entity)
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :index))
+      conn = get(conn, v2_legal_entity_path(conn, :index))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -689,7 +689,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       insert(:prm, :legal_entity)
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :index, type: LegalEntity.type(:msp)))
+      conn = get(conn, v2_legal_entity_path(conn, :index, type: LegalEntity.type(:msp)))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -702,7 +702,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       msp()
       %{id: id} = insert(:prm, :legal_entity, type: LegalEntity.type(:msp_pharmacy))
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :index, type: LegalEntity.type(:msp_pharmacy)))
+      conn = get(conn, v2_legal_entity_path(conn, :index, type: LegalEntity.type(:msp_pharmacy)))
       resp = json_response(conn, 200)
 
       assert Map.has_key?(resp, "data")
@@ -711,11 +711,44 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert id == hd(resp["data"])["id"]
     end
 
+    test "render with edr_data", %{conn: conn} do
+      msp()
+
+      address = %{
+        type: "RESIDENCE",
+        country: "UA",
+        area: "Житомирська",
+        region: "Бердичівський",
+        settlement: "Київ",
+        settlement_type: "CITY",
+        settlement_id: UUID.generate(),
+        street_type: "STREET",
+        street: "вул. Ніжинська",
+        building: "15-В",
+        apartment: "23",
+        zip: "02090"
+      }
+
+      legal_entity = build(:legal_entity, residence_address: address)
+      edr_data = insert(:prm, :edr_data, legal_entities: [legal_entity])
+      id = edr_data.legal_entities |> hd() |> Map.get(:id)
+      conn = put_client_id_header(conn, id)
+      conn = get(conn, v2_legal_entity_path(conn, :index))
+      resp = json_response(conn, 200)
+
+      assert Map.has_key?(resp, "data")
+      assert is_list(resp["data"])
+      assert 1 == length(resp["data"])
+      assert id == hd(resp["data"])["id"]
+      assert edr = hd(resp["data"])["edr"]
+      assert Enum.all?(~w(id name), &Map.has_key?(edr, &1))
+    end
+
     test "with x-consumer-metadata that contains client_id that does not match legal entity id", %{conn: conn} do
       msp()
       conn = put_client_id_header(conn, Ecto.UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-      conn = get(conn, legal_entity_path(conn, :index, legal_entity_id: id))
+      conn = get(conn, v2_legal_entity_path(conn, :index, legal_entity_id: id))
       resp = json_response(conn, 200)
       assert [] == resp["data"]
       assert Map.has_key?(resp, "paging")
@@ -726,7 +759,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       expect(MithrilMock, :get_client_type_name, fn _, _ -> {:error, :access_denied} end)
       conn = put_client_id_header(conn, UUID.generate())
       id = "7cc91a5d-c02f-41e9-b571-1ea4f2375552"
-      conn = get(conn, legal_entity_path(conn, :index, legal_entity_id: id))
+      conn = get(conn, v2_legal_entity_path(conn, :index, legal_entity_id: id))
       json_response(conn, 401)
     end
   end
@@ -739,10 +772,10 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       resp =
         conn
         |> put_client_id_header(id)
-        |> get(legal_entity_path(conn, :show, id))
+        |> get(v2_legal_entity_path(conn, :show, id))
         |> json_response(200)
 
-      assert match?(%{"mis_verified" => "VERIFIED", "nhs_reviewed" => _}, resp["data"])
+      assert match?(%{"nhs_reviewed" => _}, resp["data"])
       refute resp["data"]["nhs_verified"]
     end
 
@@ -750,11 +783,11 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       msp()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :show, id))
+      conn = get(conn, v2_legal_entity_path(conn, :show, id))
       resp = json_response(conn, 200)
 
       assert id == resp["data"]["id"]
-      assert Map.has_key?(resp["data"], "medical_service_provider")
+      assert Map.has_key?(resp["data"], "edr")
       assert Map.has_key?(resp["data"], "website")
       assert Map.has_key?(resp["data"], "archive")
       assert Map.has_key?(resp["data"], "beneficiary")
@@ -766,11 +799,11 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       mis()
       %{id: id} = insert(:prm, :legal_entity)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :show, id))
+      conn = get(conn, v2_legal_entity_path(conn, :show, id))
       resp = json_response(conn, 200)
 
       assert id == resp["data"]["id"]
-      assert Map.has_key?(resp["data"], "medical_service_provider")
+      assert Map.has_key?(resp["data"], "edr")
       refute Map.has_key?(resp, "paging")
     end
 
@@ -778,14 +811,14 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       msp()
       %{id: id} = insert(:prm, :legal_entity, is_active: false)
       conn = put_client_id_header(conn, id)
-      conn = get(conn, legal_entity_path(conn, :show, id))
+      conn = get(conn, v2_legal_entity_path(conn, :show, id))
       assert 404 == json_response(conn, 404)["meta"]["code"]
     end
 
     test "with client_id that does not exists", %{conn: conn} do
       expect(MithrilMock, :get_client_type_name, fn _, _ -> {:error, :access_denied} end)
       conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, legal_entity_path(conn, :show, UUID.generate()))
+      conn = get(conn, v2_legal_entity_path(conn, :show, UUID.generate()))
       json_response(conn, 401)
     end
   end
