@@ -4,7 +4,7 @@ defmodule Core.MedicationRequests.SMSSender do
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def maybe_send_sms(mrr, person, template_fun) do
-    otp = Enum.find(person.authentication_methods, nil, fn method -> method["type"] == "OTP" end)
+    otp = Enum.find(person.authentication_methods, nil, fn method -> method.type == "OTP" end)
 
     if otp do
       {:ok, _} =

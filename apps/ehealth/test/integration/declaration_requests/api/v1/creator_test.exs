@@ -396,8 +396,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
         authentication_methods: [
           %{
-            "type" => "OTP",
-            "phone_number" => "+380508887700"
+            type: "OTP",
+            phone_number: "+380508887700"
           }
         ]
       })
@@ -440,8 +440,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
             id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
             authentication_methods: [
               %{
-                "type" => "OTP",
-                "phone_number" => "+380508887700"
+                type: "OTP",
+                phone_number: "+380508887700"
               }
             ]
           },
@@ -449,8 +449,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
             id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
             authentication_methods: [
               %{
-                "type" => "OTP",
-                "phone_number" => "+380508887700"
+                type: "OTP",
+                phone_number: "+380508887700"
               }
             ]
           }
@@ -601,7 +601,7 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
   describe "determine_auth_method_for_mpi/1, MPI record with type NA" do
     test "authentication_methods NA converts to OTP" do
       expect_persons_search_result(%{
-        authentication_methods: [%{"type" => "NA"}]
+        authentication_methods: [%{type: "NA"}]
       })
 
       expect_persons_search_result([])
@@ -809,8 +809,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       person = %{
         authentication_methods: [
           %{
-            "type" => "OTP",
-            "phone_number" => "+380508887701"
+            type: "OTP",
+            phone_number: "+380508887701"
           }
         ]
       }
@@ -857,8 +857,8 @@ defmodule EHealth.Integraiton.DeclarationRequest.API.V1.CreateTest do
       person = %{
         authentication_methods: [
           %{
-            "type" => "OTP",
-            "phone_number" => "+380508887702"
+            type: "OTP",
+            phone_number: "+380508887702"
           }
         ]
       }

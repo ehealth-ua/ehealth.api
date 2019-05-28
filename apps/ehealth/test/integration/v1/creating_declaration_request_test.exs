@@ -304,7 +304,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
         authentication_methods: [
-          %{"type" => "OTP", "phone_number" => "+380508887700"}
+          %{type: "OTP", phone_number: "+380508887700"}
         ]
       })
 
@@ -418,8 +418,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         %{
           authentication_methods: [
             %{
-              "type" => "OTP",
-              "phone_number" => "+380508887700"
+              type: "OTP",
+              phone_number: "+380508887700"
             }
           ]
         }
@@ -478,8 +478,8 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
         %{
           authentication_methods: [
             %{
-              "type" => "OTP",
-              "phone_number" => "+380508887701"
+              type: "OTP",
+              phone_number: "+380508887701"
             }
           ]
         }
@@ -581,7 +581,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
       })
 
       expect(MithrilMock, :get_roles_by_name, fn "DOCTOR", _headers ->
@@ -705,7 +705,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{"type" => "NA"}]
+        authentication_methods: [%{type: "NA"}]
       })
 
       role_id = UUID.generate()
@@ -789,7 +789,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
       })
 
       template()
@@ -831,7 +831,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
       person =
         declaration_request_params
         |> get_in(~W(declaration_request person))
-        |> Map.put("authentication_methods", [%{"type" => "OFFLINE"}])
+        |> Map.put("authentication_methods", [%{type: "OFFLINE"}])
         |> Map.delete("tax_id")
 
       declaration_request_params = put_in(declaration_request_params, ~W(declaration_request person), person)
@@ -1003,7 +1003,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
       })
 
       template()
@@ -1100,7 +1100,7 @@ defmodule EHealth.Integration.DeclarationRequestCreateTest do
 
       expect_persons_search_result(%{
         id: "b5350f79-f2ca-408f-b15d-1ae0a8cc861c",
-        authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}]
+        authentication_methods: [%{type: "OTP", phone_number: "+380508887700"}]
       })
 
       template()

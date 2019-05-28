@@ -30,7 +30,7 @@ defmodule Core.MPIFactories.PersonFactory do
           documents: build_list(2, :person_document, person_id: id),
           addresses: build_list(1, :person_address, person_id: id),
           phones: [],
-          authentication_methods: [%{"type" => "OTP", "phone_number" => random_phone_number()}],
+          authentication_methods: [build(:person_authentication_method)],
           master_persons: [],
           merged_persons: [],
           secret: "secret-1",
@@ -90,6 +90,19 @@ defmodule Core.MPIFactories.PersonFactory do
           number: random_phone_number(),
           person_id: UUID.generate(),
           type: "MOBILE",
+          inserted_at: now,
+          updated_at: now
+        }
+      end
+
+      def person_authentication_method_factory do
+        now = DateTime.utc_now()
+
+        %{
+          id: UUID.generate(),
+          person_id: UUID.generate(),
+          type: "OTP",
+          phone_number: random_phone_number(),
           inserted_at: now,
           updated_at: now
         }

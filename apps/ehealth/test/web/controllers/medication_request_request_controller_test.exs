@@ -432,7 +432,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert person
              |> Map.get(:authentication_methods, [])
              |> List.first()
-             |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
+             |> Map.take(~w(type phone_number)a)
+             |> filter_authentication_method()
+             |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end) ==
+               get_in(resp, ~w(urgent authentication_method_current))
 
       conn
       |> get(medication_request_request_path(conn, :show, id))
@@ -481,7 +484,10 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       assert person
              |> Map.get(:authentication_methods, [])
              |> List.first()
-             |> filter_authentication_method() == get_in(resp, ~w(urgent authentication_method_current))
+             |> Map.take(~w(type phone_number)a)
+             |> filter_authentication_method()
+             |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end) ==
+               get_in(resp, ~w(urgent authentication_method_current))
 
       conn
       |> get(medication_request_request_path(conn, :show, id))
@@ -2535,8 +2541,8 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
 
   defp filter_authentication_method(nil), do: %{}
 
-  defp filter_authentication_method(%{"phone_number" => number} = method) do
-    Map.put(method, "phone_number", Phone.hide_number(number))
+  defp filter_authentication_method(%{phone_number: number} = method) do
+    Map.put(method, :phone_number, Phone.hide_number(number))
   end
 
   defp filter_authentication_method(method), do: method

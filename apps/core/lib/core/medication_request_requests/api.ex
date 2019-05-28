@@ -197,7 +197,7 @@ defmodule Core.MedicationRequestRequests do
   end
 
   defp put_verification_code(%Operation{valid?: true} = operation) do
-    otp = Enum.find(operation.data.person.authentication_methods, nil, fn method -> method["type"] == "OTP" end)
+    otp = Enum.find(operation.data.person.authentication_methods, nil, fn method -> method.type == "OTP" end)
     if otp, do: NumberGenerator.generate_otp_verification_code(), else: nil
   end
 
@@ -483,6 +483,7 @@ defmodule Core.MedicationRequestRequests do
       authentication_methods
       |> List.first()
       |> filter_authentication_method()
+      |> Map.take(~w(type phone_number)a)
 
     %{
       authentication_method_current: filtered_authentication_method_current
@@ -491,8 +492,8 @@ defmodule Core.MedicationRequestRequests do
 
   defp filter_authentication_method(nil), do: %{}
 
-  defp filter_authentication_method(%{"phone_number" => number} = method) do
-    Map.put(method, "phone_number", Phone.hide_number(number))
+  defp filter_authentication_method(%{phone_number: number} = method) do
+    Map.put(method, :phone_number, Phone.hide_number(number))
   end
 
   defp filter_authentication_method(method), do: method

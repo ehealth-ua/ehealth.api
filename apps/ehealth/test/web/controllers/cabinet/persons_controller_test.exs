@@ -30,6 +30,8 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
         }
       ]
 
+      authentication_methods = [%{"type" => "OTP", "phone_number" => "+380971111111"}]
+
       data =
         :person
         |> build(
@@ -37,6 +39,7 @@ defmodule EHealth.Web.Cabinet.PersonsControllerTest do
           tax_id: tax_id,
           emergency_contact: emergency_contact,
           documents: documents,
+          authentication_methods: authentication_methods,
           birth_date: "1990-01-01",
           unzr: nil
         )
