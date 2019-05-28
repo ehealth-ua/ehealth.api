@@ -92,5 +92,12 @@ For code consistency, you should apply the same commit to `develop` and `preprod
 11. Create a `release` branch from `develop`
 12. Rebase on master `git rebase master`
 13. Push changes (step 6)
-14. Create pull request on master, and select `rebase and merge` option when merge
+14. Create pull request on master and select `rebase and merge` option when merge
 15. After PR successfully merged, created image can be deployed to demo/preprod/prod
+
+## HotFix release
+
+1. Pull the latest `master`
+2. Create a `release` branch from `master`
+3. Cherry-pick your commits `git cherry-pick hotfix-commit-hash`, solve all conflict if any
+4. Create pull request on `master` and select `rebase and merge` option when merge
