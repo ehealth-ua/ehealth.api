@@ -343,8 +343,8 @@ defmodule Core.MedicationRequestRequest.Validations do
       {:error, {:bad_request, reason}} ->
         {:invalid_signature, reason}
 
-      error ->
-        error
+      {:error, reason} ->
+        {:invalid_signature, reason}
     end
   end
 

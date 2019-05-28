@@ -259,10 +259,26 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
     ])
   end
 
-  defp add_changeset_error({:invalid_signature, reason}, operation) do
+  defp add_changeset_error({:invalid_signature, reason}, operation) when is_list(reason) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :signed_medication_request_request,
+      get_error_description(reason),
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:invalid_signature, reason}, operation) when is_binary(reason) do
     Operation.call_changeset(operation, &add_error/4, [
       :signed_medication_request_request,
       reason,
+      [validation: :invalid]
+    ])
+  end
+
+  defp add_changeset_error({:invalid_signature, reason}, operation) do
+    Operation.call_changeset(operation, &add_error/4, [
+      :signed_medication_request_request,
+      inspect(reason),
       [validation: :invalid]
     ])
   end
@@ -275,4 +291,7 @@ defmodule Core.MedicationRequestRequest.OperationHelpers do
       [validation: :invalid]
     ])
   end
+
+  defp get_error_description([{error, _path}]), do: error.description
+  defp get_error_description(errors), do: Jason.encode!(errors)
 end

@@ -2327,6 +2327,125 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
              } = resp["error"]
     end
 
+    test "return 422 if sign content is not valid", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr = Jason.encode!(mrr)
+
+      drfo =
+        mrr
+        |> get_in(["employee", "party", "id"])
+        |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
+        |> Map.get(:tax_id)
+
+      invalid_signed_content()
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("drfo", drfo)
+        |> patch(medication_request_request_path(conn, :sign, mrr["id"]), %{
+          signed_medication_request_request: signed_mrr,
+          signed_content_encoding: "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_medication_request_request",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Not a base64 string",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
+    test "return 422 if sign content is not valid (undefined DS.api response)", %{conn: conn} do
+      person = build(:person)
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_ops_get_declarations()
+      expect_ops_last_medication_request_dates(nil)
+      expect_encounter_status("finished")
+      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_encounter_status("finished")
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      conn1 = post(conn, medication_request_request_path(conn, :create), medication_request_request: test_request)
+
+      assert mrr = json_response(conn1, 201)["data"]
+
+      signed_mrr =
+        mrr
+        |> Jason.encode!()
+        |> Base.encode64()
+
+      drfo =
+        mrr
+        |> get_in(["employee", "party", "id"])
+        |> (fn x -> Core.PRMRepo.get!(Core.Parties.Party, x) end).()
+        |> Map.get(:tax_id)
+
+      expect(SignatureMock, :decode_and_validate, fn _, _ ->
+        {:error, {"test", "test"}}
+      end)
+
+      resp =
+        conn
+        |> Plug.Conn.put_req_header("drfo", drfo)
+        |> patch(medication_request_request_path(conn, :sign, mrr["id"]), %{
+          signed_medication_request_request: signed_mrr,
+          signed_content_encoding: "base64"
+        })
+        |> json_response(422)
+
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.signed_medication_request_request",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "{\"test\", \"test\"}",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
+
     test "when some data is invalid", %{conn: conn} do
       person = build(:person)
       expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
