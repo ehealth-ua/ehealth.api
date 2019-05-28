@@ -5,20 +5,13 @@ defmodule EHealthScheduler.Application do
 
   use Application
   alias EHealthScheduler.Contracts.Terminator, as: ContractsTerminator
-  alias EHealthScheduler.DeclarationRequests.Terminator, as: DeclarationRequestsTerminator
   alias EHealthScheduler.Worker
 
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
       {Worker, []},
-      {ContractsTerminator, []},
-      Supervisor.child_spec({DeclarationRequestsTerminator, :declaration_request_terminator},
-        id: :declaration_request_terminator
-      ),
-      Supervisor.child_spec({DeclarationRequestsTerminator, :declaration_request_cleaner},
-        id: :declaration_request_cleaner
-      )
+      {ContractsTerminator, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

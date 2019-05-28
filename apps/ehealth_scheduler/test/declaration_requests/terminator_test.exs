@@ -4,7 +4,7 @@ defmodule EHealthScheduler.DeclarationRequests.TerminatorTest do
   use Core.ConnCase, async: false
   alias Core.DeclarationRequests.DeclarationRequest
   alias Core.Repo
-  import EHealthScheduler.DeclarationRequests.Terminator
+  alias EHealthScheduler.DeclarationRequests.Terminator
 
   test "clean outdated declaration_requests" do
     insert(:il, :declaration_request)
@@ -21,8 +21,7 @@ defmodule EHealthScheduler.DeclarationRequests.TerminatorTest do
     insert(:prm, :global_parameter, parameter: "declaration_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
 
-    clean_declaration_requests()
-    assert_receive :terminated_signed
+    Terminator.clean_declaration_requests()
     assert 2 = DeclarationRequest |> Repo.all() |> Enum.count()
     signed = DeclarationRequest.status(:signed)
     assert %{data: nil, printout_content: nil, status: ^signed} = Repo.get(DeclarationRequest, declaration_request.id)
@@ -43,10 +42,8 @@ defmodule EHealthScheduler.DeclarationRequests.TerminatorTest do
     insert(:prm, :global_parameter, parameter: "declaration_request_term_unit", value: "DAYS")
     insert(:prm, :global_parameter, parameter: "declaration_request_expiration", value: "5")
 
-    terminate_declaration_requests()
-    assert_receive :terminated_expired
+    Terminator.terminate_declaration_requests()
     assert 2 = DeclarationRequest |> Repo.all() |> Enum.count()
-
     expired = DeclarationRequest.status(:expired)
     assert %{data: nil, printout_content: nil, status: ^expired} = Repo.get(DeclarationRequest, declaration_request.id)
   end

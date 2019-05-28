@@ -79,10 +79,18 @@ For code consistency, you should apply the same commit to `develop` and `preprod
 
 ## Release
 
-1. Pull the latest `develop` and `preprod` branches
+1. Pull the latest `develop`
 2. Create a `release` branch from `develop`
-3. Rebase a `release` branch on `preprod` branch
-4. Push to github and create a PR from `release` to `preprod`
-5. Use `rebase and merge` button to merge a PR
-6. Run `release.sh` locally to create an image and push to dockerhub (this part is done by devops)
-7. Created image can be deployed to demo/preprod/prod
+3. Run `mix git_ops.release`, and add `--init` option if first release
+4. Do not commit and tag, on interactive question `Shell we commit and tag` press `N`
+5. Run `git commit -am '[ci skip] chore: release ...'` to skip build on PR
+6. Run `git push origin release` to push your changes
+7. Create pull request to `develop` from `release` branch
+8. After PR successfully merged, pull latest `develop`,
+9. Add tag `git tag *.*.*` and push tags remote `git push origin *.*.*` (tag name)
+10. Delete old `release` branch locally, run `git branch -D release`
+11. Create a `release` branch from `develop`
+12. Rebase on master `git rebase master`
+13. Push changes (step 6)
+14. Create pull request on master, and select `rebase and merge` option when merge
+15. After PR successfully merged, created image can be deployed to demo/preprod/prod
