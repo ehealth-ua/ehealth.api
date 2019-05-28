@@ -242,7 +242,9 @@ config :core, :legal_entity_division_types,
   pharmacy: {:system, :list, "LEGAL_ENTITY_PHARMACIST_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]},
   msp_pharmacy:
     {:system, :list, "LEGAL_ENTITY_MSP_PHARMACY_DIVISION_TYPES",
-     ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]}
+     ["CLINIC", "AMBULANT_CLINIC", "FAP", "DRUGSTORE", "DRUGSTORE_POINT"]},
+  primary_care: {:system, :list, "LEGAL_ENTITY_PRIMARY_CARE_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
+  outpatient: {:system, :list, "LEGAL_ENTITY_OUTPATIENT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]}
 
 config :core, :contracts_division_types,
   capitation: {:system, :list, "CAPITATION_CONTRACT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},

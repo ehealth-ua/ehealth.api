@@ -27,7 +27,12 @@ defmodule Core.V2.LegalEntities.Licenses do
   end
 
   def check_license(%LegalEntityCreator{} = state, params, required_license, edr_data_id, consumer_id, license_id) do
+    has_license? = state.legal_entity.license_id
+
     case Map.pop(params, "id") do
+      {nil, license_data} when license_data != %{} and has_license? ->
+        {:error, {:conflict, "Duplicated license"}}
+
       # insert, validate license
       {nil, license_data} ->
         license_data =
