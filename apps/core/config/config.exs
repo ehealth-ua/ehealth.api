@@ -257,7 +257,10 @@ config :core, :contracts_division_types,
 config :core, :employee_speciality_types,
   doctor: {:system, :list, "DOCTOR_SPECIALITIES_TYPES", ["THERAPIST", "PEDIATRICIAN", "FAMILY_DOCTOR"]},
   pharmacist:
-    {:system, :list, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PROVISOR", "CLINICAL_PROVISOR", "RECEPTIONIST"]}
+    {:system, :list, "PHARMACIST_SPECIALITIES_TYPES", ["PHARMACIST", "PROVISOR", "CLINICAL_PROVISOR", "RECEPTIONIST"]},
+  specialist: {:system, :list, "SPECIALIST_SPECIALITIES_TYPES", ["THERAPIST"]},
+  surgeon: {:system, :list, "SURGEON_SPECIALITIES_TYPES", []},
+  assistant: {:system, :list, "ASSISTANT_SPECIALITIES_TYPES", []}
 
 config :core, :employee_speciality_levels,
   doctor: {:system, :list, "DOCTOR_SPECIALITY_LEVELS", ["FIRST", "SECOND", "HIGHEST", "NOT_APPLICABLE"]},

@@ -161,6 +161,7 @@ defmodule Core.EmployeeRequests do
          {:ok, division_id} <- validate_division_id(params),
          :ok <- not_is_owner?(employee_type),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
+         :ok <- validate_legal_entity(legal_entity),
          :ok <- check_division_legal_entity(client_id, division_id),
          :ok <- validate_type(legal_entity, employee_type),
          :ok <- check_is_user_blacklisted(params) do
@@ -173,6 +174,18 @@ defmodule Core.EmployeeRequests do
         end
       end)
       |> elem(1)
+    end
+  end
+
+  defp validate_legal_entity(%LegalEntity{} = legal_entity) do
+    is_active? =
+      legal_entity.is_active and
+        legal_entity.status in [LegalEntity.status(:active), LegalEntity.status(:suspended)]
+
+    if is_active? do
+      :ok
+    else
+      {:error, {:conflict, "Legal entity is not active"}}
     end
   end
 

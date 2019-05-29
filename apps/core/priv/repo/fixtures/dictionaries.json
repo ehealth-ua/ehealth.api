@@ -1307,6 +1307,7 @@
     "name": "EMPLOYEE_TYPE",
     "values": {
       "ACCOUNTANT": "бухгалтер",
+      "ASSISTANT": "асистент",
       "HR": "відділ кадрів",
       "ADMIN": "реєстратор",
       "OWNER": "керівник закладу ОЗ",
@@ -1315,7 +1316,9 @@
       "NHS LE VERIFIER": "співробітник відділу по роботі з закладами",
       "DOCTOR": "лікар",
       "PHARMACIST": "фармацевт",
-      "PHARMACY_OWNER": "керівник аптеки"
+      "PHARMACY_OWNER": "керівник аптеки",
+      "SPECIALIST": "спеціаліст",
+      "SURGEON": "xірург"
     },
     "labels": [
       "SYSTEM",
@@ -1472,10 +1475,10 @@
       "client_type:write": "Зміна типів клієнтів",
       "client_type:delete": "Видалення типів клієнтів",
       "event:read": "Перегляд івентів",
-      "patient_summary:read":"Отримання зведеної інформації пацієнта",
-      "encounter:write":"Створення взаємодії",
-      "encounter:read":"Отримання деталей взаємодії",
-      "episode:write":"Створення епізоду медичної допомоги",
+      "patient_summary:read": "Отримання зведеної інформації пацієнта",
+      "encounter:write": "Створення взаємодії",
+      "encounter:read": "Отримання деталей взаємодії",
+      "episode:write": "Створення епізоду медичної допомоги",
       "episode:read": "Отримання деталей епізоду медичної допомоги",
       "job:read": "Отримання результатів обробки задачі в eHealth",
       "condition:read": "Отримання деталей медичного стану",
@@ -14871,16 +14874,15 @@
     ],
     "is_active": true
   },
-
   {
     "name": "SERVICE_CATEGORY",
     "values": {
-    "counselling": "Консультація",
-    "laboratory_procedure": "Лабораторні послуги",
-    "diagnostic_procedure": "Діагностичні послуги",
-    "imaging": "Послуги з аналізу та інтерпретації медичних зображень",
-    "education": "Освітні послуги",
-    "surgical_procedure": "Хірургічні послуги"
+      "counselling": "Консультація",
+      "laboratory_procedure": "Лабораторні послуги",
+      "diagnostic_procedure": "Діагностичні послуги",
+      "imaging": "Послуги з аналізу та інтерпретації медичних зображень",
+      "education": "Освітні послуги",
+      "surgical_procedure": "Хірургічні послуги"
     },
     "labels": [
       "SYSTEM",
@@ -14888,7 +14890,4 @@
     ],
     "is_active": true
   }
-
-
-
 ]
