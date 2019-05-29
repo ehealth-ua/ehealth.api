@@ -30,7 +30,7 @@ defmodule Core.V2.LegalEntities.Licenses do
     has_license? = state.legal_entity.license_id
 
     case Map.pop(params, "id") do
-      {nil, license_data} when license_data != %{} and has_license? ->
+      {nil, license_data} when license_data != %{} and not is_nil(has_license?) ->
         {:error, {:conflict, "Duplicated license"}}
 
       # insert, validate license
