@@ -45,7 +45,7 @@ defmodule Core.PRMFactories.LegalEntityFactory do
           status: "ACTIVE",
           mis_verified: "VERIFIED",
           type: "MSP",
-          nhs_verified: false,
+          nhs_verified: true,
           nhs_reviewed: true,
           nhs_comment: "",
           website: "http://example.com",

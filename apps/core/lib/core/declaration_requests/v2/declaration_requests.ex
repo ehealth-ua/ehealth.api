@@ -53,10 +53,30 @@ defmodule Core.V2.DeclarationRequests do
          :ok <- Creator.validate_employee_status(employee),
          :ok <- Creator.validate_employee_speciality(employee),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(client_id),
+         :ok <- validate_legal_entity(legal_entity),
          {:ok, %Division{} = division} <-
            Reference.validate(:division, params["division_id"], "$.declaration_request.division_id") do
       data = Map.put(params, "channel", DeclarationRequest.channel(:mis))
       Creator.create(data, user_id, params["person"], employee, division, legal_entity)
+    end
+  end
+
+  defp validate_legal_entity(%LegalEntity{} = legal_entity) do
+    allowed_types = Confex.fetch_env!(:core, :declaration_request_legal_entity_types)
+
+    with {_, true} <- {:status, legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active},
+         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         {_, true} <- {:type, legal_entity.type in allowed_types} do
+      :ok
+    else
+      {:nhs_verified, _} ->
+        {:error, {:conflict, "Legal entity is not verified"}}
+
+      {:status, _} ->
+        {:error, {:conflict, "Legal entity is not active"}}
+
+      {:type, _} ->
+        {:error, {:conflict, "Invalid legal entity type"}}
     end
   end
 

@@ -246,6 +246,10 @@ config :core, :legal_entity_division_types,
   primary_care: {:system, :list, "LEGAL_ENTITY_PRIMARY_CARE_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
   outpatient: {:system, :list, "LEGAL_ENTITY_OUTPATIENT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]}
 
+config :core,
+  declaration_request_legal_entity_types:
+    {:system, :list, "DECLARATION_REQUEST_LEGAL_ENTITY_TYPES", ["MSP", "PRIMARY_CARE"]}
+
 config :core, :contracts_division_types,
   capitation: {:system, :list, "CAPITATION_CONTRACT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
   reimbursement: {:system, :list, "REIMBURSEMENT_CONTRACT_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}

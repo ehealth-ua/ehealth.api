@@ -783,7 +783,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
   describe "get legal entity by id" do
     test "check required legal entity fields", %{conn: conn} do
       msp()
-      %{id: id} = insert(:prm, :legal_entity)
+      %{id: id} = insert(:prm, :legal_entity, nhs_verified: false)
 
       resp =
         conn
