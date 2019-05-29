@@ -43,7 +43,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
       |> select([dr], %{id: dr.id})
       |> where(
         [dr],
-        dr.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^(-1 * String.to_integer(term)), ^unit)
+        dr.inserted_at < datetime_add(^DateTime.utc_now(), ^(-1 * String.to_integer(term)), ^unit)
       )
       |> subselect_condition(clean_method)
       |> order_by([dr], desc: :inserted_at)
@@ -57,8 +57,6 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
         set: [
           status: ^new_status(clean_method),
           data: nil,
-          data_legal_entity_id: nil,
-          data_employee_id: nil,
           data_start_date_year: nil,
           data_person_tax_id: nil,
           data_person_first_name: nil,
@@ -67,7 +65,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
           authentication_method_current: nil,
           printout_content: nil,
           updated_by: ^user_id,
-          updated_at: ^NaiveDateTime.utc_now()
+          updated_at: ^DateTime.utc_now()
         ]
       )
       |> Repo.update_all([])
