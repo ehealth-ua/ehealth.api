@@ -81,6 +81,22 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       assert [%{"rules" => [%{"description" => "EDRPOU and DRFO is empty in digital sign"}]}] = resp["error"]["invalid"]
     end
 
+    test "fail to create legal entity when signature is invalid", %{conn: conn} do
+      insert_dictionaries()
+      legal_entity_params = get_legal_entity_data()
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      invalid_signed_content()
+
+      resp =
+        conn
+        |> put(v2_legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert [%{"rules" => [%{"description" => "Not a base64 string"}], "entry" => "$.signed_legal_entity_request"}] =
+               resp["error"]["invalid"]
+    end
+
     test "fail to create legal_entity with pharmacy type without licence_number", %{conn: conn} do
       legal_entity_params =
         get_legal_entity_data()

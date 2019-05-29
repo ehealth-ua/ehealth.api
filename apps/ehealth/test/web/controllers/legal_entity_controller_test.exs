@@ -92,6 +92,27 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       assert [%{"rules" => [%{"description" => "EDRPOU and DRFO is empty in digital sign"}]}] = resp["error"]["invalid"]
     end
 
+    test "fail to create legal entity when signature is invalid", %{conn: conn} do
+      insert_dictionaries()
+      legal_entity_type = "MSP"
+      legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+
+      invalid_signed_content()
+
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
+
+      assert [%{"rules" => [%{"description" => "Not a base64 string"}], "entry" => "$.signed_legal_entity_request"}] =
+               resp["error"]["invalid"]
+    end
+
     test "fail to create legal entity with wrong type", %{conn: conn} do
       insert_dictionaries()
       invalid_legal_entity_type = "MIS"

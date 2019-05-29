@@ -32,6 +32,12 @@ defmodule Core.V2.LegalEntities.Validator do
       {:signed_content, {:error, {:bad_request, reason}}} ->
         Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})
 
+      {:signed_content, {:error, [{%{description: reason}, _}]}} ->
+        Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})
+
+      {:signed_content, {:error, error}} ->
+        {:error, error}
+
       error ->
         error
     end
