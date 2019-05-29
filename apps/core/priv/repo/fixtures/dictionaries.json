@@ -14858,5 +14858,37 @@
       "EXTERNAL"
     ],
     "is_active": true
+  },
+  {
+    "name": "MEDICAL_PROGRAM_TYPE",
+    "values": {
+      "MEDICATION": "Медична програма з видачі медикаментів",
+      "SERVICE": "Медична програма з надання послуг"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
+  },
+
+  {
+    "name": "SERVICE_CATEGORY",
+    "values": {
+    "counselling": "Консультація",
+    "laboratory_procedure": "Лабораторні послуги",
+    "diagnostic_procedure": "Діагностичні послуги",
+    "imaging": "Послуги з аналізу та інтерпретації медичних зображень",
+    "education": "Освітні послуги",
+    "surgical_procedure": "Хірургічні послуги"
+    },
+    "labels": [
+      "SYSTEM",
+      "EXTERNAL"
+    ],
+    "is_active": true
   }
+
+
+
 ]
