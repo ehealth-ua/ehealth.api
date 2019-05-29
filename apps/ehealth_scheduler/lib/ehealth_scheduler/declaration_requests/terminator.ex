@@ -48,10 +48,12 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
       |> subselect_condition(clean_method)
       |> order_by([dr], desc: :inserted_at)
       |> limit(^limit)
+      |> Repo.all()
+      |> Enum.map(& &1.id)
 
     {rows_updated, _} =
       DeclarationRequest
-      |> join(:inner, [d], dr in subquery(subselect_ids), on: dr.id == d.id)
+      |> where([dr], dr.id in ^subselect_ids)
       |> update(
         [d],
         set: [
