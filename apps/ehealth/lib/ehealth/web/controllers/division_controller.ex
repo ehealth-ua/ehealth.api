@@ -25,7 +25,7 @@ defmodule EHealth.Web.DivisionController do
 
   def show(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with %Division{} = division <- API.get_by_id!(id),
-         :ok <- API.validate_legal_entity(division, get_client_id(req_headers)) do
+         :ok <- API.validate_token(division, get_client_id(req_headers)) do
       render(conn, "show.json", division: division)
     end
   end

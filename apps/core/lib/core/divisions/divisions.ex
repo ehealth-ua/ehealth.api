@@ -105,7 +105,7 @@ defmodule Core.Divisions do
 
     with {:ok, attrs} <- prepare_division_data(params, legal_entity_id),
          %Division{} = division <- get_by_id(id),
-         :ok <- validate_legal_entity(division, legal_entity_id) do
+         :ok <- validate_token(division, legal_entity_id) do
       division
       |> changeset(attrs)
       |> PRMRepo.update_and_log(get_consumer_id(headers))
@@ -114,6 +114,7 @@ defmodule Core.Divisions do
 
   defp prepare_division_data(params, legal_entity_id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
+         :ok <- validate_legal_entity(legal_entity),
          :ok <- validate_division_type(legal_entity, params),
          params <-
            params
@@ -136,13 +137,32 @@ defmodule Core.Divisions do
     end
   end
 
+  defp validate_legal_entity(%LegalEntity{} = legal_entity) do
+    is_active? =
+      legal_entity.is_active and
+        legal_entity.status in [LegalEntity.status(:active), LegalEntity.status(:suspended)]
+
+    if is_active? do
+      :ok
+    else
+      {:error, {:conflict, "Legal entity is not active"}}
+    end
+  end
+
   def update_status(id, status, headers) do
+    legal_entity_id = get_client_id(headers)
+
     with %Division{} = division <- get_by_id(id),
-         :ok <- validate_legal_entity(division, get_client_id(headers)),
+         :ok <- validate_token(division, legal_entity_id),
+         {_, %LegalEntity{} = legal_entity} <- {:legal_entity, LegalEntities.get_by_id(legal_entity_id)},
+         :ok <- validate_legal_entity(legal_entity),
          attrs <- %{"status" => status, "is_active" => status == @status_active} do
       division
       |> changeset(attrs)
       |> PRMRepo.update_and_log(get_consumer_id(headers))
+    else
+      {:legal_entity, _} -> {:error, %{"type" => "internal_error"}}
+      error -> error
     end
   end
 
@@ -207,7 +227,7 @@ defmodule Core.Divisions do
 
   def put_mountain_group(err, _division), do: err
 
-  def validate_legal_entity(%Division{} = division, legal_entity_id) do
+  def validate_token(%Division{} = division, legal_entity_id) do
     case legal_entity_id == division.legal_entity_id do
       true -> :ok
       false -> {:error, :forbidden}
