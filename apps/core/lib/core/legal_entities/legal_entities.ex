@@ -136,8 +136,10 @@ defmodule Core.LegalEntities do
     |> where([le], le.id == ^id)
     |> join(:left, [le], msp in assoc(le, :medical_service_provider))
     |> join(:left, [le], l in assoc(le, :license))
+    |> join(:left, [le], edr in assoc(le, :edr_data))
     |> preload([le, msp], medical_service_provider: msp)
     |> preload([le, msp, l], license: l)
+    |> preload([le, msp, l, edr], edr_data: edr)
   end
 
   def get_by_id(id, headers) do
