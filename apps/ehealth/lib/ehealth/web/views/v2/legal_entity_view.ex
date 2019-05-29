@@ -8,12 +8,7 @@ defmodule EHealth.Web.V2.LegalEntityView do
 
   @fields ~w(
     id
-    name
-    short_name
-    public_name
     status
-    owner_property_type
-    legal_form
     edrpou
     phones
     email
@@ -29,7 +24,6 @@ defmodule EHealth.Web.V2.LegalEntityView do
     inserted_by
     updated_at
     updated_by
-    kveds
     type
     edr_verified
     residence_address

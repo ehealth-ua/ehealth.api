@@ -7,15 +7,6 @@
       "id": {
         "type": "string"
       },
-      "name": {
-        "type": "string"
-      },
-      "short_name": {
-        "type": "string"
-      },
-      "public_name": {
-        "type": "string"
-      },
       "type": {
         "type": "string"
       },
@@ -31,26 +22,13 @@
       },
       "nhs_verified": {
         "type": "boolean"
-      },
-      "owner_property_type": {
-        "type": "string",
-        "description": "`Dictionary OWNER_PROPERTY_TYPE`"
-      },
-      "legal_form": {
-        "type": "string",
-        "description": "`Dictionary LEGAL_FORM`"
       }
     },
     "required": [
       "id",
-      "name",
-      "short_name",
-      "public_name",
       "type",
       "edrpou",
-      "status",
-      "owner_property_type",
-      "legal_form"
+      "status"
     ]
   }
 }
