@@ -250,6 +250,11 @@ config :core,
   declaration_request_legal_entity_types:
     {:system, :list, "DECLARATION_REQUEST_LEGAL_ENTITY_TYPES", ["MSP", "PRIMARY_CARE"]}
 
+config :core,
+  medication_request_request_legal_entity_types:
+    {:system, :list, "MEDICATION_REQUEST_REQUEST_LEGAL_ENTITY_TYPES",
+     ["MSP", "MPS_PHARMACY", "PRIMARY_CARE", "OUTPATIENT"]}
+
 config :core, :contracts_division_types,
   capitation: {:system, :list, "CAPITATION_CONTRACT_DIVISION_TYPES", ["CLINIC", "AMBULANT_CLINIC", "FAP"]},
   reimbursement: {:system, :list, "REIMBURSEMENT_CONTRACT_DIVISION_TYPES", ["DRUGSTORE", "DRUGSTORE_POINT"]}

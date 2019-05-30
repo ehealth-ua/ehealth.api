@@ -10,6 +10,8 @@ defmodule Core.MedicationRequestRequests do
   use Confex, otp_app: :core
 
   alias Core.Employees
+  alias Core.LegalEntities
+  alias Core.LegalEntities.LegalEntity
   alias Core.MedicalPrograms
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.MedicationRequestRequest
@@ -146,7 +148,8 @@ defmodule Core.MedicationRequestRequests do
            attrs
            |> Map.get("intent")
            |> String.to_atom(),
-         :ok <- Validations.validate_create_schema(intent, attrs) do
+         :ok <- Validations.validate_create_schema(intent, attrs),
+         :ok <- validate_legal_entity(client_id) do
       create_operation = CreateDataOperation.create(attrs, client_id)
 
       case create_operation
@@ -164,6 +167,29 @@ defmodule Core.MedicationRequestRequests do
       end
     else
       err -> err
+    end
+  end
+
+  defp validate_legal_entity(id) do
+    allowed_types = Confex.fetch_env!(:core, :medication_request_request_legal_entity_types)
+
+    with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id),
+         {_, true} <- {:status, legal_entity.is_active && legal_entity.status == LegalEntity.status(:active)},
+         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         {_, true} <- {:type, legal_entity.type in allowed_types} do
+      :ok
+    else
+      {:status, _} ->
+        {:error, {:conflict, "Legal entity is not active"}}
+
+      {:nhs_verified, _} ->
+        {:error, {:conflict, "Legal entity is not verified"}}
+
+      {:type, _} ->
+        {:error, {:conflict, "Invalid legal entity type"}}
+
+      _ ->
+        {:error, %{"type" => "internal_error"}}
     end
   end
 
