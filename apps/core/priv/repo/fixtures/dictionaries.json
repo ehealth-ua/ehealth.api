@@ -16,8 +16,6 @@
   {
     "name": "LEGAL_ENTITY_TYPE_V2",
     "values": {
-      "MIS": "Medical Information system",
-      "NHS": "National Health Service",
       "PHARMACY": "Аптека",
       "PRIMARY_CARE": "PRIMARY_CARE",
       "OUTPATIENT": "OUTPATIENT"
