@@ -4,6 +4,6 @@ defmodule Core.Uaddresses do
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
   def list_settlements(filter, order_by \\ [], cursor \\ nil) do
-    @rpc_worker.run("uaddresses", Uaddresses.Rpc, :search_settlements, [filter, order_by, cursor])
+    @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :search_settlements, [filter, order_by, cursor])
   end
 end
