@@ -101,7 +101,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
         |> json_response(200)
 
       assert match?(%{"deactivateLegalEntity" => nil}, resp["data"])
-      assert Enum.any?(resp["errors"], &match?(%{"message" => "Legal entity is not ACTIVE and cannot be updated"}, &1))
+      assert Enum.any?(resp["errors"], &match?(%{"message" => "Invalid legal entity status"}, &1))
     end
 
     test "deactivate legal entity that is not reviewed", %{conn: conn} do

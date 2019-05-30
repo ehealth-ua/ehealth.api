@@ -22,6 +22,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
   require Logger
 
   @status_active LegalEntity.status(:active)
+  @status_suspended LegalEntity.status(:suspended)
   @status_closed LegalEntity.status(:closed)
 
   @status_reason "AUTO_DEACTIVATION_LEGAL_ENTITY"
@@ -128,9 +129,10 @@ defmodule Jobs.LegalEntityDeactivationJob do
   end
 
   defp check_transition(%LegalEntity{is_active: true, status: @status_active}), do: :ok
+  defp check_transition(%LegalEntity{is_active: true, status: @status_suspended}), do: :ok
 
   defp check_transition(_legal_entity) do
-    {:error, {:conflict, "Legal entity is not ACTIVE and cannot be updated"}}
+    {:error, {:conflict, "Invalid legal entity status"}}
   end
 
   defp get_employees_to_deactivate(legal_entity_id) do
