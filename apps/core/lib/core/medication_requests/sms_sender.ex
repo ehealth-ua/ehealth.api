@@ -9,7 +9,7 @@ defmodule Core.MedicationRequests.SMSSender do
     if otp do
       {:ok, _} =
         @rpc_worker.run("otp_verification_api", OtpVerification.Rpc, :send_sms, [
-          otp["phone_number"],
+          otp.phone_number,
           template_fun.(mrr),
           "medication_request",
           Confex.fetch_env!(:core, :sms_provider)
