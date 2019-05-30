@@ -380,7 +380,7 @@ config :core, Core.Rpc.EdrWorker, timeout: {:system, :integer, "RPC_EDR_WORKER_T
 config :kaffe,
   producer: [
     endpoints: [localhost: 9092],
-    topics: ["deactivate_declaration_events", "merge_legal_entities", "edr_verification_events", "event_manager_topic"]
+    topics: ["deactivate_declaration_events", "edr_verification_events", "event_manager_topic"]
   ]
 
 config :core,

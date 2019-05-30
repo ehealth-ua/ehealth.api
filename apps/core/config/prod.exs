@@ -51,5 +51,5 @@ config :core, Core.FraudRepo,
 config :kaffe,
   producer: [
     endpoints: {:system, :string, "KAFKA_BROKERS"},
-    topics: ["deactivate_declaration_events", "merge_legal_entities", "event_manager_topic"]
+    topics: ["deactivate_declaration_events", "event_manager_topic"]
   ]

@@ -52,30 +52,6 @@ release :graphql do
   set(config_providers: [ConfexConfigProvider])
 end
 
-release :merge_legal_entities_consumer do
-  set(version: current_version(:merge_legal_entities_consumer))
-
-  set(
-    applications: [
-      merge_legal_entities_consumer: :permanent
-    ]
-  )
-
-  set(config_providers: [ConfexConfigProvider])
-end
-
-release :deactivate_legal_entity_consumer do
-  set(version: current_version(:deactivate_legal_entity_consumer))
-
-  set(
-    applications: [
-      deactivate_legal_entity_consumer: :permanent
-    ]
-  )
-
-  set(config_providers: [ConfexConfigProvider])
-end
-
 release :edr_validations_consumer do
   set(version: current_version(:edr_validations_consumer))
 
