@@ -88,6 +88,24 @@ defmodule Core.Expectations.RPC do
     end)
   end
 
+  def expect_get_person_by_id(data, times \\ 1)
+
+  def expect_get_person_by_id(nil, times) do
+    expect(RPCWorkerMock, :run, times, fn "mpi", MPI.Rpc, :get_person_by_id, [_, _] -> nil end)
+  end
+
+  def expect_get_person_by_id(data, times) when is_map(data) do
+    expect(RPCWorkerMock, :run, times, fn "mpi", MPI.Rpc, :get_person_by_id, [id, fields] ->
+      person_data = Map.put(data, :id, id)
+
+      if fields do
+        {:ok, Map.take(person_data, fields)}
+      else
+        {:ok, person_data}
+      end
+    end)
+  end
+
   defp convert_string_keys_to_atoms(record) when is_map(record) do
     Enum.reduce(record, Map.new(), fn {key, value}, acc ->
       Map.put(acc, String.to_atom(key), convert_string_keys_to_atoms(value))

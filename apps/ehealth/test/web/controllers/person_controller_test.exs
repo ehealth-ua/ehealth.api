@@ -33,9 +33,7 @@ defmodule EHealth.Web.PersonControllerTest do
         )
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
+      expect_get_person_by_id(build(:person))
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, person_path(conn, :person_declarations, person_id))
@@ -99,9 +97,7 @@ defmodule EHealth.Web.PersonControllerTest do
         )
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
+      expect_get_person_by_id(build(:person))
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, person_path(conn, :person_declarations, person_id))

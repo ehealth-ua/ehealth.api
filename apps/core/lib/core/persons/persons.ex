@@ -79,8 +79,8 @@ defmodule Core.Persons do
     end
   end
 
-  def get_by_id(id) do
-    with {:ok, person} <- @rpc_worker.run("mpi", MPI.Rpc, :get_person_by_id, [id]) do
+  def get_by_id(id, fields \\ nil) do
+    with {:ok, person} <- @rpc_worker.run("mpi", MPI.Rpc, :get_person_by_id, [id, fields]) do
       {:ok, person}
     else
       _ -> {:error, {:not_found, "Person not found"}}

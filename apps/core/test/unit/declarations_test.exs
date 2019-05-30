@@ -37,13 +37,13 @@ defmodule Core.Unit.DeclarationsTest do
 
   test "build_indexes" do
     employees = []
-    divisions = [%{"id" => "d-1"}]
-    legal_entities = [%{"id" => "l-1"}, %{"id" => "l-2"}]
-    persons = [%{"id" => "p-1"}, %{"id" => "p-2"}, %{"id" => "p-3"}]
+    divisions = [%{id: "d-1"}]
+    legal_entities = [%{id: "l-1"}, %{id: "l-2"}]
+    persons = [%{id: "p-1"}, %{id: "p-2"}, %{id: "p-3"}]
     indexes = API.build_indexes(divisions, employees, legal_entities, persons)
     assert %{} == indexes.employees
-    assert %{"d-1" => %{"id" => "d-1"}} == indexes.divisions
-    assert %{"l-1" => %{"id" => "l-1"}, "l-2" => %{"id" => "l-2"}} == indexes.legal_entities
-    assert %{"p-1" => %{"id" => "p-1"}, "p-2" => %{"id" => "p-2"}, "p-3" => %{"id" => "p-3"}} == indexes.persons
+    assert %{"d-1" => %{id: "d-1"}} == indexes.divisions
+    assert %{"l-1" => %{id: "l-1"}, "l-2" => %{id: "l-2"}} == indexes.legal_entities
+    assert %{"p-1" => %{id: "p-1"}, "p-2" => %{id: "p-2"}, "p-3" => %{id: "p-3"}} == indexes.persons
   end
 end

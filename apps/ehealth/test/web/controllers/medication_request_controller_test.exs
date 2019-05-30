@@ -5,6 +5,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Core.Expectations.OtpVerification
+  import Core.Expectations.RPC, only: [expect_get_person_by_id: 2, expect_get_person_by_id: 1]
   import Mox
 
   alias Core.LegalEntities.LegalEntity
@@ -12,6 +13,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   alias Core.PRMRepo
   alias Core.Utils.NumberGenerator
   alias Ecto.UUID
+  alias Scrivener.Page
 
   setup :verify_on_exit!
 
@@ -23,10 +25,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   describe "list medication requests" do
     test "success list medication requests with different intents", %{conn: conn} do
       msp()
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
 
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
@@ -45,7 +43,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       person_id = Ecto.UUID.generate()
 
       medication_request_order =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -60,7 +58,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         })
 
       medication_request_plan =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -71,18 +69,17 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           status: "COMPLETED"
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request_order, medication_request_plan],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 2,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request_order, medication_request_plan],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 2,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person), 2)
 
       conn =
         get(conn, medication_request_path(conn, :index, %{"page_size" => 2}), %{
@@ -108,10 +105,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success list medication requests with different intents without medical_program_id", %{conn: conn} do
       msp()
 
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -128,7 +121,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       person_id = Ecto.UUID.generate()
 
       medication_request_order =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -143,7 +136,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         })
 
       medication_request_plan =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -154,18 +147,17 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           status: "COMPLETED"
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request_order, medication_request_plan],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 2,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request_order, medication_request_plan],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 2,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person), 2)
 
       conn =
         get(conn, medication_request_path(conn, :index, %{"page_size" => 2}), %{
@@ -191,19 +183,16 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
       insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
-      medication_request = build_resp(%{legal_entity_id: legal_entity_id})
+      medication_request = build(:medication_request, %{legal_entity_id: legal_entity_id})
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn = get(conn, medication_request_path(conn, :index))
@@ -214,10 +203,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   describe "show medication_request" do
     test "success get medication_request by id (both ORDER and PLAN)", %{conn: conn} do
       msp(2)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
 
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
@@ -235,7 +220,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -243,50 +228,48 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
+      expect_get_person_by_id(build(:person))
+
       conn
-      |> get(medication_request_path(conn, :show, medication_request["id"]))
+      |> get(medication_request_path(conn, :show, medication_request.id))
       |> json_response(200)
       |> Map.get("data")
       |> assert_show_response_schema("medication_request")
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [
-             medication_request
-             |> Map.delete("medical_program_id")
-             |> Map.merge(%{
-               "intent" => MedicationRequest.intent(:plan),
-               "rejected_at" => DateTime.utc_now(),
-               "rejected_by" => UUID.generate(),
-               "reject_reason" => "TEST"
-             })
-           ],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [
+            medication_request
+            |> Map.delete(:medical_program_id)
+            |> Map.merge(%{
+              intent: MedicationRequest.intent(:plan),
+              rejected_at: DateTime.utc_now(),
+              rejected_by: UUID.generate(),
+              reject_reason: "TEST"
+            })
+          ],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       resp =
         conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> get(medication_request_path(conn, :show, medication_request.id))
         |> json_response(200)
         |> Map.get("data")
 
@@ -304,11 +287,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     } do
       msp()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok,
-         build(:person, id: id, first_name: "Шах    Хож-Ахмед", last_name: "Аль-Бекиров", second_name: "Саид- заурович")}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -324,7 +302,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -333,22 +311,23 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           intent: MedicationRequest.intent(:order)
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(
+        build(:person, first_name: "Шах    Хож-Ахмед", last_name: "Аль-Бекиров", second_name: "Саид- заурович")
+      )
 
       resp =
         conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> get(medication_request_path(conn, :show, medication_request.id))
         |> json_response(200)
         |> Map.get("data")
 
@@ -359,10 +338,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "failed when medical program is invalid", %{conn: conn} do
       msp()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -378,7 +353,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -386,22 +361,21 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       resp =
         conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
+        |> get(medication_request_path(conn, :show, medication_request.id))
         |> json_response(500)
 
       assert get_in(resp, ~w(error message)) =~ "Could not load remote reference for medication_request"
@@ -412,17 +386,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 0,
+          total_pages: 1
+        }
       end)
 
       conn = get(conn, medication_request_path(conn, :show, UUID.generate()))
@@ -433,10 +404,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   describe "show medication_request by number" do
     test "success get medication_request by number", %{conn: conn} do
       msp()
-
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
 
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
@@ -456,28 +423,26 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       medication_request_number = NumberGenerator.generate(0)
 
       medication_request =
-        %{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
           medical_program_id: medical_program_id,
-          medication_id: innm_dosage_id
-        }
-        |> build_resp()
-        |> Map.put("request_number", medication_request_number)
+          medication_id: innm_dosage_id,
+          request_number: medication_request_number
+        })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       conn
       |> get(medication_request_path(conn, :show, medication_request_number))
@@ -489,17 +454,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "not found", %{conn: conn} do
       msp()
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 0,
+          total_pages: 1
+        }
       end)
 
       conn = get(conn, medication_request_path(conn, :show, NumberGenerator.generate(0)))
@@ -526,7 +488,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -534,21 +496,18 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -580,7 +539,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -588,21 +547,18 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -641,7 +597,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       )
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -649,17 +605,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
@@ -669,7 +622,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       conn = put_client_id_header(conn, UUID.generate())
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -701,7 +654,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -709,23 +662,20 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn = put_client_id_header(conn, UUID.generate())
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => medical_program_id}]
         })
 
@@ -757,7 +707,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -765,17 +715,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn = post(conn, medication_request_path(conn, :qualify, UUID.generate()))
@@ -789,17 +736,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       user_id = get_consumer_id(conn.req_headers)
       insert(:prm, :party_user, user_id: user_id)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 0,
+          total_pages: 1
+        }
       end)
 
       conn = post(conn, medication_request_path(conn, :qualify, UUID.generate()))
@@ -824,7 +768,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -832,21 +776,18 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       conn =
-        post(conn, medication_request_path(conn, :qualify, medication_request["id"]), %{
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => Ecto.UUID.generate()}, %{"id" => Ecto.UUID.generate()}]
         })
 
@@ -871,7 +812,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -880,22 +821,19 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           intent: MedicationRequest.intent(:plan)
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       resp =
         conn
-        |> post(medication_request_path(conn, :qualify, medication_request["id"]), %{
+        |> post(medication_request_path(conn, :qualify, medication_request.id), %{
           "programs" => [%{"id" => UUID.generate()}]
         })
         |> json_response(409)
@@ -908,11 +846,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success ORDER", %{conn: conn} do
       msp(2)
       person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -929,7 +862,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -937,18 +870,38 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(person)
+
+      reject_reason = "TEST"
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.put("reject_reason", reject_reason)
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect_get_person_by_id(person)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -968,15 +921,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       end)
 
       expect_otp_verification_send_sms()
-
-      reject_reason = "TEST"
-
-      content =
-        conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
-        |> json_response(200)
-        |> Map.get("data")
-        |> Map.put("reject_reason", reject_reason)
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1002,7 +946,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             content
             |> Jason.encode!()
@@ -1020,11 +964,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success ORDER without medical_program_id (medical_program_id param is optional)", %{conn: conn} do
       msp(2)
       person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1040,7 +979,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1048,18 +987,38 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(person)
+
+      reject_reason = "TEST"
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.put("reject_reason", reject_reason)
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect_get_person_by_id(person)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -1079,15 +1038,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       end)
 
       expect_otp_verification_send_sms()
-
-      reject_reason = "TEST"
-
-      content =
-        conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
-        |> json_response(200)
-        |> Map.get("data")
-        |> Map.put("reject_reason", reject_reason)
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1113,7 +1063,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             content
             |> Jason.encode!()
@@ -1131,11 +1081,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "success PLAN", %{conn: conn} do
       msp(2)
       person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1151,29 +1096,49 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        %{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
           medical_program_id: nil,
           medication_id: innm_dosage_id,
-          intent: MedicationRequest.intent(:plan)
-        }
-        |> build_resp()
-        |> Map.drop(~w(dispense_valid_from dispense_valid_to))
+          intent: MedicationRequest.intent(:plan),
+          dispense_valid_from: nil,
+          dispense_valid_to: nil
+        })
 
-      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(person)
+
+      reject_reason = "TEST"
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.put("reject_reason", reject_reason)
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect_get_person_by_id(person)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -1193,15 +1158,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       end)
 
       expect_otp_verification_send_sms()
-
-      reject_reason = "TEST"
-
-      content =
-        conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
-        |> json_response(200)
-        |> Map.get("data")
-        |> Map.put("reject_reason", reject_reason)
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1227,7 +1183,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             content
             |> Jason.encode!()
@@ -1253,17 +1209,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
         |> insert(:party_user, user_id: user_id)
         |> PRMRepo.preload(:party)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 0,
+          total_pages: 1
+        }
       end)
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
@@ -1298,10 +1251,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "invalid transition", %{conn: conn} do
       msp()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
 
       party_user =
@@ -1318,7 +1267,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: medical_program_id} = insert(:prm, :medical_program)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1327,18 +1276,17 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           status: "COMPLETED"
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1360,7 +1308,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             %{}
             |> Jason.encode!()
@@ -1376,10 +1324,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       msp()
       user_id = get_consumer_id(conn.req_headers)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
-
       party_user =
         :prm
         |> insert(:party_user, user_id: user_id)
@@ -1394,7 +1338,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: medical_program_id} = insert(:prm, :medical_program)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1402,20 +1346,19 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      medication_dispense = build(:medication_dispense, medication_request_id: medication_request["id"], status: "NEW")
+      medication_dispense = build(:medication_dispense, medication_request_id: medication_request.id, status: "NEW")
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -1450,7 +1393,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             %{}
             |> Jason.encode!()
@@ -1543,11 +1486,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "invalid content params", %{conn: conn} do
       msp(2)
       person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1564,7 +1502,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1572,18 +1510,40 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(person)
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "reject_reason" => 12345,
+          "test" => "test"
+        })
+        |> Map.delete("id")
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect_get_person_by_id(person)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -1597,17 +1557,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
            }
          }}
       end)
-
-      content =
-        conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
-        |> json_response(200)
-        |> Map.get("data")
-        |> Map.merge(%{
-          "reject_reason" => 12345,
-          "test" => "test"
-        })
-        |> Map.delete("id")
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1629,7 +1578,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             content
             |> Jason.encode!()
@@ -1677,11 +1626,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     test "failed when signed content does not match the previously created content", %{conn: conn} do
       msp(2)
       person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1698,7 +1642,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party_user.party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1706,18 +1650,39 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, 2, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(person)
+
+      content =
+        conn
+        |> get(medication_request_path(conn, :show, medication_request.id))
+        |> json_response(200)
+        |> Map.get("data")
+        |> Map.merge(%{
+          "reject_reason" => "TEST",
+          "id" => UUID.generate()
+        })
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect_get_person_by_id(person)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok,
@@ -1731,16 +1696,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
            }
          }}
       end)
-
-      content =
-        conn
-        |> get(medication_request_path(conn, :show, medication_request["id"]))
-        |> json_response(200)
-        |> Map.get("data")
-        |> Map.merge(%{
-          "reject_reason" => "TEST",
-          "id" => UUID.generate()
-        })
 
       expect(SignatureMock, :decode_and_validate, fn _, _ ->
         {:ok,
@@ -1762,7 +1717,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :reject, medication_request["id"]), %{
+        |> patch(medication_request_path(conn, :reject, medication_request.id), %{
           "signed_medication_reject" =>
             content
             |> Jason.encode!()
@@ -1792,11 +1747,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
   describe "resend medication request info" do
     test "success", %{conn: conn} do
       msp()
-
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1813,7 +1763,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1821,22 +1771,21 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           medication_id: innm_dosage_id
         })
 
-      expect_otp_verification_send_sms()
-
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
-      conn = patch(conn, medication_request_path(conn, :resend, medication_request["id"]))
+      expect_get_person_by_id(build(:person))
+
+      expect_otp_verification_send_sms()
+
+      conn = patch(conn, medication_request_path(conn, :resend, medication_request.id))
       assert json_response(conn, 200)
     end
 
@@ -1848,17 +1797,14 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       |> insert(:party_user, user_id: user_id)
       |> PRMRepo.preload(:party)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 0,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 0,
+          total_pages: 1
+        }
       end)
 
       conn = patch(conn, medication_request_path(conn, :resend, UUID.generate()))
@@ -1867,11 +1813,6 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
     test "failed when intent is PLAN", %{conn: conn} do
       msp()
-
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
-
       user_id = get_consumer_id(conn.req_headers)
       legal_entity_id = get_client_id(conn.req_headers)
       division = insert(:prm, :division)
@@ -1887,7 +1828,7 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
       %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
 
       medication_request =
-        build_resp(%{
+        build(:medication_request, %{
           legal_entity_id: legal_entity_id,
           division_id: division.id,
           employee_id: employee_id,
@@ -1896,22 +1837,21 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
           intent: MedicationRequest.intent(:plan)
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok,
-         %{
-           "data" => [medication_request],
-           "paging" => %{
-             "page_number" => 1,
-             "page_size" => 50,
-             "total_entries" => 1,
-             "total_pages" => 1
-           }
-         }}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       resp =
         conn
-        |> patch(medication_request_path(conn, :resend, medication_request["id"]))
+        |> patch(medication_request_path(conn, :resend, medication_request.id))
         |> json_response(409)
 
       assert get_in(resp, ~w(error message)) == "For medication request plan information cannot be resent"
@@ -1952,13 +1892,5 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
     )
 
     innm_dosage
-  end
-
-  defp build_resp(params) do
-    medication_request = build(:medication_request, params)
-
-    medication_request
-    |> Jason.encode!()
-    |> Jason.decode!()
   end
 end

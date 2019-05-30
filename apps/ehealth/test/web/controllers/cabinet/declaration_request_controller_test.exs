@@ -64,21 +64,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok,
-         build(:person,
-           id: id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -179,21 +177,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok,
-         build(:person,
-           id: id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           no_tax_id: true,
-           tax_id: nil,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          no_tax_id: true,
+          tax_id: nil,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -292,20 +288,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok,
-         build(:person,
-           id: id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           no_tax_id: true,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          no_tax_id: true,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -373,21 +367,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 16)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok,
-         build(:person,
-           id: id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: nil,
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: nil,
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -458,21 +450,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 13)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: nil,
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: nil,
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       role_id = UUID.generate()
       expect(MithrilMock, :get_user_by_id, fn _, _ -> {:ok, %{"data" => %{"email" => "user@email.com"}}} end)
@@ -551,20 +541,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 20)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
+        )
+      )
 
       expect_otp_verification_verification_phone()
 
@@ -622,22 +610,20 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
 
       person_id = UUID.generate()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        person =
-          build(:person,
-            id: person_id,
-            birth_date: birth_date,
-            documents: get_person_documents(),
-            tax_id: "2222222225",
-            no_tax_id: false,
-            authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-            addresses: get_person_addresses(),
-            emergency_contact: get_person_emergency_contact(),
-            confidant_person: get_person_confidant_person()
-          )
-
-        {:ok, Map.delete(person, :unzr)}
-      end)
+      expect_get_person_by_id(
+        :person
+        |> build(
+          birth_date: birth_date,
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+        |> Map.delete(:unzr)
+      )
 
       gen_sequence_number()
       role_id = UUID.generate()
@@ -738,21 +724,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: "20180831-23459",
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: "20180831-23459",
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       expect(MithrilMock, :get_user_by_id, 1, fn id, _ ->
         {:ok,
@@ -820,23 +804,21 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        person =
-          build(:person,
-            id: person_id,
-            birth_date: birth_date,
-            unzr: nil,
-            documents: get_person_documents(),
-            tax_id: "2222222225",
-            no_tax_id: false,
-            authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-            addresses: get_person_addresses(),
-            emergency_contact: get_person_emergency_contact(),
-            confidant_person: get_person_confidant_person()
-          )
-
-        {:ok, Map.delete(person, :unzr)}
-      end)
+      expect_get_person_by_id(
+        :person
+        |> build(
+          birth_date: birth_date,
+          unzr: nil,
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+        |> Map.delete(:unzr)
+      )
 
       gen_sequence_number()
       role_id = UUID.generate()
@@ -917,21 +899,19 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 10)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact(),
-           confidant_person: get_person_confidant_person()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact(),
+          confidant_person: get_person_confidant_person()
+        )
+      )
 
       gen_sequence_number()
       role_id = UUID.generate()
@@ -1033,20 +1013,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
         |> Date.add(-365 * 30)
         |> to_string()
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
+        )
+      )
 
       expect(MithrilMock, :get_user_by_id, 2, fn id, _ ->
         {:ok,
@@ -1155,20 +1133,18 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok,
-         build(:person,
-           id: person_id,
-           birth_date: birth_date,
-           unzr: unzr(birth_date),
-           documents: get_person_documents(),
-           tax_id: "2222222225",
-           no_tax_id: false,
-           authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
-           addresses: get_person_addresses(),
-           emergency_contact: get_person_emergency_contact()
-         )}
-      end)
+      expect_get_person_by_id(
+        build(:person,
+          birth_date: birth_date,
+          unzr: unzr(birth_date),
+          documents: get_person_documents(),
+          tax_id: "2222222225",
+          no_tax_id: false,
+          authentication_methods: [%{"type" => "OTP", "phone_number" => "+380508887700"}],
+          addresses: get_person_addresses(),
+          emergency_contact: get_person_emergency_contact()
+        )
+      )
 
       legal_entity = insert(:prm, :legal_entity)
       division = insert(:prm, :division, legal_entity: legal_entity)
@@ -1220,9 +1196,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok, build(:person, id: person_id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       declaration_request_in =
         insert(:il, :declaration_request, prepare_params(%{mpi_id: person_id, data: fixture_params()}))
@@ -1263,9 +1237,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       search_status = DeclarationRequest.status(:approved)
       search_start_year = "2018"
@@ -1320,9 +1292,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok, build(:person, id: person_id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       for _ <- 1..2,
           do: insert(:il, :declaration_request, prepare_params(%{mpi_id: person_id, data: fixture_params()}))
@@ -1359,9 +1329,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "11111111")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "11111111"))
 
       resp =
         conn
@@ -1388,9 +1356,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       resp =
         conn
@@ -1417,9 +1383,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       declaration_request_in =
         insert(:il, :declaration_request, prepare_params(%{mpi_id: @person_id, data: fixture_params()}))
@@ -1470,9 +1434,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       search_status = DeclarationRequest.status(:expired)
       search_start_year = "2018"
@@ -1517,9 +1479,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok, build(:person, id: person_id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       expect(OPSMock, :get_latest_block, fn _params ->
         {:ok, %{"data" => %{"hash" => "some_current_hash"}}}
@@ -1571,9 +1531,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       conn =
         conn
@@ -1600,9 +1558,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       %{id: declaration_request_id} = insert(:il, :declaration_request, data: fixture_params())
 
@@ -1631,9 +1587,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "11111111")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "11111111"))
 
       resp =
         conn
@@ -1660,9 +1614,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       resp =
         conn
@@ -1691,9 +1643,7 @@ defmodule EHealth.Web.Cabinet.DeclarationRequestControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [^person_id] ->
-        {:ok, build(:person, id: person_id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       expect(OPSMock, :get_declarations_count, fn _, _ ->
         {:ok, %{"data" => %{"count" => 1}}}

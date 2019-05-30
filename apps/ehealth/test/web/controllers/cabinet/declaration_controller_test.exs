@@ -49,15 +49,14 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
       end)
 
       expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :get_declaration, _ -> {:ok, declaration} end)
-
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, _ -> {:ok, person} end)
+      expect_get_person_by_id(person)
 
       expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :terminate_declaration, [id, _] ->
         assert id == declaration.id
         {:ok, %{declaration | status: @status_terminated}}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] -> {:ok, build(:person, id: id)} end)
+      expect_get_person_by_id(build(:person))
 
       assert resp =
                conn
@@ -71,9 +70,7 @@ defmodule EHealth.Web.Cabinet.DeclarationControllerTest do
   end
 
   test "searches person declarations in cabinet", %{conn: conn} do
-    expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, [id] ->
-      {:ok, build(:person, id: id, tax_id: "12341234")}
-    end)
+    expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
     expect(MithrilMock, :get_user_by_id, fn _, _ ->
       {:ok, %{"data" => %{"person_id" => @person_id, "tax_id" => "12341234", "is_blocked" => false}}}

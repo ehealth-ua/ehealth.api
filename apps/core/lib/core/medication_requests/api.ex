@@ -30,6 +30,7 @@ defmodule Core.MedicationRequests.API do
   alias Core.Validators.Error
   alias Core.Validators.JsonSchema
   alias Core.Validators.Signature, as: SignatureValidator
+  alias Scrivener.Page
 
   require Logger
 
@@ -37,6 +38,7 @@ defmodule Core.MedicationRequests.API do
 
   @ops_api Application.get_env(:core, :api_resolvers)[:ops]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
+  @rpc_worker Application.get_env(:core, :rpc_worker)
 
   @legal_entity_msp LegalEntity.type(:msp)
   @legal_entity_pharmacy LegalEntity.type(:pharmacy)
@@ -46,7 +48,7 @@ defmodule Core.MedicationRequests.API do
 
   def list(params, client_type, headers) do
     with %Ecto.Changeset{valid?: true, changes: changes} <- changeset(params),
-         {:ok, %{"data" => data, "paging" => paging}} <- get_medication_requests(changes, client_type, headers) do
+         %Page{entries: data} = page <- get_medication_requests(changes, client_type, headers) do
       medication_requests =
         Enum.reduce_while(data, [], fn medication_request, acc ->
           with {:ok, medication_request} <- get_references(medication_request) do
@@ -61,7 +63,7 @@ defmodule Core.MedicationRequests.API do
       with {:error, error} <- medication_requests do
         {:error, error}
       else
-        _ -> {:ok, medication_requests, paging}
+        _ -> %{page | entries: medication_requests}
       end
     end
   end
@@ -163,39 +165,55 @@ defmodule Core.MedicationRequests.API do
   end
 
   def get_medication_requests(changes, client_type, headers) do
-    do_get_medication_requests(get_client_id(headers), client_type, changes, headers)
+    with %Page{} = page <- do_get_medication_requests(get_client_id(headers), client_type, changes) do
+      data =
+        page
+        |> Map.get(:entries)
+        |> Jason.encode!()
+        |> Jason.decode!()
+
+      %{page | entries: data}
+    end
   end
 
-  defp do_get_medication_requests(_, "NHS", changes, headers) do
-    @ops_api.get_doctor_medication_requests(changes, headers)
+  defp do_get_medication_requests(_, "NHS", changes) do
+    @rpc_worker.run("ops", OPS.Rpc, :doctor_medication_requests, [changes])
   end
 
-  defp do_get_medication_requests(legal_entity_id, _, changes, headers) do
+  defp do_get_medication_requests(legal_entity_id, _, changes) do
     search_params = Map.put(changes, :legal_entity_id, legal_entity_id)
-    @ops_api.get_doctor_medication_requests(search_params, headers)
+    @rpc_worker.run("ops", OPS.Rpc, :doctor_medication_requests, [search_params])
   end
 
   def get_medication_request(%{"id" => id}, client_type, headers) do
-    do_get_medication_request(get_client_id(headers), client_type, id, headers)
+    do_get_medication_request(get_client_id(headers), client_type, id)
   end
 
-  defp do_get_medication_request(_, "NHS", id, headers) do
+  defp do_get_medication_request(_, "NHS", id) do
     with {:ok, search_params} <- add_id_search_params(%{}, id),
-         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
-      {:ok, medication_request}
+         %Page{entries: [medication_request]} <-
+           @rpc_worker.run("ops", OPS.Rpc, :doctor_medication_requests, [search_params]) do
+      {:ok,
+       medication_request
+       |> Jason.encode!()
+       |> Jason.decode!()}
     else
-      {:ok, %{"data" => []}} -> nil
+      %Page{entries: []} -> nil
       error -> error
     end
   end
 
-  defp do_get_medication_request(legal_entity_id, _, id, headers) do
+  defp do_get_medication_request(legal_entity_id, _, id) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(legal_entity_id),
          {:ok, search_params} <- get_show_search_params(legal_entity.id, legal_entity.type, id),
-         {:ok, %{"data" => [medication_request]}} <- @ops_api.get_doctor_medication_requests(search_params, headers) do
-      {:ok, medication_request}
+         %Page{entries: [medication_request]} <-
+           @rpc_worker.run("ops", OPS.Rpc, :doctor_medication_requests, [search_params]) do
+      {:ok,
+       medication_request
+       |> Jason.encode!()
+       |> Jason.decode!()}
     else
-      {:ok, %{"data" => []}} -> nil
+      %Page{entries: []} -> nil
       :validation_error -> nil
       error -> error
     end
@@ -231,7 +249,11 @@ defmodule Core.MedicationRequests.API do
          %Employee{} = employee <- Employees.get_by_id(medication_request["employee_id"]),
          %INNMDosage{} = medication <- Medications.get_innm_dosage_by_id(medication_request["medication_id"]),
          %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(medication_request["legal_entity_id"]),
-         {:ok, person} <- Persons.get_by_id(medication_request["person_id"]) do
+         {:ok, person} <-
+           Persons.get_by_id(
+             medication_request["person_id"],
+             ~w(id first_name last_name second_name birth_date authentication_methods)a
+           ) do
       result =
         medication_request
         |> Map.put("division", division)

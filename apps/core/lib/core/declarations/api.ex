@@ -26,6 +26,21 @@ defmodule Core.Declarations.API do
   @signature_api Application.get_env(:core, :api_resolvers)[:digital_signature]
   @rpc_worker Application.get_env(:core, :rpc_worker)
 
+  @person_fields ~w(id
+    gender
+    first_name
+    last_name
+    second_name
+    birth_date
+    tax_id
+    phones
+    birth_date
+    birth_country
+    birth_settlement
+    emergency_contact
+    confidant_person
+  )a
+
   def get_person_declarations(%{} = params, headers) do
     with {:ok, person} <- Persons.get_person(headers),
          declaration_params <- Map.merge(params, %{"person_id" => person.id}),
@@ -68,7 +83,7 @@ defmodule Core.Declarations.API do
          division = Divisions.get_by_id(declaration_data["division_id"]),
          employee = Employees.get_by_id(declaration_data["employee_id"]),
          legal_entity = LegalEntities.get_by_id(declaration_data["legal_entity_id"]),
-         {:ok, person_data} <- Persons.get_by_id(declaration_data["person_id"]),
+         {:ok, person_data} <- Persons.get_by_id(declaration_data["person_id"], @person_fields),
          merged_declaration_data = merge_related_data(declaration_data, person_data, legal_entity, division, employee),
          {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:person_id, true} <- {:person_id, user["person_id"] == declaration_data["person_id"]},
@@ -132,7 +147,7 @@ defmodule Core.Declarations.API do
         {nil, Map.put(acc, item.id, item)}
 
       item, acc ->
-        {nil, Map.put(acc, item["id"], item)}
+        {nil, Map.put(acc, item.id, item)}
     end)
     |> elem(1)
   end
@@ -210,7 +225,7 @@ defmodule Core.Declarations.API do
     with {:ok, %{"data" => user}} <- @mithril_api.get_user_by_id(user_id, headers),
          {:ok, declaration} <- get_declaration_by(id: id),
          :ok <- check_declaration_access(declaration.legal_entity_id, headers),
-         {:ok, person} <- Persons.get_by_id(declaration.person_id),
+         {:ok, person} <- Persons.get_by_id(declaration.person_id, @person_fields),
          :ok <- validate_equal(declaration.status, "active", {:error, {:conflict, "Declaration is not active"}}),
          :ok <- do_check_user_access(check_user_access?, user, person),
          {:ok, declaration} <- @rpc_worker.run("ops", OPS.Rpc, :terminate_declaration, [id, terminate_params]) do
@@ -308,7 +323,7 @@ defmodule Core.Declarations.API do
   end
 
   def load_relation(id) do
-    case Persons.get_by_id(id) do
+    case Persons.get_by_id(id, @person_fields) do
       {:ok, entity} -> entity
       _ -> %{}
     end

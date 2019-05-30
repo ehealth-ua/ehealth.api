@@ -340,9 +340,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
+      expect_get_person_by_id(build(:person))
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, declaration_path(conn, :show, declaration_id))
@@ -383,9 +381,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
+      expect_get_person_by_id(build(:person))
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, declaration_path(conn, :show, declaration_id))
@@ -425,9 +421,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
         declaration
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-        {:ok, build(:person, id: person_id)}
-      end)
+      expect_get_person_by_id(build(:person))
 
       conn = put_client_id_header(conn, legal_entity.id)
       conn = get(conn, declaration_path(conn, :show, declaration_id))
@@ -766,21 +760,7 @@ defmodule EHealth.Web.DeclarationControllerTest do
     {{:ok, %{"data" => declaration, "meta" => %{"code" => response_status}}}, declaration_id}
   end
 
-  defp get_persons(params) when is_binary(params) do
-    persons =
-      Enum.map(String.split(params, ","), fn id ->
-        person = build(:person, id: id)
-
-        person
-        |> Jason.encode!()
-        |> Jason.decode!()
-      end)
-
-    {:ok, %{"data" => persons}}
-  end
-
   defp get_rpc_persons(params) when is_binary(params) do
-    {:ok, persons} = get_persons(params)
-    {:ok, persons["data"]}
+    {:ok, Enum.map(String.split(params, ","), &build(:person, id: &1))}
   end
 end

@@ -4,6 +4,7 @@ defmodule GraphQL.DeclarationResolverTest do
   use GraphQL.ConnCase, async: false
 
   import Core.Expectations.Mithril, only: [nhs: 1]
+  import Core.Expectations.RPC, only: [expect_get_person_by_id: 1]
   import Core.Factories
   import Core.Utils.TypesConverter, only: [strings_to_keys: 1]
   import Mox
@@ -394,7 +395,7 @@ defmodule GraphQL.DeclarationResolverTest do
       end)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_declaration, _ -> {:ok, declaration} end)
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect_get_person_by_id(person)
 
       expect(RPCWorkerMock, :run, fn _, _, :terminate_declaration, [id, _] ->
         assert id == declaration.id

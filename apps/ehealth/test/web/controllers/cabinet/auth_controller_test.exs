@@ -1245,9 +1245,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
         authentication_factors_response(count, user_id)
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       assert resp =
                conn
@@ -1275,9 +1273,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234"))
 
       assert resp =
                conn
@@ -1305,9 +1301,7 @@ defmodule Mithril.Web.RegistrationControllerTest do
          }}
       end)
 
-      expect(RPCWorkerMock, :run, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id, tax_id: "12341234", status: "inactive")}
-      end)
+      expect_get_person_by_id(build(:person, tax_id: "12341234", status: "inactive"))
 
       assert resp =
                conn

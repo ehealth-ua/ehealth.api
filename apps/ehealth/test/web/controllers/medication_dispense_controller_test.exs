@@ -7,6 +7,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   alias Core.LegalEntities.LegalEntity
   alias Core.MedicationRequests.MedicationRequest
   alias Ecto.UUID
+  alias Scrivener.Page
 
   setup :verify_on_exit!
 
@@ -134,7 +135,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "no active employee", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -167,7 +168,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid division", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -201,7 +202,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "division is not active", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -245,7 +246,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid division dls status", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -289,7 +290,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid medical program", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -357,7 +358,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medical program is not active", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -420,7 +421,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "no active contract exists (medical program)", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -482,7 +483,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medical program in dispense does not match the one in medication request", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -552,7 +553,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid medication", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -623,7 +624,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "division is not belong to contract", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -671,7 +672,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medication is not active", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -733,7 +734,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "medication is not a participant of program", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -805,7 +806,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid code", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -884,7 +885,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "requested reimbursement is higher than allowed", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -964,7 +965,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "failed when medication request intent is PLAN", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1005,7 +1006,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "failed when medication dispense medication_qty is not equal medication request medication_qty", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1069,8 +1070,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
@@ -1125,7 +1132,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense in devitaion koeficient", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1189,8 +1196,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -1232,7 +1245,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1296,8 +1309,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -1339,7 +1358,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense when some contracts are registered in future", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1423,8 +1442,14 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         {:ok, %{"data" => [medication_request]}}
       end)
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
 
       expect(OPSMock, :create_medication_dispense, fn _params, _headers ->
@@ -1466,7 +1491,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success create medication dispense without program_id", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{user_id: user_id, party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1571,7 +1596,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success show by id", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -1615,7 +1640,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success show by id without medical_program", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -1668,7 +1693,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success list", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1735,7 +1760,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success list medication dispenses without medical_program", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1805,8 +1830,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   describe "process medication dispense" do
     test "success process", %{conn: conn} do
       msp(2)
-      person = build(:person)
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] -> {:ok, person} end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -1928,10 +1952,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid division dls status", %{conn: conn} do
       msp(2)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -2125,7 +2146,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid transition", %{conn: conn} do
       msp()
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -2230,7 +2251,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid payment params", %{conn: conn} do
       msp(4)
-      expect_mpi_get_person(4)
+      expect_get_person_by_id(build(:person), 4)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -2412,7 +2433,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid user in DS: drfo", %{conn: conn} do
       msp()
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -2481,7 +2502,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid user in DS: drfo is absent", %{conn: conn} do
       msp()
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -2553,7 +2574,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "invalid user in DS: surname", %{conn: conn} do
       msp()
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -2628,12 +2649,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "successful when invalid legal entity in DS", %{conn: conn} do
       msp(2)
-
-      person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -2755,12 +2771,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "successful when legal entity in DS is absent", %{conn: conn} do
       msp(2)
-
-      person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -2929,11 +2940,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "success process by NHS", %{conn: conn} do
       nhs(2)
-      person = build(:person)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [_id] ->
-        {:ok, person}
-      end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -3057,10 +3064,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
     test "failed when signed content does not match the previously created content", %{conn: conn} do
       msp(2)
-
-      expect(RPCWorkerMock, :run, 2, fn "mpi", MPI.Rpc, :get_person_by_id, [id] ->
-        {:ok, build(:person, id: id)}
-      end)
+      expect_get_person_by_id(build(:person), 2)
 
       party_user = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -3180,7 +3184,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success reject", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -3260,7 +3264,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success reject medication dispense without medical_program", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       %{party: party} = insert(:prm, :party_user)
       legal_entity = insert(:prm, :legal_entity)
@@ -3410,7 +3414,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "invalid transition", %{conn: conn} do
-      expect_mpi_get_person()
+      expect_get_person_by_id(build(:person))
 
       legal_entity = insert(:prm, :legal_entity)
       medication = insert(:prm, :medication)
@@ -3457,8 +3461,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
     end
 
     test "success list", %{conn: conn} do
-      expect_mpi_get_person()
-
       party = insert(:prm, :party)
       %{user_id: user_id, party: party} = insert(:prm, :party_user, party: party)
       legal_entity = insert(:prm, :legal_entity)
@@ -3497,9 +3499,17 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(OPSMock, :get_doctor_medication_requests, fn _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
       end)
+
+      expect_get_person_by_id(build(:person))
 
       expect(OPSMock, :get_medication_dispenses, fn _params, _headers ->
         {:ok, %{"data" => [medication_dispense]}}
@@ -3517,12 +3527,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       assert 1 == length(resp)
       assert medication_request["id"] == resp |> hd() |> get_in(~w(medication_request id))
     end
-  end
-
-  defp expect_mpi_get_person(n \\ 1) do
-    expect(RPCWorkerMock, :run, n, fn "mpi", MPI.Rpc, :get_person_by_id, [person_id] ->
-      {:ok, build(:person, id: person_id)}
-    end)
   end
 
   defp new_dispense_params(params \\ %{}) do

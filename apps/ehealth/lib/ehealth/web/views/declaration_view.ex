@@ -177,7 +177,7 @@ defmodule EHealth.Web.DeclarationView do
       last_name
       second_name
       birth_date
-    ))
+    )a)
   end
 
   def render("division.json", %{division: %Division{} = division}) do

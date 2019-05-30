@@ -3,6 +3,7 @@ defmodule GraphQL.PersonResolverTest do
 
   use GraphQL.ConnCase, async: false
 
+  import Core.Expectations.RPC, only: [expect_get_person_by_id: 1]
   import Core.Factories
   import Mox
 
@@ -218,7 +219,7 @@ defmodule GraphQL.PersonResolverTest do
 
       declaration = build(:declaration, person_id: person.id)
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect_get_person_by_id(person)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
 
       id = Node.to_global_id("Person", person.id)
@@ -291,7 +292,7 @@ defmodule GraphQL.PersonResolverTest do
       person = build(:person)
       declaration = build(:declaration)
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> {:ok, person} end)
+      expect_get_person_by_id(person)
       expect(RPCWorkerMock, :run, fn _, _, :search_declarations, _ -> {:ok, [declaration]} end)
 
       id = Node.to_global_id("Person", person.id)
@@ -314,7 +315,7 @@ defmodule GraphQL.PersonResolverTest do
       database_id = UUID.generate()
       id = Node.to_global_id("Person", database_id)
 
-      expect(RPCWorkerMock, :run, fn _, _, :get_person_by_id, _ -> nil end)
+      expect_get_person_by_id(nil)
 
       variables = %{id: id}
 
