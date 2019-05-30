@@ -1,9 +1,11 @@
 defmodule EdrValidationsConsumer.Kafka.Consumer do
   @moduledoc false
 
+  alias Core.Contracts.ContractSuspender
   alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
+  alias Jobs.LegalEntityDeactivationJob
   import Ecto.Changeset
   import Ecto.Query
   require Logger
@@ -53,14 +55,36 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
 
       PRMRepo.transaction(fn ->
         if previous_state == 1 && get_change(changeset, :state) do
+          legal_entity_ids =
+            LegalEntity
+            |> select([le], %{id: le.id})
+            |> where([le], le.edr_data_id == ^id and le.nhs_verified)
+            |> PRMRepo.all()
+            |> Enum.map(& &1.id)
+
           LegalEntity
-          |> where([le], le.edr_data_id == ^id and le.nhs_verified)
-          |> PRMRepo.update_all(set: [nhs_verified: false, nhs_unverified_at: DateTime.utc_now()])
+          |> where([le], le.id in ^legal_entity_ids)
+          |> PRMRepo.update_all(
+            set: [
+              status: LegalEntity.status(:suspended),
+              status_reason: "AUTO_SUSPEND",
+              nhs_verified: false,
+              nhs_unverified_at: DateTime.utc_now()
+            ]
+          )
+
+          suspend_contracts(legal_entity_ids)
         end
 
         PRMRepo.update(changeset)
       end)
     end
+  end
+
+  defp suspend_contracts(ids) do
+    Enum.each(ids, fn id ->
+      ContractSuspender.suspend_by_contractor_legal_entity_id(id)
+    end)
   end
 
   defp get_edr_data(id) do
