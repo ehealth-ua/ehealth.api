@@ -26,7 +26,7 @@ defmodule GraphQL.Schema do
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
-  alias GraphQL.Loaders.{IL, ManualMerger, MPI, OPS, PRM, Uaddresses}
+  alias GraphQL.Loaders.{IL, Jabba, ManualMerger, MPI, OPS, PRM, Uaddresses}
 
   import_types(Absinthe.Type.Custom)
 
@@ -57,6 +57,7 @@ defmodule GraphQL.Schema do
     RegionTypes,
     DistrictTypes,
     SettlementTypes,
+    TaskTypes,
     INNMDosageTypes,
     INNMTypes,
     IngredientTypes,
@@ -135,6 +136,7 @@ defmodule GraphQL.Schema do
       |> Dataloader.add_source(PRM, PRM.data())
       |> Dataloader.add_source(OPS, OPS.data())
       |> Dataloader.add_source(MPI, MPI.data())
+      |> Dataloader.add_source(Jabba, Jabba.data())
       |> Dataloader.add_source(Uaddresses, Uaddresses.data())
       |> Dataloader.add_source(ManualMerger, ManualMerger.data())
 

@@ -12,6 +12,8 @@ defmodule Jobs.Jabba.Client do
   @merge_legal_entities_type "merge_legal_entities"
   @legal_entity_deactivation_type "legal_entity_deactivation"
 
+  def rpc_pod_name, do: @pod
+
   def type(:merge_legal_entities), do: @merge_legal_entities_type
   def type(:legal_entity_deactivation), do: @legal_entity_deactivation_type
 

@@ -73,11 +73,17 @@ defmodule GraphQL.Resolvers.Helpers.Load do
       ) do
     resource = resource || resolution.definition.schema_node.identifier
 
+    batch_key =
+      case is_tuple(resource) do
+        true -> Tuple.append(resource, args)
+        _ -> {resource, args}
+      end
+
     loader
-    |> Dataloader.load(source_name, {resource, args}, parent)
+    |> Dataloader.load(source_name, batch_key, parent)
     |> on_load(fn loader ->
       with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
-        records = Dataloader.get(loader, source_name, {resource, args}, parent)
+        records = Dataloader.get(loader, source_name, batch_key, parent)
         opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
 
         Connection.from_slice(Enum.take(records, limit), offset, opts)

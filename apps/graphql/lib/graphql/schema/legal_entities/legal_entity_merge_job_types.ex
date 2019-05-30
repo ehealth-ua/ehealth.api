@@ -7,6 +7,7 @@ defmodule GraphQL.Schema.LegalEntityMergeJobTypes do
   alias Absinthe.Relay.Node.ParseIDs
   alias GraphQL.Middleware.{Filtering, TransformInput}
   alias GraphQL.Resolvers.LegalEntityMergeJob, as: LegalEntityMergeJobResolver
+  alias GraphQL.Resolvers.Task
 
   object :legal_entity_merge_job_queries do
     @desc "get list of Legal Entities merge jobs"
@@ -94,20 +95,29 @@ defmodule GraphQL.Schema.LegalEntityMergeJobTypes do
 
   node object(:legal_entity_merge_job) do
     field(:database_id, non_null(:object_id))
+    field(:name, :string)
     field(:status, non_null(:legal_entity_merge_job_status))
+    field(:strategy, :string)
     field(:started_at, non_null(:datetime))
     field(:ended_at, :datetime)
     field(:merged_to_legal_entity, non_null(:mergee_legal_entity_metadata))
     field(:merged_from_legal_entity, non_null(:mergee_legal_entity_metadata))
+
+    connection field(:tasks, node_type: :task) do
+      arg(:filter, :task_filter)
+      arg(:order_by, :task_order_by, default_value: :inserted_at_asc)
+
+      middleware(Filtering,
+        status: :equal
+      )
+
+      resolve(&Task.load_tasks/3)
+    end
   end
 
   enum :legal_entity_merge_job_status do
     value(:new, as: "NEW")
-    value(:failed, as: "FAILED")
     value(:pending, as: "PENDING")
-    value(:aborted, as: "ABORTED")
-    value(:rescued, as: "RESCUED")
-    value(:consumed, as: "CONSUMED")
     value(:processed, as: "PROCESSED")
   end
 

@@ -8,7 +8,6 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
   alias Absinthe.Relay.Node
   alias Ecto.UUID
-  alias Jobs.Jabba.Client, as: JabbaClient
 
   setup :verify_on_exit!
 
@@ -34,9 +33,21 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
     setup %{conn: conn} do
       merged_to = insert(:prm, :legal_entity)
       merged_from = insert(:prm, :legal_entity)
-      status = "PROCESSED"
-      type = JabbaClient.type(:merge_legal_entities)
-      job = job(type, status, merged_to, merged_from)
+
+      meta = %{
+        "merged_to_legal_entity" => %{
+          "id" => merged_to.id,
+          "name" => merged_to.name,
+          "edrpou" => merged_to.edrpou
+        },
+        "merged_from_legal_entity" => %{
+          "id" => merged_from.id,
+          "name" => merged_from.name,
+          "edrpou" => merged_from.edrpou
+        }
+      }
+
+      job = build(:legal_entity_merge_job, meta: meta, status: "PROCESSED")
 
       {:ok, %{conn: put_scope(conn, "legal_entity_merge_job:read"), job: job}}
     end
@@ -205,12 +216,34 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
     test "success", %{conn: conn} do
       merged_to = insert(:prm, :legal_entity)
       merged_from = insert(:prm, :legal_entity)
-      job = job("merge_legal_entities", "PROCESSED", merged_to, merged_from)
+
+      meta = %{
+        "merged_to_legal_entity" => %{
+          "id" => merged_to.id,
+          "name" => merged_to.name,
+          "edrpou" => merged_to.edrpou
+        },
+        "merged_from_legal_entity" => %{
+          "id" => merged_from.id,
+          "name" => merged_from.name,
+          "edrpou" => merged_from.edrpou
+        }
+      }
+
+      job = build(:legal_entity_merge_job, meta: meta, status: "PROCESSED")
+      task = build(:job_task, job_id: job.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_job, args ->
         assert job.id == hd(args)
 
         {:ok, job}
+      end)
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_tasks, args ->
+        assert [filter, _order_by, _cursor] = args
+        assert [{:job_id, :in, [job.id]}] == filter
+
+        {:ok, [task]}
       end)
 
       id = Node.to_global_id("LegalEntityMergeJob", job.id)
@@ -232,21 +265,30 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
               name
               edrpou
             }
+            tasks(first: 10){
+              nodes {
+                name
+              }
+            }
           }
         }
       """
 
       variables = %{id: id}
 
-      resp =
+      resp_body =
         conn
         |> post_query(query, variables)
         |> json_response(200)
-        |> get_in(~w(data legalEntityMergeJob))
+
+      refute resp_body["errors"]
+
+      resp = get_in(resp_body, ~w(data legalEntityMergeJob))
 
       assert job.meta["merged_to_legal_entity"] == resp["mergedToLegalEntity"]
       assert job.meta["merged_from_legal_entity"] == resp["mergedFromLegalEntity"]
       assert "PROCESSED" == resp["status"]
+      assert [%{"name" => task.name}] == resp["tasks"]["nodes"]
     end
 
     test "job not found", %{conn: conn} do
@@ -269,27 +311,5 @@ defmodule GraphQL.LegalEntityMergeJobResolverTest do
 
       assert match?(%{"legalEntityMergeJob" => nil}, resp["data"])
     end
-  end
-
-  defp job(type, status, merged_to, merged_from, ended_at \\ nil) do
-    %{
-      id: UUID.generate(),
-      type: type,
-      status: status,
-      meta: %{
-        "merged_to_legal_entity" => %{
-          "id" => merged_to.id,
-          "name" => merged_to.name,
-          "edrpou" => merged_to.edrpou
-        },
-        "merged_from_legal_entity" => %{
-          "id" => merged_from.id,
-          "name" => merged_from.name,
-          "edrpou" => merged_from.edrpou
-        }
-      },
-      inserted_at: DateTime.utc_now(),
-      ended_at: ended_at
-    }
   end
 end

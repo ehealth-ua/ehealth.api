@@ -2262,15 +2262,8 @@ defmodule GraphQL.Features.Context do
   when_(
     ~r/^I merge legal entities with signed content$/,
     fn %{conn: conn, content: content, signed_content: signed_content} = state, _ ->
-      job = %{
-        id: UUID.generate(),
-        type: "merge_legal_entities",
-        status: "PENDING",
-        result: %{"success" => "ok"},
-        meta: Map.take(content, ~w(merged_to_legal_entity merged_from_legal_entity)),
-        inserted_at: DateTime.utc_now(),
-        ended_at: nil
-      }
+      job = build(:legal_entity_merge_job, meta: Map.take(content, ~w(merged_to_legal_entity merged_from_legal_entity)))
+      task = build(:job_task, job_id: job.id)
 
       stub(RPCWorkerMock, :run, fn _, _, :create_job, [tasks, _type, _opts] ->
         assert 1 == length(tasks)

@@ -46,7 +46,7 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
       legal_entity = insert(:prm, :legal_entity)
       type = JabbaClient.type(:legal_entity_deactivation)
       status = "PENDING"
-      job = job("legal_entity_deactivation", "PENDING", legal_entity)
+      job = build(:legal_entity_deactivation_job)
 
       expect(RPCWorkerMock, :run, fn _, _, :create_job, [tasks, job_type, _opts] ->
         assert 1 == length(tasks)
@@ -126,7 +126,16 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
       legal_entity = insert(:prm, :legal_entity)
       type = JabbaClient.type(:legal_entity_deactivation)
       status = "PROCESSED"
-      job = job("legal_entity_deactivation", "PENDING", legal_entity)
+
+      meta = %{
+        "deactivated_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        }
+      }
+
+      job = build(:legal_entity_deactivation_job, meta: meta)
       edrpou = get_in(job[:meta], ~w(deactivated_legal_entity edrpou))
       assert edrpou
 
@@ -255,12 +264,29 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
     test "success", %{conn: conn} do
       legal_entity = insert(:prm, :legal_entity)
-      job = job("merge_legal_entities", "PROCESSED", legal_entity)
+
+      meta = %{
+        "deactivated_legal_entity" => %{
+          "id" => legal_entity.id,
+          "name" => legal_entity.name,
+          "edrpou" => legal_entity.edrpou
+        }
+      }
+
+      job = build(:legal_entity_deactivation_job, status: "PROCESSED", meta: meta)
+      task = build(:job_task, job_id: job.id)
 
       expect(RPCWorkerMock, :run, fn _, _, :get_job, args ->
         assert job.id == hd(args)
 
         {:ok, job}
+      end)
+
+      expect(RPCWorkerMock, :run, fn _, _, :search_tasks, args ->
+        assert [filter, _order_by, _cursor] = args
+        assert [{:job_id, :in, [job.id]}] == filter
+
+        {:ok, [task]}
       end)
 
       id = Node.to_global_id("LegalEntityDeactivationJob", job.id)
@@ -276,6 +302,11 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
               id
               name
               edrpou
+            }
+            tasks(first: 10){
+              nodes {
+                name
+              }
             }
           }
         }
@@ -295,6 +326,8 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
       assert legal_entity.edrpou == resp["deactivatedLegalEntity"]["edrpou"]
       assert "PROCESSED" == resp["status"]
       refute resp["result"]
+
+      assert [%{"name" => task.name}] == resp["tasks"]["nodes"]
     end
 
     test "job not found", %{conn: conn} do
@@ -317,23 +350,6 @@ defmodule GraphQL.LegalEntityDeactivationJobResolverTest do
 
       assert match?(%{"legalEntityDeactivationJob" => nil}, resp["data"])
     end
-  end
-
-  defp job(type, status, legal_entity, ended_at \\ nil) do
-    %{
-      id: UUID.generate(),
-      type: type,
-      status: status,
-      meta: %{
-        "deactivated_legal_entity" => %{
-          "id" => legal_entity.id,
-          "name" => legal_entity.name,
-          "edrpou" => legal_entity.edrpou
-        }
-      },
-      inserted_at: DateTime.utc_now(),
-      ended_at: ended_at
-    }
   end
 
   defp input_legal_entity_id(id) do

@@ -43,6 +43,7 @@ defmodule Core.Factories do
 
   # Other factories
   use Core.Factories.AddressFactory
+  use Core.Factories.JobFactory
 
   alias Core.PRMRepo
   alias Core.Repo

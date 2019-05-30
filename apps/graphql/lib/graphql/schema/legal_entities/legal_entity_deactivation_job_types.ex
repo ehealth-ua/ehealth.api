@@ -7,6 +7,7 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
   alias Absinthe.Relay.Node.ParseIDs
   alias GraphQL.Middleware.{Filtering, TransformInput}
   alias GraphQL.Resolvers.LegalEntityDeactivationJob, as: LegalEntityDeactivationJobResolver
+  alias GraphQL.Resolvers.Task
 
   object :legal_entity_deactivation_job_queries do
     @desc "get list of Legal Entity deactivation jobs"
@@ -87,10 +88,23 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
 
   node object(:legal_entity_deactivation_job) do
     field(:database_id, non_null(:object_id))
+    field(:name, :string)
     field(:status, non_null(:legal_entity_deactivation_job_status))
+    field(:strategy, :string)
     field(:started_at, non_null(:datetime))
     field(:ended_at, :datetime)
     field(:deactivated_legal_entity, non_null(:mergee_legal_entity_metadata))
+
+    connection field(:tasks, node_type: :task) do
+      arg(:filter, :task_filter)
+      arg(:order_by, :task_order_by, default_value: :inserted_at_asc)
+
+      middleware(Filtering,
+        status: :equal
+      )
+
+      resolve(&Task.load_tasks/3)
+    end
   end
 
   enum :legal_entity_deactivation_job_status do
