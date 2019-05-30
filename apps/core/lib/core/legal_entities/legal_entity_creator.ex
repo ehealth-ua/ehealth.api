@@ -84,7 +84,7 @@ defmodule Core.LegalEntities.LegalEntityCreator do
       [%LegalEntity{} = legal_entity] ->
         state = %__MODULE__{legal_entity: legal_entity}
 
-        with state <-
+        with %__MODULE__{} = state <-
                upsert_edr_data(
                  state,
                  legal_entity_code,
