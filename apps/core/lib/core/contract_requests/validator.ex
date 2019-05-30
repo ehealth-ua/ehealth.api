@@ -1,6 +1,8 @@
 defmodule Core.ContractRequests.Validator do
   @moduledoc false
 
+  use Confex, otp_app: :core
+
   import Core.API.Helpers.Connection, only: [get_header: 2, get_client_id: 1]
   import Core.Users.Validator, only: [user_has_role: 2]
   import Ecto.Query, only: [where: 3]
@@ -37,8 +39,6 @@ defmodule Core.ContractRequests.Validator do
 
   @status_active LegalEntity.status(:active)
 
-  @allowed_types [@capitation, @reimbursement]
-
   @mithril_api Application.get_env(:core, :api_resolvers)[:mithril]
   @media_storage_api Application.get_env(:core, :api_resolvers)[:media_storage]
 
@@ -64,14 +64,22 @@ defmodule Core.ContractRequests.Validator do
   def validate_contract_request_id(_, _),
     do: {:error, {:bad_request, "Contract request id doesn't match with id in signed content"}}
 
-  def validate_contract_request_type(@capitation, %{type: @msp}), do: :ok
-  def validate_contract_request_type(@reimbursement, %{type: @pharmacy}), do: :ok
-  def validate_contract_request_type(type, %{type: @msp_pharmacy}) when type in @allowed_types, do: :ok
+  def validate_legal_entity_type(@capitation, legal_entity_type) do
+    do_validate_legal_entity_type(@capitation, legal_entity_type, config()[:capitation_contract_le_types])
+  end
 
-  def validate_contract_request_type(type, %{type: legal_entity_type}) when type in @allowed_types do
-    reason = "Contract type \"#{type}\" is not allowed for legal_entity with type \"#{legal_entity_type}\""
+  def validate_legal_entity_type(@reimbursement, legal_entity_type) do
+    do_validate_legal_entity_type(@reimbursement, legal_entity_type, config()[:reimbursement_contract_le_types])
+  end
 
-    {:error, {:conflict, reason}}
+  defp do_validate_legal_entity_type(contract_request_type, legal_entity_type, allowed_types) do
+    if legal_entity_type in allowed_types do
+      :ok
+    else
+      {:error,
+       {:conflict,
+        "Contract type \"#{contract_request_type}\" is not allowed for legal_entity with type \"#{legal_entity_type}\""}}
+    end
   end
 
   def validate_status(contract_request, status),

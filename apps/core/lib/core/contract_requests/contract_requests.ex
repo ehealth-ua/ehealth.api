@@ -122,7 +122,7 @@ defmodule Core.ContractRequests do
          :ok <- validate_contract_request_uniqueness(pack),
          {:ok, %{decoded_content: content, signer: signer} = pack} <- decode_create_request(pack, headers),
          :ok <- SignatureValidator.check_drfo(signer, user_id, "contract_request_create"),
-         :ok <- validate_contract_request_type(pack.type, contractor_legal_entity),
+         :ok <- validate_legal_entity_type(pack.type, contractor_legal_entity.type),
          :ok <- validate_create_from_draft_content_schema(pack),
          :ok <- validate_legal_entity_edrpou(contractor_legal_entity, signer),
          :ok <- validate_user_signer_last_name(user_id, signer),
@@ -171,7 +171,7 @@ defmodule Core.ContractRequests do
          {:ok, contractor_legal_entity} <- LegalEntities.fetch_by_id(contractor_legal_entity_id),
          :ok <- validate_contractor_legal_entity_status(contractor_legal_entity),
          :ok <- validate_contractor_legal_entity_nhs_verification(contractor_legal_entity),
-         :ok <- validate_contract_request_type(pack.type, contractor_legal_entity),
+         :ok <- validate_legal_entity_type(pack.type, contractor_legal_entity.type),
          {:ok, nhs_legal_entity} <- LegalEntities.fetch_by_id(client_id),
          :ok <- validate_legal_entity_edrpou(nhs_legal_entity, signer),
          {:ok, contract} <- Contracts.fetch_by_id(content["parent_contract_id"], pack.type),
@@ -522,7 +522,7 @@ defmodule Core.ContractRequests do
     pack = RequestPack.new(params)
 
     with %LegalEntity{} = contractor_legal_entity <- LegalEntities.get_by_id(client_id),
-         :ok <- validate_contract_request_type(pack.type, contractor_legal_entity),
+         :ok <- validate_legal_entity_type(pack.type, contractor_legal_entity.type),
          {:ok, contract_request} <- pack.provider.fetch_by_id(pack.contract_request_id),
          pack <- RequestPack.put_contract_request(pack, contract_request),
          {_, true} <- {:signed_nhs, pack.contract_request.status == @nhs_signed},

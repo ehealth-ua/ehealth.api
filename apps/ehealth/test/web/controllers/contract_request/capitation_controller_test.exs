@@ -496,6 +496,39 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
              } = resp["error"]
     end
 
+    test "invalid legal_entity client_type", %{conn: conn} do
+      %{
+        legal_entity: legal_entity,
+        employee: employee,
+        division: division,
+        user_id: user_id,
+        party_user: party_user
+      } = prepare_data("OWNER", "PHARMACY")
+
+      expires_at = Date.to_iso8601(Date.add(contract_start_date(), 1))
+      params = prepare_capitation_params(division, employee, expires_at)
+
+      expect_signed_content(params, %{
+        edrpou: legal_entity.edrpou,
+        drfo: party_user.party.tax_id,
+        surname: party_user.party.last_name
+      })
+
+      reason =
+        conn
+        |> put_client_id_header(legal_entity.id)
+        |> put_consumer_id_header(user_id)
+        |> put_req_header("drfo", legal_entity.edrpou)
+        |> post(contract_request_path(conn, :create, @capitation, UUID.generate()), %{
+          "signed_content" => params |> Jason.encode!() |> Base.encode64(),
+          "signed_content_encoding" => "base64"
+        })
+        |> json_response(409)
+        |> get_in(~w(error message))
+
+      assert ~s(Contract type "CAPITATION" is not allowed for legal_entity with type "PHARMACY") == reason
+    end
+
     test "invalid expires_at date", %{conn: conn} do
       msp()
 
@@ -6290,14 +6323,14 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
     end
   end
 
-  defp prepare_data(role_name \\ "OWNER") do
+  defp prepare_data(role_name \\ "OWNER", legal_entity_type \\ "MSP") do
     expect(MithrilMock, :get_user_roles, fn _, _, _ ->
       {:ok, %{"data" => [%{"role_name" => role_name}]}}
     end)
 
     user_id = UUID.generate()
     party_user = insert(:prm, :party_user, user_id: user_id)
-    legal_entity = insert(:prm, :legal_entity, nhs_verified: true)
+    legal_entity = insert(:prm, :legal_entity, nhs_verified: true, type: legal_entity_type)
 
     division =
       insert(

@@ -145,6 +145,11 @@ config :core, Core.Bamboo.Emails.Sender, mailer: {:system, :module, "BAMBOO_MAIL
 
 config :core, Core.Dictionaries, big_dictionaries: {:system, :list, "BIG_DICTIONARIES", []}
 
+config :core, Core.ContractRequests.Validator,
+  capitation_contract_le_types:
+    {:system, :list, "CAPITATION_CONTRACT_LE_TYPES", ["MSP", "MSP_PHARMACY", "PRIMARY_CARE"]},
+  reimbursement_contract_le_types: {:system, :list, "REIMBURSEMENT_CONTRACT_LE_TYPES", ["PHARMACY", "MSP_PHARMACY"]}
+
 # configure emails
 config :core, :emails,
   default: %{
