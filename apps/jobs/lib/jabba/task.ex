@@ -44,8 +44,8 @@ defmodule Jobs.Jabba.Task do
     struct(__MODULE__, %{name: type_to_name(type), callback: callback})
   end
 
-  def new(@contract_request_terminate_type, entity, actor_id) do
-    callback = {"ehealth", Jobs.ContractRequestTerminateJob, :terminate, [entity, actor_id]}
+  def new(@contract_request_terminate_type, entity, reason, actor_id) do
+    callback = {"ehealth", Jobs.ContractRequestTerminationJob, :terminate, [entity, actor_id, reason]}
     struct(__MODULE__, %{name: "Terminate contract request", callback: callback})
   end
 

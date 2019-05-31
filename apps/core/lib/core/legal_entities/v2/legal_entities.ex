@@ -16,6 +16,7 @@ defmodule Core.V2.LegalEntities do
   alias Core.OAuth.API, as: OAuth
   alias Core.PRMRepo
   alias Core.V2.LegalEntities.Validator
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
 
   require Logger
@@ -59,6 +60,8 @@ defmodule Core.V2.LegalEntities do
   # Create legal entity
 
   def create(params, headers) do
+    user_id = get_consumer_id(headers)
+
     with {:ok, request_params, legal_entity_code} <- Validator.decode_and_validate(params, headers),
          license_required <- get_required_license(request_params["type"]),
          %V1LegalEntityCreator{} = state <-
@@ -77,7 +80,8 @@ defmodule Core.V2.LegalEntities do
              OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
            {:ok, security} <- prepare_security_data(client, client_connection),
            {:ok, employee_request} <- create_employee_request(legal_entity, request_params),
-           legal_entity <- legal_entity.id |> LegalEntities.get_by_id_query() |> PRMRepo.one!() do
+           legal_entity <- legal_entity.id |> LegalEntities.get_by_id_query() |> PRMRepo.one!(),
+           :ok <- LegalEntities.terminate_contract_requests(legal_entity, user_id) do
         {:ok,
          %{
            legal_entity: legal_entity,

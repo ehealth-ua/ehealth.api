@@ -9,6 +9,7 @@ defmodule Core.LegalEntities do
   import Ecto.Query, except: [update: 3]
 
   alias Core.API.MediaStorage
+  alias Core.CapitationContractRequests
   alias Core.Context
   alias Core.Contracts.ContractSuspender
   alias Core.EmployeeRequests
@@ -21,6 +22,8 @@ defmodule Core.LegalEntities do
   alias Core.LegalEntities.Validator
   alias Core.OAuth.API, as: OAuth
   alias Core.PRMRepo
+  alias Core.ReimbursementContractRequests
+  alias Jobs.ContractRequestTerminationJob
   alias Scrivener.Page
 
   require Logger
@@ -232,6 +235,8 @@ defmodule Core.LegalEntities do
         _ -> headers
       end
 
+    user_id = get_consumer_id(headers)
+
     with {:ok, request_params, legal_entity_code} <- Validator.decode_and_validate(params, headers),
          %LegalEntityCreator{} = state <-
            LegalEntityCreator.get_or_create(
@@ -248,7 +253,8 @@ defmodule Core.LegalEntities do
              OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
            {:ok, security} <- prepare_security_data(client, client_connection),
            {:ok, employee_request} <- create_employee_request(legal_entity, request_params),
-           legal_entity <- legal_entity.id |> get_by_id_query() |> PRMRepo.one!() do
+           legal_entity <- legal_entity.id |> get_by_id_query() |> PRMRepo.one!(),
+           :ok <- terminate_contract_requests(legal_entity, user_id) do
         {:ok,
          %{
            legal_entity: legal_entity,
@@ -257,6 +263,25 @@ defmodule Core.LegalEntities do
          }}
       end
     end
+  end
+
+  def terminate_contract_requests(%LegalEntity{} = legal_entity, user_id) do
+    contract_requests =
+      Enum.concat([
+        CapitationContractRequests.get_contract_requests_to_deactivate(legal_entity.id),
+        ReimbursementContractRequests.get_contract_requests_to_deactivate(legal_entity.id)
+      ])
+
+    Enum.each(contract_requests, fn contract_request ->
+      case ContractRequestTerminationJob.create(contract_request, user_id, "legal_entity_has_changed") do
+        {:ok, %{} = job} ->
+          :ok
+
+        err ->
+          Logger.error("Failed to create ContractRequestTerminationJob. Reason: #{err}")
+          err
+      end
+    end)
   end
 
   def legal_entity_transaction(%LegalEntityCreator{} = state, signed_content) do

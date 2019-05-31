@@ -23,16 +23,16 @@ defmodule Jobs.ContractRequestTerminationJob do
     end
   end
 
-  def terminate(contract_request, actor_id) do
-    ContractRequests.do_terminate(actor_id, contract_request, %{"status_reason" => "auto_suspend_legal_entity"})
+  def terminate(contract_request, actor_id, status_reason) do
+    ContractRequests.do_terminate(actor_id, contract_request, %{"status_reason" => status_reason})
   rescue
     e ->
       Logger.error("Failed to terminate contract request with: #{inspect(e)}")
       {:error, e}
   end
 
-  def create(contract_request, actor_id) do
-    task = JabbaTask.new(@contract_request_terminate_task_type, contract_request, actor_id)
+  def create(contract_request, actor_id, reason \\ "auto_suspend_legal_entity") do
+    task = JabbaTask.new(@contract_request_terminate_task_type, contract_request, reason, actor_id)
     JabbaClient.create_job([task], @contract_request_termination_job_type, name: "Terminate contract request")
   end
 end
