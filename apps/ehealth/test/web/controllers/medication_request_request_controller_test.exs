@@ -453,6 +453,72 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
       end)
     end
 
+    test "render medication_request_request when persons phone_number is absent", %{conn: conn} do
+      person =
+        build(:person,
+          authentication_methods: [
+            build(:person_authentication_method,
+              type: "OFFLINE",
+              phone_number: nil
+            )
+          ]
+        )
+
+      expect_get_person_by_id(person)
+      expect_ops_get_declarations()
+
+      expect_ops_last_medication_request_dates(%{
+        "started_at" => Date.add(Date.utc_today(), -2),
+        "ended_at" => Date.add(Date.utc_today(), -1)
+      })
+
+      expect_encounter_status("finished")
+      expect_get_person_by_id(person)
+
+      {medication_id, pm} = create_medications_structure()
+
+      test_request =
+        test_request(%{
+          "medication_id" => medication_id,
+          "medical_program_id" => pm.medical_program_id
+        })
+
+      resp =
+        conn
+        |> post(medication_request_request_path(conn, :create),
+          medication_request_request: test_request
+        )
+        |> json_response(201)
+
+      assert %{"id" => id} =
+               resp
+               |> Map.get("data")
+               |> assert_show_response_schema("medication_request_request")
+
+      assert person
+             |> Map.get(:authentication_methods, [])
+             |> List.first()
+             |> Map.take(~w(type phone_number)a)
+             |> filter_authentication_method()
+             |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end) ==
+               get_in(resp, ~w(urgent authentication_method_current))
+
+      conn
+      |> get(medication_request_request_path(conn, :show, id))
+      |> json_response(200)
+      |> Map.get("data")
+      |> assert_show_response_schema("medication_request_request")
+
+      medication_request_request_data =
+        MedicationRequestRequest
+        |> Repo.get!(id)
+        |> Map.get(:data)
+
+      Enum.each(@medication_request_request_data_fields, fn field ->
+        assert Map.has_key?(medication_request_request_data, field)
+      end)
+    end
+
     test "success when medical_program is absent (medical_program param is optional)", %{conn: conn} do
       person = build(:person)
       expect_get_person_by_id(person)
@@ -2649,6 +2715,7 @@ defmodule EHealth.Web.MedicationRequestRequestControllerTest do
   end
 
   defp filter_authentication_method(nil), do: %{}
+  defp filter_authentication_method(%{phone_number: nil} = method), do: method
 
   defp filter_authentication_method(%{phone_number: number} = method) do
     Map.put(method, :phone_number, Phone.hide_number(number))

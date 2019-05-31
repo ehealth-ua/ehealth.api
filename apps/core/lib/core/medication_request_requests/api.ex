@@ -517,6 +517,7 @@ defmodule Core.MedicationRequestRequests do
   end
 
   defp filter_authentication_method(nil), do: %{}
+  defp filter_authentication_method(%{phone_number: nil} = method), do: method
 
   defp filter_authentication_method(%{phone_number: number} = method) do
     Map.put(method, :phone_number, Phone.hide_number(number))
