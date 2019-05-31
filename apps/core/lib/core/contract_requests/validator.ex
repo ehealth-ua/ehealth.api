@@ -64,6 +64,14 @@ defmodule Core.ContractRequests.Validator do
   def validate_contract_request_id(_, _),
     do: {:error, {:bad_request, "Contract request id doesn't match with id in signed content"}}
 
+  def validate_nhs_verified(%LegalEntity{} = legal_entity) do
+    if legal_entity.nhs_verified do
+      :ok
+    else
+      {:error, {:conflict, "Legal entity is not verified"}}
+    end
+  end
+
   def validate_legal_entity_type(@capitation, legal_entity_type) do
     do_validate_legal_entity_type(@capitation, legal_entity_type, config()[:capitation_contract_le_types])
   end

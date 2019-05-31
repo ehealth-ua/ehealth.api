@@ -1691,25 +1691,6 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           nhs_verified: false
         )
 
-      expect_signed_content(data, [
-        %{
-          edrpou: legal_entity.edrpou,
-          drfo: employee_owner.party.tax_id,
-          surname: employee_owner.party.last_name
-        },
-        %{
-          edrpou: nhs_signer.legal_entity.edrpou,
-          drfo: nhs_signer.party.tax_id,
-          surname: nhs_signer.party.last_name
-        },
-        %{
-          edrpou: nhs_signer.legal_entity.edrpou,
-          drfo: nhs_signer.party.tax_id,
-          surname: nhs_signer.party.last_name,
-          is_stamp: true
-        }
-      ])
-
       resp =
         conn
         |> put_client_id_header(client_id)
@@ -1719,17 +1700,9 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
           "signed_content" => data |> Poison.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-        |> json_response(422)
+        |> json_response(409)
 
-      assert %{
-               "type" => "validation_failed",
-               "invalid" => [
-                 %{
-                   "entry" => "$.contractor_legal_entity_id",
-                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
-                 }
-               ]
-             } = resp["error"]
+      assert %{"message" => "Legal entity is not verified"} = resp["error"]
     end
   end
 

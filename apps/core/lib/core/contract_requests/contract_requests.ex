@@ -522,6 +522,7 @@ defmodule Core.ContractRequests do
     pack = RequestPack.new(params)
 
     with %LegalEntity{} = contractor_legal_entity <- LegalEntities.get_by_id(client_id),
+         :ok <- validate_nhs_verified(contractor_legal_entity),
          :ok <- validate_legal_entity_type(pack.type, contractor_legal_entity.type),
          {:ok, contract_request} <- pack.provider.fetch_by_id(pack.contract_request_id),
          pack <- RequestPack.put_contract_request(pack, contract_request),
@@ -547,7 +548,6 @@ defmodule Core.ContractRequests do
          :ok <- validate_content(pack.contract_request, pack.decoded_content),
          :ok <- validate_start_date_year(pack.contract_request),
          :ok <- validate_contractor_legal_entity_status(contractor_legal_entity),
-         :ok <- validate_contractor_legal_entity_nhs_verification(contractor_legal_entity),
          :ok <- validate_contractor_owner_id(pack.contract_request),
          :ok <- validate_contractor_divisions_dls(pack.type, contract_request.contractor_divisions),
          contract_id <- UUID.generate(),

@@ -6247,42 +6247,15 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
 
-      expect_signed_content(data, [
-        %{
-          edrpou: legal_entity.edrpou,
-          drfo: employee_owner.party.tax_id,
-          surname: employee_owner.party.last_name
-        },
-        %{
-          edrpou: nhs_signer.legal_entity.edrpou,
-          drfo: nhs_signer.party.tax_id,
-          surname: nhs_signer.party.last_name
-        },
-        %{
-          edrpou: nhs_signer.legal_entity.edrpou,
-          drfo: nhs_signer.party.tax_id,
-          surname: nhs_signer.party.last_name,
-          is_stamp: true
-        }
-      ])
-
       resp =
         conn
         |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
           "signed_content" => data |> Poison.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
         })
-        |> json_response(422)
+        |> json_response(409)
 
-      assert %{
-               "type" => "validation_failed",
-               "invalid" => [
-                 %{
-                   "entry" => "$.contractor_legal_entity_id",
-                   "rules" => [%{"description" => "Legal entity is not verified by NHS"}]
-                 }
-               ]
-             } = resp["error"]
+      assert %{"message" => "Legal entity is not verified"} = resp["error"]
     end
   end
 
