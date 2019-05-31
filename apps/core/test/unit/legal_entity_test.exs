@@ -98,6 +98,42 @@ defmodule Core.Unit.LegalEntityTest do
       assert :format == error[:rule]
     end
 
+    test "invalid signed content - not a base 64 string" do
+      content = File.read!("test/data/signed_content_invalid_owner_birth_date.json")
+      invalid_signed_content()
+
+      assert {:error, [{error, entry}]} =
+               Validator.decode_and_validate(
+                 %{
+                   "signed_content_encoding" => "base64",
+                   "signed_legal_entity_request" => content
+                 },
+                 []
+               )
+
+      assert "$.signed_legal_entity_request" == entry
+      assert :invalid == error[:rule]
+      assert %{description: "Not a base64 string"} = error
+    end
+
+    test "invalid signed content - invalid json format" do
+      content = "{test: test test}"
+      invalid_signed_content_json_format()
+
+      assert {:error, [{error, entry}]} =
+               Validator.decode_and_validate(
+                 %{
+                   "signed_content_encoding" => "base64",
+                   "signed_legal_entity_request" => Base.encode64(content)
+                 },
+                 []
+               )
+
+      assert "$.signed_legal_entity_request" == entry
+      assert :invalid == error[:rule]
+      assert error.description =~ "you have encoded corrupted JSON"
+    end
+
     test "invalid tax id" do
       content = %{"owner" => %{"tax_id" => "00000000"}}
       assert {:error, [{error, entry}]} = Validator.validate_tax_id(content)

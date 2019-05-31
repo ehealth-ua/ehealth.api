@@ -12,6 +12,16 @@ defmodule Core.Expectations.Signature do
     end)
   end
 
+  def invalid_signed_content_json_format do
+    expect(SignatureMock, :decode_and_validate, fn _, _ ->
+      Error.dump(%ValidationError{
+        description: "Malformed encoded content. Probably, you have encoded corrupted JSON.",
+        rule: "invalid",
+        path: "$.signed_content"
+      })
+    end)
+  end
+
   def drfo_signed_content(content, drfos) when is_list(drfos) do
     expect(SignatureMock, :decode_and_validate, fn _, _ ->
       {:ok,

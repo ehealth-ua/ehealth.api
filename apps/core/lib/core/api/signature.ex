@@ -29,20 +29,24 @@ defmodule Core.API.Signature do
     with {:ok, %{content: content, signatures: signatures}} <- signature_result do
       {:ok, %{"content" => atoms_to_strings(content), "signatures" => atoms_to_strings(signatures)}}
     else
-      {:error, {:invalid_content, _, _}} ->
-        {:error, {:bad_request, "Invalid signature"}}
+      {:error, {:invalid_content, error_description, _}} ->
+        invalid_json_error(error_description)
+
+      {:error, [{%{description: "Not a base64 string"}, _}]} ->
+        base64_error()
 
       _ ->
-        base64_error()
+        {:error, {:bad_request, "Invalid signature"}}
     end
   end
 
   defp do_decode_and_validate(false, signed_content, headers) do
-    with {:ok, json_content} <- Base.decode64(signed_content),
-         {:ok, content} <- Jason.decode(json_content) do
+    with {:base64, {:ok, json_content}} <- {:base64, Base.decode64(signed_content)},
+         {:json, {:ok, content}} <- {:json, Jason.decode(json_content)} do
       format_content_and_signatures(content, headers)
     else
-      _ -> base64_error()
+      {:base64, _} -> base64_error()
+      {:json, _} -> invalid_json_error("Malformed encoded content. Probably, you have encoded corrupted JSON.")
     end
   end
 
@@ -78,6 +82,10 @@ defmodule Core.API.Signature do
       end
 
     {:ok, %{"content" => content, "signatures" => signatures}}
+  end
+
+  defp invalid_json_error(error_description) do
+    Error.dump(%ValidationError{description: error_description, rule: "invalid", path: "$.signed_content"})
   end
 
   defp base64_error do
