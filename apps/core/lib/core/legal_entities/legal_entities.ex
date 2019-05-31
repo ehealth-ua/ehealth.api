@@ -163,11 +163,12 @@ defmodule Core.LegalEntities do
     |> @read_prm_repo.all()
   end
 
-  def active_by_edr_data_id(edr_data_id) do
+  def active_by_edr_data_id_type(edr_data_id, type) do
     edr_active_statuses = [LegalEntity.status(:active), LegalEntity.status(:suspended)]
 
     LegalEntity
     |> where([le], le.edr_data_id == ^edr_data_id)
+    |> where([le], le.type == ^type)
     |> where([le], le.status in ^edr_active_statuses)
     |> @read_prm_repo.all
   end

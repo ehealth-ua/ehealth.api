@@ -335,7 +335,7 @@ defmodule Core.LegalEntities.LegalEntityCreator do
           })
 
         active_items == 1 ->
-          case validate_inactive_edr_data(items) do
+          case validate_inactive_edr_data(items, Map.fetch!(params, "type")) do
             :ok ->
               item = Enum.find(items, &(Map.get(&1, "state") == 1))
 
@@ -451,13 +451,13 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     end
   end
 
-  defp validate_inactive_edr_data(items) do
+  defp validate_inactive_edr_data(items, type) do
     items
     |> Enum.filter(&(Map.get(&1, "state") != 1))
     |> Enum.reduce_while(:ok, fn item, acc ->
       case PRMRepo.get_by(EdrData, %{edr_id: item["id"]}) do
         %EdrData{} = edr_data ->
-          check_existing_legal_entities(LegalEntities.active_by_edr_data_id(edr_data.id), acc)
+          check_existing_legal_entities(LegalEntities.active_by_edr_data_id_type(edr_data.id, type), acc)
 
         _ ->
           {:cont, acc}

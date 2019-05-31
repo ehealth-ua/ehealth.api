@@ -253,9 +253,10 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
          edr_data_id_header
        ) do
     state = %LegalEntityCreator{legal_entity: %LegalEntity{id: UUID.generate()}}
+    type = Map.fetch!(params, "type")
 
     with %LegalEntityCreator{} = state <-
-           upsert_edr_data(state, legal_entity_code, consumer_id, edr_data_list_header, edr_data_id_header) do
+           upsert_edr_data(state, legal_entity_code, type, consumer_id, edr_data_list_header, edr_data_id_header) do
       new_changeset(
         state,
         params,
@@ -270,24 +271,26 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   def upsert_edr_data(
         %LegalEntityCreator{} = state,
         %{edrpou: value},
+        type,
         consumer_id,
         edr_data_list_header,
         edr_data_id_header
       ) do
-    do_upsert_edr_data(state, value, consumer_id, edr_data_list_header, edr_data_id_header)
+    do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header)
   end
 
   def upsert_edr_data(
         %LegalEntityCreator{} = state,
         %{drfo: value},
+        type,
         consumer_id,
         edr_data_list_header,
         edr_data_id_header
       ) do
-    do_upsert_edr_data(state, value, consumer_id, edr_data_list_header, edr_data_id_header)
+    do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header)
   end
 
-  def do_upsert_edr_data(state, value, consumer_id, edr_data_list_header, edr_data_id_header) do
+  def do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header) do
     with {:ok, items} <- search_edr_legal_entities(value, edr_data_list_header) do
       active_items =
         Enum.reduce(items, 0, fn item, acc ->
@@ -306,7 +309,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           })
 
         active_items == 1 ->
-          case validate_inactive_edr_data(items) do
+          case validate_inactive_edr_data(items, type) do
             :ok ->
               item = Enum.find(items, &(Map.get(&1, "state") == 1))
 
@@ -417,13 +420,13 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     end
   end
 
-  defp validate_inactive_edr_data(items) do
+  defp validate_inactive_edr_data(items, type) do
     items
     |> Enum.filter(&(Map.get(&1, "state") != 1))
     |> Enum.reduce_while(:ok, fn item, acc ->
       case PRMRepo.get_by(EdrData, %{edr_id: item["id"]}) do
         %EdrData{} = edr_data ->
-          check_existing_legal_entities(LegalEntities.active_by_edr_data_id(edr_data.id), acc)
+          check_existing_legal_entities(LegalEntities.active_by_edr_data_id_type(edr_data.id, type), acc)
 
         _ ->
           {:cont, acc}
