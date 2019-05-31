@@ -11,11 +11,13 @@ defmodule Jobs.Jabba.Client do
 
   @merge_legal_entities_type "merge_legal_entities"
   @legal_entity_deactivation_type "legal_entity_deactivation"
+  @contract_request_termination_type "contract_request_termination"
 
   def rpc_pod_name, do: @pod
 
   def type(:merge_legal_entities), do: @merge_legal_entities_type
   def type(:legal_entity_deactivation), do: @legal_entity_deactivation_type
+  def type(:contract_request_termination), do: @contract_request_termination_type
 
   def create_job(tasks, type, opts \\ []) when is_list(tasks) and is_binary(type) and is_list(opts) do
     with {:ok, prepared_tasks} <- prepare_tasks(tasks) do

@@ -4,9 +4,8 @@ defmodule Jobs.LegalEntityDeactivationJob do
   use Confex, otp_app: :core
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1]
   import Ecto.Query
+  alias Core.CapitationContractRequests
   alias Core.ContractRequests
-  alias Core.ContractRequests.CapitationContractRequest
-  alias Core.ContractRequests.ReimbursementContractRequest
   alias Core.Contracts
   alias Core.Contracts.CapitationContract
   alias Core.Contracts.ReimbursementContract
@@ -15,7 +14,7 @@ defmodule Jobs.LegalEntityDeactivationJob do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
-  alias Core.Repo
+  alias Core.ReimbursementContractRequests
   alias Ecto.Changeset
   alias Jobs.Jabba.Client, as: JabbaClient
   alias Jobs.Jabba.Task, as: JabbaTask
@@ -146,45 +145,9 @@ defmodule Jobs.LegalEntityDeactivationJob do
 
   defp get_contract_requests_to_deactivate(legal_entity_id) do
     Enum.concat([
-      get_capitation_contract_requests_to_deactivate(legal_entity_id),
-      get_reimbursement_contract_requests_to_deactivate(legal_entity_id)
+      CapitationContractRequests.get_contract_requests_to_deactivate(legal_entity_id),
+      ReimbursementContractRequests.get_contract_requests_to_deactivate(legal_entity_id)
     ])
-  end
-
-  defp get_capitation_contract_requests_to_deactivate(legal_entity_id) do
-    CapitationContractRequest
-    |> select([cr], %{schema: "contract_request", entity: cr})
-    |> where([cr], cr.type == ^CapitationContractRequest.type())
-    |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
-    |> where(
-      [cr],
-      cr.status in ^[
-        CapitationContractRequest.status(:new),
-        CapitationContractRequest.status(:in_process),
-        CapitationContractRequest.status(:approved),
-        CapitationContractRequest.status(:pending_nhs_sign),
-        CapitationContractRequest.status(:nhs_signed)
-      ]
-    )
-    |> Repo.all()
-  end
-
-  defp get_reimbursement_contract_requests_to_deactivate(legal_entity_id) do
-    ReimbursementContractRequest
-    |> select([cr], %{schema: "contract_request", entity: cr})
-    |> where([cr], cr.type == ^ReimbursementContractRequest.type())
-    |> where([cr], cr.contractor_legal_entity_id == ^legal_entity_id)
-    |> where(
-      [cr],
-      cr.status in ^[
-        ReimbursementContractRequest.status(:new),
-        ReimbursementContractRequest.status(:in_process),
-        ReimbursementContractRequest.status(:approved),
-        ReimbursementContractRequest.status(:pending_nhs_sign),
-        ReimbursementContractRequest.status(:nhs_signed)
-      ]
-    )
-    |> Repo.all()
   end
 
   defp get_contracts_to_deactivate(legal_entity_id) do

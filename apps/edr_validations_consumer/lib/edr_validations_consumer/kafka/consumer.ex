@@ -1,11 +1,13 @@
 defmodule EdrValidationsConsumer.Kafka.Consumer do
   @moduledoc false
 
+  alias Core.CapitationContractRequests
   alias Core.Contracts.ContractSuspender
   alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.PRMRepo
-  alias Jobs.LegalEntityDeactivationJob
+  alias Core.ReimbursementContractRequests
+  alias Jobs.ContractRequestTerminationJob
   import Ecto.Changeset
   import Ecto.Query
   require Logger
@@ -84,6 +86,29 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
   defp suspend_contracts(ids) do
     Enum.each(ids, fn id ->
       ContractSuspender.suspend_by_contractor_legal_entity_id(id)
+      terminate_contract_requests(id)
+    end)
+  end
+
+  def terminate_contract_requests(legal_entity_id) do
+    system_user = Confex.fetch_env!(:core, :system_user)
+
+    contract_requests =
+      Enum.concat([
+        CapitationContractRequests.get_contract_requests_to_deactivate(legal_entity_id),
+        ReimbursementContractRequests.get_contract_requests_to_deactivate(legal_entity_id)
+      ])
+
+    Enum.reduce_while(contract_requests, :ok, fn contract_request, acc ->
+      case ContractRequestTerminationJob.create(contract_request, system_user) do
+        {:ok, %{} = job} ->
+          {:cont, acc}
+
+        err ->
+          Logger.warn(inspect(err))
+          PRMRepo.rollback(:contract_request_termination)
+          {:halt, err}
+      end
     end)
   end
 

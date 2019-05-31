@@ -8,6 +8,7 @@ defmodule Jobs.Jabba.Task do
 
   @enforce_keys ~w(callback)
 
+  @contract_request_terminate_type :contract_request_terminate
   @merge_legal_entity_type :merge_legal_entity
 
   @deactivate_legal_entity_type :deactivate_legal_entity
@@ -43,6 +44,11 @@ defmodule Jobs.Jabba.Task do
     struct(__MODULE__, %{name: type_to_name(type), callback: callback})
   end
 
+  def new(@contract_request_terminate_type, entity, actor_id) do
+    callback = {"ehealth", Jobs.ContractRequestTerminateJob, :terminate, [entity, actor_id]}
+    struct(__MODULE__, %{name: "Terminate contract request", callback: callback})
+  end
+
   defp type_to_name(type), do: type |> Atom.to_string() |> String.replace("_", " ") |> String.capitalize()
 
   def type(:merge_legal_entity), do: @merge_legal_entity_type
@@ -50,4 +56,5 @@ defmodule Jobs.Jabba.Task do
   def type(:deactivate_employee), do: @deactivate_employee_type
   def type(:deactivate_contract), do: @deactivate_contract_type
   def type(:deactivate_contract_request), do: @deactivate_contract_request_type
+  def type(:contract_request_terminate), do: @contract_request_terminate_type
 end
