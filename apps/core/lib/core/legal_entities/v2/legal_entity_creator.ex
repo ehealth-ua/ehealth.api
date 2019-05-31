@@ -383,6 +383,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         %{
           state
           | legal_entity: %{legal_entity | edr_data_id: edr_data.id},
+            edr_data_id: edr_data.id,
             updates: [
               fn ->
                 edr_data
@@ -403,6 +404,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         %{
           state
           | legal_entity: %{legal_entity | edr_data_id: data["id"]},
+            edr_data_id: data["id"],
             inserts: [
               fn ->
                 %EdrData{}

@@ -293,13 +293,6 @@
           "description": "номер наказу"
         }
       },
-      "required": [
-        "type",
-        "issued_by",
-        "issued_date",
-        "active_from_date",
-        "order_no"
-      ],
       "additionalProperties": false
     },
     "status": {
