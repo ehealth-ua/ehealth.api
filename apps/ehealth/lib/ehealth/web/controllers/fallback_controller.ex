@@ -222,6 +222,13 @@ defmodule EHealth.Web.FallbackController do
     |> render(:"424", %{message: "Cannot decode HTTP JSON response"})
   end
 
+  def call(conn, {:error, :badrpc}) do
+    conn
+    |> put_status(:internal_server_error)
+    |> put_view(Error)
+    |> render(:"500", %{message: "Remote server internal error"})
+  end
+
   def call(conn, params) do
     Logger.error("No function clause matching in EHealth.Web.FallbackController.call/2: #{inspect(params)}")
 
