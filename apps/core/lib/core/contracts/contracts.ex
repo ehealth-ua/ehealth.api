@@ -43,7 +43,7 @@ defmodule Core.Contracts do
          {:edrpou, {:ok, changes}} <- {:edrpou, validate_edrpou(changes)},
          {:ok, changes} <- validate_client_type(client_id, client_type, changes),
          %Page{entries: contracts} = paging <- search(changes),
-         contracts <- @read_prm_repo.preload(contracts, :contract_divisions),
+         contracts <- @read_prm_repo.preload(contracts, contract_divisions: [division: []]),
          {:ok, references} <- load_contracts_references(contracts) do
       {:ok, %{paging | entries: contracts}, references}
     else

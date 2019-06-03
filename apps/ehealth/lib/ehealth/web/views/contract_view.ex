@@ -182,6 +182,10 @@ defmodule EHealth.Web.ContractView do
   defp convert_datetime_to_date(%DateTime{} = value), do: DateTime.to_date(value)
   defp convert_datetime_to_date(value), do: value
 
+  def render_association(:contract_division, %{division: division}) do
+    Map.take(division, ~w(id name)a)
+  end
+
   def render_association(:contract_division, contract_division) do
     Map.take(contract_division, ~w(id name)a)
   end

@@ -243,6 +243,29 @@ defmodule EHealth.Web.ContractControllerTest do
   end
 
   describe "contract list" do
+    test "success contract list with divisions references", %{conn: conn} do
+      nhs()
+
+      contract = insert(:prm, :capitation_contract)
+      division = insert(:prm, :division)
+      division_id = division.id
+      division_name = division.name
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      data =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_path(conn, :index, @capitation), %{})
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert %{"id" => ^division_id, "name" => ^division_name} =
+               data
+               |> hd()
+               |> Map.get("contract_divisions")
+               |> hd()
+    end
+
     test "validating search params: ignore invalid search params", %{conn: conn} do
       nhs()
       insert(:prm, :capitation_contract)
@@ -1933,6 +1956,29 @@ defmodule EHealth.Web.ContractControllerTest do
                |> Map.get("data")
 
       assert 4 == length(resp_data)
+    end
+
+    test "success contract list with divisions references", %{conn: conn} do
+      nhs()
+
+      contract = insert(:prm, :reimbursement_contract)
+      division = insert(:prm, :division)
+      division_id = division.id
+      division_name = division.name
+      insert(:prm, :contract_division, contract_id: contract.id, division_id: division.id)
+
+      data =
+        conn
+        |> put_client_id_header(UUID.generate())
+        |> get(contract_path(conn, :index, @reimbursement), %{})
+        |> json_response(200)
+        |> Map.get("data")
+
+      assert %{"id" => ^division_id, "name" => ^division_name} =
+               data
+               |> hd()
+               |> Map.get("contract_divisions")
+               |> hd()
     end
 
     test "search by medical_program_id", %{conn: conn} do
