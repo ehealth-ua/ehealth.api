@@ -12,21 +12,7 @@ Feature: Deactivate service
     And I should receive requested item
     And the isActive of the requested item should be false
 
-  Scenario: Deactivate when active program services exist
-    Given the following program service exist:
-      | databaseId                             | isActive |
-      | "ab1bad75-b695-115b-2ac3-127b9ea0a3aa" | true     |
-    And the following service are associated with program service accordingly:
-      | databaseId                             | isActive |
-      | "01bbad75-a695-4f5b-8cc3-657b9ea0a34e" | true     |
-    And my scope is "service_catalog:write"
-    And my client type is "NHS"
-    And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"
-    When I deactivate service where databaseId is "01bbad75-a695-4f5b-8cc3-657b9ea0a34e"
-    Then the "CONFLICT" error should be returned
-    And I should not receive requested item
-
-  Scenario: Deactivate when active service group exist
+  Scenario: Successful deactivate when active service group exist
     Given the following services exist:
       | databaseId                             | isActive |
       | "f17f96f5-d5be-4270-8940-a3fe021aba14" | true     |
@@ -40,6 +26,20 @@ Feature: Deactivate service
     And my client type is "NHS"
     And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"
     When I deactivate service where databaseId is "f17f96f5-d5be-4270-8940-a3fe021aba14"
+    And I should receive requested item
+    And the isActive of the requested item should be false
+
+  Scenario: Deactivate when active program services exist
+    Given the following program service exist:
+      | databaseId                             | isActive |
+      | "ab1bad75-b695-115b-2ac3-127b9ea0a3aa" | true     |
+    And the following service are associated with program service accordingly:
+      | databaseId                             | isActive |
+      | "01bbad75-a695-4f5b-8cc3-657b9ea0a34e" | true     |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"
+    When I deactivate service where databaseId is "01bbad75-a695-4f5b-8cc3-657b9ea0a34e"
     Then the "CONFLICT" error should be returned
     And I should not receive requested item
 

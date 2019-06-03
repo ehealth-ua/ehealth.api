@@ -86,8 +86,7 @@ defmodule Core.Services do
 
   def deactivate(%Service{id: id} = service, actor_id) when is_binary(id) do
     with :ok <- validate_is_active(service),
-         :ok <- validate_active_program_services(service),
-         :ok <- validate_active_service_groups(service) do
+         :ok <- validate_active_program_services(service) do
       service
       |> changeset(%{is_active: false})
       |> put_change(:updated_by, actor_id)
@@ -108,31 +107,12 @@ defmodule Core.Services do
     end
   end
 
-  defp validate_active_service_groups(%{id: id}) do
-    error_message =
-      "This service is a participant of active service group. Only service without active service group can be deactivated"
-
-    case count_active_service_groups_by_service_id(id) do
-      0 -> :ok
-      _ -> {:error, {:conflict, error_message}}
-    end
-  end
-
   defp count_active_program_services_by(params) when is_list(params) do
     params = [is_active: true] ++ params
 
     ProgramService
     |> where(^params)
     |> select([ps], count(ps.id))
-    |> @read_prm_repo.one()
-  end
-
-  defp count_active_service_groups_by_service_id(id) do
-    ServicesGroups
-    |> where([sg], sg.service_id == ^id)
-    |> join(:left, [sg], g in assoc(sg, :service_group))
-    |> where([..., g], g.is_active)
-    |> select([..., g], count(g.id))
     |> @read_prm_repo.one()
   end
 end
