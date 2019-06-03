@@ -274,8 +274,8 @@ defmodule Core.LegalEntities do
       ])
 
     Enum.each(contract_requests, fn contract_request ->
-      case ContractRequestTerminationJob.create(contract_request, user_id, "legal_entity_has_changed") do
-        {:ok, %{} = job} ->
+      case ContractRequestTerminationJob.create(contract_request.entity, user_id, "legal_entity_has_changed") do
+        {:ok, %{}} ->
           :ok
 
         err ->

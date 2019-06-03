@@ -100,8 +100,8 @@ defmodule EdrValidationsConsumer.Kafka.Consumer do
       ])
 
     Enum.reduce_while(contract_requests, :ok, fn contract_request, acc ->
-      case ContractRequestTerminationJob.create(contract_request, system_user) do
-        {:ok, %{} = job} ->
+      case ContractRequestTerminationJob.create(contract_request.entity, system_user) do
+        {:ok, %{}} ->
           {:cont, acc}
 
         err ->

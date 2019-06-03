@@ -25,6 +25,7 @@ defmodule Jobs.ContractRequestTerminationJob do
 
   def terminate(contract_request, actor_id, status_reason) do
     ContractRequests.do_terminate(actor_id, contract_request, %{"status_reason" => status_reason})
+    :ok
   rescue
     e ->
       Logger.error("Failed to terminate contract request with: #{inspect(e)}")
