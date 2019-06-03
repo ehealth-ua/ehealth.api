@@ -64,7 +64,8 @@ defmodule GraphQL.Schema do
     INNMTypes,
     IngredientTypes,
     MedicationTypes,
-    ProgramMedicationTypes
+    ProgramMedicationTypes,
+    ServiceGroupTypes
   })
 
   query do
@@ -84,6 +85,7 @@ defmodule GraphQL.Schema do
     import_fields(:medication_queries)
     import_fields(:innm_dosage_queries)
     import_fields(:innm_queries)
+    import_fields(:service_group_queries)
     import_fields(:person_queries)
     import_fields(:merge_request_queries)
     import_fields(:settlement_queries)

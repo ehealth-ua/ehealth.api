@@ -24,6 +24,7 @@ defmodule GraphQL.Features.Context do
   alias Core.PartyUsers.PartyUser
   alias Core.Services.Service
   alias Core.Uaddresses.{District, Region, Settlement}
+  alias Core.Services.ServiceGroup
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
   alias Jobs.LegalEntityMergeJob
@@ -430,6 +431,33 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data innms nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) service groups$/,
+    fn %{conn: conn} = state, %{count: count} ->
+      query = """
+        query ListServiceGroups($first: Int!) {
+          serviceGroups(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{first: Jason.decode!(count)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data serviceGroups nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -884,6 +912,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) service groups where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
+      query = """
+        query ListServiceGroupsWithFilter(
+          $first: Int!
+          $filter: ServiceGroupFilter!
+        ) {
+          serviceGroups(first: $first, filter: $filter) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data serviceGroups nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) settlements where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{existing: existing, conn: conn} = state, %{count: count, field: field, value: value} ->
       expect(RPCWorkerMock, :run, fn
@@ -1106,6 +1166,38 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data employees nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) service groups where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListServiceGroupsWithAssocFilter(
+          $first: Int!
+          $filter: ServiceGroupFilter!
+        ) {
+          serviceGroups(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data serviceGroups nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -1567,6 +1659,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) service groups sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
+      query = """
+        query ListServiceGroupsWithOrderBy(
+          $first: Int!
+          $order_by: ServiceGroupOrderBy!
+        ) {
+          serviceGroups(first: $first, order_by: $order_by) {
+            nodes {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        order_by: order_by_argument(field, direction)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data serviceGroups nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employee requests sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
       query_field =
@@ -1765,56 +1889,6 @@ defmodule GraphQL.Features.Context do
         query GetEmployeeRequestQuery($id: ID!) {
           employeeRequest(id: $id) {
             databaseId
-          }
-        }
-      """
-
-      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data employeeRequest))
-
-      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  when_(
-    ~r/^I request (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
-      query = """
-        query GetEmployeeRequestQuery($id: ID!) {
-          employeeRequest(id: $id) {
-            #{field}
-          }
-        }
-      """
-
-      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entity = get_in(resp_body, ~w(data employeeRequest))
-
-      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
-    end
-  )
-
-  when_(
-    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
-    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
-      query = """
-        query GetEmployeeRequestQuery($id: ID!) {
-          employeeRequest(id: $id) {
-            #{field} {
-              #{nested_field}
-            }
           }
         }
       """
@@ -2072,6 +2146,32 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the service group where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
+      query = """
+        query GetServiceGroupQuery($id: ID!) {
+          serviceGroup(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ServiceGroup", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<field>\w+) of the employee where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
       query = """
@@ -2092,6 +2192,30 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data employee))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeRequestQuery($id: ID!) {
+          employeeRequest(id: $id) {
+            #{field}
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employeeRequest))
 
       {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -2237,6 +2361,60 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data employee))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the employee request where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetEmployeeRequestQuery($id: ID!) {
+          employeeRequest(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{id: Node.to_global_id("EmployeeRequest", database_id)}
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data employeeRequest))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the service group where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetServiceGroupQuery($id: ID!) {
+          serviceGroup(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ServiceGroup", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data serviceGroup))
 
       {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end
@@ -2876,6 +3054,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("INNM dosage"), do: INNMDosage
   def entity_name_to_model("INNM dosage ingredient"), do: INNMDosage.Ingredient
   def entity_name_to_model("INNM"), do: INNM
+  def entity_name_to_model("service group"), do: ServiceGroup
   def entity_name_to_model("region"), do: Region
   def entity_name_to_model("service"), do: Service
   def entity_name_to_model("district"), do: District
@@ -2907,6 +3086,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("INNM dosage"), do: {:prm, :innm_dosage}
   def entity_name_to_factory_args("INNM dosage ingredient"), do: {:prm, :ingredient_innm_dosage}
   def entity_name_to_factory_args("INNM"), do: {:prm, :innm}
+  def entity_name_to_factory_args("service group"), do: {:prm, :service_group}
   def entity_name_to_factory_args("region"), do: {nil, :region}
   def entity_name_to_factory_args("district"), do: {nil, :district}
   def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
@@ -2936,6 +3116,7 @@ defmodule GraphQL.Features.Context do
   def model_to_repo(INNMDosage), do: PRMRepo
   def model_to_repo(INNMDosage.Ingredient), do: PRMRepo
   def model_to_repo(INNM), do: PRMRepo
+  def model_to_repo(ServiceGroup), do: PRMRepo
   def model_to_repo(model), do: raise("Repo not found for #{inspect(model)}")
 
   def transpose_table(table_data) do

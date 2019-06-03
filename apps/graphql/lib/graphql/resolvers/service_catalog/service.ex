@@ -2,7 +2,7 @@ defmodule GraphQL.Resolvers.Service do
   @moduledoc false
 
   import Ecto.Query, only: [order_by: 2]
-  import GraphQL.Filters.Base, only: [filter: 2]
+  import GraphQL.Filters.ServiceCatalog, only: [filter: 2]
 
   alias Absinthe.Relay.Connection
   alias Core.Services.Service
