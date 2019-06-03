@@ -26,6 +26,7 @@ defmodule GraphQL.Schema do
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Persons.Person
+  alias Core.Services.Service
   alias GraphQL.Loaders.{IL, Jabba, ManualMerger, MPI, OPS, PRM, Uaddresses}
 
   import_types(Absinthe.Type.Custom)
@@ -58,6 +59,7 @@ defmodule GraphQL.Schema do
     DistrictTypes,
     SettlementTypes,
     TaskTypes,
+    ServiceTypes,
     INNMDosageTypes,
     INNMTypes,
     IngredientTypes,
@@ -85,6 +87,7 @@ defmodule GraphQL.Schema do
     import_fields(:person_queries)
     import_fields(:merge_request_queries)
     import_fields(:settlement_queries)
+    import_fields(:service_queries)
   end
 
   mutation do
@@ -118,6 +121,7 @@ defmodule GraphQL.Schema do
       %Employee{}, _ -> :employee
       %LegalEntity{}, _ -> :legal_entity
       %RelatedLegalEntity{}, _ -> :related_legal_entity
+      %Service{}, _ -> :service
       %MedicalProgram{}, _ -> :medical_program
       %Medication{}, _ -> :medication
       %INNM{}, _ -> :innm

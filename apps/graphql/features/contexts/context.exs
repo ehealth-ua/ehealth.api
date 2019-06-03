@@ -22,6 +22,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
   alias Core.PartyUsers.PartyUser
+  alias Core.Services.Service
   alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
@@ -1167,6 +1168,13 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) (?<entity>(\w+\s?){1,3}) where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, params ->
+      {:ok, Map.merge(state, call_list_with_filter_query(conn, params))}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the (?<nested_association_field>\w+) nested in associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn} = state,
        %{
@@ -1597,38 +1605,6 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
-    fn %{conn: conn} = state, %{count: count, field: field, direction: direction} ->
-      query = """
-        query ListEmployeesWithOrderBy(
-          $first: Int!
-          $order_by: EmployeeOrderBy!
-        ) {
-          employees(first: $first, order_by: $order_by) {
-            nodes {
-              #{field}
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count),
-        order_by: order_by_argument(field, direction)
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data employees nodes))
-
-      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
     ~r/^I request first (?<count>\d+) employees sorted by (?<field>\w+) of the associated (?<association_field>\w+) in (?<direction>ascending|descending) order$/,
     fn %{conn: conn} = state,
        %{count: count, field: field, association_field: association_field, direction: direction} ->
@@ -1694,6 +1670,13 @@ defmodule GraphQL.Features.Context do
       resp_entities = get_in(resp_body, ~w(data settlements nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) (?<entity>(\w+\s?){1,3}) sorted by (?<field>\w+) in (?<direction>ascending|descending) order$/,
+    fn %{conn: conn} = state, params ->
+      {:ok, Map.merge(state, call_list_with_order_by_query(conn, params))}
     end
   )
 
@@ -2141,6 +2124,13 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<field>\w+) of the (?<entity>(\w+\s?){1,3}) where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, params ->
+      {:ok, Map.merge(state, call_details_query(conn, params))}
+    end
+  )
+
+  when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the reimbursement contract request where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
@@ -2263,7 +2253,6 @@ defmodule GraphQL.Features.Context do
     ~r/^I merge legal entities with signed content$/,
     fn %{conn: conn, content: content, signed_content: signed_content} = state, _ ->
       job = build(:legal_entity_merge_job, meta: Map.take(content, ~w(merged_to_legal_entity merged_from_legal_entity)))
-      task = build(:job_task, job_id: job.id)
 
       stub(RPCWorkerMock, :run, fn _, _, :create_job, [tasks, _type, _opts] ->
         assert 1 == length(tasks)
@@ -2888,6 +2877,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("INNM dosage ingredient"), do: INNMDosage.Ingredient
   def entity_name_to_model("INNM"), do: INNM
   def entity_name_to_model("region"), do: Region
+  def entity_name_to_model("service"), do: Service
   def entity_name_to_model("district"), do: District
   def entity_name_to_model("settlement"), do: Settlement
   def entity_name_to_model(entity_name), do: raise("Model not found for #{inspect(entity_name)}")
@@ -2909,6 +2899,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("reimbursement contract"), do: {:prm, :reimbursement_contract}
   def entity_name_to_factory_args("contract division"), do: {:prm, :contract_division}
   def entity_name_to_factory_args("contract employee"), do: {:prm, :contract_employee}
+  def entity_name_to_factory_args("service"), do: {:prm, :service}
   def entity_name_to_factory_args("medical program"), do: {:prm, :medical_program}
   def entity_name_to_factory_args("program medication"), do: {:prm, :program_medication}
   def entity_name_to_factory_args("medication"), do: {:prm, :medication}
@@ -3053,6 +3044,96 @@ defmodule GraphQL.Features.Context do
       |> String.upcase()
 
     Enum.join([field, direction], "_")
+  end
+
+  defp call_details_query(conn, %{entity: entity, field: field, database_id: database_id}) do
+    capitalized = entity |> String.capitalize() |> camelcase()
+    downcased = entity |> String.downcase() |> camelcase()
+
+    query = """
+      query Get#{capitalized}Query($id: ID!) {
+        #{downcased}(id: $id) {
+          #{field}
+        }
+      }
+    """
+
+    variables = %{
+      id: Node.to_global_id(capitalized, database_id)
+    }
+
+    resp_body =
+      conn
+      |> post_query(query, variables)
+      |> json_response(200)
+
+    resp_entity = get_in(resp_body, ["data", downcased])
+
+    %{resp_body: resp_body, resp_entity: resp_entity}
+  end
+
+  defp call_list_with_filter_query(conn, %{entity: entity, count: count, field: field, value: value}) do
+    capitalized = entity |> String.capitalize() |> camelcase()
+    downcased = entity |> String.downcase() |> camelcase()
+
+    query = """
+      query List#{capitalized}WithFilter(
+        $first: Int!
+        $filter: #{Inflex.singularize(capitalized)}Filter!
+      ) {
+        #{downcased}(first: $first, filter: $filter) {
+          nodes {
+            #{field}
+          }
+        }
+      }
+    """
+
+    variables = %{
+      first: Jason.decode!(count),
+      filter: filter_argument(field, Jason.decode!(value))
+    }
+
+    resp_body =
+      conn
+      |> post_query(query, variables)
+      |> json_response(200)
+
+    resp_entities = get_in(resp_body, ["data", downcased, "nodes"])
+
+    %{resp_body: resp_body, resp_entities: resp_entities}
+  end
+
+  defp call_list_with_order_by_query(conn, %{entity: entity, count: count, field: field, direction: direction}) do
+    capitalized = entity |> String.capitalize() |> camelcase()
+    downcased = entity |> String.downcase() |> camelcase()
+
+    query = """
+      query List#{capitalized}WithOrderBy(
+        $first: Int!
+        $order_by: #{Inflex.singularize(capitalized)}OrderBy!
+      ) {
+        #{downcased}(first: $first, order_by: $order_by) {
+          nodes {
+            #{field}
+          }
+        }
+      }
+    """
+
+    variables = %{
+      first: Jason.decode!(count),
+      order_by: order_by_argument(field, direction)
+    }
+
+    resp_body =
+      conn
+      |> post_query(query, variables)
+      |> json_response(200)
+
+    resp_entities = get_in(resp_body, ["data", downcased, "nodes"])
+
+    %{resp_body: resp_body, resp_entities: resp_entities}
   end
 
   defp call_create_entity_mutation(conn, "INNM", input_attrs) do
