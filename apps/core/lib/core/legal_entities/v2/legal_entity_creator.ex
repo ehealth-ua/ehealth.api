@@ -13,7 +13,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   alias Core.ValidationError
   alias Core.Validators.Error
   alias Ecto.UUID
-  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1, get_header: 2]
+  import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1]
   import Ecto.Query
 
   @status_active LegalEntity.status(:active)
@@ -30,8 +30,6 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     client_id = get_client_id(headers)
     edrpou = Map.fetch!(params, "edrpou")
     type = Map.fetch!(params, "type")
-    edr_data_list_header = get_header(headers, "edr-data-list")
-    edr_data_id_header = get_header(headers, "edr-data-id")
     request_license = Map.get(params, "license", %{})
     license_id = Map.get(request_license, "id", UUID.generate())
 
@@ -43,14 +41,13 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           license_id,
           license_required,
           consumer_id,
-          client_id,
-          edr_data_list_header,
-          edr_data_id_header
+          client_id
         )
 
       [%LegalEntity{edr_data: %EdrData{} = edr_data} = legal_entity] ->
         with :ok <- validate_employee_owner(legal_entity.id, params),
-             {:ok, response} <- get_legal_entity_from_edr(edr_data.edr_id, edr_data_id_header) do
+             {:ok, response} <- get_legal_entity_from_edr(edr_data.edr_id),
+             :ok <- validate_edr_response(response, legal_entity_code) do
           data = %{
             "name" => response["names"]["name"],
             "short_name" => response["names"]["short"],
@@ -96,9 +93,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
           license_id,
           license_required,
           consumer_id,
-          client_id,
-          edr_data_list_header,
-          edr_data_id_header
+          client_id
         )
     end
   end
@@ -212,6 +207,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         "edr_verified" => nil
       })
 
+    license_id = legal_entity.license_id || license_id
     update_data = Map.put(update_data, "license_id", license_id)
     changes = V2LegalEntities.changeset(legal_entity, update_data)
 
@@ -248,15 +244,13 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
          license_id,
          license_required,
          consumer_id,
-         client_id,
-         edr_data_list_header,
-         edr_data_id_header
+         client_id
        ) do
     state = %LegalEntityCreator{legal_entity: %LegalEntity{id: UUID.generate()}}
     type = Map.fetch!(params, "type")
 
     with %LegalEntityCreator{} = state <-
-           upsert_edr_data(state, legal_entity_code, type, consumer_id, edr_data_list_header, edr_data_id_header) do
+           upsert_edr_data(state, legal_entity_code, type, consumer_id) do
       new_changeset(
         state,
         params,
@@ -272,26 +266,22 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         %LegalEntityCreator{} = state,
         %{edrpou: value},
         type,
-        consumer_id,
-        edr_data_list_header,
-        edr_data_id_header
+        consumer_id
       ) do
-    do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header)
+    do_upsert_edr_data(state, value, type, consumer_id)
   end
 
   def upsert_edr_data(
         %LegalEntityCreator{} = state,
         %{drfo: value},
         type,
-        consumer_id,
-        edr_data_list_header,
-        edr_data_id_header
+        consumer_id
       ) do
-    do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header)
+    do_upsert_edr_data(state, value, type, consumer_id)
   end
 
-  def do_upsert_edr_data(state, value, type, consumer_id, edr_data_list_header, edr_data_id_header) do
-    with {:ok, items} <- search_edr_legal_entities(value, edr_data_list_header) do
+  def do_upsert_edr_data(state, value, type, consumer_id) do
+    with {:ok, items} <- search_edr_legal_entities(value) do
       active_items =
         Enum.reduce(items, 0, fn item, acc ->
           if item["state"] == 1 do
@@ -313,7 +303,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
             :ok ->
               item = Enum.find(items, &(Map.get(&1, "state") == 1))
 
-              with {:ok, response} <- get_legal_entity_from_edr(item["id"], edr_data_id_header) do
+              with {:ok, response} <- get_legal_entity_from_edr(item["id"]) do
                 data = %{
                   "edrpou" => value,
                   "edr_id" => response["id"],
@@ -343,40 +333,32 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     end
   end
 
-  defp search_edr_legal_entities(value, edr_data_header) do
-    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
-      cond do
-        Regex.match?(~r/^[0-9]{8,10}$/, value) ->
-          case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{code: value}]) do
-            {:ok, response} -> {:ok, response}
-            {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
-          end
+  defp search_edr_legal_entities(value) do
+    cond do
+      Regex.match?(~r/^[0-9]{8,10}$/, value) ->
+        case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{code: value}]) do
+          {:ok, response} -> {:ok, response}
+          {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
+        end
 
-        Regex.match?(~r/^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$/u, value) ->
-          case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{passport: value}]) do
-            {:ok, response} -> {:ok, response}
-            {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
-          end
+      Regex.match?(~r/^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$/u, value) ->
+        case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{passport: value}]) do
+          {:ok, response} -> {:ok, response}
+          {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
+        end
 
-        true ->
-          Error.dump(%ValidationError{
-            description: "Invalid edrpou",
-            path: "$.data.edrpou"
-          })
-      end
-    else
-      {:ok, Jason.decode!(edr_data_header)}
+      true ->
+        Error.dump(%ValidationError{
+          description: "Invalid edrpou",
+          path: "$.data.edrpou"
+        })
     end
   end
 
-  defp get_legal_entity_from_edr(id, edr_data_header) do
-    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
-      case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [id]) do
-        {:ok, response} -> {:ok, response}
-        {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
-      end
-    else
-      {:ok, Jason.decode!(edr_data_header)}
+  defp get_legal_entity_from_edr(id) do
+    case @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [id]) do
+      {:ok, response} -> {:ok, response}
+      {:error, _} -> {:error, {:conflict, "Legal Entity not found in EDR"}}
     end
   end
 
@@ -443,6 +425,26 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
          description: "Legal entity with such edrpou and type already exists",
          path: "$.data.edrpou"
        })}
+    end
+  end
+
+  defp validate_edr_response(%{"state" => 1}, _), do: :ok
+
+  defp validate_edr_response(_, %{edrpou: value}) do
+    do_validate_edr_response(value)
+  end
+
+  defp validate_edr_response(_, %{drfo: value}) do
+    do_validate_edr_response(value)
+  end
+
+  defp do_validate_edr_response(value) do
+    with {:ok, items} <- search_edr_legal_entities(value) do
+      if Enum.find(items, &(Map.get(&1, "state") == 1)) do
+        {:error, {:conflict, "Invalid edr state. Previous legal entity must be closed"}}
+      else
+        :ok
+      end
     end
   end
 end
