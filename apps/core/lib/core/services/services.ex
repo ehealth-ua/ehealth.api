@@ -1,9 +1,10 @@
 defmodule Core.Services do
   @moduledoc false
 
-  import Ecto.Changeset, warn: false
+  import Ecto.{Changeset, Query}, warn: false
 
   alias Core.PRMRepo
+  alias Core.Services.ProgramService
   alias Core.Services.Service
   alias Core.Services.ServiceGroup
   alias Core.Services.ServicesGroups
@@ -11,6 +12,8 @@ defmodule Core.Services do
 
   @service_fields_required ~w(name code)a
   @service_fields_optional ~w(category parent_id is_composition request_allowed is_active)a
+
+  @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list do
     service_groups = PRMRepo.all(ServiceGroup)
@@ -53,6 +56,17 @@ defmodule Core.Services do
     end)
   end
 
+  def get_by_id(id), do: @read_prm_repo.get(Service, id)
+
+  def get_by_id!(id), do: @read_prm_repo.get!(Service, id)
+
+  def fetch_by_id(id) do
+    case get_by_id(id) do
+      %Service{} = service -> {:ok, service}
+      _ -> {:error, {:not_found, "Service not found"}}
+    end
+  end
+
   def create(params, actor_id) do
     with :ok <- JsonSchema.validate(:service, params) do
       %Service{}
@@ -68,5 +82,57 @@ defmodule Core.Services do
     |> cast(attrs, @service_fields_required ++ @service_fields_optional)
     |> validate_required(@service_fields_required)
     |> validate_length(:name, max: 100)
+  end
+
+  def deactivate(%Service{id: id} = service, actor_id) when is_binary(id) do
+    with :ok <- validate_is_active(service),
+         :ok <- validate_active_program_services(service),
+         :ok <- validate_active_service_groups(service) do
+      service
+      |> changeset(%{is_active: false})
+      |> put_change(:updated_by, actor_id)
+      |> PRMRepo.update_and_log(actor_id)
+    end
+  end
+
+  defp validate_is_active(%{is_active: true}), do: :ok
+  defp validate_is_active(%{is_active: false}), do: {:error, {:conflict, "Service is already deactivated"}}
+
+  defp validate_active_program_services(%{id: id}) do
+    error_message =
+      "This service is a participant of active program service. Only service without active program service can be deactivated"
+
+    case count_active_program_services_by(service_id: id) do
+      0 -> :ok
+      _ -> {:error, {:conflict, error_message}}
+    end
+  end
+
+  defp validate_active_service_groups(%{id: id}) do
+    error_message =
+      "This service is a participant of active service group. Only service without active service group can be deactivated"
+
+    case count_active_service_groups_by_service_id(id) do
+      0 -> :ok
+      _ -> {:error, {:conflict, error_message}}
+    end
+  end
+
+  defp count_active_program_services_by(params) when is_list(params) do
+    params = [is_active: true] ++ params
+
+    ProgramService
+    |> where(^params)
+    |> select([ps], count(ps.id))
+    |> @read_prm_repo.one()
+  end
+
+  defp count_active_service_groups_by_service_id(id) do
+    ServicesGroups
+    |> where([sg], sg.service_id == ^id)
+    |> join(:left, [sg], g in assoc(sg, :service_group))
+    |> where([..., g], g.is_active)
+    |> select([..., g], count(g.id))
+    |> @read_prm_repo.one()
   end
 end

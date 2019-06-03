@@ -6,6 +6,7 @@ defmodule Core.PRMFactories.ServiceFactory do
       alias Core.Services.Service
       alias Core.Services.ServiceGroup
       alias Core.Services.ServicesGroups
+      alias Core.Services.ProgramService
       alias Ecto.UUID
 
       def service_factory do
@@ -33,9 +34,19 @@ defmodule Core.PRMFactories.ServiceFactory do
       def services_groups_factory do
         %ServicesGroups{
           inserted_by: UUID.generate(),
-          updated_by: UUID.generate(),
-          service: build(:service),
-          service_group: build(:service_group)
+          updated_by: UUID.generate()
+        }
+      end
+
+      def program_service_factory do
+        %ProgramService{
+          description: "Доступний сервіс в кожен дім - це реальність",
+          consumer_price: 199.99,
+          is_active: true,
+          request_allowed: true,
+          medical_program: build(:medical_program),
+          inserted_by: UUID.generate(),
+          updated_by: UUID.generate()
         }
       end
     end
