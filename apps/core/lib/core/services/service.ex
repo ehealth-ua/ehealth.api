@@ -8,9 +8,9 @@ defmodule Core.Services.Service do
   schema "services" do
     field(:code, :string)
     field(:name, :string)
-    field(:is_active, :boolean)
-    field(:parent_id, UUID)
     field(:category, :string)
+    field(:parent_id, UUID)
+    field(:is_active, :boolean, default: true)
     field(:is_composition, :boolean)
     field(:request_allowed, :boolean)
     field(:inserted_by, UUID)

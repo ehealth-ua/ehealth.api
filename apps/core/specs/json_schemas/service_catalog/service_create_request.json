@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+        "type": "string",
+        "pattern":"^[А-Яа-яЁёЇїІіЄєҐґ'\\- ]*$",
+        "description":"Name of service"
+    },
+    "code": {
+        "type": "string",
+        "description":"Code of service"
+    },
+    "category": {
+      "type": "string",
+      "description": "Dictionary: SERVICE_CATEGORY"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Is service active or not. True - Active; False - Inactive"
+    },
+    "is_composition": {
+      "type": "boolean",
+      "description": "Is service composition or not"
+    },
+    "request_allowed": {
+      "type": "boolean",
+      "description": "Flag that determines that request allowed to current service"
+    }
+  },
+  "required": [
+    "name",
+    "code"
+  ],
+  "additionalProperties": false
+}

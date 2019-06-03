@@ -108,6 +108,7 @@ defmodule GraphQL.Schema do
     import_fields(:medication_mutations)
     import_fields(:innm_dosage_mutations)
     import_fields(:person_mutations)
+    import_fields(:service_mutations)
     import_fields(:merge_request_mutations)
   end
 

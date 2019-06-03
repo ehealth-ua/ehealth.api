@@ -1,10 +1,16 @@
 defmodule Core.Services do
   @moduledoc false
 
+  import Ecto.Changeset, warn: false
+
   alias Core.PRMRepo
   alias Core.Services.Service
   alias Core.Services.ServiceGroup
   alias Core.Services.ServicesGroups
+  alias Core.Validators.JsonSchema
+
+  @service_fields_required ~w(name code)a
+  @service_fields_optional ~w(category parent_id is_composition request_allowed is_active)a
 
   def list do
     service_groups = PRMRepo.all(ServiceGroup)
@@ -45,5 +51,22 @@ defmodule Core.Services do
         acc
       end
     end)
+  end
+
+  def create(params, actor_id) do
+    with :ok <- JsonSchema.validate(:service, params) do
+      %Service{}
+      |> changeset(params)
+      |> put_change(:inserted_by, actor_id)
+      |> put_change(:updated_by, actor_id)
+      |> PRMRepo.insert_and_log(actor_id)
+    end
+  end
+
+  def changeset(%Service{} = entity, attrs) do
+    entity
+    |> cast(attrs, @service_fields_required ++ @service_fields_optional)
+    |> validate_required(@service_fields_required)
+    |> validate_length(:name, max: 100)
   end
 end

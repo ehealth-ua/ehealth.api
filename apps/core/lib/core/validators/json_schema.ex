@@ -88,6 +88,7 @@ defmodule Core.Validators.JsonSchema do
   use_schema(:contract_prolongate, "specs/json_schemas/contract/contract_prolongate.json")
   use_schema(:contract_update_employees, "specs/json_schemas/contract/contract_update_employees.json")
   use_schema(:contract_terminate, "specs/json_schemas/contract/contract_terminate.json")
+  use_schema(:service, "specs/json_schemas/service_catalog/service_create_request.json")
 
   # capitation contract requests
   use_schema(
