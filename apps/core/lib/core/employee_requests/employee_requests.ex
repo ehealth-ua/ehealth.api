@@ -178,11 +178,7 @@ defmodule Core.EmployeeRequests do
   end
 
   defp validate_legal_entity(%LegalEntity{} = legal_entity) do
-    is_active? =
-      legal_entity.is_active and
-        legal_entity.status in [LegalEntity.status(:active), LegalEntity.status(:suspended)]
-
-    if is_active? do
+    if legal_entity.is_active do
       :ok
     else
       {:error, {:conflict, "Legal entity is not active"}}

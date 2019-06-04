@@ -96,6 +96,7 @@ defmodule Core.V2.DeclarationRequests do
          :ok <- Creator.validate_employee_speciality(employee),
          {:ok, %Division{} = division} <- Reference.validate(:division, params["division_id"]),
          {:ok, %LegalEntity{} = legal_entity} <- Reference.validate(:legal_entity, division.legal_entity_id),
+         :ok <- validate_legal_entity(legal_entity),
          :ok <- validate_tax_id(user["tax_id"], person["tax_id"]) do
       data =
         params

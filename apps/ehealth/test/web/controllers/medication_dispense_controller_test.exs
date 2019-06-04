@@ -4,7 +4,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
   use EHealth.Web.ConnCase
   import Mox
   alias Core.Contracts.ReimbursementContract
-  alias Core.LegalEntities.LegalEntity
   alias Core.MedicationRequests.MedicationRequest
   alias Ecto.UUID
   alias Scrivener.Page
@@ -23,20 +22,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
       conn = post(conn, medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
       resp = json_response(conn, 422)
       assert %{"error" => %{"invalid" => [%{"entry" => "$.legal_entity_id"}]}} = resp
-    end
-
-    test "invalid legal_entity mis_verified", %{conn: conn} do
-      %{user_id: user_id} = insert(:prm, :party_user)
-      legal_entity = insert(:prm, :legal_entity, mis_verified: LegalEntity.mis_verified(:not_verified))
-
-      resp =
-        conn
-        |> put_client_id_header(legal_entity.id)
-        |> Plug.Conn.put_req_header(consumer_id_header(), user_id)
-        |> post(medication_dispense_path(conn, :create), medication_dispense: new_dispense_params())
-        |> json_response(409)
-
-      assert get_in(resp, ~w(error message)) == "Legal entity is not verified"
     end
 
     test "invalid medication_request", %{conn: conn} do

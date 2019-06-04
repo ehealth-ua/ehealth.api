@@ -115,6 +115,25 @@ defmodule Core.MedicationDispense.API do
     end
   end
 
+  defp validate_legal_entity(%LegalEntity{} = legal_entity) do
+    allowed_types = Confex.fetch_env!(:core, :medication_dispense_legal_entity_types)
+
+    with {_, true} <- {:status, legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active},
+         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         {_, true} <- {:type, legal_entity.type in allowed_types} do
+      :ok
+    else
+      {:nhs_verified, _} ->
+        {:error, {:conflict, "Legal entity is not verified"}}
+
+      {:status, _} ->
+        {:error, {:conflict, "Legal entity is not active"}}
+
+      {:type, _} ->
+        {:error, {:conflict, "Invalid legal entity type"}}
+    end
+  end
+
   def create(headers, client_type, code, params) do
     legal_entity_id = get_client_id(headers)
     user_id = get_consumer_id(headers)
@@ -122,6 +141,7 @@ defmodule Core.MedicationDispense.API do
     with :ok <- JsonSchema.validate(:medication_dispense, params),
          params <- params["medication_dispense"],
          {:ok, legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
+         :ok <- validate_legal_entity(legal_entity),
          {:ok, party_user} <- get_party_user(user_id),
          :ok <- validate_legal_entity(legal_entity),
          {:ok, medication_request} <- validate_medication_request(params["medication_request_id"]),
@@ -350,6 +370,7 @@ defmodule Core.MedicationDispense.API do
 
   defp validate_contract(medical_program_id, legal_entity_id) do
     case get_valid_reimbursement_contract(medical_program_id, legal_entity_id) do
+      %ReimbursementContract{is_suspended: true} -> {:conflict, "Contract is suspended"}
       %ReimbursementContract{} = contract -> {:ok, contract}
       _ -> {:conflict, "Program cannot be used - no active contract exists"}
     end

@@ -253,7 +253,9 @@ config :core, :legal_entity_division_types,
 
 config :core,
   declaration_request_legal_entity_types:
-    {:system, :list, "DECLARATION_REQUEST_LEGAL_ENTITY_TYPES", ["MSP", "PRIMARY_CARE"]}
+    {:system, :list, "DECLARATION_REQUEST_LEGAL_ENTITY_TYPES", ["MSP", "PRIMARY_CARE"]},
+  medication_dispense_legal_entity_types:
+    {:system, :list, "MEDICATION_DISPENSE_LEGAL_ENTITY_TYPES", ["PHARMACY", "MSP_PHARMACY"]}
 
 config :core,
   medication_request_request_legal_entity_types:

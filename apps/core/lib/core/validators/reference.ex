@@ -65,7 +65,8 @@ defmodule Core.Validators.Reference do
 
   def validate(:legal_entity = type, id, path) do
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id),
-         {:status, true} <- {:status, legal_entity.status == LegalEntity.status(:active)} do
+         {:status, true} <-
+           {:status, legal_entity.status in [LegalEntity.status(:active), LegalEntity.status(:suspended)]} do
       {:ok, legal_entity}
     else
       {:status, _} -> error_status(type, path)
