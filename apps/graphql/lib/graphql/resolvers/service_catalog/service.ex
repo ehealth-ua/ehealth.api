@@ -18,10 +18,10 @@ defmodule GraphQL.Resolvers.Service do
     |> Connection.from_query(&@read_prm_repo.all/1, args)
   end
 
-  def create_service(args, %{context: %{consumer_id: consumer_id}}) do
+  def create(args, %{context: %{consumer_id: consumer_id}}) do
     args = atoms_to_strings(args)
 
-    with {:ok, service} <- Services.create(args, consumer_id) do
+    with {:ok, service} <- Services.create_service(args, consumer_id) do
       {:ok, %{service: service}}
     end
   end

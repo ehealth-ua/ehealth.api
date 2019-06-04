@@ -13,6 +13,9 @@ defmodule Core.Services do
   @service_fields_required ~w(name code)a
   @service_fields_optional ~w(category parent_id is_composition request_allowed is_active)a
 
+  @service_group_fields_required ~w(name code)a
+  @service_group_fields_optional ~w(parent_id request_allowed is_active)a
+
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
   def list do
@@ -67,7 +70,7 @@ defmodule Core.Services do
     end
   end
 
-  def create(params, actor_id) do
+  def create_service(params, actor_id) do
     with :ok <- JsonSchema.validate(:service, params) do
       %Service{}
       |> changeset(params)
@@ -77,10 +80,25 @@ defmodule Core.Services do
     end
   end
 
+  def create_service_group(params, actor_id) do
+    %ServiceGroup{}
+    |> changeset(params)
+    |> put_change(:inserted_by, actor_id)
+    |> put_change(:updated_by, actor_id)
+    |> PRMRepo.insert_and_log(actor_id)
+  end
+
   def changeset(%Service{} = entity, attrs) do
     entity
     |> cast(attrs, @service_fields_required ++ @service_fields_optional)
     |> validate_required(@service_fields_required)
+    |> validate_length(:name, max: 100)
+  end
+
+  def changeset(%ServiceGroup{} = entity, attrs) do
+    entity
+    |> cast(attrs, @service_group_fields_required ++ @service_group_fields_optional)
+    |> validate_required(@service_group_fields_required)
     |> validate_length(:name, max: 100)
   end
 

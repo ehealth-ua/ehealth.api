@@ -77,6 +77,28 @@ defmodule GraphQL.Schema.ServiceGroupTypes do
     edge(do: nil)
   end
 
+  object :service_group_mutations do
+    payload field(:create_service_group) do
+      meta(:scope, ~w(service_catalog:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:name, non_null(:string))
+        field(:code, non_null(:string))
+        field(:request_allowed, :boolean)
+        field(:parent_group_id, :id)
+      end
+
+      output do
+        field(:service_group, :service_group)
+      end
+
+      middleware(ParseIDs, parent_group_id: :service_group)
+      resolve(&ServiceGroupResolver.create/2)
+    end
+  end
+
   node object(:service_group) do
     field(:database_id, non_null(:uuid))
     field(:name, non_null(:string))
