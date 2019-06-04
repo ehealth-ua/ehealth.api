@@ -176,7 +176,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:short_name, :string, deprecate: true)
     field(:public_name, :string, deprecate: true)
     field(:edrpou, non_null(:string))
-    field(:owner_property_type, non_null(:string), deprecate: true)
+    field(:owner_property_type, :string, deprecate: true)
     field(:legal_form, :string, deprecate: true)
     field(:status_reason, :string)
     field(:reason, :string)
