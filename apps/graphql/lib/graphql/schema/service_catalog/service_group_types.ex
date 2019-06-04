@@ -97,6 +97,23 @@ defmodule GraphQL.Schema.ServiceGroupTypes do
       middleware(ParseIDs, parent_group_id: :service_group)
       resolve(&ServiceGroupResolver.create/2)
     end
+
+    payload field(:deactivate_service_group) do
+      meta(:scope, ~w(service_catalog:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+      end
+
+      output do
+        field(:service_group, :service_group)
+      end
+
+      middleware(ParseIDs, id: :service_group)
+      resolve(&ServiceGroupResolver.deactivate/2)
+    end
   end
 
   node object(:service_group) do
