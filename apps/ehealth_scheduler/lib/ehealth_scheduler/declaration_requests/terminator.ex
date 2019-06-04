@@ -59,6 +59,7 @@ defmodule EHealthScheduler.DeclarationRequests.Terminator do
         set: [
           status: ^new_status(clean_method),
           data: nil,
+          data_legal_entity_id: nil,
           data_start_date_year: nil,
           data_person_tax_id: nil,
           data_person_first_name: nil,
