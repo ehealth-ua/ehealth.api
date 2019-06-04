@@ -2252,6 +2252,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request registration_address of the edrData of the legal entity where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{database_id: database_id} ->
+      query = """
+        query GetLegalEntityQuery($id: ID!) {
+          legalEntity(id: $id) {
+            edrData {
+              registrationAddress {
+                parts {
+                  atu
+                }
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("LegalEntity", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data legalEntity))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<field>\w+) of the (?<entity>(\w+\s?){1,3}) where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, params ->
       {:ok, Map.merge(state, call_details_query(conn, params))}
@@ -3030,6 +3062,19 @@ defmodule GraphQL.Features.Context do
     fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = get_in(resp_entity, [field, nested_field])
+
+      assert expected_value == resp_value
+
+      {:ok, state}
+    end
+  )
+
+  then_(
+    ~r/^the value by path "(?<path>.+)" of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{resp_entity: resp_entity} = state, %{path: path, value: value} ->
+      expected_value = Jason.decode!(value)
+
+      resp_value = get_in(resp_entity, String.split(path, "."))
 
       assert expected_value == resp_value
 

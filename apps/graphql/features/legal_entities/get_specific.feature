@@ -43,3 +43,16 @@ Feature: Get specific legal entity
       | database_id                            | employee_type    |
       | "ea29cca6-3767-4077-bd93-b1fa084b7d62" | "OWNER"          |
       | "ea29cca6-3767-4077-bd93-b1fa084b7d62" | "PHARMACY_OWNER" |
+
+  Scenario: Request associated EDR address
+    Given the following EDR data exist:
+      | databaseId                             | registrationAddress          |
+      | "1ab4b709-65ac-2e9a-2676-bc749772d81a" | {"parts": {"atu": "123456"}} |
+    And the following legal entities are associated with EDR data accordingly:
+      | databaseId                             |
+      | "1aa21d71-9c4a-18a0-257b-4ea826487f1a" |
+    And my scope is "legal_entity:read"
+    When I request registration_address of the edrData of the legal entity where databaseId is "1aa21d71-9c4a-18a0-257b-4ea826487f1a"
+    Then no errors should be returned
+    And I should receive requested item
+    And the value by path "edrData.registrationAddress.parts.atu" of the requested item should be "123456"
