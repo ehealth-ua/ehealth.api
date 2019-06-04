@@ -3,8 +3,7 @@ defmodule Core.Services.Service do
 
   use Ecto.Schema
 
-  alias Core.Services.ProgramService
-  alias Core.Services.ServiceGroup
+  alias Core.Services.{ProgramService, ServiceGroup, ServicesGroups}
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -19,8 +18,10 @@ defmodule Core.Services.Service do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    has_one(:program_service, ProgramService)
-    many_to_many(:service_groups, ServiceGroup, join_through: "services_groups")
+    has_many(:program_services, ProgramService)
+
+    has_many(:services_groups, ServicesGroups)
+    has_many(:service_groups, through: [:services_groups, :service_group])
 
     timestamps(type: :utc_datetime_usec)
   end

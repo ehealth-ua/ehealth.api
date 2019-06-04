@@ -3,7 +3,7 @@ defmodule Core.Services.ServiceGroup do
 
   use Ecto.Schema
 
-  alias Core.Services.Service
+  alias Core.Services.{ProgramService, Service, ServicesGroups}
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -17,7 +17,11 @@ defmodule Core.Services.ServiceGroup do
 
     belongs_to(:parent_group, __MODULE__, foreign_key: :parent_id, type: UUID)
     has_many(:sub_groups, __MODULE__, foreign_key: :parent_id)
-    many_to_many(:services, Service, join_through: "services_groups")
+
+    has_many(:program_services, ProgramService)
+
+    has_many(:services_groups, ServicesGroups)
+    has_many(:services, through: [:services_groups, :service])
 
     timestamps(type: :utc_datetime_usec)
   end

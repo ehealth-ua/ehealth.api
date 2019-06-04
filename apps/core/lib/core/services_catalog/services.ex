@@ -59,14 +59,14 @@ defmodule Core.Services do
     end)
   end
 
-  def get_by_id(id), do: @read_prm_repo.get(Service, id)
+  defdelegate get_by_id(queryable, id), to: @read_prm_repo, as: :get
 
-  def get_by_id!(id), do: @read_prm_repo.get!(Service, id)
+  defdelegate get_by_id!(queryable, id), to: @read_prm_repo, as: :get!
 
-  def fetch_by_id(id) do
-    case get_by_id(id) do
-      %Service{} = service -> {:ok, service}
-      _ -> {:error, {:not_found, "Service not found"}}
+  def fetch_by_id(queryable, id) do
+    case get_by_id(queryable, id) do
+      %{__struct__: queryable} = record -> {:ok, record}
+      _ -> {:error, {:not_found, "#{inspect(queryable)} not found"}}
     end
   end
 
@@ -112,25 +112,68 @@ defmodule Core.Services do
     end
   end
 
+  def deactivate(%ServiceGroup{id: id} = service_group, actor_id) when is_binary(id) do
+    with :ok <- validate_is_active(service_group),
+         :ok <- validate_active_program_services(service_group),
+         :ok <- validate_active_services(service_group) do
+      service_group
+      |> changeset(%{is_active: false})
+      |> put_change(:updated_by, actor_id)
+      |> PRMRepo.update_and_log(actor_id)
+    end
+  end
+
   defp validate_is_active(%{is_active: true}), do: :ok
-  defp validate_is_active(%{is_active: false}), do: {:error, {:conflict, "Service is already deactivated"}}
 
-  defp validate_active_program_services(%{id: id}) do
+  defp validate_is_active(%{is_active: false} = struct) do
+    {:error, {:conflict, "#{to_entity_name(struct)} is already deactivated"}}
+  end
+
+  defp validate_active_program_services(struct) do
+    entity_name = to_entity_name(struct)
+
     error_message =
-      "This service is a participant of active program service. Only service without active program service can be deactivated"
+      "This #{entity_name} is a participant of active ProgramService. Only #{entity_name} without active ProgramService can be deactivated"
 
-    case count_active_program_services_by(service_id: id) do
+    case count_associated_program_services(struct) do
       0 -> :ok
       _ -> {:error, {:conflict, error_message}}
     end
   end
 
-  defp count_active_program_services_by(params) when is_list(params) do
-    params = [is_active: true] ++ params
-
-    ProgramService
-    |> where(^params)
+  defp count_associated_program_services(%{__struct__: queryable} = struct) when queryable in [Service, ServiceGroup] do
+    struct
+    |> Ecto.assoc(:program_services)
+    |> where([ps], ps.is_active == true)
     |> select([ps], count(ps.id))
     |> @read_prm_repo.one()
+  end
+
+  defp validate_active_services(struct) do
+    entity_name = to_entity_name(struct)
+
+    error_message =
+      "This #{entity_name} has active Service. Only #{entity_name} without active Service can be deactivated"
+
+    case count_associated_services(struct) do
+      0 -> :ok
+      _ -> {:error, {:conflict, error_message}}
+    end
+  end
+
+  defp count_associated_services(%ServiceGroup{} = struct) do
+    struct
+    |> Ecto.assoc(:services)
+    |> where([s], s.is_active == true)
+    |> select([s], count(s.id))
+    |> @read_prm_repo.one()
+  end
+
+  defp to_entity_name(%{__struct__: module}), do: to_entity_name(module)
+
+  defp to_entity_name(module) when is_atom(module) do
+    module
+    |> Module.split()
+    |> List.last()
   end
 end

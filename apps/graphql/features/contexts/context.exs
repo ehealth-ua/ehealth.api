@@ -150,32 +150,37 @@ defmodule GraphQL.Features.Context do
       assoc_model = entity_name_to_model(assoc_entity_name)
       assoc_items = existing[assoc_model]
 
-      if length(table_data) != length(assoc_items) do
-        raise "Items count should match with associated items count"
-      end
-
-      assoc_field =
+      assoc =
         model.__schema__(:associations)
         |> Enum.map(&model.__schema__(:association, &1))
         |> Enum.find(fn
           %{related: related} -> assoc_model == related
           _ -> false
         end)
-        |> Map.get(:field)
+
+      if is_nil(assoc_items) do
+        raise "Expected a #{assoc_entity_name} to be inserted"
+      end
+
+      if length(table_data) != length(assoc_items) do
+        raise "Items count should match with associated items count"
+      end
+
+      if is_nil(assoc) do
+        raise "There are no associations between #{entity_name} and #{assoc_entity_name}"
+      end
+
+      {repo_name, factory_name} = entity_name_to_factory_args(entity_name)
 
       items =
-        case entity_name_to_factory_args(entity_name) do
-          {nil, factory_name} ->
-            for {row, assoc_item} <- Enum.zip(table_data, assoc_items) do
-              attrs = prepare_attrs(model, row)
-              build(factory_name, [{assoc_field, assoc_item} | attrs])
-            end
+        for {row, assoc_item} <- Enum.zip(table_data, assoc_items) do
+          attrs = prepare_attrs(model, row)
+          assoc_attrs = prepare_assoc_attrs(assoc, assoc_item)
 
-          {repo_name, factory_name} ->
-            for {row, assoc_item} <- Enum.zip(table_data, assoc_items) do
-              attrs = prepare_attrs(model, row)
-              insert(repo_name, factory_name, [{assoc_field, assoc_item} | attrs])
-            end
+          case repo_name do
+            nil -> build(factory_name, assoc_attrs ++ attrs)
+            _ -> insert(repo_name, factory_name, assoc_attrs ++ attrs)
+          end
         end
 
       {:ok, %{state | existing: Map.put(existing, model, items)}}
@@ -2742,6 +2747,37 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I deactivate service group where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{database_id: database_id} ->
+      query = """
+      mutation DeactivateServiceGroup($input: DeactivateServiceGroupInput!) {
+        deactivateServiceGroup(input: $input) {
+          serviceGroup {
+            databaseId
+            isActive
+          }
+        }
+      }
+      """
+
+      variables = %{
+        input: %{
+          id: Node.to_global_id("ServiceGroup", database_id)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deactivateServiceGroup serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I deactivate medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{database_id: database_id} ->
       query = """
@@ -3243,6 +3279,14 @@ defmodule GraphQL.Features.Context do
       _ ->
         Jason.decode(value)
     end
+  end
+
+  defp prepare_assoc_attrs(%{cardinality: :many, field: field} = assoc, item) do
+    [{field, [item]}]
+  end
+
+  defp prepare_assoc_attrs(%{cardinality: :one, field: field} = assoc, item) do
+    [{field, item}]
   end
 
   defp introspect(queryable, field) do

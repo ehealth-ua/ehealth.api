@@ -31,4 +31,11 @@ defmodule GraphQL.Resolvers.ServiceGroup do
       {:ok, %{service_group: service_group}}
     end
   end
+
+  def deactivate(%{id: id}, %{context: %{consumer_id: consumer_id}}) do
+    with {:ok, service_group} <- Services.fetch_by_id(ServiceGroup, id),
+         {:ok, service_group} <- Services.deactivate(service_group, consumer_id) do
+      {:ok, %{service_group: service_group}}
+    end
+  end
 end
