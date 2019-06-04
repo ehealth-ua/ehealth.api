@@ -91,7 +91,7 @@ defmodule GraphQL.Schema.ServiceTypes do
         field(:service, :service)
       end
 
-      resolve(&ServiceResolver.create_service/2)
+      resolve(&ServiceResolver.create/2)
     end
 
     payload field(:deactivate_service) do

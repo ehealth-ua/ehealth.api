@@ -10,7 +10,7 @@ defmodule Core.Services.ServiceGroup do
   schema "service_groups" do
     field(:code, :string)
     field(:name, :string)
-    field(:is_active, :boolean)
+    field(:is_active, :boolean, default: true)
     field(:request_allowed, :boolean)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)

@@ -3406,6 +3406,29 @@ defmodule GraphQL.Features.Context do
     %{resp_body: resp_body, resp_entity: resp_entity}
   end
 
+  defp call_create_entity_mutation(conn, "service group", input_attrs) do
+    input_attrs = prepare_input_attrs(input_attrs)
+
+    query = """
+      mutation CreateServiceGroup($input: CreateServiceGroupInput!) {
+        createServiceGroup(input: $input) {
+          serviceGroup {
+            name
+          }
+        }
+      }
+    """
+
+    resp_body =
+      conn
+      |> post_query(query, %{input: input_attrs})
+      |> json_response(200)
+
+    resp_entity = get_in(resp_body, ~w(data createServiceGroup serviceGroup))
+
+    %{resp_body: resp_body, resp_entity: resp_entity}
+  end
+
   defp call_create_entity_mutation(conn, entity, input_attrs) do
     input_attrs = prepare_input_attrs(input_attrs)
     return_fields = prepare_return_fields(input_attrs)

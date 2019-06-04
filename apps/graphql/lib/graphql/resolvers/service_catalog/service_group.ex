@@ -6,6 +6,7 @@ defmodule GraphQL.Resolvers.ServiceGroup do
   import GraphQL.Resolvers.Helpers.Load, only: [load_by_parent_with_connection: 4]
 
   alias Absinthe.Relay.Connection
+  alias Core.Services
   alias Core.Services.ServiceGroup
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -23,5 +24,11 @@ defmodule GraphQL.Resolvers.ServiceGroup do
 
   def load_services(parent, args, resolution) do
     load_by_parent_with_connection(parent, args, resolution, :services)
+  end
+
+  def create(args, %{context: %{consumer_id: consumer_id}}) do
+    with {:ok, service_group} <- Services.create_service_group(args, consumer_id) do
+      {:ok, %{service_group: service_group}}
+    end
   end
 end
