@@ -14,7 +14,8 @@ config :ehealth_scheduler, EHealthScheduler.Worker,
   contract_autotermination: {:system, :string, "CONTRACT_AUTOTERMINATION_SCHEDULE", "0 0-4 * * *"},
   edr_validator_schedule: {:system, :string, "EDR_VALIDATOR_SCHEDULE", "0 0 * * *"},
   dls_validator_schedule: {:system, :string, "DLS_VALIDATOR_SCHEDULE", "0 0-4 * * *"},
-  legal_entity_suspender_schedule: {:system, :string, "LEGAL_ENTITY_SUSPENDER_SCHEDULE", "0 0-4 * * *"}
+  legal_entity_suspender_schedule: {:system, :string, "LEGAL_ENTITY_SUSPENDER_SCHEDULE", "0 0-4 * * *"},
+  edr_synchronization_schedule: {:system, :string, "EDR_SYNCHRONIZATION_SCHEDULE", "0 0 * * *"}
 
 config :ehealth_scheduler, EHealthScheduler.Jobs.ContractRequestsTerminator,
   contract_request_termination_batch_size: {:system, :integer, "CONTRACT_REQUEST_AUTOTERMINATION_BATCH_SIZE", 100}

@@ -10,6 +10,7 @@ defmodule EHealthScheduler.Worker do
   alias EHealthScheduler.Contracts.Terminator, as: ContractsTerminator
   alias EHealthScheduler.DeclarationRequests.Terminator, as: DeclarationRequestsTerminator
   # alias EHealthScheduler.Jobs.ContractRequestsTerminator
+  alias EHealthScheduler.Jobs.EdrSynchronizator
   alias EHealthScheduler.Jobs.EdrValidator
   alias EHealthScheduler.Jobs.LegalEntitySuspender
   alias Quantum.Job
@@ -62,5 +63,6 @@ defmodule EHealthScheduler.Worker do
 
     create_job(&DLS.validate_divisions/0, :dls_validator_schedule)
     create_job(&LegalEntitySuspender.run/0, :legal_entity_suspender_schedule)
+    create_job(&EdrSynchronizator.run/0, :edr_synchronization_schedule)
   end
 end

@@ -55,6 +55,7 @@ defmodule Core.V2.LegalEntities do
     public_name
     short_name
     residence_address
+    nhs_unverified_at
   )a
 
   # Create legal entity

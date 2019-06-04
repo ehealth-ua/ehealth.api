@@ -10,6 +10,7 @@ defmodule Jobs.Jabba.Task do
 
   @contract_request_terminate_type :contract_request_terminate
   @merge_legal_entity_type :merge_legal_entity
+  @edr_synchronize_type :edr_synchronize
 
   @deactivate_legal_entity_type :deactivate_legal_entity
   @deactivate_employee_type :deactivate_employee
@@ -38,6 +39,11 @@ defmodule Jobs.Jabba.Task do
     struct(__MODULE__, %{name: "Merge legal entity", callback: callback})
   end
 
+  def new(@edr_synchronize_type, legal_entity) do
+    callback = {"ehealth", Jobs.EdrSynchronizeJob, :synchronize, [legal_entity]}
+    struct(__MODULE__, %{name: "Synchronize legal entity with edr", callback: callback})
+  end
+
   def new(type, entity, actor_id) when type in @deactivate_legal_entity_types do
     callback = {"ehealth", Jobs.LegalEntityDeactivationJob, :deactivate, [entity, actor_id]}
 
@@ -57,4 +63,5 @@ defmodule Jobs.Jabba.Task do
   def type(:deactivate_contract), do: @deactivate_contract_type
   def type(:deactivate_contract_request), do: @deactivate_contract_request_type
   def type(:contract_request_terminate), do: @contract_request_terminate_type
+  def type(:edr_synchronize), do: @edr_synchronize_type
 end
