@@ -54,7 +54,9 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
     end
 
     test "invalid state" do
-      %{id: edr_data_id, legal_entities: legal_entities} = insert(:prm, :edr_data) |> PRMRepo.preload(:legal_entities)
+      legal_entities = [build(:legal_entity, nhs_verified: true)]
+      %{id: edr_data_id} = insert(:prm, :edr_data, legal_entities: legal_entities)
+
       assert [%LegalEntity{nhs_verified: true}] = legal_entities
       expect_get_legal_entity_detailed_info({:ok, %{"state" => 0}})
       assert :ok = Consumer.consume(%{"id" => edr_data_id})

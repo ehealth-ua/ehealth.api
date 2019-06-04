@@ -19,20 +19,23 @@ defmodule GraphQL.Schema.LegalEntityTypes do
       arg(:filter, :legal_entity_filter)
       arg(:order_by, :legal_entity_order_by, default_value: :inserted_at_desc)
 
-      middleware(ParseIDs, filter: [addresses: [settlement_id: :settlement]])
+      middleware(ParseIDs, filter: [residence_address: [settlement_id: :settlement]])
 
       middleware(Filtering,
         database_id: :equal,
         type: :in,
         status: :equal,
-        edrpou: :like,
-        name: :like,
         nhs_verified: :equal,
         nhs_reviewed: :equal,
         edr_verified: :equal,
-        addresses: [
-          type: :equal,
+        residence_address: [
           settlement_id: :equal
+        ],
+        edr_data: [
+          database_id: :equal,
+          edrpou: :like,
+          name: :like,
+          is_active: :equal
         ]
       )
 
@@ -55,12 +58,18 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     # Dictionary: LEGAL_ENTITY_TYPE
     field(:type, list_of(:string))
     field(:status, :legal_entity_status)
-    field(:edrpou, :string)
-    field(:name, :string)
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
     field(:edr_verified, :boolean)
-    field(:addresses, :address_filter)
+    field(:residence_address, :address_filter)
+    field(:edr_data, :edr_data_filter)
+  end
+
+  input_object :edr_data_filter do
+    field(:database_id, :uuid)
+    field(:name, :string)
+    field(:edrpou, :string)
+    field(:is_active, :boolean)
   end
 
   enum :legal_entity_order_by do
@@ -161,14 +170,14 @@ defmodule GraphQL.Schema.LegalEntityTypes do
 
   node object(:legal_entity) do
     field(:database_id, non_null(:uuid))
-    field(:name, non_null(:string))
+    field(:name, :string, deprecate: true)
     field(:email, non_null(:string))
-    field(:kveds, non_null(list_of(:string)))
-    field(:short_name, :string)
-    field(:public_name, :string)
+    field(:kveds, non_null(list_of(:string)), deprecate: true)
+    field(:short_name, :string, deprecate: true)
+    field(:public_name, :string, deprecate: true)
     field(:edrpou, non_null(:string))
-    field(:owner_property_type, non_null(:string))
-    field(:legal_form, non_null(:string))
+    field(:owner_property_type, non_null(:string), deprecate: true)
+    field(:legal_form, :string, deprecate: true)
     field(:status_reason, :string)
     field(:reason, :string)
     field(:website, :string)
@@ -190,9 +199,11 @@ defmodule GraphQL.Schema.LegalEntityTypes do
 
     # embed
     field(:phones, non_null(list_of(:phone)))
-    field(:addresses, non_null(list_of(:address)))
+    field(:residence_address, :address)
+    field(:addresses, non_null(list_of(:address)), deprecate: true)
     field(:archive, list_of(:legal_entity_archive))
     field(:license, :license, resolve: dataloader(PRM))
+    field(:edr_data, :edr_data, resolve: dataloader(PRM))
 
     # relations
     field(:owner, :employee, resolve: &LegalEntityResolver.load_owner/3)
@@ -282,6 +293,27 @@ defmodule GraphQL.Schema.LegalEntityTypes do
   object :legal_entity_archive do
     field(:date, :string)
     field(:place, :string)
+  end
+
+  object :edr_data do
+    field(:database_id, non_null(:uuid))
+    field(:edr_id, non_null(:integer))
+    field(:name, non_null(:string))
+    field(:short_name, :string)
+    field(:public_name, non_null(:string))
+    field(:state, :integer)
+    field(:legal_form, :string)
+    field(:edrpou, non_null(:string))
+    field(:kveds, non_null(list_of(:edr_kved)))
+    field(:registration_address, :address)
+    field(:is_active, non_null(:boolean))
+    field(:inserted_at, non_null(:datetime))
+    field(:updated_at, non_null(:datetime))
+  end
+
+  object :edr_kved do
+    field(:code, :string)
+    field(:is_primary, :boolean)
   end
 
   # enum

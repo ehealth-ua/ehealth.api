@@ -16,7 +16,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.EmployeeRequests.EmployeeRequest
-  alias Core.LegalEntities.{LegalEntity, RelatedLegalEntity}
+  alias Core.LegalEntities.{EdrData, LegalEntity, RelatedLegalEntity}
   alias Core.Medications.{INNM, INNMDosage, Medication}
   alias Core.MedicalPrograms.MedicalProgram
   alias Core.Medications.Program, as: ProgramMedication
@@ -24,7 +24,6 @@ defmodule GraphQL.Features.Context do
   alias Core.PartyUsers.PartyUser
   alias Core.Services.{ProgramService, Service, ServiceGroup, ServicesGroups}
   alias Core.Uaddresses.{District, Region, Settlement}
-  alias Core.Services.ServiceGroup
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
   alias Jobs.LegalEntityMergeJob
@@ -3066,6 +3065,7 @@ defmodule GraphQL.Features.Context do
 
   def entity_name_to_model("dictionary"), do: Dictionary
   def entity_name_to_model("legal entity"), do: LegalEntity
+  def entity_name_to_model("EDR datum"), do: EdrData
   def entity_name_to_model("related legal entity"), do: RelatedLegalEntity
   def entity_name_to_model("division"), do: Division
   def entity_name_to_model("employee"), do: Employee
@@ -3100,6 +3100,7 @@ defmodule GraphQL.Features.Context do
 
   def entity_name_to_factory_args("dictionary"), do: {:il, :dictionary}
   def entity_name_to_factory_args("legal entity"), do: {:prm, :legal_entity}
+  def entity_name_to_factory_args("EDR datum"), do: {:prm, :edr_data}
   def entity_name_to_factory_args("related legal entity"), do: {:prm, :related_legal_entity}
   def entity_name_to_factory_args("division"), do: {:prm, :division}
   def entity_name_to_factory_args("employee"), do: {:prm, :employee}
@@ -3123,7 +3124,6 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("INNM dosage"), do: {:prm, :innm_dosage}
   def entity_name_to_factory_args("INNM dosage ingredient"), do: {:prm, :ingredient_innm_dosage}
   def entity_name_to_factory_args("INNM"), do: {:prm, :innm}
-  def entity_name_to_factory_args("service group"), do: {:prm, :service_group}
   def entity_name_to_factory_args("region"), do: {nil, :region}
   def entity_name_to_factory_args("district"), do: {nil, :district}
   def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
@@ -3134,6 +3134,7 @@ defmodule GraphQL.Features.Context do
 
   def model_to_repo(Dictionary), do: Repo
   def model_to_repo(LegalEntity), do: PRMRepo
+  def model_to_repo(EdrData), do: PRMRepo
   def model_to_repo(RelatedLegalEntity), do: PRMRepo
   def model_to_repo(Division), do: PRMRepo
   def model_to_repo(Employee), do: PRMRepo
@@ -3157,7 +3158,6 @@ defmodule GraphQL.Features.Context do
   def model_to_repo(INNMDosage), do: PRMRepo
   def model_to_repo(INNMDosage.Ingredient), do: PRMRepo
   def model_to_repo(INNM), do: PRMRepo
-  def model_to_repo(ServiceGroup), do: PRMRepo
   def model_to_repo(model), do: raise("Repo not found for #{inspect(model)}")
 
   def transpose_table(table_data) do

@@ -13,14 +13,7 @@ Feature: Get specific legal entity
     Examples:
       | field             | value                                  |
       | databaseId        | "46fac56d-300f-43f4-86c7-2b1ac40d63a5" |
-      | name              | "Acme Inc"                             |
       | email             | "example@example.com"                  |
-      | kveds             | ["86.10", "86.21"]                     |
-      | shortName         | "Acme"                                 |
-      | publicName        | "Acme Inc"                             |
-      | edrpou            | "1234567890"                           |
-      | ownerPropertyType | "STATE"                                |
-      | legalForm         | "240"                                  |
       | website           | "https://example.com/"                 |
       | receiverFundsCode | "088912"                               |
       | beneficiary       | "Марко Вовчок"                         |

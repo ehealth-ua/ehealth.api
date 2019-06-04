@@ -8,6 +8,7 @@ use Mix.Config
 # configure all applications here, we prefer to delegate
 # back to each application for organization purposes.
 
+if Application.get_env(:core, :env) == :dev do
 config :git_ops,
   mix_project: Ehealth.MixProject,
   changelog_file: "CHANGELOG.md",
@@ -30,6 +31,7 @@ config :git_ops,
   # Instructs the tool to manage the version in your README.md
   # Pass in `true` to use `"README.md"` or a string to customize
   manage_readme_version: "README.md"
+end
 
 import_config "../apps/*/config/config.exs"
 

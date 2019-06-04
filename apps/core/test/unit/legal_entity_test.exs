@@ -364,8 +364,7 @@ defmodule Core.Unit.LegalEntityTest do
     end
 
     test "success new legal entity with existing closed edr_data and new active edr_data from edr" do
-      edr_data = insert(:prm, :edr_data, state: 0, legal_entities: [])
-      edr_id = DateTime.to_unix(DateTime.utc_now())
+      %{edr_id: edr_id} = edr_data = insert(:prm, :edr_data, state: 0, legal_entities: [])
 
       content =
         "test/data/signed_content.json"
@@ -427,8 +426,13 @@ defmodule Core.Unit.LegalEntityTest do
 
       edr_data_id = edr_data.id
       assert_security(security, legal_entity.id)
-      assert %LegalEntity{edr_data_id: ^edr_data_id} = PRMRepo.get(LegalEntity, legal_entity.id)
-      assert %EdrData{edr_id: ^edr_id} = PRMRepo.get(EdrData, legal_entity.edr_data_id)
+      db_legal_entity = PRMRepo.get(LegalEntity, legal_entity.id)
+      assert %LegalEntity{} = db_legal_entity
+      assert edr_data_id == db_legal_entity.edr_data_id
+
+      db_edr_data = PRMRepo.get(EdrData, legal_entity.edr_data_id)
+      assert %EdrData{} = db_edr_data
+      assert edr_id == db_edr_data.edr_id
     end
 
     test "fail to create new legal entity with invalid edr response" do
@@ -516,7 +520,8 @@ defmodule Core.Unit.LegalEntityTest do
 
     test "success update legal entity references active edr_data" do
       insert(:prm, :registry)
-      insert(:prm, :edr_data)
+      legal_entity = build(:legal_entity, nhs_verified: true)
+      %{edr_id: edr_id} = insert(:prm, :edr_data, legal_entities: [legal_entity])
       put_client()
 
       update_data =
@@ -533,8 +538,6 @@ defmodule Core.Unit.LegalEntityTest do
 
       expect_uaddresses_validate()
       upsert_client_connection()
-
-      edr_id = DateTime.to_unix(DateTime.utc_now())
 
       expect_search_legal_entity(
         {:ok,

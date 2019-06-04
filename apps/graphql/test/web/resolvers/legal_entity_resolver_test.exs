@@ -150,20 +150,21 @@ defmodule GraphQL.LegalEntityResolverTest do
     end
 
     test "success with filter", %{conn: conn} do
-      for edrpou <- ["1234567890", "0987654321"], do: insert(:prm, :legal_entity, edrpou: edrpou)
+      insert(:prm, :legal_entity, type: "MSP")
+      insert(:prm, :legal_entity, type: "PHARMACY")
 
       query = """
         query ListLegalEntitiesQuery($first: Int!, $filter: LegalEntityFilter!) {
           legalEntities(first: $first, filter: $filter) {
             nodes {
               id
-              edrpou
+              type
             }
           }
         }
       """
 
-      variables = %{first: 10, filter: %{edrpou: "1234567890"}}
+      variables = %{first: 10, filter: %{type: "PHARMACY"}}
 
       legal_entities =
         conn
@@ -172,20 +173,20 @@ defmodule GraphQL.LegalEntityResolverTest do
         |> get_in(~w(data legalEntities nodes))
 
       assert 1 == length(legal_entities)
-      assert "1234567890" == hd(legal_entities)["edrpou"]
+      assert "PHARMACY" == hd(legal_entities)["type"]
     end
 
     test "success with filter by related legal entity edrpou", %{conn: conn} do
       from = insert(:prm, :legal_entity, edrpou: "1234567890")
       from2 = insert(:prm, :legal_entity, edrpou: "2234567890")
       insert(:prm, :legal_entity, edrpou: "3234567890")
-      to = insert(:prm, :legal_entity, edrpou: "3234567899")
+      to = insert(:prm, :legal_entity, type: "PHARMACY")
       insert(:prm, :related_legal_entity, merged_from: from, merged_to: to)
       related_legal_entity = insert(:prm, :related_legal_entity, merged_from: from2, merged_to: to)
 
       query = """
         {
-          legalEntities(first: 10, filter: {edrpou: "3234567899"}) {
+          legalEntities(first: 10, filter: {type: "PHARMACY"}) {
             nodes {
               databaseId
               mergedFromLegalEntities(

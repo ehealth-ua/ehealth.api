@@ -74,8 +74,6 @@ Feature: Get all capitation contracts
     Examples:
       | association_entity | association_field     | field        | filter_value                           | expected_value                         | alternate_value                        | expected_id                            | alternate_id                           |
       | legal entities     | contractorLegalEntity | databaseId   | "488b864e-9602-4994-9bdc-84fce28424ba" | "488b864e-9602-4994-9bdc-84fce28424ba" | "c5ced316-16a7-4532-b84e-56f7b84e5579" | "5ab2942c-449c-4756-9a7c-8079ca4b6cb8" | "e0dff91c-747e-4d3b-96ed-eae9ba429eae" |
-      | legal entities     | contractorLegalEntity | edrpou       | "12345"                                | "1234567890"                           | "0987654321"                           | "8278dc43-8260-43f9-88de-c60a2802df64" | "205bd220-d208-48ca-bed5-a5e700fb604a" |
-      | legal entities     | contractorLegalEntity | name         | "acme"                                 | "Acme Corporation"                     | "Ajax LLC"                             | "a2c6fbd6-a5e8-4269-bcd8-6b7fc6b683d1" | "7e90abcd-b734-47d1-b596-4d407407218b" |
       | legal entities     | contractorLegalEntity | nhsReviewed  | false                                  | false                                  | true                                   | "611a50e5-94c8-4867-8675-f60bfc6c3f13" | "66f1dfc2-94f1-46dd-8a07-2dde81d82f72" |
       | legal entities     | contractorLegalEntity | nhsVerified  | true                                   | true                                   | false                                  | "4f299fab-17a6-4bd5-bc1f-519efa5e8b17" | "6ab65420-1ad2-4089-b9ff-46310cb95b97" |
 
