@@ -7,6 +7,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.LegalEntityCreator
+  alias Core.LegalEntities.License
   alias Core.PRMRepo
   alias Core.V2.LegalEntities, as: V2LegalEntities
   alias Core.V2.LegalEntities.Licenses
@@ -30,15 +31,12 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     client_id = get_client_id(headers)
     edrpou = Map.fetch!(params, "edrpou")
     type = Map.fetch!(params, "type")
-    request_license = Map.get(params, "license", %{})
-    license_id = Map.get(request_license, "id", UUID.generate())
 
     case get_legal_entities(type, edrpou, @status_active) do
       [] ->
         new_legal_entity(
           legal_entity_code,
           params,
-          license_id,
           license_required,
           consumer_id,
           client_id
@@ -80,7 +78,6 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
                 edr_response: data
             },
             params,
-            license_id,
             license_required,
             consumer_id
           )
@@ -90,7 +87,6 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         new_legal_entity(
           legal_entity_code,
           params,
-          license_id,
           license_required,
           consumer_id,
           client_id
@@ -157,7 +153,6 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   defp new_changeset(
          %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id, edr_response: edr_response} = state,
          attrs,
-         license_id,
          license_required,
          consumer_id,
          client_id
@@ -178,6 +173,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         "edr_verified" => nil
       })
 
+    license_id = state.license_id
     creation_data = Map.put(creation_data, "license_id", license_id)
 
     with %LegalEntityCreator{} = state <-
@@ -189,10 +185,11 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   def update_changeset(
         %LegalEntityCreator{legal_entity: legal_entity, edr_data_id: edr_data_id, edr_response: edr_response} = state,
         attrs,
-        license_id,
         license_required,
         consumer_id
       ) do
+    state = set_license_id(state, attrs)
+
     update_data =
       attrs
       |> Map.delete("edrpou")
@@ -207,7 +204,7 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         "edr_verified" => nil
       })
 
-    license_id = legal_entity.license_id || license_id
+    license_id = state.license_id
     update_data = Map.put(update_data, "license_id", license_id)
     changes = V2LegalEntities.changeset(legal_entity, update_data)
 
@@ -241,7 +238,6 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
   defp new_legal_entity(
          legal_entity_code,
          params,
-         license_id,
          license_required,
          consumer_id,
          client_id
@@ -250,11 +246,11 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
     type = Map.fetch!(params, "type")
 
     with %LegalEntityCreator{} = state <-
-           upsert_edr_data(state, legal_entity_code, type, consumer_id) do
+           upsert_edr_data(state, legal_entity_code, type, consumer_id),
+         state <- set_license_id(state, params) do
       new_changeset(
         state,
         params,
-        license_id,
         license_required,
         consumer_id,
         client_id
@@ -446,5 +442,37 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         :ok
       end
     end
+  end
+
+  defp set_license_id(
+         %LegalEntityCreator{edr_data_id: edr_data_id} = state,
+         %{"license" => %{"type" => license_type}} = params
+       )
+       when not is_nil(license_type) do
+    edr_license =
+      License
+      |> join(:left, [l], le in LegalEntity, on: le.license_id == l.id)
+      |> join(:left, [l, le], ed in EdrData, on: ed.id == le.edr_data_id)
+      |> where([l, le, ed], ed.id == ^edr_data_id and l.type == ^license_type)
+      |> where([l], l.is_active)
+      |> select([l, le, ed], %{id: l.id})
+      |> limit(1)
+      |> PRMRepo.one()
+
+    case edr_license do
+      %{} ->
+        %{state | license_id: edr_license.id}
+
+      _ ->
+        request_license = Map.get(params, "license", %{})
+        license_id = Map.get(request_license, "id", UUID.generate())
+        %{state | license_id: license_id}
+    end
+  end
+
+  defp set_license_id(%LegalEntityCreator{} = state, params) do
+    request_license = Map.get(params, "license", %{})
+    license_id = Map.get(request_license, "id", UUID.generate())
+    %{state | license_id: license_id}
   end
 end

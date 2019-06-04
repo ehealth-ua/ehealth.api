@@ -13,7 +13,13 @@ defmodule Core.LegalEntities.LegalEntityCreator do
   import Core.API.Helpers.Connection, only: [get_consumer_id: 1, get_client_id: 1, get_header: 2]
   import Ecto.Query
 
-  defstruct legal_entity: nil, edr_data_id: nil, edr_response: nil, inserts: [], updates: [], update_all: []
+  defstruct legal_entity: nil,
+            edr_data_id: nil,
+            license_id: nil,
+            edr_response: nil,
+            inserts: [],
+            updates: [],
+            update_all: []
 
   @status_active LegalEntity.status(:active)
 
