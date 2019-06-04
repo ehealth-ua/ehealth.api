@@ -305,7 +305,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     field(:legal_form, :string)
     field(:edrpou, non_null(:string))
     field(:kveds, non_null(list_of(:edr_kved)))
-    field(:registration_address, :address)
+    field(:registration_address, :edr_address)
     field(:is_active, non_null(:boolean))
     field(:inserted_at, non_null(:datetime))
     field(:updated_at, non_null(:datetime))
@@ -314,6 +314,25 @@ defmodule GraphQL.Schema.LegalEntityTypes do
   object :edr_kved do
     field(:code, :string)
     field(:is_primary, :boolean)
+  end
+
+  object :edr_address do
+    field(:address, :string)
+    field(:country, :string)
+    field(:parts, :edr_address_parts)
+    field(:zip, :string)
+  end
+
+  object :edr_address_parts do
+    field(:atu, :string)
+    field(:atu_code, :string)
+    field(:building, :string)
+    field(:building_type, :string)
+    field(:house, :string)
+    field(:house_type, :string)
+    field(:street, :string)
+    field(:num, :string)
+    field(:num_type, :string)
   end
 
   # enum
