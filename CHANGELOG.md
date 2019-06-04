@@ -5,6 +5,159 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [9.0.0](https://github.com/edenlabllc/ehealth.api/compare/8.14.1...9.0.0) (2019-6-4)
+### Breaking Changes:
+
+* Create legal entity v1 (#4997)
+
+
+
+### Features:
+
+* Edr synchronization#5103 (#5169)
+
+* legal entity validations (#5165)
+
+* graphql: added EDR data to LegalEntity schema (#5163)
+
+* suspend contract and legal entity type cron job created (#5155)
+
+* graphql: add `deactivateService` mutation (#5130)
+
+* graphql: add `createService` mutation (#5129)
+
+* graphql: add `ServiceGroup` queries (#5131)
+
+* graphql: add `Service` queries (#5126)
+
+* Terminate contract requests (#5151)
+
+* terminate contract requests on edr validations (#5142)
+
+* sign contract request nhs verified validation (#5146)
+
+* graphql: added tasks for deactivation and merge legal entities jobs (#5105)
+
+* update deactivate le (#5135)
+
+* add legal entities types validation from config for contract request create (#5124)
+
+* medication request legal_entity validations (#5123)
+
+* employee request validations (#5101)
+
+* declaration request create validations (#5099)
+
+* division validations (#5098)
+
+* le v2 render (#5075)
+
+* Ael options (#5063)
+
+* core: created table `program_services` in PRM (#5061)
+
+* replace rest call with rpc in digital signature (#4992)
+
+* replace rest call with rpc in media_storage (ael) (#4987)
+
+* add contractor legal entity status and NHS verification validations to contract request processes
+
+* replace rest calls with rpc on man and otp verification services (#4952)
+
+* set unverified timestamp on legal entity creation
+
+* add unverified timestamp setting to verify legal entity by NHS process
+
+* add `updateLegalEntityStatus` mutation
+
+### Bug Fixes:
+
+* git ops (#5171)
+
+* graphql: set LE owner_property_type nullable (#5170)
+
+* le licenses validations (#5168)
+
+* declaration request cleaner (#5164)
+
+* graphql: successfully deactivate service when service is a participant of active service group (#5160)
+
+* transform badrpc error to internal server error (#5161)
+
+* le v2 contract request terminator fixes (#5159)
+
+* multiple fixes to le v2 (#5158)
+
+* response for get contracts list changed according to apiary (#5154)
+
+* hide_phone_number func fixed (#5153)
+
+* le v2 (#5152)
+
+* correct handling ds.api errors (base64, json format etc) (#5147)
+
+* le v2 (#5143)
+
+* le v2 validations (#5139)
+
+* edr validations consumer (#5134)
+
+* uaddresses rpc name (#5127)
+
+* otp send sms func fixed (#5125)
+
+* match error on convert types (#5107)
+
+* le v2 license validation (#5104)
+
+* Le v2 render (#5102)
+
+* scheduler (#5097)
+
+* correct handling errors from DS rpc calls (#5084)
+
+* scheduler datetime type (#5086)
+
+* create le v2 response (#5083)
+
+* convert not a base64 string to 4xx error on sign MRR (#5049)
+
+* add missed config (#5082)
+
+* change scheduler gen server to simple jobs (#5078)
+
+* declaration request v2 create fix (#5074)
+
+* le v2 fixes (#5069)
+
+* Create legal entity v1 (#5064)
+
+* render le on le v1 create/update (#5062)
+
+* Create legal entity v2 (#5054)
+
+* le v2 create,update (#5048)
+
+* Create legal entity v1 (#5044)
+
+* search for mrr list optimized (search fields added) (#5019)
+
+* core: fixed contract request creation - set id for contract_request from params (#5020)
+
+* edr verified flag on le create/update (#5017)
+
+* when edr addresss is null (#5015)
+
+* man render template with string keys (#5013)
+
+* hide division DLS verified validation on contract request processes behind feature flag
+
+* add unique index for contract contract_number verified status (#4996)
+
+* ehealth: fix postmark client flows to internal server error (#4983)
+
+* get innm dosage list pagination fixed (#4979)
+
 ## [8.14.1](https://github.com/edenlabllc/ehealth.api/compare/8.14.0...8.14.1) (2019-5-14)
 
 
