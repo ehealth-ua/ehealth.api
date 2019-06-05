@@ -1,4 +1,4 @@
-defmodule Core.Services.ServicesGroups do
+defmodule Core.Services.ServiceInclusion do
   @moduledoc false
 
   use Ecto.Schema
@@ -7,9 +7,10 @@ defmodule Core.Services.ServicesGroups do
   alias Core.Services.ServiceGroup
   alias Ecto.UUID
 
-  @primary_key false
-  schema "services_groups" do
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "service_inclusions" do
     field(:alias, :string)
+    field(:is_active, :boolean)
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 

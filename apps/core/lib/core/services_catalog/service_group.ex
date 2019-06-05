@@ -3,7 +3,7 @@ defmodule Core.Services.ServiceGroup do
 
   use Ecto.Schema
 
-  alias Core.Services.{ProgramService, Service, ServicesGroups}
+  alias Core.Services.{ProgramService, Service, ServiceInclusion}
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -20,8 +20,8 @@ defmodule Core.Services.ServiceGroup do
 
     has_many(:program_services, ProgramService)
 
-    has_many(:services_groups, ServicesGroups)
-    has_many(:services, through: [:services_groups, :service])
+    has_many(:service_inclusions, ServiceInclusion, where: [is_active: true])
+    has_many(:services, through: [:service_inclusions, :service])
 
     timestamps(type: :utc_datetime_usec)
   end

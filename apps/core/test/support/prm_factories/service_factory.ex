@@ -5,7 +5,7 @@ defmodule Core.PRMFactories.ServiceFactory do
     quote do
       alias Core.Services.Service
       alias Core.Services.ServiceGroup
-      alias Core.Services.ServicesGroups
+      alias Core.Services.ServiceInclusion
       alias Core.Services.ProgramService
       alias Ecto.UUID
 
@@ -31,8 +31,8 @@ defmodule Core.PRMFactories.ServiceFactory do
         }
       end
 
-      def services_groups_factory do
-        %ServicesGroups{
+      def service_inclusion_factory do
+        %ServiceInclusion{
           inserted_by: UUID.generate(),
           updated_by: UUID.generate()
         }
