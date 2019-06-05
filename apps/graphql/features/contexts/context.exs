@@ -22,7 +22,7 @@ defmodule GraphQL.Features.Context do
   alias Core.Medications.Program, as: ProgramMedication
   alias Core.Parties.Party
   alias Core.PartyUsers.PartyUser
-  alias Core.Services.{ProgramService, Service, ServiceGroup, ServicesGroups}
+  alias Core.Services.{ProgramService, Service, ServiceGroup, ServiceInclusion}
   alias Core.Uaddresses.{District, Region, Settlement}
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.UUID
@@ -2946,6 +2946,37 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(
+    ~r/^I add service to group with attributes:$/,
+    fn %{conn: conn} = state, %{table_data: [row]} ->
+      input_attrs = prepare_input_attrs(row)
+
+      query = """
+        mutation AddServiceToGroupMutation($input: AddServiceToGroupInput!) {
+          addServiceToGroup(input: $input) {
+            serviceGroup {
+              databaseId
+              services(first: 10) {
+                nodes {
+                  databaseId
+                }
+              }
+            }
+          }
+        }
+      """
+
+      resp_body =
+        conn
+        |> post_query(query, %{input: input_attrs})
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data addServiceToGroup serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
   then_(
     ~r/^event would be published to event manager$/,
     fn state, _ ->
@@ -3019,7 +3050,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    ~r/^(?:the )?(?<field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entities: resp_entities} = state, %{field: field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = hd(resp_entities)[field]
@@ -3031,7 +3062,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) in the (?<association_field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    ~r/^(?:the )?(?<field>\w+) in (?:the )?(?<association_field>\w+) of the first item in the collection should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entities: resp_entities} = state, %{field: field, association_field: association_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entities |> hd() |> get_in([association_field, field])
@@ -3043,7 +3074,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the requested item should be (?<negate>not )?(?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    ~r/^(?:the )?(?<field>\w+) of the requested item should be (?<negate>not )?(?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entity: resp_entity} = state, %{field: field, value: value, negate: negate} ->
       expected_value = Jason.decode!(value)
       resp_value = resp_entity[field]
@@ -3058,7 +3089,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<nested_field>\w+) in the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    ~r/^(?:the )?(?<nested_field>\w+) in (?:the )?(?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, value: value} ->
       expected_value = Jason.decode!(value)
       resp_value = get_in(resp_entity, [field, nested_field])
@@ -3083,7 +3114,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<field>\w+) of the requested item should have the following fields:$/,
+    ~r/^(?:the )?(?<field>\w+) of the requested item should have the following fields:$/,
     fn %{resp_entity: resp_entity} = state, %{field: field, table_data: table_data} ->
       expected_value = for {key, value} <- transpose_table(table_data), do: {key, Jason.decode!(value)}, into: %{}
       resp_value = resp_entity[field]
@@ -3095,7 +3126,7 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^the (?<expected_field>\w+) of the (?<entity_name>(\w+\s?)+) where (?<lookup_field>\w+) is (?<lookup_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) should be (?<expected_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    ~r/^(?:the )?(?<expected_field>\w+) of the (?<entity_name>(\w+\s?)+) where (?<lookup_field>\w+) is (?<lookup_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) should be (?<expected_value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn state,
        %{
          entity_name: entity_name,
@@ -3121,6 +3152,19 @@ defmodule GraphQL.Features.Context do
         |> repo.one()
 
       assert expected_value == actual_value
+
+      {:ok, state}
+    end
+  )
+
+  then_(
+    ~r/^(?:the )?(?<nested_field>\w+) in (?:the )?(?<field>\w+) of the requested item should include the item with the following fields:$/,
+    fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, table_data: table_data} ->
+      resp_values = get_in(resp_entity, [field, nested_field])
+      expected_value = for {key, value} <- transpose_table(table_data), do: {key, Jason.decode!(value)}, into: %{}
+
+      assert [_] = resp_values
+      assert Enum.any?(resp_values, fn resp_value -> expected_value == resp_value end)
 
       {:ok, state}
     end
@@ -3172,7 +3216,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("settlement"), do: Settlement
   def entity_name_to_model("service"), do: Service
   def entity_name_to_model("service group"), do: ServiceGroup
-  def entity_name_to_model("services group"), do: ServicesGroups
+  def entity_name_to_model("service inclusion"), do: ServiceInclusion
   def entity_name_to_model("program service"), do: ProgramService
   def entity_name_to_model(entity_name), do: raise("Model not found for #{inspect(entity_name)}")
 
@@ -3197,7 +3241,7 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("program service"), do: {:prm, :program_service}
   def entity_name_to_factory_args("service"), do: {:prm, :service}
   def entity_name_to_factory_args("service group"), do: {:prm, :service_group}
-  def entity_name_to_factory_args("services group"), do: {:prm, :services_groups}
+  def entity_name_to_factory_args("service inclusion"), do: {:prm, :service_inclusion}
   def entity_name_to_factory_args("medical program"), do: {:prm, :medical_program}
   def entity_name_to_factory_args("program medication"), do: {:prm, :program_medication}
   def entity_name_to_factory_args("medication"), do: {:prm, :medication}
@@ -3233,7 +3277,7 @@ defmodule GraphQL.Features.Context do
   def model_to_repo(ProgramService), do: PRMRepo
   def model_to_repo(Service), do: PRMRepo
   def model_to_repo(ServiceGroup), do: PRMRepo
-  def model_to_repo(ServicesGroups), do: PRMRepo
+  def model_to_repo(ServiceInclusion), do: PRMRepo
   def model_to_repo(Medication), do: PRMRepo
   def model_to_repo(Medication.Ingredient), do: PRMRepo
   def model_to_repo(INNMDosage), do: PRMRepo

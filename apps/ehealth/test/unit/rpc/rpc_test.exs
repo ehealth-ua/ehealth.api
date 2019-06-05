@@ -39,7 +39,7 @@ defmodule EHealth.RpcTest do
     test "service belongs to group" do
       service = insert(:prm, :service)
       service_group = insert(:prm, :service_group)
-      insert(:prm, :services_groups, service: service, service_group: service_group)
+      insert(:prm, :service_inclusion, service: service, service_group: service_group)
 
       assert Rpc.service_belongs_to_group?(service.id, service_group.id)
     end

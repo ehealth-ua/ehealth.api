@@ -5,7 +5,7 @@ defmodule EHealth.Rpc do
 
   alias Core.Services.Service
   alias Core.Services.ServiceGroup
-  alias Core.Services.ServicesGroups
+  alias Core.Services.ServiceInclusion
   alias EHealth.Web.ServiceView
   import Ecto.Query
 
@@ -108,7 +108,7 @@ defmodule EHealth.Rpc do
 
   @spec service_belongs_to_group?(service_id :: binary(), service_group_id :: binary()) :: boolean()
   def service_belongs_to_group?(service_id, service_group_id) do
-    ServicesGroups
+    ServiceInclusion
     |> where([sg], sg.service_id == ^service_id and sg.service_group_id == ^service_group_id)
     |> @read_prm_repo.one()
     |> Kernel.is_nil()

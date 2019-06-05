@@ -73,7 +73,7 @@ Feature: Deactivate service group
     And the following services exist:
       | databaseId                             | isActive |
       | "0ef6d25a-fbd8-4476-8247-057d40230e19" | true     |
-    And the following services groups exist:
+    And the following service inclusions exist:
       | serviceGroupId                         | serviceId                              |
       | "50a08611-3d72-4e03-96d2-71f11f3dc795" | "0ef6d25a-fbd8-4476-8247-057d40230e19" |
     And my scope is "service_catalog:write"

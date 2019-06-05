@@ -4,10 +4,7 @@ defmodule Core.Services do
   import Ecto.{Changeset, Query}, warn: false
 
   alias Core.PRMRepo
-  alias Core.Services.ProgramService
-  alias Core.Services.Service
-  alias Core.Services.ServiceGroup
-  alias Core.Services.ServicesGroups
+  alias Core.Services.{Service, ServiceGroup, ServiceInclusion}
   alias Core.Validators.JsonSchema
 
   @service_fields_required ~w(name code)a
@@ -21,7 +18,7 @@ defmodule Core.Services do
   def list do
     service_groups = PRMRepo.all(ServiceGroup)
     services = PRMRepo.all(Service)
-    services_groups = PRMRepo.all(ServicesGroups)
+    service_inclusions = PRMRepo.all(ServiceInclusion)
 
     tree =
       service_groups
@@ -41,13 +38,13 @@ defmodule Core.Services do
         end
       end)
 
-    services_groups =
-      Enum.map(services_groups, fn services_group ->
+    service_inclusions =
+      Enum.map(service_inclusions, fn services_group ->
         service = Enum.find(services, fn service -> service.id == services_group.service_id end)
         %{service: service, services_group: services_group}
       end)
 
-    Enum.reduce(services_groups, tree, fn %{services_group: services_group} = value, acc ->
+    Enum.reduce(service_inclusions, tree, fn %{services_group: services_group} = value, acc ->
       parent_id = services_group.service_group_id
 
       if parent_id do
@@ -61,12 +58,10 @@ defmodule Core.Services do
 
   defdelegate get_by_id(queryable, id), to: @read_prm_repo, as: :get
 
-  defdelegate get_by_id!(queryable, id), to: @read_prm_repo, as: :get!
-
   def fetch_by_id(queryable, id) do
     case get_by_id(queryable, id) do
-      %{__struct__: queryable} = record -> {:ok, record}
-      _ -> {:error, {:not_found, "#{inspect(queryable)} not found"}}
+      %{__struct__: ^queryable} = record -> {:ok, record}
+      _ -> {:error, {:not_found, "#{to_entity_name(queryable)} not found"}}
     end
   end
 
@@ -86,6 +81,20 @@ defmodule Core.Services do
     |> put_change(:inserted_by, actor_id)
     |> put_change(:updated_by, actor_id)
     |> PRMRepo.insert_and_log(actor_id)
+  end
+
+  def create_service_inclusion(%{service_group_id: service_group_id, service_id: service_id}, actor_id) do
+    with {:ok, service_group} <- fetch_by_id(ServiceGroup, service_group_id),
+         {:ok, service} <- fetch_by_id(Service, service_id),
+         :ok <- validate_is_active(service_group),
+         :ok <- validate_is_active(service) do
+      %ServiceInclusion{}
+      |> change(%{inserted_by: actor_id, updated_by: actor_id})
+      |> put_assoc(:service_group, service_group)
+      |> put_assoc(:service, service)
+      |> unique_constraint(:is_active, name: :service_inclusions_service_group_id_service_id_index)
+      |> PRMRepo.insert_and_log(actor_id)
+    end
   end
 
   def changeset(%Service{} = entity, attrs) do
@@ -126,7 +135,7 @@ defmodule Core.Services do
   defp validate_is_active(%{is_active: true}), do: :ok
 
   defp validate_is_active(%{is_active: false} = struct) do
-    {:error, {:conflict, "#{to_entity_name(struct)} is already deactivated"}}
+    {:error, {:conflict, "#{to_entity_name(struct)} is not active"}}
   end
 
   defp validate_active_program_services(struct) do
