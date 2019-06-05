@@ -36,6 +36,7 @@ defmodule Core.ContractRequests.Validator do
   @nhs LegalEntity.type(:nhs)
   @pharmacy LegalEntity.type(:pharmacy)
   @msp_pharmacy LegalEntity.type(:msp_pharmacy)
+  @primary_care LegalEntity.type(:primary_care)
 
   @status_active LegalEntity.status(:active)
 
@@ -134,6 +135,10 @@ defmodule Core.ContractRequests.Validator do
   def validate_contract_request_client_access(@msp, id, %{type: @capitation, contractor_legal_entity_id: id}), do: :ok
 
   def validate_contract_request_client_access(@pharmacy, id, %{type: @reimbursement, contractor_legal_entity_id: id}) do
+    :ok
+  end
+
+  def validate_contract_request_client_access(@primary_care, id, %{type: @capitation, contractor_legal_entity_id: id}) do
     :ok
   end
 
