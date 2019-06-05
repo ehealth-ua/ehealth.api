@@ -108,15 +108,49 @@
           "enum": [
             "PASSPORT",
             "COMPLEMENTARY_PROTECTION_CERTIFICATE",
-            "PERMANENT_RESIDENCE_PERMIT",
-            "REFUGEE_CERTIFICATE",
-            "TEMPORARY_CERTIFICATE"
+            "REFUGEE_CERTIFICATE"
           ],
           "description": "Dictionary: DOCUMENT_TYPE"
         },
         "number": {
           "type": "string",
           "pattern": "^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$"
+        },
+        "issued_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiration_date": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "type",
+        "number",
+        "issued_at",
+        "issued_by"
+      ],
+      "additionalProperties": false
+    },
+    "temporary_document": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "PERMANENT_RESIDENCE_PERMIT",
+            "TEMPORARY_CERTIFICATE"
+          ],
+          "description": "Dictionary: DOCUMENT_TYPE"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^(((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{4,6}|[0-9]{9}|((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{5}\\/[0-9]{5})$"
         },
         "issued_by": {
           "type": "string",
@@ -341,6 +375,9 @@
                 "oneOf": [
                   {
                     "$ref": "#/definitions/series_number_document"
+                  },
+                  {
+                    "$ref": "#/definitions/temporary_document"
                   },
                   {
                     "$ref": "#/definitions/number_document"
