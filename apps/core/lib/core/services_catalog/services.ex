@@ -57,9 +57,17 @@ defmodule Core.Services do
   end
 
   defdelegate get_by_id(queryable, id), to: @read_prm_repo, as: :get
+  defdelegate get_by(queryable, clauses), to: @read_prm_repo
 
   def fetch_by_id(queryable, id) do
     case get_by_id(queryable, id) do
+      %{__struct__: ^queryable} = record -> {:ok, record}
+      _ -> {:error, {:not_found, "#{to_entity_name(queryable)} not found"}}
+    end
+  end
+
+  def fetch_by(queryable, clauses) do
+    case get_by(queryable, clauses) do
       %{__struct__: ^queryable} = record -> {:ok, record}
       _ -> {:error, {:not_found, "#{to_entity_name(queryable)} not found"}}
     end
@@ -97,20 +105,6 @@ defmodule Core.Services do
     end
   end
 
-  def changeset(%Service{} = entity, attrs) do
-    entity
-    |> cast(attrs, @service_fields_required ++ @service_fields_optional)
-    |> validate_required(@service_fields_required)
-    |> validate_length(:name, max: 100)
-  end
-
-  def changeset(%ServiceGroup{} = entity, attrs) do
-    entity
-    |> cast(attrs, @service_group_fields_required ++ @service_group_fields_optional)
-    |> validate_required(@service_group_fields_required)
-    |> validate_length(:name, max: 100)
-  end
-
   def deactivate(%Service{id: id} = service, actor_id) when is_binary(id) do
     with :ok <- validate_is_active(service),
          :ok <- validate_active_program_services(service) do
@@ -130,6 +124,26 @@ defmodule Core.Services do
       |> put_change(:updated_by, actor_id)
       |> PRMRepo.update_and_log(actor_id)
     end
+  end
+
+  def deactivate(%ServiceInclusion{id: id} = service_inclusion, actor_id) when is_binary(id) do
+    service_inclusion
+    |> change(%{is_active: false, updated_by: actor_id})
+    |> PRMRepo.update_and_log(actor_id)
+  end
+
+  def changeset(%Service{} = entity, attrs) do
+    entity
+    |> cast(attrs, @service_fields_required ++ @service_fields_optional)
+    |> validate_required(@service_fields_required)
+    |> validate_length(:name, max: 100)
+  end
+
+  def changeset(%ServiceGroup{} = entity, attrs) do
+    entity
+    |> cast(attrs, @service_group_fields_required ++ @service_group_fields_optional)
+    |> validate_required(@service_group_fields_required)
+    |> validate_length(:name, max: 100)
   end
 
   defp validate_is_active(%{is_active: true}), do: :ok

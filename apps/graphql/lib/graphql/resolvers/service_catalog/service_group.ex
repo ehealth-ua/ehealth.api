@@ -7,7 +7,7 @@ defmodule GraphQL.Resolvers.ServiceGroup do
 
   alias Absinthe.Relay.Connection
   alias Core.Services
-  alias Core.Services.ServiceGroup
+  alias Core.Services.{ServiceGroup, ServiceInclusion}
   alias Ecto.Changeset
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
@@ -46,6 +46,16 @@ defmodule GraphQL.Resolvers.ServiceGroup do
     else
       {:error, %Changeset{errors: [is_active: _]}} -> {:error, {:conflict, "Service was already added to group"}}
       error -> error
+    end
+  end
+
+  def delete_service_from_group(args, %{context: %{consumer_id: consumer_id}}) do
+    clauses = Map.put(args, :is_active, true)
+
+    with {:ok, service_inclusion} <- Services.fetch_by(ServiceInclusion, clauses),
+         {:ok, service_inclusion} <- Services.deactivate(service_inclusion, consumer_id) do
+      service_inclusion = @read_prm_repo.preload(service_inclusion, [:service_group])
+      {:ok, service_inclusion}
     end
   end
 end

@@ -3008,6 +3008,37 @@ defmodule GraphQL.Features.Context do
     end
   )
 
+  when_(
+    ~r/^I delete service from group with attributes:$/,
+    fn %{conn: conn} = state, %{table_data: [row]} ->
+      input_attrs = prepare_input_attrs(row)
+
+      query = """
+        mutation DeleteServiceFromGroupMutation($input: AddServiceToGroupInput!) {
+          deleteServiceFromGroup(input: $input) {
+            serviceGroup {
+              databaseId
+              services(first: 10) {
+                nodes {
+                  databaseId
+                }
+              }
+            }
+          }
+        }
+      """
+
+      resp_body =
+        conn
+        |> post_query(query, %{input: input_attrs})
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data deleteServiceFromGroup serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
   then_(
     ~r/^event would be published to event manager$/,
     fn state, _ ->
@@ -3201,13 +3232,18 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
-    ~r/^(?:the )?(?<nested_field>\w+) in (?:the )?(?<field>\w+) of the requested item should include the item with the following fields:$/,
-    fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, table_data: table_data} ->
+    ~r/^(?:the )?(?<nested_field>\w+) in (?:the )?(?<field>\w+) of the requested item should (?<negate>not )?include the item with the following fields:$/,
+    fn %{resp_entity: resp_entity} = state,
+       %{field: field, nested_field: nested_field, table_data: table_data, negate: negate} ->
       resp_values = get_in(resp_entity, [field, nested_field])
       expected_value = for {key, value} <- transpose_table(table_data), do: {key, Jason.decode!(value)}, into: %{}
 
-      assert [_] = resp_values
-      assert Enum.any?(resp_values, fn resp_value -> expected_value == resp_value end)
+      assert is_list(resp_values)
+
+      case String.length(negate) do
+        0 -> assert Enum.any?(resp_values, fn resp_value -> expected_value == resp_value end)
+        _ -> assert Enum.all?(resp_values, fn resp_value -> expected_value != resp_value end)
+      end
 
       {:ok, state}
     end
