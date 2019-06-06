@@ -3,7 +3,7 @@ defmodule Ehealth.MixProject do
 
   use Mix.Project
 
-  @version "9.0.0"
+  @version "9.1.0"
   def project do
     [
       apps_path: "apps",
