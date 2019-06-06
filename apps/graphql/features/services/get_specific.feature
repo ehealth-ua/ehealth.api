@@ -30,7 +30,7 @@ Feature: Get specific service
     And the following service group exist:
       | databaseId                             | isActive |
       | "ab1bad75-4ed2-4f5b-a695-a3fe0ddbcd7b" | true     |
-    And the following services groups exist:
+    And the following service inclusion exist:
       | serviceId                              | serviceGroupId                         |
       | "f17f96f5-d5be-4270-8940-a3fe021aba14" | "ab1bad75-4ed2-4f5b-a695-a3fe0ddbcd7b" |
     And my scope is "service_catalog:read"
