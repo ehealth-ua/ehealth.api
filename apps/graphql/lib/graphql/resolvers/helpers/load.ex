@@ -84,12 +84,15 @@ defmodule GraphQL.Resolvers.Helpers.Load do
     |> on_load(fn loader ->
       with {:ok, offset, limit} <- Connection.offset_and_limit_for_query(args, []) do
         records = Dataloader.get(loader, source_name, batch_key, parent)
-        opts = [has_previous_page: offset > 0, has_next_page: length(records) > limit]
+        opts = [has_previous_page: offset > 0, has_next_page: has_next_page?(records, limit)]
 
         Connection.from_slice(Enum.take(records, limit), offset, opts)
       end
     end)
   end
+
+  defp has_next_page?(records, limit) when is_list(records), do: length(records) > limit
+  defp has_next_page?(_, _), do: false
 
   def response_to_ecto_struct(schema, response) do
     schema
