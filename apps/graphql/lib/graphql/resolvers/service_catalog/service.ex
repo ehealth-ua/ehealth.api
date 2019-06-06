@@ -31,6 +31,15 @@ defmodule GraphQL.Resolvers.Service do
     end
   end
 
+  def update(%{id: id} = args, %{context: %{consumer_id: consumer_id}}) do
+    args = atoms_to_strings(args)
+
+    with {:ok, service} <- Services.fetch_by_id(Service, id),
+         {:ok, updated_service} <- Services.update_service(service, args, consumer_id) do
+      {:ok, %{service: updated_service}}
+    end
+  end
+
   def deactivate(%{id: id}, %{context: %{consumer_id: consumer_id}}) do
     with {:ok, service} <- Services.fetch_by_id(Service, id),
          {:ok, service} <- Services.deactivate(service, consumer_id) do
