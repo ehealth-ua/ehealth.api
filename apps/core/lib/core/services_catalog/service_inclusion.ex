@@ -3,8 +3,7 @@ defmodule Core.Services.ServiceInclusion do
 
   use Ecto.Schema
 
-  alias Core.Services.Service
-  alias Core.Services.ServiceGroup
+  alias Core.Services.{Service, ServiceGroup}
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
