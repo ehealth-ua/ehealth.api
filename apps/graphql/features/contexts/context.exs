@@ -2651,6 +2651,37 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the service where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{database_id: database_id, field: field, value: value} ->
+      query = """
+        mutation UpdateServiceMutation($input: UpdateServiceInput!) {
+          updateService(input: $input) {
+            service {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          :id => Node.to_global_id("Service", database_id),
+          field => Jason.decode!(value)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data updateService service))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{database_id: database_id, field: field, value: value} ->
       query = """

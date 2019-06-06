@@ -83,6 +83,13 @@ defmodule Core.Services do
     end
   end
 
+  def update_service(%Service{} = service, params, actor_id) do
+    service
+    |> changeset(params)
+    |> put_change(:updated_by, actor_id)
+    |> PRMRepo.update_and_log(actor_id)
+  end
+
   def create_service_group(params, actor_id) do
     %ServiceGroup{}
     |> changeset(params)

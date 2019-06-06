@@ -95,6 +95,24 @@ defmodule GraphQL.Schema.ServiceTypes do
       resolve(&ServiceResolver.create/2)
     end
 
+    payload field(:update_service) do
+      meta(:scope, ~w(service_catalog:write))
+      meta(:client_metadata, ~w(consumer_id client_type)a)
+      meta(:allowed_clients, ~w(NHS))
+
+      input do
+        field(:id, non_null(:id))
+        field(:request_allowed, :boolean)
+      end
+
+      output do
+        field(:service, :service)
+      end
+
+      middleware(ParseIDs, id: :service)
+      resolve(&ServiceResolver.update/2)
+    end
+
     payload field(:deactivate_service) do
       meta(:scope, ~w(service_catalog:write))
       meta(:client_metadata, ~w(consumer_id client_type)a)
