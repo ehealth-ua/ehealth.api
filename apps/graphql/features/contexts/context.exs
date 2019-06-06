@@ -2429,6 +2429,37 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request (?<nested_field>\w+) of the first (?<count>\d+) serviceGroups of the service where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{nested_field: nested_field, count: count, database_id: database_id} ->
+      query = """
+        query GetServiceQuery($id: ID!, $first: Int!) {
+          service(id: $id) {
+            serviceGroups(first: $first) {
+              nodes {
+                #{nested_field}
+              }
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        id: Node.to_global_id("Service", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data service))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the service group where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
       query = """
@@ -3101,6 +3132,18 @@ defmodule GraphQL.Features.Context do
   )
 
   then_(
+    ~r/^the (?<nested_field>\w+) of the first item in the (?<field>\w+) of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{resp_entity: resp_entity} = state, %{field: field, nested_field: nested_field, value: value} ->
+      expected_value = Jason.decode!(value)
+      resp_value = hd(get_in(resp_entity, [field, "nodes"]))[nested_field]
+
+      assert expected_value == resp_value
+
+      {:ok, state}
+    end
+  )
+
+  then_(
     ~r/^the value by path "(?<path>.+)" of the requested item should be (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{resp_entity: resp_entity} = state, %{path: path, value: value} ->
       expected_value = Jason.decode!(value)
@@ -3370,11 +3413,11 @@ defmodule GraphQL.Features.Context do
     end
   end
 
-  defp prepare_assoc_attrs(%{cardinality: :many, field: field} = assoc, item) do
+  defp prepare_assoc_attrs(%{cardinality: :many, field: field}, item) do
     [{field, [item]}]
   end
 
-  defp prepare_assoc_attrs(%{cardinality: :one, field: field} = assoc, item) do
+  defp prepare_assoc_attrs(%{cardinality: :one, field: field}, item) do
     [{field, item}]
   end
 

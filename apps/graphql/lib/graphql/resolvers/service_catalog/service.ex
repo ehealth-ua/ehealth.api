@@ -4,6 +4,7 @@ defmodule GraphQL.Resolvers.Service do
   import Core.Utils.TypesConverter, only: [atoms_to_strings: 1]
   import Ecto.Query, only: [order_by: 2]
   import GraphQL.Filters.ServiceCatalog, only: [filter: 2]
+  import GraphQL.Resolvers.Helpers.Load, only: [load_by_parent_with_connection: 4]
 
   alias Absinthe.Relay.Connection
   alias Core.Services
@@ -16,6 +17,10 @@ defmodule GraphQL.Resolvers.Service do
     |> filter(filter)
     |> order_by(^order_by)
     |> Connection.from_query(&@read_prm_repo.all/1, args)
+  end
+
+  def load_service_groups(parent, args, resolution) do
+    load_by_parent_with_connection(parent, args, resolution, :service_groups)
   end
 
   def create(args, %{context: %{consumer_id: consumer_id}}) do

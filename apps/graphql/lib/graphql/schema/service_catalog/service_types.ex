@@ -4,6 +4,7 @@ defmodule GraphQL.Schema.ServiceTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
   import GraphQL.Resolvers.Helpers.Load, only: [load_by_args: 2]
 
   alias Absinthe.Relay.Node.ParseIDs
@@ -123,7 +124,26 @@ defmodule GraphQL.Schema.ServiceTypes do
     field(:request_allowed, :boolean)
 
     # relations
-    #    field(:parent_groups, non_null(:service_group), resolve: dataloader(PRM))
+    connection field(:service_groups, node_type: :service_group) do
+      arg(:filter, :service_group_filter)
+      arg(:order_by, :service_group_order_by, default_value: :inserted_at_asc)
+
+      middleware(
+        Filtering,
+        database_id: :equal,
+        name: :like,
+        code: :like,
+        is_active: :equal,
+        parent_group: [
+          database_id: :equal,
+          name: :like,
+          code: :like,
+          is_active: :equal
+        ]
+      )
+
+      resolve(&ServiceResolver.load_service_groups/3)
+    end
 
     # timestamps
     field(:inserted_at, non_null(:datetime))
