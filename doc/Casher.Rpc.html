@@ -5,9 +5,9 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.19.2">
-    <title>Casher.Rpc —  vdev</title>
+    <title>Casher.Rpc —  v9.1.0</title>
     <link rel="stylesheet" href="dist/html-c1666276880c0f8e3769.css" />
-    <script src="dist/sidebar_items-ce96109021.js"></script>
+    <script src="dist/sidebar_items-531cbb67c1.js"></script>
     
   </head>
   <body data-type="modules">
@@ -28,7 +28,7 @@
       <h1 class="sidebar-projectName">
       </h1>
       <h2 class="sidebar-projectVersion">
-        vdev
+        v9.1.0
       </h2>
     </div>
   </a>
@@ -58,7 +58,7 @@
 
 
       <h1>
-        <small class="visible-xs"> vdev</small>
+        <small class="visible-xs"> v9.1.0</small>
 Casher.Rpc              </h1>
 
 
@@ -159,13 +159,13 @@ Functions          </h1>
 </tr>
 </thead>
 <tr>
-<td style="text-align: center">user_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">0187d6ee-7b2e-4497-acfb-f1ee64f23ccc</td><td style="text-align: center"></td>
+<td style="text-align: center">user_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">&quot;0187d6ee-7b2e-4497-acfb-f1ee64f23ccc&quot;</td><td style="text-align: center"></td>
 </tr>
 <tr>
-<td style="text-align: center">client_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">341d22ef-c667-44fb-ae41-705fa5017875</td><td style="text-align: center"></td>
+<td style="text-align: center">client_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">&quot;341d22ef-c667-44fb-ae41-705fa5017875&quot;</td><td style="text-align: center"></td>
 </tr>
 <tr>
-<td style="text-align: center">employee_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">1d88ed7a-747a-4cbf-95cd-2ced81e55092</td><td style="text-align: center"></td>
+<td style="text-align: center">employee_id</td><td style="text-align: center"><code class="inline">binary</code></td><td style="text-align: center">&quot;1d88ed7a-747a-4cbf-95cd-2ced81e55092&quot;</td><td style="text-align: center"></td>
 </tr>
 </table>
 <p>Returns <code class="inline">{:ok, %{person_ids: list(binary)}}</code>.</p>
@@ -174,13 +174,13 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="4913578666-1">(</span><span class="p" data-group-id="4913578666-2">%{</span><span class="s">&quot;user_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;0187d6ee-7b2e-4497-acfb-f1ee64f23ccc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;client_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;341d22ef-c667-44fb-ae41-705fa5017875&quot;</span><span class="p" data-group-id="4913578666-2">}</span><span class="p" data-group-id="4913578666-1">)</span><span class="w">
-</span><span class="p" data-group-id="4913578666-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4913578666-4">%{</span><span class="ss">person_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4913578666-5">[</span><span class="s">&quot;bc0689e2-dcd0-4333-b9a0-47dbb53c93df&quot;</span><span class="p" data-group-id="4913578666-5">]</span><span class="p" data-group-id="4913578666-4">}</span><span class="p" data-group-id="4913578666-3">}</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="5303062979-1">(</span><span class="p" data-group-id="5303062979-2">%{</span><span class="s">&quot;user_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;0187d6ee-7b2e-4497-acfb-f1ee64f23ccc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;client_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;341d22ef-c667-44fb-ae41-705fa5017875&quot;</span><span class="p" data-group-id="5303062979-2">}</span><span class="p" data-group-id="5303062979-1">)</span><span class="w">
+</span><span class="p" data-group-id="5303062979-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5303062979-4">%{</span><span class="ss">person_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5303062979-5">[</span><span class="s">&quot;bc0689e2-dcd0-4333-b9a0-47dbb53c93df&quot;</span><span class="p" data-group-id="5303062979-5">]</span><span class="p" data-group-id="5303062979-4">}</span><span class="p" data-group-id="5303062979-3">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="4913578666-6">(</span><span class="p" data-group-id="4913578666-7">%{</span><span class="s">&quot;employee_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1d88ed7a-747a-4cbf-95cd-2ced81e55092&quot;</span><span class="p" data-group-id="4913578666-7">}</span><span class="p" data-group-id="4913578666-6">)</span><span class="w">
-</span><span class="p" data-group-id="4913578666-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="4913578666-9">%{</span><span class="ss">person_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4913578666-10">[</span><span class="s">&quot;bc0689e2-dcd0-4333-b9a0-47dbb53c93df&quot;</span><span class="p" data-group-id="4913578666-10">]</span><span class="p" data-group-id="4913578666-9">}</span><span class="p" data-group-id="4913578666-8">}</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="5303062979-6">(</span><span class="p" data-group-id="5303062979-7">%{</span><span class="s">&quot;employee_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1d88ed7a-747a-4cbf-95cd-2ced81e55092&quot;</span><span class="p" data-group-id="5303062979-7">}</span><span class="p" data-group-id="5303062979-6">)</span><span class="w">
+</span><span class="p" data-group-id="5303062979-8">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5303062979-9">%{</span><span class="ss">person_ids</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5303062979-10">[</span><span class="s">&quot;bc0689e2-dcd0-4333-b9a0-47dbb53c93df&quot;</span><span class="p" data-group-id="5303062979-10">]</span><span class="p" data-group-id="5303062979-9">}</span><span class="p" data-group-id="5303062979-8">}</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="4913578666-11">(</span><span class="p" data-group-id="4913578666-12">%{</span><span class="p" data-group-id="4913578666-12">}</span><span class="p" data-group-id="4913578666-11">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">Casher.Rpc</span><span class="o">.</span><span class="n">get_person_data</span><span class="p" data-group-id="5303062979-11">(</span><span class="p" data-group-id="5303062979-12">%{</span><span class="p" data-group-id="5303062979-12">}</span><span class="p" data-group-id="5303062979-11">)</span><span class="w">
 </span><span class="no">nil</span></code></pre>
   </section>
 </section>
