@@ -5,9 +5,9 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.19.2">
-    <title>EHealth.Rpc —  v8.13.2</title>
+    <title>EHealth.Rpc —  v9.1.0</title>
     <link rel="stylesheet" href="dist/html-c1666276880c0f8e3769.css" />
-    <script src="dist/sidebar_items-ce96109021.js"></script>
+    <script src="dist/sidebar_items-531cbb67c1.js"></script>
     
   </head>
   <body data-type="modules">
@@ -28,7 +28,7 @@
       <h1 class="sidebar-projectName">
       </h1>
       <h2 class="sidebar-projectVersion">
-        v8.13.2
+        v9.1.0
       </h2>
     </div>
   </a>
@@ -58,7 +58,7 @@
 
 
       <h1>
-        <small class="visible-xs"> v8.13.2</small>
+        <small class="visible-xs"> v9.1.0</small>
 EHealth.Rpc              </h1>
 
 
@@ -80,6 +80,51 @@ EHealth.Rpc              </h1>
     </h2>
 <div class="summary-row">
   <div class="summary-signature">
+    <a href="#t:dictionary/0">dictionary()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:division/0">division()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:document/0">document()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:employee/0">employee()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:employee_users_short/0">employee_users_short()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:legal_entity/0">legal_entity()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:party/0">party()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:party_short/0">party_short()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:phone/0">phone()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="#t:service/0">service()</a>
   </div>
 </div>
@@ -88,11 +133,63 @@ EHealth.Rpc              </h1>
     <a href="#t:service_group/0">service_group()</a>
   </div>
 </div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:user/0">user()</a>
+  </div>
+</div>
   </div>
   <div class="summary-functions summary">
     <h2>
       <a href="#functions">Functions</a>
     </h2>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#division_by_id/1">division_by_id(id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Get division by id</p>
+</div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#employee_by_id/1">employee_by_id(id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Get employee by id</p>
+</div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#employee_by_id_users_short/1">employee_by_id_users_short(id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Get employee short with users by id</p>
+</div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#employees_by_party_id_client_id/2">employees_by_party_id_client_id(party_id, client_id)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#employees_by_user_id_client_id/2">employees_by_user_id_client_id(user_id, client_id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Get employee ids by user id</p>
+</div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#get_dictionaries/1">get_dictionaries(params \\ %{})</a>
+  </div>
+    <div class="summary-synopsis"><p>Get dictionaries</p>
+</div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#legal_entity_by_id/1">legal_entity_by_id(id)</a>
+  </div>
+    <div class="summary-synopsis"><p>Get legal entity by id</p>
+</div>
+</div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#service_belongs_to_group?/2">service_belongs_to_group?(service_id, service_group_id)</a>
@@ -114,6 +211,11 @@ EHealth.Rpc              </h1>
     <div class="summary-synopsis"><p>Get service group by service_group_id</p>
 </div>
 </div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#tax_id_by_employee_id/1">tax_id_by_employee_id(employee_id)</a>
+  </div>
+</div>
   </div>
         </section>
 
@@ -125,6 +227,222 @@ EHealth.Rpc              </h1>
             </a>
 Types          </h1>
           <div class="types-list">
+<section class="detail" id="t:dictionary/0">
+    <div class="detail-header">
+    <a href="#t:dictionary/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">dictionary()</span>
+        
+      <div class="specs">
+          <pre>dictionary() :: %{
+  is_active: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  labels: [<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()],
+  name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  values: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:division/0">
+    <div class="detail-header">
+    <a href="#t:division/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">division()</span>
+        
+      <div class="specs">
+          <pre>division() :: %{
+  addresses: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  dls_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  dls_verified: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  email: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  external_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  legal_entity_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  location: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  mountain_group: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  phones: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  status: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  working_hours: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:document/0">
+    <div class="detail-header">
+    <a href="#t:document/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">document()</span>
+        
+      <div class="specs">
+          <pre>document() :: %{
+  issued_at: Date,
+  issued_by: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  number: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:employee/0">
+    <div class="detail-header">
+    <a href="#t:employee/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">employee()</span>
+        
+      <div class="specs">
+          <pre>employee() :: %{
+  doctor: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  employee_type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  end_date: Date,
+  id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  party: <a href="#t:party/0">party</a>(),
+  position: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  start_date: Date,
+  status: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:employee_users_short/0">
+    <div class="detail-header">
+    <a href="#t:employee_users_short/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">employee_users_short()</span>
+        
+      <div class="specs">
+          <pre>employee_users_short() :: %{
+  id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  party: <a href="#t:party_short/0">party_short</a>(),
+  legal_entity_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:legal_entity/0">
+    <div class="detail-header">
+    <a href="#t:legal_entity/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">legal_entity()</span>
+        
+      <div class="specs">
+          <pre>legal_entity() :: %{
+  addresses: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  archive: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  beneficiary: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  edr_verified: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  edrpou: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  email: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  inserted_at: DateTime,
+  inserted_by: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  is_active: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  kveds: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  legal_form: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  medical_service_provider: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  nhs_comment: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  nhs_reviewed: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  nhs_verified: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  owner_property_type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  phones: [<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()],
+  public_name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  receiver_funds_code: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  short_name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  status: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  updated_at: DateTime,
+  updated_by: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  website: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:party/0">
+    <div class="detail-header">
+    <a href="#t:party/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">party()</span>
+        
+      <div class="specs">
+          <pre>party() :: %{
+  about_myself: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  birth_date: Date,
+  declaration_count: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>(),
+  declaration_limit: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>(),
+  documents: [<a href="#t:document/0">document</a>()],
+  first_name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  gender: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  last_name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  no_tax_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>(),
+  phones: [<a href="#t:phone/0">phone</a>()],
+  second_name: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  tax_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(),
+  working_experience: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">integer</a>()
+}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:party_short/0">
+    <div class="detail-header">
+    <a href="#t:party_short/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">party_short()</span>
+        
+      <div class="specs">
+          <pre>party_short() :: %{id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), tax_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), users: [<a href="#t:user/0">user</a>()]}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="t:phone/0">
+    <div class="detail-header">
+    <a href="#t:phone/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">phone()</span>
+        
+      <div class="specs">
+          <pre>phone() :: %{number: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), type: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
 <section class="detail" id="t:service/0">
     <div class="detail-header">
     <a href="#t:service/0" class="detail-link" title="Link to this type">
@@ -178,6 +496,21 @@ Types          </h1>
   <section class="docstring">
   </section>
 </section>
+<section class="detail" id="t:user/0">
+    <div class="detail-header">
+    <a href="#t:user/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">user()</span>
+        
+      <div class="specs">
+          <pre>user() :: %{user_id: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+  </section>
+</section>
           </div>
         </section>
         <section id="functions" class="details-list">
@@ -188,6 +521,383 @@ Types          </h1>
             </a>
 Functions          </h1>
           <div class="functions-list">
+<section class="detail" id="division_by_id/1">
+    <div class="detail-header">
+    <a href="#division_by_id/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">division_by_id(id)</span>
+        
+      <div class="specs">
+          <pre>division_by_id(id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: nil | {:ok, <a href="#t:division/0">division</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get division by id</p>
+<h2 id="division_by_id/1-examples" class="section-heading">
+  <a href="#division_by_id/1-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">division_by_id</span><span class="p" data-group-id="3853336036-1">(</span><span class="s">&quot;bdf63ecd-8b9d-4a3c-9dc7-0ba841b9724a&quot;</span><span class="p" data-group-id="3853336036-1">)</span><span class="w">
+</span><span class="p" data-group-id="3853336036-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+</span><span class="p" data-group-id="3853336036-3">%{</span><span class="w">
+  </span><span class="ss">addresses</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3853336036-4">[</span><span class="w">
+    </span><span class="p" data-group-id="3853336036-5">%{</span><span class="w">
+      </span><span class="ss">apartment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;23&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">area</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ЛЬВІВСЬКА&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">building</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;15&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">country</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;UA&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">region</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ПУСТОМИТІВСЬКИЙ&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;СОРОКИ-ЛЬВІВСЬКІ&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;707dbc55-cb6b-4aaa-97c1-2a1e03476100&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;CITY&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">street</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;вул. Ніжинська&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">street_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;STREET&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;REGISTRATION&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">zip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;02090&quot;</span><span class="w">
+    </span><span class="p" data-group-id="3853336036-5">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="3853336036-6">%{</span><span class="w">
+      </span><span class="ss">apartment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;23&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">area</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ЛЬВІВСЬКА&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">building</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;15&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">country</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;UA&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">region</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ПУСТОМИТІВСЬКИЙ&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;СОРОКИ-ЛЬВІВСЬКІ&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;707dbc55-cb6b-4aaa-97c1-2a1e03476100&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">settlement_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;CITY&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">street</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;вул. Ніжинська&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">street_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;STREET&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;RESIDENCE&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">zip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;02090&quot;</span><span class="w">
+    </span><span class="p" data-group-id="3853336036-6">}</span><span class="w">
+  </span><span class="p" data-group-id="3853336036-4">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">dls_id</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w">
+  </span><span class="ss">dls_verified</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+  </span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;some@local.com&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">external_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;7ae4bbd6-a9e7-4ce0-992b-6a1b18a262dc&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bdf63ecd-8b9d-4a3c-9dc7-0ba841b9724a&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">legal_entity_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;c309e62b-29c5-4624-b033-f3de713aa74f&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">location</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3853336036-7">%{</span><span class="ss">latitude</span><span class="p">:</span><span class="w"> </span><span class="mf">20.0</span><span class="p">,</span><span class="w"> </span><span class="ss">longitude</span><span class="p">:</span><span class="w"> </span><span class="mf">50.0</span><span class="p" data-group-id="3853336036-7">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">mountain_group</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
+  </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">phones</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3853336036-8">[</span><span class="p" data-group-id="3853336036-8">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ACTIVE&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;CLINIC&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">working_hours</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3853336036-9">%{</span><span class="s">&quot;fri&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="p" data-group-id="3853336036-10">[</span><span class="p" data-group-id="3853336036-11">[</span><span class="s">&quot;08.00&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;12.00&quot;</span><span class="p" data-group-id="3853336036-11">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3853336036-12">[</span><span class="s">&quot;14.00&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;16.00&quot;</span><span class="p" data-group-id="3853336036-12">]</span><span class="p" data-group-id="3853336036-10">]</span><span class="p" data-group-id="3853336036-9">}</span><span class="w">
+</span><span class="p" data-group-id="3853336036-3">}</span><span class="p" data-group-id="3853336036-2">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="employee_by_id/1">
+    <div class="detail-header">
+    <a href="#employee_by_id/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">employee_by_id(id)</span>
+        
+      <div class="specs">
+          <pre>employee_by_id(id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: nil | {:ok, <a href="#t:employee/0">employee</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get employee by id</p>
+<h2 id="employee_by_id/1-examples" class="section-heading">
+  <a href="#employee_by_id/1-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">employee_by_id</span><span class="p" data-group-id="8315693444-1">(</span><span class="s">&quot;b8edf2c1-adaf-44e1-89db-a3e68f8f72fb&quot;</span><span class="p" data-group-id="8315693444-1">)</span><span class="w">
+</span><span class="p" data-group-id="8315693444-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+</span><span class="p" data-group-id="8315693444-3">%{</span><span class="w">
+  </span><span class="ss">doctor</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8315693444-4">%{</span><span class="w">
+    </span><span class="s">&quot;educations&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="p" data-group-id="8315693444-5">[</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-6">%{</span><span class="w">
+        </span><span class="s">&quot;city&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Kyiv&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;country&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;UA&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;degree&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Бакалавр&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;diploma_number&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;institution_name&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;issued_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1987-04-17&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;speciality&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-6">}</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-5">]</span><span class="p">,</span><span class="w">
+    </span><span class="s">&quot;qualifications&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="p" data-group-id="8315693444-7">[</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-8">%{</span><span class="w">
+        </span><span class="s">&quot;certificate_number&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;institution_name&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;issued_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1987-04-17&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;speciality&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;PEDIATRICIAN&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;type&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Інтернатура&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-8">}</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-7">]</span><span class="p">,</span><span class="w">
+    </span><span class="s">&quot;science_degree&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="p" data-group-id="8315693444-9">%{</span><span class="w">
+      </span><span class="s">&quot;city&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Kyiv&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;country&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;UA&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;degree&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Доктор філософії&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;diploma_number&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;institution_name&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;issued_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1987-04-17&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;speciality&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-9">}</span><span class="p">,</span><span class="w">
+    </span><span class="s">&quot;specialities&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="p" data-group-id="8315693444-10">[</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-11">%{</span><span class="w">
+        </span><span class="s">&quot;attestation_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1987-04-17&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;attestation_name&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;certificate_number&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;random string&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;level&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Перша категорія&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;qualification_type&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Підтвердження&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;speciality&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;PEDIATRICIAN&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;speciality_officio&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+        </span><span class="s">&quot;valid_to_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;1987-04-17&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-11">}</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-10">]</span><span class="w">
+  </span><span class="p" data-group-id="8315693444-4">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">employee_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;DOCTOR&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">end_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2012-04-17]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;b8edf2c1-adaf-44e1-89db-a3e68f8f72fb&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">party</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8315693444-12">%{</span><span class="w">
+    </span><span class="ss">about_myself</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w">
+    </span><span class="ss">birth_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[1991-08-19]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">declaration_count</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="ss">declaration_limit</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="ss">documents</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8315693444-13">[</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-14">%{</span><span class="w">
+        </span><span class="ss">issued_at</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2017-06-11]</span><span class="p">,</span><span class="w">
+        </span><span class="ss">issued_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Прикордонна служба&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">number</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;AA000000&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;NATIONAL_ID&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-14">}</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-13">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">first_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Петро&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">gender</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MALE&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3cb7264c-90e5-47a1-af44-49eea04ada98&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">last_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;В&#39;язовська&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">no_tax_id</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
+    </span><span class="ss">phones</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8315693444-15">[</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-16">%</span><span class="nc" data-group-id="8315693444-16">Core.Parties.Phone</span><span class="p" data-group-id="8315693444-16">{</span><span class="w">
+        </span><span class="ss">__meta__</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8315693444-17">#</span><span class="nc" data-group-id="8315693444-17">Ecto.Schema.Metadata</span><span class="p" data-group-id="8315693444-17">&lt;</span><span class="ss">:loaded</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;phones&quot;</span><span class="p" data-group-id="8315693444-17">&gt;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">number</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;+380972526080&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MOBILE&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8315693444-16">}</span><span class="w">
+    </span><span class="p" data-group-id="8315693444-15">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">second_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Миколайович&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">tax_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;100000000&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">working_experience</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="w">
+  </span><span class="p" data-group-id="8315693444-12">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;P1&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">start_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2017-08-07]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;APPROVED&quot;</span><span class="w">
+</span><span class="p" data-group-id="8315693444-3">}</span><span class="p" data-group-id="8315693444-2">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="employee_by_id_users_short/1">
+    <div class="detail-header">
+    <a href="#employee_by_id_users_short/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">employee_by_id_users_short(id)</span>
+        
+      <div class="specs">
+          <pre>employee_by_id_users_short(id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
+  nil | {:ok, <a href="#t:employee_users_short/0">employee_users_short</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get employee short with users by id</p>
+<h2 id="employee_by_id_users_short/1-examples" class="section-heading">
+  <a href="#employee_by_id_users_short/1-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">employee_by_id_users_short</span><span class="p" data-group-id="4492519389-1">(</span><span class="s">&quot;e62760ef-455c-4547-8d01-7fcbbd48e02c&quot;</span><span class="p" data-group-id="4492519389-1">)</span><span class="w">
+</span><span class="p" data-group-id="4492519389-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+</span><span class="p" data-group-id="4492519389-3">%{</span><span class="w">
+  </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;e62760ef-455c-4547-8d01-7fcbbd48e02c&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">legal_entity_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0f4b5978-ba01-4704-9649-96f340e8d099&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">party</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4492519389-4">%{</span><span class="w">
+    </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fe5b8d40-ff95-44bb-92e4-97f250e97615&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">tax_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;100000000&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">users</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4492519389-5">[</span><span class="p" data-group-id="4492519389-6">%{</span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;549a9ae6-73ed-4ba2-b2e9-4dfd873d9c44&quot;</span><span class="p" data-group-id="4492519389-6">}</span><span class="p" data-group-id="4492519389-5">]</span><span class="w">
+  </span><span class="p" data-group-id="4492519389-4">}</span><span class="w">
+</span><span class="p" data-group-id="4492519389-3">}</span><span class="p" data-group-id="4492519389-2">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="employees_by_party_id_client_id/2">
+    <div class="detail-header">
+    <a href="#employees_by_party_id_client_id/2" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">employees_by_party_id_client_id(party_id, client_id)</span>
+          </div>
+  <section class="docstring">
+  </section>
+</section>
+<section class="detail" id="employees_by_user_id_client_id/2">
+    <div class="detail-header">
+    <a href="#employees_by_user_id_client_id/2" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">employees_by_user_id_client_id(user_id, client_id)</span>
+        
+      <div class="specs">
+          <pre>employees_by_user_id_client_id(user_id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>(), client_id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) ::
+  nil | {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">list</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get employee ids by user id</p>
+<h2 id="employees_by_user_id_client_id/2-examples" class="section-heading">
+  <a href="#employees_by_user_id_client_id/2-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">employees_by_user_id_client_id</span><span class="p" data-group-id="2613351042-1">(</span><span class="w">
+  </span><span class="s">&quot;26e673e1-1d68-413e-b96c-407b45d9f572&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="s">&quot;d221d7f1-81cb-44d3-b6d4-8d7e42f97ff9&quot;</span><span class="w">
+</span><span class="p" data-group-id="2613351042-1">)</span><span class="w">
+</span><span class="p" data-group-id="2613351042-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2613351042-3">[</span><span class="s">&quot;1241d1f9-ae81-4fe5-b614-f4f780a5acf0&quot;</span><span class="p" data-group-id="2613351042-3">]</span><span class="p" data-group-id="2613351042-2">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="get_dictionaries/1">
+  
+    <span id="get_dictionaries/0"></span>
+  <div class="detail-header">
+    <a href="#get_dictionaries/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">get_dictionaries(params \\ %{})</span>
+        
+      <div class="specs">
+          <pre>get_dictionaries(params :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) :: {:ok, [<a href="#t:dictionary/0">dictionary</a>()]}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get dictionaries</p>
+<h2 id="get_dictionaries/1-examples" class="section-heading">
+  <a href="#get_dictionaries/1-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">get_dictionaries</span><span class="p" data-group-id="8609338400-1">(</span><span class="p" data-group-id="8609338400-2">%{</span><span class="p" data-group-id="8609338400-2">}</span><span class="p" data-group-id="8609338400-1">)</span><span class="w">
+</span><span class="p" data-group-id="8609338400-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="8609338400-4">[</span><span class="w">
+    </span><span class="p" data-group-id="8609338400-5">%{</span><span class="w">
+      </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+      </span><span class="ss">labels</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8609338400-6">[</span><span class="s">&quot;SYSTEM&quot;</span><span class="p" data-group-id="8609338400-6">]</span><span class="p">,</span><span class="w">
+      </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;KVEDS_ALLOWED_PHARMACY&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">values</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8609338400-7">%{</span><span class="w">
+        </span><span class="s">&quot;47.73&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Роздрібна торгівля фармацевтичними товарами в спеціалізованих магазинах&quot;</span><span class="w">
+      </span><span class="p" data-group-id="8609338400-7">}</span><span class="w">
+    </span><span class="p" data-group-id="8609338400-5">}</span><span class="w">
+  </span><span class="p" data-group-id="8609338400-4">]</span><span class="w">
+</span><span class="p" data-group-id="8609338400-3">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="legal_entity_by_id/1">
+    <div class="detail-header">
+    <a href="#legal_entity_by_id/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">legal_entity_by_id(id)</span>
+        
+      <div class="specs">
+          <pre>legal_entity_by_id(id :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">binary</a>()) :: nil | {:ok, <a href="#t:legal_entity/0">legal_entity</a>()}</pre>
+      </div>
+  </div>
+  <section class="docstring">
+<p>Get legal entity by id</p>
+<h2 id="legal_entity_by_id/1-examples" class="section-heading">
+  <a href="#legal_entity_by_id/1-examples" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Examples
+</h2>
+
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">legal_entity_by_id</span><span class="p" data-group-id="3453036941-1">(</span><span class="s">&quot;4d156509-3583-4737-b667-aa8fc814789d&quot;</span><span class="p" data-group-id="3453036941-1">)</span><span class="w">
+</span><span class="p" data-group-id="3453036941-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+</span><span class="p" data-group-id="3453036941-3">%{</span><span class="w">
+  </span><span class="ss">addresses</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-4">[</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-5">%{</span><span class="w">
+      </span><span class="s">&quot;apartment&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;23&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;area&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Житомирська&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;building&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;15-В&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;country&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;UA&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Бердичівський&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;settlement&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Київ&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;settlement_id&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;d54ce701-5762-4dda-885d-7b24ae97b3ed&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;settlement_type&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;CITY&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;street&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;вул. Ніжинська&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;street_type&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;STREET&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;type&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;REGISTRATION&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;zip&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;02090&quot;</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-5">}</span><span class="w">
+  </span><span class="p" data-group-id="3453036941-4">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">archive</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-6">[</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-7">%{</span><span class="w">
+      </span><span class="s">&quot;date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;2012-12-29&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;place&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;Житомир вул. Малярів, буд. 211, корп. 2, оф. 1&quot;</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-7">}</span><span class="w">
+  </span><span class="p" data-group-id="3453036941-6">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">beneficiary</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Марко Вовчок&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">edr_verified</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w">
+  </span><span class="ss">edrpou</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3356478194&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;some email&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;4d156509-3583-4737-b667-aa8fc814789d&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-8">#</span><span class="nc" data-group-id="3453036941-8">DateTime</span><span class="p" data-group-id="3453036941-8">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">06</span><span class="w"> </span><span class="mi">16</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">45.911201</span><span class="nc">Z</span><span class="p" data-group-id="3453036941-8">&gt;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;d584177b-5554-4de2-a728-5d8c04660ea6&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+  </span><span class="ss">kveds</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-9">[</span><span class="p" data-group-id="3453036941-9">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">legal_form</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;240&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">medical_service_provider</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-10">%{</span><span class="w">
+    </span><span class="ss">accreditation</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-11">%{</span><span class="w">
+      </span><span class="s">&quot;category&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;expiry_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;issued_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;order_date&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="s">&quot;order_no&quot;</span><span class="w"> </span><span class="o">=</span><span class="o">&gt;</span><span class="w"> </span><span class="s">&quot;some&quot;</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-11">}</span><span class="p">,</span><span class="w">
+    </span><span class="ss">licenses</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-12">[</span><span class="w">
+      </span><span class="p" data-group-id="3453036941-13">%{</span><span class="w">
+        </span><span class="ss">active_from_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2019-06-06]</span><span class="p">,</span><span class="w">
+        </span><span class="ss">expiry_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2020-06-05]</span><span class="p">,</span><span class="w">
+        </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;9f9e8882-8a32-4020-8062-62a415db1cbc&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-14">#</span><span class="nc" data-group-id="3453036941-14">DateTime</span><span class="p" data-group-id="3453036941-14">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">06</span><span class="w"> </span><span class="mi">16</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mi">45</span><span class="nc">Z</span><span class="p" data-group-id="3453036941-14">&gt;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;282c657c-a752-4f6d-bdcb-5a3b829f2b10&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+        </span><span class="ss">issued_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;foo&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">issued_date</span><span class="p">:</span><span class="w"> </span><span class="ld">~D[2019-06-06]</span><span class="p">,</span><span class="w">
+        </span><span class="ss">issuer_status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;valid&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">license_number</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1234567&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">order_no</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="p">,</span><span class="w">
+        </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MSP&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-15">#</span><span class="nc" data-group-id="3453036941-15">DateTime</span><span class="p" data-group-id="3453036941-15">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">06</span><span class="w"> </span><span class="mi">16</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mi">45</span><span class="nc">Z</span><span class="p" data-group-id="3453036941-15">&gt;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;282c657c-a752-4f6d-bdcb-5a3b829f2b10&quot;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">what_licensed</span><span class="p">:</span><span class="w"> </span><span class="no">nil</span><span class="w">
+      </span><span class="p" data-group-id="3453036941-13">}</span><span class="w">
+    </span><span class="p" data-group-id="3453036941-12">]</span><span class="w">
+  </span><span class="p" data-group-id="3453036941-10">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Клініка Борис&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">nhs_comment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">nhs_reviewed</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+  </span><span class="ss">nhs_verified</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+  </span><span class="ss">owner_property_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;STATE&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">phones</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-16">[</span><span class="p" data-group-id="3453036941-16">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">public_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;some public_name&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">receiver_funds_code</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;088912&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">short_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;some short_name&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ACTIVE&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MSP&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3453036941-17">#</span><span class="nc" data-group-id="3453036941-17">DateTime</span><span class="p" data-group-id="3453036941-17">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">06</span><span class="w"> </span><span class="mi">16</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">45.911201</span><span class="nc">Z</span><span class="p" data-group-id="3453036941-17">&gt;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;be4e3169-e7d8-4b3e-8d61-d85739c6046a&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">website</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://example.com&quot;</span><span class="w">
+</span><span class="p" data-group-id="3453036941-3">}</span><span class="p" data-group-id="3453036941-2">}</span></code></pre>
+  </section>
+</section>
 <section class="detail" id="service_belongs_to_group?/2">
     <div class="detail-header">
     <a href="#service_belongs_to_group?/2" class="detail-link" title="Link to this function">
@@ -208,7 +918,7 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_belongs_to_group?</span><span class="p" data-group-id="6400455613-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="6400455613-1">)</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_belongs_to_group?</span><span class="p" data-group-id="6189044949-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="6189044949-1">)</span><span class="w">
 </span><span class="no">true</span></code></pre>
   </section>
 </section>
@@ -231,23 +941,23 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_by_id</span><span class="p" data-group-id="0513294704-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p" data-group-id="0513294704-1">)</span><span class="w">
-</span><span class="p" data-group-id="0513294704-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
-  </span><span class="p" data-group-id="0513294704-3">%{</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_by_id</span><span class="p" data-group-id="1041587670-1">(</span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p" data-group-id="1041587670-1">)</span><span class="w">
+</span><span class="p" data-group-id="1041587670-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="1041587670-3">%{</span><span class="w">
     </span><span class="ss">category</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_category&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">code</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_code&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cdfade57-5d1c-4bac-8155-a26e88795d9f&quot;</span><span class="p">,</span><span class="w">
-    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0513294704-4">#</span><span class="nc" data-group-id="0513294704-4">DateTime</span><span class="p" data-group-id="0513294704-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="0513294704-4">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1041587670-4">#</span><span class="nc" data-group-id="1041587670-4">DateTime</span><span class="p" data-group-id="1041587670-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="1041587670-4">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_composition</span><span class="p">:</span><span class="w"> </span><span class="no">false</span><span class="p">,</span><span class="w">
     </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_name&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">parent_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;99630d0e-880c-4f70-a62b-cf65895ee196&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">request_allowed</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="0513294704-5">#</span><span class="nc" data-group-id="0513294704-5">DateTime</span><span class="p" data-group-id="0513294704-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="0513294704-5">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="1041587670-5">#</span><span class="nc" data-group-id="1041587670-5">DateTime</span><span class="p" data-group-id="1041587670-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mf">34.982672</span><span class="nc">Z</span><span class="p" data-group-id="1041587670-5">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="w">
-  </span><span class="p" data-group-id="0513294704-3">}</span><span class="w">
-</span><span class="p" data-group-id="0513294704-2">}</span></code></pre>
+  </span><span class="p" data-group-id="1041587670-3">}</span><span class="w">
+</span><span class="p" data-group-id="1041587670-2">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="service_group_by_id/1">
@@ -270,20 +980,31 @@ Functions          </h1>
   Examples
 </h2>
 
-<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_group_by_id</span><span class="p" data-group-id="3949098021-1">(</span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="3949098021-1">)</span><span class="w">
-</span><span class="p" data-group-id="3949098021-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
-  </span><span class="p" data-group-id="3949098021-3">%{</span><span class="w">
+<pre><code class="nohighlight makeup elixir"><span class="gp unselectable">iex&gt; </span><span class="nc">EHealth.Rpc</span><span class="o">.</span><span class="n">service_group_by_id</span><span class="p" data-group-id="7519152444-1">(</span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p" data-group-id="7519152444-1">)</span><span class="w">
+</span><span class="p" data-group-id="7519152444-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="7519152444-3">%{</span><span class="w">
     </span><span class="ss">code</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_group_code&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;71a01a1b-c60a-41c0-8ee6-73fc10abf1ea&quot;</span><span class="p">,</span><span class="w">
-    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3949098021-4">#</span><span class="nc" data-group-id="3949098021-4">DateTime</span><span class="p" data-group-id="3949098021-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3949098021-4">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">inserted_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7519152444-4">#</span><span class="nc" data-group-id="7519152444-4">DateTime</span><span class="p" data-group-id="7519152444-4">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="7519152444-4">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">inserted_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">is_active</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
     </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service_group_name&quot;</span><span class="p">,</span><span class="w">
     </span><span class="ss">request_allowed</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3949098021-5">#</span><span class="nc" data-group-id="3949098021-5">DateTime</span><span class="p" data-group-id="3949098021-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="3949098021-5">&gt;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">updated_at</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="7519152444-5">#</span><span class="nc" data-group-id="7519152444-5">DateTime</span><span class="p" data-group-id="7519152444-5">&lt;</span><span class="mi">2019</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">16</span><span class="w"> </span><span class="mi">12</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">24.978769</span><span class="nc">Z</span><span class="p" data-group-id="7519152444-5">&gt;</span><span class="p">,</span><span class="w">
     </span><span class="ss">updated_by</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;da333fb4-f397-46b1-90e3-3bc1d3b3d658&quot;</span><span class="w">
-  </span><span class="p" data-group-id="3949098021-3">}</span><span class="w">
-</span><span class="p" data-group-id="3949098021-2">}</span></code></pre>
+  </span><span class="p" data-group-id="7519152444-3">}</span><span class="w">
+</span><span class="p" data-group-id="7519152444-2">}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="tax_id_by_employee_id/1">
+    <div class="detail-header">
+    <a href="#tax_id_by_employee_id/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">tax_id_by_employee_id(employee_id)</span>
+          </div>
+  <section class="docstring">
   </section>
 </section>
           </div>

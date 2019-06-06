@@ -79,11 +79,17 @@ defmodule EHealth.Web.EmployeeView do
   end
 
   def render("employee_users_short.json", %{employee: employee}) do
-    %{
-      "id" => employee.id,
-      "legal_entity_id" => employee.legal_entity_id,
-      "party" => render(PartyView, "party_users.json", %{party: employee.party})
-    }
+    employee
+    |> Map.take(~w(id legal_entity_id)a)
+    |> Map.put(:party, render(PartyView, "party_users.json", %{party: employee.party}))
+  end
+
+  def render("document.json", %{document: document}) do
+    Map.take(document, ~w(type number issued_at issued_by)a)
+  end
+
+  def render("phone.json", %{phone: phone}) do
+    Map.take(phone, ~w(type number)a)
   end
 
   def render_employee(employee) do
@@ -113,12 +119,12 @@ defmodule EHealth.Web.EmployeeView do
         gender
         tax_id
         no_tax_id
-        documents
-        phones
         about_myself
         working_experience
       )a)
       |> Map.merge(%{declaration_limit: 0, declaration_count: 0})
+      |> Map.put(:documents, render_many(party.documents, __MODULE__, "document.json", as: :document))
+      |> Map.put(:phones, render_many(party.phones, __MODULE__, "phone.json", as: :phone))
 
     Map.put(map, :party, data)
   end
