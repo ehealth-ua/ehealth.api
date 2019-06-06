@@ -5,6 +5,39 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [9.1.0](https://github.com/edenlabllc/ehealth.api/compare/9.0.0...9.1.0) (2019-6-6)
+
+
+
+
+### Features:
+
+* graphql: change `services groups` to `service inclusion` (#5202)
+
+* graphql: added serviceGroups field to Service query (#5181)
+
+* graphql: add `addServiceToGroup` mutation (#5136)
+
+* Migrate accreditation (#5175)
+
+* graphql: add `deactivateServiceGroup` mutation (#5133)
+
+* graphql: add `createServiceGroup` mutation (#5132)
+
+### Bug Fixes:
+
+* graphql: do not count length for response with nil from Dataloader (#5185)
+
+* correct `ChangeServiceInclusionsPkey` migration (#5194)
+
+* New pattern for person documents (#5178)
+
+* Allow primary_care to work with capitation contracts (#5179)
+
+* delete pattern of service name (#5176)
+
+* graphql: added EDRData registration address field (#5174)
+
 ## [9.0.0](https://github.com/edenlabllc/ehealth.api/compare/8.14.1...9.0.0) (2019-6-4)
 ### Breaking Changes:
 
