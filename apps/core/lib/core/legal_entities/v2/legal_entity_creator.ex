@@ -199,8 +199,8 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
         "short_name" => edr_response["short_name"],
         "updated_by" => consumer_id,
         "is_active" => true,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false,
+        # "nhs_verified" => false,
+        # "nhs_reviewed" => false,
         "edr_verified" => nil
       })
 

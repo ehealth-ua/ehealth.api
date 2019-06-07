@@ -4,6 +4,7 @@ defmodule EHealth.Web.DeclarationRequestController do
   use EHealth.Web, :controller
   alias Core.DeclarationRequests
   alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.DeclarationRequests.Urgent
   alias Scrivener.Page
   require Logger
 
@@ -21,7 +22,14 @@ defmodule EHealth.Web.DeclarationRequestController do
 
   def show(%Plug.Conn{req_headers: headers} = conn, %{"declaration_request_id" => id} = params) do
     with %DeclarationRequest{} = declaration_request <- DeclarationRequests.get_by_id!(id, params) do
-      urgent_data = Map.take(declaration_request, [:authentication_method_current, :documents])
+      urgent_data =
+        declaration_request
+        |> Map.take(~w(documents)a)
+        |> Map.put(
+          :authentication_method_current,
+          Urgent.filter_authentication_method(declaration_request.authentication_method_current)
+        )
+
       {:ok, %{"data" => %{"hash" => hash}}} = @ops_api.get_latest_block(headers)
 
       conn

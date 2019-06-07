@@ -194,8 +194,8 @@ defmodule Core.LegalEntities.LegalEntityCreator do
       |> Map.merge(%{
         "updated_by" => consumer_id,
         "is_active" => true,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false,
+        # "nhs_verified" => false,
+        # "nhs_reviewed" => false,
         "edr_verified" => nil,
         "residence_address" => get_residence_address(attrs)
       })

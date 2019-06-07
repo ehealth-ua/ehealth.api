@@ -12,6 +12,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   alias Core.DeclarationRequests.API.Documents
   alias Core.DeclarationRequests.API.V1.MpiSearch
   alias Core.DeclarationRequests.DeclarationRequest
+  alias Core.DeclarationRequests.Urgent
   alias Core.Employees.Employee
   alias Core.GlobalParameters
   alias Core.Man.Templates.DeclarationRequestPrintoutForm
@@ -19,7 +20,6 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
   alias Core.Persons.V1.Validator, as: PersonsValidator
   alias Core.Repo
   alias Core.Utils.NumberGenerator
-  alias Core.Utils.Phone
   alias Core.ValidationError
   alias Core.Validators.BirthDate
   alias Core.Validators.Error
@@ -270,7 +270,7 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
 
   def prepare_urgent_data(declaration_request) do
     filtered_authentication_method_current =
-      filter_authentication_method(declaration_request.authentication_method_current)
+      Urgent.filter_authentication_method(declaration_request.authentication_method_current)
 
     filter_document_links = fn documents ->
       filter_fun = fn document -> document["verb"] == "PUT" end
@@ -295,12 +295,6 @@ defmodule Core.DeclarationRequests.API.V1.Creator do
 
     {:ok, urgent_data}
   end
-
-  defp filter_authentication_method(%{"number" => number} = method) do
-    Map.put(method, "number", Phone.hide_number(number))
-  end
-
-  defp filter_authentication_method(method), do: method
 
   def pending_declaration_requests(%{"tax_id" => tax_id}, employee_id, legal_entity_id) when not is_nil(tax_id) do
     DeclarationRequest
