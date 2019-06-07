@@ -5,6 +5,29 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [9.2.0](https://github.com/edenlabllc/ehealth.api/compare/9.1.0...9.2.0) (2019-6-7)
+
+
+
+
+### Features:
+
+* core: added `medical_program.type` field in Fraud DB (#5217)
+
+* Rpc ehealth (#5210)
+
+* graphql: added `updateService` mutation (#5208)
+
+* graphql: add `deleteServiceFromGroup` mutation (#5137)
+
+### Bug Fixes:
+
+* employee_by_id rpc call (#5214)
+
+* filter urgent declaration request, don't set nhs_unverified (#5212)
+
+* core: removed unused `services.parent_id` field. Removed unused variables (#5197)
+
 ## [9.1.0](https://github.com/edenlabllc/ehealth.api/compare/9.0.0...9.1.0) (2019-6-6)
 
 
