@@ -98,10 +98,8 @@ defmodule EHealth.RpcTest do
     end
 
     test "get employee by id" do
-      employee =
-        :prm
-        |> insert(:employee)
-        |> PRMRepo.preload(:party)
+      legal_entity = insert(:prm, :legal_entity)
+      employee = insert(:prm, :employee, legal_entity: legal_entity)
 
       id = employee.id
       assert {:ok, %{id: ^id}} = Rpc.employee_by_id(employee.id)

@@ -329,6 +329,7 @@ defmodule EHealth.Rpc do
         employee_type: "DOCTOR",
         end_date: ~D[2012-04-17],
         id: "b8edf2c1-adaf-44e1-89db-a3e68f8f72fb",
+        legal_entity_id: "91fa575b-1cf3-4645-a7fc-22513b8cde7f",
         party: %{
           about_myself: nil,
           birth_date: ~D[1991-08-19],
@@ -372,8 +373,14 @@ defmodule EHealth.Rpc do
       |> @read_prm_repo.one()
 
     case employee do
-      %Employee{} -> {:ok, EmployeeView.render("employee.json", %{employee: employee})}
-      _ -> nil
+      %Employee{} ->
+        {:ok,
+         "employee.json"
+         |> EmployeeView.render(%{employee: employee})
+         |> Map.put(:legal_entity_id, employee.legal_entity_id)}
+
+      _ ->
+        nil
     end
   end
 
