@@ -68,7 +68,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
       %{id: edr_data_id} = insert(:prm, :edr_data)
       address = %{"parts" => %{"atu_code" => "12345678"}}
       name = "bar"
-      public_name = "public"
+      display = "display"
 
       kveds = [
         %{
@@ -83,14 +83,14 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
          %{
            "state" => 1,
            "address" => address,
-           "names" => %{"name" => name, "display" => public_name},
+           "names" => %{"name" => name, "display" => display},
            "activity_kinds" => kveds
          }}
       )
 
       assert :ok = Consumer.consume(%{"id" => edr_data_id})
 
-      assert [%EdrData{name: ^name, public_name: ^public_name, kveds: ^kveds, registration_address: ^address}] =
+      assert [%EdrData{name: ^display, public_name: ^name, kveds: ^kveds, registration_address: ^address}] =
                PRMRepo.all(EdrData)
     end
   end

@@ -47,9 +47,9 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
              {:ok, response} <- get_legal_entity_from_edr(edr_data.edr_id),
              :ok <- validate_edr_response(response, legal_entity_code) do
           data = %{
-            "name" => response["names"]["name"],
+            "name" => response["names"]["display"],
             "short_name" => response["names"]["short"],
-            "public_name" => response["names"]["display"],
+            "public_name" => response["names"]["name"],
             "legal_form" => response["olf_code"],
             "kveds" => response["activity_kinds"],
             "registration_address" => response["address"],
@@ -303,9 +303,9 @@ defmodule Core.LegalEntities.V2.LegalEntityCreator do
                 data = %{
                   "edrpou" => value,
                   "edr_id" => response["id"],
-                  "name" => response["names"]["name"],
+                  "name" => response["names"]["display"],
                   "short_name" => response["names"]["short"],
-                  "public_name" => response["names"]["display"],
+                  "public_name" => response["names"]["name"],
                   "legal_form" => response["olf_code"],
                   "kveds" => response["activity_kinds"],
                   "registration_address" => response["address"],

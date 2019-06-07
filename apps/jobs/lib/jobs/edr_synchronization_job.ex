@@ -50,9 +50,9 @@ defmodule Jobs.EdrSynchronizationJob do
             data = %{
               "edrpou" => legal_entity.edrpou,
               "edr_id" => response["id"],
-              "name" => response["names"]["name"],
+              "name" => response["names"]["display"],
               "short_name" => response["names"]["short"],
-              "public_name" => response["names"]["display"],
+              "public_name" => response["names"]["name"],
               "legal_form" => response["olf_code"],
               "kveds" => response["activity_kinds"],
               "registration_address" => response["address"],
