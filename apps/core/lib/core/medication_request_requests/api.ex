@@ -175,7 +175,7 @@ defmodule Core.MedicationRequestRequests do
 
     with %LegalEntity{} = legal_entity <- LegalEntities.get_by_id(id),
          {_, true} <- {:status, legal_entity.is_active && legal_entity.status == LegalEntity.status(:active)},
-         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         #  {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
          {_, true} <- {:type, legal_entity.type in allowed_types} do
       :ok
     else
