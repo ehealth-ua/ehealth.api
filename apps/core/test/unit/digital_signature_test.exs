@@ -2,7 +2,6 @@ defmodule Core.Unit.DigitalSignatureTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  import Core.Expectations.Signature
 
   alias Core.API.Signature
 

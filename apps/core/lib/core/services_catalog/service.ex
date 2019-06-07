@@ -11,7 +11,6 @@ defmodule Core.Services.Service do
     field(:code, :string)
     field(:name, :string)
     field(:category, :string)
-    field(:parent_id, UUID)
     field(:is_active, :boolean, default: true)
     field(:is_composition, :boolean)
     field(:request_allowed, :boolean)

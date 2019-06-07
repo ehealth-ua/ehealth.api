@@ -6232,23 +6232,18 @@ defmodule EHealth.Web.ContractRequest.CapitationControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
-        "legal_entity" => legal_entity,
-        "contractor_owner_id" => employee_owner,
-        "nhs_signer" => nhs_signer
+        "legal_entity" => legal_entity
       } =
         prepare_nhs_sign_params(
           [id: id, data: data, status: CapitationContractRequest.status(:nhs_signed), contract_number: "1345"],
           nhs_verified: false
         )
 
-      conn =
+      resp =
         conn
         |> put_client_id_header(client_id)
         |> put_consumer_id_header(user_id)
         |> put_req_header("msp_drfo", legal_entity.edrpou)
-
-      resp =
-        conn
         |> patch(contract_request_path(conn, :sign_msp, @capitation, contract_request.id), %{
           "signed_content" => data |> Poison.encode!() |> Base.encode64(),
           "signed_content_encoding" => "base64"
