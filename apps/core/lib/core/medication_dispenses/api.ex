@@ -119,7 +119,7 @@ defmodule Core.MedicationDispense.API do
     allowed_types = Confex.fetch_env!(:core, :medication_dispense_legal_entity_types)
 
     with {_, true} <- {:status, legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active},
-         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         #  {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
          {_, true} <- {:type, legal_entity.type in allowed_types} do
       :ok
     else
@@ -143,7 +143,6 @@ defmodule Core.MedicationDispense.API do
          {:ok, legal_entity} <- Reference.validate(:legal_entity, legal_entity_id),
          :ok <- validate_legal_entity(legal_entity),
          {:ok, party_user} <- get_party_user(user_id),
-         :ok <- validate_legal_entity(legal_entity),
          {:ok, medication_request} <- validate_medication_request(params["medication_request_id"]),
          {:intent, @intent_order} <- {:intent, medication_request["intent"]},
          :ok <- validate_employee(party_user, legal_entity_id),

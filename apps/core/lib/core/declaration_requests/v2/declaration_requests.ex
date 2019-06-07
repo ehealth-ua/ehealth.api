@@ -65,7 +65,7 @@ defmodule Core.V2.DeclarationRequests do
     allowed_types = Confex.fetch_env!(:core, :declaration_request_legal_entity_types)
 
     with {_, true} <- {:status, legal_entity.status == LegalEntity.status(:active) and legal_entity.is_active},
-         {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
+         #  {_, true} <- {:nhs_verified, legal_entity.nhs_verified},
          {_, true} <- {:type, legal_entity.type in allowed_types} do
       :ok
     else
