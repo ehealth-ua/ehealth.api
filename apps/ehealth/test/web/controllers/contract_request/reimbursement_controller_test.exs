@@ -1682,9 +1682,7 @@ defmodule EHealth.Web.ContractRequest.ReimbursementControllerTest do
         "client_id" => client_id,
         "user_id" => user_id,
         "contract_request" => contract_request,
-        "legal_entity" => legal_entity,
-        "contractor_owner_id" => employee_owner,
-        "nhs_signer" => nhs_signer
+        "legal_entity" => legal_entity
       } =
         prepare_nhs_sign_params(
           [id: id, data: data, status: ReimbursementContractRequest.status(:nhs_signed), contract_number: "1345"],

@@ -8,7 +8,7 @@ defmodule Core.Services do
   alias Core.Validators.JsonSchema
 
   @service_fields_required ~w(name code)a
-  @service_fields_optional ~w(category parent_id is_composition request_allowed is_active)a
+  @service_fields_optional ~w(category is_composition request_allowed is_active)a
 
   @service_group_fields_required ~w(name code)a
   @service_group_fields_optional ~w(parent_id request_allowed is_active)a
