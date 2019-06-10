@@ -15,8 +15,8 @@ defmodule Core.Services.ServiceGroup do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    belongs_to(:parent_group, __MODULE__, foreign_key: :parent_id, type: UUID)
-    has_many(:sub_groups, __MODULE__, foreign_key: :parent_id)
+    belongs_to(:parent_group, __MODULE__, type: UUID)
+    has_many(:sub_groups, __MODULE__, foreign_key: :parent_group_id)
 
     has_many(:program_services, ProgramService)
 

@@ -11,7 +11,7 @@ defmodule Core.Services do
   @service_fields_optional ~w(category is_composition request_allowed is_active)a
 
   @service_group_fields_required ~w(name code)a
-  @service_group_fields_optional ~w(parent_id request_allowed is_active)a
+  @service_group_fields_optional ~w(parent_group_id request_allowed is_active)a
 
   @read_prm_repo Application.get_env(:core, :repos)[:read_prm_repo]
 
@@ -28,11 +28,11 @@ defmodule Core.Services do
 
     tree =
       Enum.reduce(tree, tree, fn {service_group_id, service_group}, acc ->
-        parent_id = service_group.node.parent_id
+        parent_group_id = service_group.node.parent_group_id
 
-        if parent_id do
-          {_, parent} = Enum.find(acc, fn {k, _} -> k == parent_id end)
-          Map.put(acc, parent_id, Map.put(parent, :groups, [service_group_id | parent.groups]))
+        if parent_group_id do
+          {_, parent} = Enum.find(acc, fn {k, _} -> k == parent_group_id end)
+          Map.put(acc, parent_group_id, Map.put(parent, :groups, [service_group_id | parent.groups]))
         else
           acc
         end

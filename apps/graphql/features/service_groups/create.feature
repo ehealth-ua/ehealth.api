@@ -1,21 +1,31 @@
 Feature: Create service group
 
-  Scenario Outline: Successful creation
+  Scenario: Successful creation
     Given my scope is "service_catalog:write"
     And my client type is "NHS"
     And my consumer ID is "1ad3c0e6-e2fc-2d3c-a15c-5101874165a7"
     When I create service group with attributes:
-      | name   | code   | parentGroupId     |
-      | <name> | <code> | <parent_group_id> |
+      | name                                     | code  |
+      | "Ультразвукові дослідження в неврології" | "2FA" |
     Then no errors should be returned
     And request id should be returned
     And I should receive requested item
-    And the name of the requested item should be <name>
+    And the name of the requested item should be "Ультразвукові дослідження в неврології"
 
-    Examples:
-      | name                                     | code  | parent_group_id                                                        |
-      | "Ультразвукові дослідження в неврології" | "2FA" | null                                                                   |
+  Scenario: Successful creation with parent group
+    Given the following service groups exist:
+      | databaseId                             |
+      | "f4ce3fdf-d49b-426c-9636-8b186db75d73" |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "1ad3c0e6-e2fc-2d3c-a15c-5101874165a7"
+    When I create service group with attributes:
+      | name                                     | code  | parentGroupId                                                          |
       | "Ультразвукові дослідження в неврології" | "2FA" | "U2VydmljZUdyb3VwOmY0Y2UzZmRmLWQ0OWItNDI2Yy05NjM2LThiMTg2ZGI3NWQ3Mw==" |
+    Then no errors should be returned
+    And request id should be returned
+    And I should receive requested item
+    And the databaseId in parentGroup of the requested item should be "f4ce3fdf-d49b-426c-9636-8b186db75d73"
 
   Scenario: Create with incorrect scope
     Given my scope is "service_catalog:read"

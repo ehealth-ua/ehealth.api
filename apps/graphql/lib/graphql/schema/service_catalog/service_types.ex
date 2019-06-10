@@ -4,7 +4,6 @@ defmodule GraphQL.Schema.ServiceTypes do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
   import GraphQL.Resolvers.Helpers.Load, only: [load_by_args: 2]
 
   alias Absinthe.Relay.Node.ParseIDs

@@ -5,7 +5,7 @@ defmodule EHealth.Web.ServiceView do
 
   def render("index.json", %{tree: nodes}) do
     nodes
-    |> Enum.filter(fn {_, v} -> is_nil(v.node.parent_id) end)
+    |> Enum.filter(fn {_, v} -> is_nil(v.node.parent_group_id) end)
     |> Enum.map(fn {_, v} ->
       render("group.json", %{group: v, tree: nodes})
     end)
@@ -33,7 +33,6 @@ defmodule EHealth.Web.ServiceView do
       id
       code
       is_active
-      parent_id
       category
       is_composition
       request_allowed
