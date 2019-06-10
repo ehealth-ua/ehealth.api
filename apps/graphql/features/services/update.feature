@@ -2,8 +2,8 @@ Feature: Update service
 
   Scenario Outline: Successful update
     Given the following services exist:
-      | databaseId    | requestAllowed   |
-      | <database_id> | <requestAllowed> |
+      | databaseId    | requestAllowed    |
+      | <database_id> | <request_allowed> |
     And my scope is "service_catalog:write"
     And my client type is "NHS"
     And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"
@@ -13,14 +13,14 @@ Feature: Update service
     And the <field> of the requested item should be <next_value>
 
     Examples:
-      | database_id                            | field          | next_value | requestAllowed |
-      | "3b1a0ad5-7cc4-4e3d-900f-dbff37cdc601" | requestAllowed | false      | true           |
-      | "b5324d08-5d4b-4b54-9a4a-5d15f30877c1" | requestAllowed | true       | false          |
+      | database_id                            | field          | next_value | request_allowed |
+      | "3b1a0ad5-7cc4-4e3d-900f-dbff37cdc601" | requestAllowed | false      | true            |
+      | "b5324d08-5d4b-4b54-9a4a-5d15f30877c1" | requestAllowed | true       | false           |
 
   Scenario: Update with incorrect scope
     Given the following services exist:
-      | databaseId                             | isActive |
-      | "a6516e2e-aa11-4ed2-881f-9b0aa2ec9f11" | true     |
+      | databaseId                             | requestAllowed |
+      | "a6516e2e-aa11-4ed2-881f-9b0aa2ec9f11" | false          |
     And my scope is "service_catalog:read"
     And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"
     When I update the requestAllowed with true in the service where databaseId is "a6516e2e-aa11-4ed2-881f-9b0aa2ec9f11"
@@ -29,8 +29,8 @@ Feature: Update service
 
   Scenario: Update with incorrect client
     Given the following services exist:
-      | databaseId                             | isActive |
-      | "d12ba795-bfd6-3f87-ae04-b2864d7fdca1" | true     |
+      | databaseId                             | requestAllowed |
+      | "d12ba795-bfd6-3f87-ae04-b2864d7fdca1" | false          |
     And my scope is "service_catalog:write"
     And my client type is "MIS"
     And my consumer ID is "46d29f1b-122c-40ae-a36b-be138fb9c987"

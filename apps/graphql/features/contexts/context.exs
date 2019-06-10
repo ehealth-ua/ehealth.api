@@ -2682,6 +2682,37 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the service group where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{database_id: database_id, field: field, value: value} ->
+      query = """
+        mutation UpdateServiceGroupMutation($input: UpdateServiceInput!) {
+          updateServiceGroup(input: $input) {
+            serviceGroup {
+              #{field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        input: %{
+          :id => Node.to_global_id("ServiceGroup", database_id),
+          field => Jason.decode!(value)
+        }
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data updateServiceGroup serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
     ~r/^I update the (?<field>\w+) with (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*})) in the program medication where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{database_id: database_id, field: field, value: value} ->
       query = """
@@ -3320,14 +3351,13 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_model("INNM dosage"), do: INNMDosage
   def entity_name_to_model("INNM dosage ingredient"), do: INNMDosage.Ingredient
   def entity_name_to_model("INNM"), do: INNM
-  def entity_name_to_model("service group"), do: ServiceGroup
-  def entity_name_to_model("region"), do: Region
-  def entity_name_to_model("district"), do: District
-  def entity_name_to_model("settlement"), do: Settlement
+  def entity_name_to_model("program service"), do: ProgramService
   def entity_name_to_model("service"), do: Service
   def entity_name_to_model("service group"), do: ServiceGroup
   def entity_name_to_model("service inclusion"), do: ServiceInclusion
-  def entity_name_to_model("program service"), do: ProgramService
+  def entity_name_to_model("region"), do: Region
+  def entity_name_to_model("district"), do: District
+  def entity_name_to_model("settlement"), do: Settlement
   def entity_name_to_model(entity_name), do: raise("Model not found for #{inspect(entity_name)}")
 
   @spec entity_name_to_model(entity_name :: binary) :: {repo :: atom, factory_name :: atom}
@@ -3348,10 +3378,6 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("reimbursement contract"), do: {:prm, :reimbursement_contract}
   def entity_name_to_factory_args("contract division"), do: {:prm, :contract_division}
   def entity_name_to_factory_args("contract employee"), do: {:prm, :contract_employee}
-  def entity_name_to_factory_args("program service"), do: {:prm, :program_service}
-  def entity_name_to_factory_args("service"), do: {:prm, :service}
-  def entity_name_to_factory_args("service group"), do: {:prm, :service_group}
-  def entity_name_to_factory_args("service inclusion"), do: {:prm, :service_inclusion}
   def entity_name_to_factory_args("medical program"), do: {:prm, :medical_program}
   def entity_name_to_factory_args("program medication"), do: {:prm, :program_medication}
   def entity_name_to_factory_args("medication"), do: {:prm, :medication}
@@ -3359,6 +3385,10 @@ defmodule GraphQL.Features.Context do
   def entity_name_to_factory_args("INNM dosage"), do: {:prm, :innm_dosage}
   def entity_name_to_factory_args("INNM dosage ingredient"), do: {:prm, :ingredient_innm_dosage}
   def entity_name_to_factory_args("INNM"), do: {:prm, :innm}
+  def entity_name_to_factory_args("program service"), do: {:prm, :program_service}
+  def entity_name_to_factory_args("service"), do: {:prm, :service}
+  def entity_name_to_factory_args("service group"), do: {:prm, :service_group}
+  def entity_name_to_factory_args("service inclusion"), do: {:prm, :service_inclusion}
   def entity_name_to_factory_args("region"), do: {nil, :region}
   def entity_name_to_factory_args("district"), do: {nil, :district}
   def entity_name_to_factory_args("settlement"), do: {nil, :settlement}
@@ -3384,15 +3414,15 @@ defmodule GraphQL.Features.Context do
   def model_to_repo(ContractEmployee), do: PRMRepo
   def model_to_repo(MedicalProgram), do: PRMRepo
   def model_to_repo(ProgramMedication), do: PRMRepo
-  def model_to_repo(ProgramService), do: PRMRepo
-  def model_to_repo(Service), do: PRMRepo
-  def model_to_repo(ServiceGroup), do: PRMRepo
-  def model_to_repo(ServiceInclusion), do: PRMRepo
   def model_to_repo(Medication), do: PRMRepo
   def model_to_repo(Medication.Ingredient), do: PRMRepo
   def model_to_repo(INNMDosage), do: PRMRepo
   def model_to_repo(INNMDosage.Ingredient), do: PRMRepo
   def model_to_repo(INNM), do: PRMRepo
+  def model_to_repo(ProgramService), do: PRMRepo
+  def model_to_repo(Service), do: PRMRepo
+  def model_to_repo(ServiceGroup), do: PRMRepo
+  def model_to_repo(ServiceInclusion), do: PRMRepo
   def model_to_repo(model), do: raise("Repo not found for #{inspect(model)}")
 
   def transpose_table(table_data) do

@@ -83,13 +83,6 @@ defmodule Core.Services do
     end
   end
 
-  def update_service(%Service{} = service, params, actor_id) do
-    service
-    |> changeset(params)
-    |> put_change(:updated_by, actor_id)
-    |> PRMRepo.update_and_log(actor_id)
-  end
-
   def create_service_group(params, actor_id) do
     %ServiceGroup{}
     |> changeset(params)
@@ -110,6 +103,13 @@ defmodule Core.Services do
       |> unique_constraint(:is_active, name: :service_inclusions_service_group_id_service_id_index)
       |> PRMRepo.insert_and_log(actor_id)
     end
+  end
+
+  def update(%{__struct__: queryable} = record, params, actor_id) when queryable in [Service, ServiceGroup] do
+    record
+    |> changeset(params)
+    |> put_change(:updated_by, actor_id)
+    |> PRMRepo.update_and_log(actor_id)
   end
 
   def deactivate(%Service{id: id} = service, actor_id) when is_binary(id) do

@@ -63,8 +63,3 @@ Feature: Create service group
       | name                           | code  |
       | ""                             | "2FA" |
       | "Діагностичні інструментальні" | ""    |
-
-
-
-
-
