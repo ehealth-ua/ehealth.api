@@ -108,12 +108,8 @@ defmodule GraphQL.Schema.LegalEntityDeactivationJobTypes do
   end
 
   enum :legal_entity_deactivation_job_status do
-    value(:new, as: "NEW")
     value(:failed, as: "FAILED")
     value(:pending, as: "PENDING")
-    value(:aborted, as: "ABORTED")
-    value(:rescued, as: "RESCUED")
-    value(:consumed, as: "CONSUMED")
     value(:processed, as: "PROCESSED")
   end
 end

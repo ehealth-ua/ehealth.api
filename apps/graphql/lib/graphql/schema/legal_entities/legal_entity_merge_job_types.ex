@@ -116,7 +116,7 @@ defmodule GraphQL.Schema.LegalEntityMergeJobTypes do
   end
 
   enum :legal_entity_merge_job_status do
-    value(:new, as: "NEW")
+    value(:failed, as: "FAILED")
     value(:pending, as: "PENDING")
     value(:processed, as: "PROCESSED")
   end
