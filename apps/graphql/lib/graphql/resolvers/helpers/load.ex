@@ -86,13 +86,18 @@ defmodule GraphQL.Resolvers.Helpers.Load do
         records = Dataloader.get(loader, source_name, batch_key, parent)
         opts = [has_previous_page: offset > 0, has_next_page: has_next_page?(records, limit)]
 
-        Connection.from_slice(Enum.take(records, limit), offset, opts)
+        records
+        |> take_records(limit)
+        |> Connection.from_slice(offset, opts)
       end
     end)
   end
 
   defp has_next_page?(records, limit) when is_list(records), do: length(records) > limit
   defp has_next_page?(_, _), do: false
+
+  defp take_records(records, amount) when is_list(records), do: Enum.take(records, amount)
+  defp take_records(nil, _), do: []
 
   def response_to_ecto_struct(schema, response) do
     schema
