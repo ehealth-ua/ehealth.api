@@ -37,7 +37,6 @@ defmodule GraphQL.Schema.EmployeeTypes do
         legal_entity: [
           database_id: :equal,
           edrpou: :equal,
-          name: :like,
           nhs_verified: :equal,
           nhs_reviewed: :equal,
           type: :equal

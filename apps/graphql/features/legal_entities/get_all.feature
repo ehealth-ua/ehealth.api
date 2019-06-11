@@ -49,6 +49,7 @@ Feature: Get all legal entities
       | field       | filter_value                           | expected_value                         | alternate_value                        |
       | databaseId  | "3fc65def-670d-42f6-bac1-fa48ad2b6da4" | "3fc65def-670d-42f6-bac1-fa48ad2b6da4" | "170ed3bf-eb18-440b-9552-840fa109cf71" |
       | type        | ["PHARMACY", "MSP_PHARMACY"]           | "PHARMACY"                             | "NHS"                                  |
+      | edrpou      | "12345"                                | "1234567890"                           | "0987654321"                           |
       | nhsVerified | true                                   | true                                   | false                                  |
       | nhsReviewed | false                                  | false                                  | true                                   |
       | edrVerified | true                                   | true                                   | false                                  |

@@ -37,9 +37,14 @@ defmodule GraphQL.Schema.CapitationContractTypes do
           database_id: :equal,
           type: :in,
           edrpou: :like,
-          name: :like,
           nhs_verified: :equal,
-          nhs_reviewed: :equal
+          nhs_reviewed: :equal,
+          edr_data: [
+            database_id: :equal,
+            edrpou: :like,
+            name: :like,
+            is_active: :equal
+          ]
         ]
       )
 

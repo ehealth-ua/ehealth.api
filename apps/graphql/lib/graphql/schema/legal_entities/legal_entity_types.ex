@@ -24,6 +24,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
       middleware(Filtering,
         database_id: :equal,
         type: :in,
+        edrpou: :like,
         status: :equal,
         nhs_verified: :equal,
         nhs_reviewed: :equal,
@@ -58,6 +59,7 @@ defmodule GraphQL.Schema.LegalEntityTypes do
     # Dictionary: LEGAL_ENTITY_TYPE
     field(:type, list_of(:string))
     field(:status, :legal_entity_status)
+    field(:edrpou, :string)
     field(:nhs_verified, :boolean)
     field(:nhs_reviewed, :boolean)
     field(:edr_verified, :boolean)
