@@ -441,6 +441,35 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) INNM dosages$/,
+    fn %{conn: conn} = state, %{count: count} ->
+      query = """
+        query ListINNMDosages($first: Int!) {
+          innmDosages(first: $first) {
+            nodes {
+              id
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) service groups$/,
     fn %{conn: conn} = state, %{count: count} ->
       query = """
@@ -691,6 +720,35 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data reimbursementContracts nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
+    ~r/^I request first (?<count>\d+) employee requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
+      query = """
+        query ListEmployeeRequestsWithFilter($first: Int!, $filter: EmployeeRequestFilter) {
+          employeeRequests(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -984,6 +1042,13 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) (?<entity>(\w+\s?){1,3}) where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, params ->
+      {:ok, Map.merge(state, call_list_with_filter_query(conn, params))}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) capitation contract requests where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
     fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
       query = """
@@ -1208,6 +1273,38 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
+    ~r/^I request first (?<count>\d+) program services where (?<field>\w+) of the associated (?<association_field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
+    fn %{conn: conn} = state, %{count: count, association_field: association_field, field: field, value: value} ->
+      query = """
+        query ListProgramServicesWithAssocFilter(
+          $first: Int!
+          $filter: ProgramServiceFilter!
+        ) {
+          programServices(first: $first, filter: $filter) {
+            nodes {
+              databaseId
+            }
+          }
+        }
+      """
+
+      variables = %{
+        first: Jason.decode!(count),
+        filter: filter_argument(association_field, field, Jason.decode!(value))
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entities = get_in(resp_body, ~w(data programServices nodes))
+
+      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
+    end
+  )
+
+  when_(
     ~r/^I request first (?<count>\d+) employee requests$/,
     fn %{conn: conn} = state, %{count: count} ->
       query = """
@@ -1231,42 +1328,6 @@ defmodule GraphQL.Features.Context do
       resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
-    ~r/^I request first (?<count>\d+) employee requests where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn} = state, %{count: count, field: field, value: value} ->
-      query = """
-        query ListEmployeeRequestsWithFilter($first: Int!, $filter: EmployeeRequestFilter) {
-          employeeRequests(first: $first, filter: $filter) {
-            nodes {
-              databaseId
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count),
-        filter: filter_argument(field, Jason.decode!(value))
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data employeeRequests nodes))
-
-      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
-    ~r/^I request first (?<count>\d+) (?<entity>(\w+\s?){1,3}) where (?<field>\w+) is (?<value>(?:-?\d+(\.\d+)?|\w+|"[^"]+"|\[.*\]|{.*}))$/,
-    fn %{conn: conn} = state, params ->
-      {:ok, Map.merge(state, call_list_with_filter_query(conn, params))}
     end
   )
 
@@ -1596,35 +1657,6 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entities = get_in(resp_body, ~w(data innms nodes))
-
-      {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
-    end
-  )
-
-  when_(
-    ~r/^I request first (?<count>\d+) INNM dosages$/,
-    fn %{conn: conn} = state, %{count: count} ->
-      query = """
-        query ListINNMDosages($first: Int!) {
-          innmDosages(first: $first) {
-            nodes {
-              id
-              databaseId
-            }
-          }
-        }
-      """
-
-      variables = %{
-        first: Jason.decode!(count)
-      }
-
-      resp_body =
-        conn
-        |> post_query(query, variables)
-        |> json_response(200)
-
-      resp_entities = get_in(resp_body, ~w(data innmDosages nodes))
 
       {:ok, %{state | resp_body: resp_body, resp_entities: resp_entities}}
     end
@@ -2429,7 +2461,7 @@ defmodule GraphQL.Features.Context do
   )
 
   when_(
-    ~r/^I request (?<nested_field>\w+) of the first (?<count>\d+) serviceGroups of the service where databaseId is "(?<database_id>[^"]+)"$/,
+    ~r/^I request (?<nested_field>\w+) of the first (?<count>\d+) service groups of the service where databaseId is "(?<database_id>[^"]+)"$/,
     fn %{conn: conn} = state, %{nested_field: nested_field, count: count, database_id: database_id} ->
       query = """
         query GetServiceQuery($id: ID!, $first: Int!) {
@@ -2482,6 +2514,34 @@ defmodule GraphQL.Features.Context do
         |> json_response(200)
 
       resp_entity = get_in(resp_body, ~w(data serviceGroup))
+
+      {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
+    end
+  )
+
+  when_(
+    ~r/^I request (?<nested_field>\w+) of the (?<field>\w+) of the program service where databaseId is "(?<database_id>[^"]+)"$/,
+    fn %{conn: conn} = state, %{nested_field: nested_field, field: field, database_id: database_id} ->
+      query = """
+        query GetProgramServiceQuery($id: ID!) {
+          programService(id: $id) {
+            #{field} {
+              #{nested_field}
+            }
+          }
+        }
+      """
+
+      variables = %{
+        id: Node.to_global_id("ProgramService", database_id)
+      }
+
+      resp_body =
+        conn
+        |> post_query(query, variables)
+        |> json_response(200)
+
+      resp_entity = get_in(resp_body, ~w(data programService))
 
       {:ok, %{state | resp_body: resp_body, resp_entity: resp_entity}}
     end

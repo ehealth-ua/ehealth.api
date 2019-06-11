@@ -35,7 +35,7 @@ Feature: Get specific service
       | "f17f96f5-d5be-4270-8940-a3fe021aba14" | "ab1bad75-4ed2-4f5b-a695-a3fe0ddbcd7b" |
     And my scope is "service_catalog:read"
     And my client type is "NHS"
-    When I request databaseId of the first 10 serviceGroups of the service where databaseId is "f17f96f5-d5be-4270-8940-a3fe021aba14"
+    When I request databaseId of the first 10 service groups of the service where databaseId is "f17f96f5-d5be-4270-8940-a3fe021aba14"
     Then no errors should be returned
     And I should receive requested item
     And the databaseId of the first item in the serviceGroups of the requested item should be "ab1bad75-4ed2-4f5b-a695-a3fe0ddbcd7b"
