@@ -417,6 +417,7 @@ defmodule Core.MedicationRequests.API do
         pm in ProgramMedication,
         on: ing.parent_id == pm.medication_id and pm.medical_program_id == ^medical_program_id and pm.is_active == true
       )
+      |> add_program_medication_registry_dates_query()
       |> select([ing, m, pm], {pm.id, m.id})
       |> @read_prm_repo.all()
 
@@ -424,6 +425,14 @@ defmodule Core.MedicationRequests.API do
     medications_ids = Enum.map(ids, fn {_, medications_id} -> medications_id end)
 
     {program_medications_ids, medications_ids}
+  end
+
+  defp add_program_medication_registry_dates_query(query) do
+    today = Date.utc_today()
+
+    query
+    |> where([..., pm], is_nil(pm.start_date) or pm.start_date <= ^today)
+    |> where([..., pm], is_nil(pm.end_date) or pm.end_date >= ^today)
   end
 
   defp validate_medication_request_status(%{"status" => "ACTIVE"}), do: :ok

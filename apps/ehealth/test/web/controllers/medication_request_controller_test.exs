@@ -840,6 +840,182 @@ defmodule EHealth.Web.MedicationRequestControllerTest do
 
       assert get_in(resp, ~w(error message)) == "Medication request with type (intent) PLAN cannot be qualified"
     end
+
+    test "success qualify when more than one registries are actual", %{conn: conn} do
+      msp()
+      today = Date.utc_today()
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+
+      %{medication_id: medication_id} =
+        insert(:prm, :program_medication,
+          medical_program_id: medical_program_id,
+          start_date: Date.add(today, -7),
+          end_date: Date.add(today, 7),
+          registry_number: "registry1"
+        )
+
+      insert(:prm, :program_medication,
+        medication_id: medication_id,
+        medical_program_id: medical_program_id,
+        start_date: Date.add(today, -14),
+        end_date: Date.add(today, 14),
+        registry_number: "registry2"
+      )
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      insert(
+        :prm,
+        :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
+      medication_request =
+        build(:medication_request, %{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_id]}}
+      end)
+
+      conn =
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
+          "programs" => [%{"id" => medical_program_id}]
+        })
+
+      resp = json_response(conn, 200)
+
+      schema =
+        "../core/specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      participants =
+        resp
+        |> Map.get("data")
+        |> hd()
+        |> Map.get("participants")
+        |> Enum.map(&Map.take(&1, ~w(medication_id registry_number)))
+
+      assert %{"medication_id" => medication_id, "registry_number" => "registry1"} in participants
+      assert %{"medication_id" => medication_id, "registry_number" => "registry2"} in participants
+    end
+
+    test "success qualify when just one of registries is actual", %{conn: conn} do
+      msp()
+      today = Date.utc_today()
+      user_id = get_consumer_id(conn.req_headers)
+      legal_entity_id = get_client_id(conn.req_headers)
+      division = insert(:prm, :division)
+      %{id: medical_program_id} = insert(:prm, :medical_program)
+      %{id: innm_dosage_id} = insert_innm_dosage()
+
+      %{medication_id: medication_id} =
+        insert(:prm, :program_medication,
+          medical_program_id: medical_program_id,
+          start_date: Date.add(today, -14),
+          end_date: Date.add(today, -7),
+          registry_number: "registry1"
+        )
+
+      insert(:prm, :program_medication,
+        medication_id: medication_id,
+        medical_program_id: medical_program_id,
+        start_date: Date.add(today, -14),
+        end_date: nil,
+        registry_number: "registry2"
+      )
+
+      %{party: party} =
+        :prm
+        |> insert(:party_user, user_id: user_id)
+        |> PRMRepo.preload(:party)
+
+      legal_entity = PRMRepo.get!(LegalEntity, legal_entity_id)
+      %{id: employee_id} = insert(:prm, :employee, party: party, legal_entity: legal_entity)
+
+      insert(
+        :prm,
+        :ingredient_medication,
+        parent_id: medication_id,
+        medication_child_id: innm_dosage_id
+      )
+
+      medication_request =
+        build(:medication_request, %{
+          legal_entity_id: legal_entity_id,
+          division_id: division.id,
+          employee_id: employee_id,
+          medical_program_id: medical_program_id,
+          medication_id: innm_dosage_id
+        })
+
+      expect(RPCWorkerMock, :run, fn "ops", OPS.Rpc, :doctor_medication_requests, _ ->
+        %Page{
+          entries: [medication_request],
+          page_number: 1,
+          page_size: 50,
+          total_entries: 1,
+          total_pages: 1
+        }
+      end)
+
+      expect(OPSMock, :get_qualify_medication_requests, fn _params, _headers ->
+        {:ok, %{"data" => [medication_id]}}
+      end)
+
+      conn =
+        post(conn, medication_request_path(conn, :qualify, medication_request.id), %{
+          "programs" => [%{"id" => medical_program_id}]
+        })
+
+      resp = json_response(conn, 200)
+
+      schema =
+        "../core/specs/json_schemas/medication_request/medication_request_qualify_response.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      assert :ok = NExJsonSchema.Validator.validate(schema, resp["data"])
+
+      participants =
+        resp
+        |> Map.get("data")
+        |> hd()
+        |> Map.get("participants")
+        |> Enum.map(&Map.take(&1, ~w(medication_id registry_number)))
+
+      refute %{"medication_id" => medication_id, "registry_number" => "registry1"} in participants
+      assert %{"medication_id" => medication_id, "registry_number" => "registry2"} in participants
+    end
   end
 
   describe "reject medication request" do

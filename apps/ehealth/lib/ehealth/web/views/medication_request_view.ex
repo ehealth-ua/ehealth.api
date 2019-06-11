@@ -45,6 +45,7 @@ defmodule EHealth.Web.MedicationRequestView do
     medication = program_medication.medication
 
     %{
+      "id" => program_medication.id,
       "medication_id" => medication.id,
       "medication_name" => medication.name,
       "form" => medication.form,
@@ -55,7 +56,10 @@ defmodule EHealth.Web.MedicationRequestView do
       "wholesale_price" => program_medication.wholesale_price,
       "consumer_price" => program_medication.consumer_price,
       "reimbursement_daily_dosage" => program_medication.reimbursement_daily_dosage,
-      "estimated_payment_amount" => program_medication.estimated_payment_amount
+      "estimated_payment_amount" => program_medication.estimated_payment_amount,
+      "start_date" => program_medication.start_date,
+      "end_date" => program_medication.end_date,
+      "registry_number" => program_medication.registry_number
     }
   end
 end

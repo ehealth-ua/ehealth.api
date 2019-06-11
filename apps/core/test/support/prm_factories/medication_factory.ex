@@ -16,6 +16,7 @@ defmodule Core.PRMFactories.MedicationFactory do
         medication_id = insert(:prm, :medication).id
         innm_dosage_id = insert(:prm, :innm_dosage).id
         insert(:prm, :ingredient_medication, parent_id: medication_id, medication_child_id: innm_dosage_id)
+        today = Date.utc_today()
 
         %ProgramMedication{
           reimbursement: build(:reimbursement),
@@ -28,7 +29,10 @@ defmodule Core.PRMFactories.MedicationFactory do
           updated_by: UUID.generate(),
           inserted_by: UUID.generate(),
           medication_id: medication_id,
-          medical_program_id: insert(:prm, :medical_program).id
+          medical_program_id: insert(:prm, :medical_program).id,
+          start_date: today,
+          end_date: today |> Date.add(14),
+          registry_number: "test"
         }
       end
 

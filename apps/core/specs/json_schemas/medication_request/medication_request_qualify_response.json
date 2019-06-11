@@ -28,6 +28,9 @@
         "items": {
           "type": "object",
           "properties": {
+            "id": {
+              "type": "string"
+            },
             "medication_id": {
               "type": "string"
             },
@@ -72,9 +75,30 @@
             },
             "package_min_qty": {
               "type": "number"
+            },
+            "start_date": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "end_date": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "registry_number": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           },
           "required": [
+            "id",
             "medication_id",
             "medication_name",
             "form",
