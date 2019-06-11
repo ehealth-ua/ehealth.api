@@ -16,6 +16,9 @@ defmodule Core.Medications.Program do
     field(:consumer_price, :float)
     field(:reimbursement_daily_dosage, :float)
     field(:estimated_payment_amount, :float)
+    field(:start_date, :date)
+    field(:end_date, :date)
+    field(:registry_number, :string)
     field(:inserted_by, Ecto.UUID)
     field(:updated_by, Ecto.UUID)
 

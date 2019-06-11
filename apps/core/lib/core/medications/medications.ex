@@ -573,18 +573,12 @@ defmodule Core.Medications do
   end
 
   def changeset(%ProgramMedication{} = program_medication, attrs) do
-    opts = [
-      name: :program_medications_medication_id_medical_program_id_index,
-      message: "Medication brand is already a participant of the program"
-    ]
-
     program_medication
     |> cast(attrs, @fields_program_medication_required ++ @fields_program_medication_optional)
     |> validate_required(@fields_program_medication_required)
     |> cast_embed(:reimbursement, with: &Reimbursement.changeset/2, required: true)
     |> foreign_key_constraint(:medication_id)
     |> foreign_key_constraint(:medical_program_id)
-    |> unique_constraint(:medication_id, opts)
     # TODO: these validations should go outside of changeset and fail with CONFLICT errors
     |> Validator.validate_program_medication_is_active()
     |> Validator.validate_program_medication_requests_allowed()

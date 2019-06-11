@@ -104,7 +104,7 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
       assert resp["medication_request_allowed"]
     end
 
-    test "program medication duplicated", %{conn: conn} do
+    test "success when program medication duplicated", %{conn: conn} do
       program_medication = insert(:prm, :program_medication)
 
       params = %{
@@ -113,9 +113,9 @@ defmodule EHealthWeb.ProgramMedicationControllerTest do
         medical_program_id: program_medication.medical_program_id
       }
 
-      conn = post(conn, program_medication_path(conn, :create), params)
-      [error] = json_response(conn, 422)["error"]["invalid"]
-      assert "$.medication_id" == error["entry"]
+      conn
+      |> post(program_medication_path(conn, :create), params)
+      |> json_response(201)
     end
 
     test "renders errors when medication does not exists", %{conn: conn} do
