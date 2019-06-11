@@ -144,6 +144,7 @@ defmodule Core.Services do
     |> cast(attrs, @service_fields_required ++ @service_fields_optional)
     |> validate_required(@service_fields_required)
     |> validate_length(:name, max: 100)
+    |> unique_constraint(:code)
   end
 
   def changeset(%ServiceGroup{} = entity, attrs) do
@@ -151,48 +152,49 @@ defmodule Core.Services do
     |> cast(attrs, @service_group_fields_required ++ @service_group_fields_optional)
     |> validate_required(@service_group_fields_required)
     |> validate_length(:name, max: 100)
+    |> unique_constraint(:code)
   end
 
   defp validate_is_active(%{is_active: true}), do: :ok
 
-  defp validate_is_active(%{is_active: false} = struct) do
-    {:error, {:conflict, "#{to_entity_name(struct)} is not active"}}
+  defp validate_is_active(%{is_active: false} = record) do
+    {:error, {:conflict, "#{to_entity_name(record)} is not active"}}
   end
 
-  defp validate_active_program_services(struct) do
-    entity_name = to_entity_name(struct)
+  defp validate_active_program_services(record) do
+    entity_name = to_entity_name(record)
 
     error_message =
       "This #{entity_name} is a participant of active ProgramService. Only #{entity_name} without active ProgramService can be deactivated"
 
-    case count_associated_program_services(struct) do
+    case count_associated_program_services(record) do
       0 -> :ok
       _ -> {:error, {:conflict, error_message}}
     end
   end
 
-  defp count_associated_program_services(%{__struct__: queryable} = struct) when queryable in [Service, ServiceGroup] do
-    struct
+  defp count_associated_program_services(%{__struct__: queryable} = record) when queryable in [Service, ServiceGroup] do
+    record
     |> Ecto.assoc(:program_services)
     |> where([ps], ps.is_active == true)
     |> select([ps], count(ps.id))
     |> @read_prm_repo.one()
   end
 
-  defp validate_active_services(struct) do
-    entity_name = to_entity_name(struct)
+  defp validate_active_services(record) do
+    entity_name = to_entity_name(record)
 
     error_message =
       "This #{entity_name} has active Service. Only #{entity_name} without active Service can be deactivated"
 
-    case count_associated_services(struct) do
+    case count_associated_services(record) do
       0 -> :ok
       _ -> {:error, {:conflict, error_message}}
     end
   end
 
-  defp count_associated_services(%ServiceGroup{} = struct) do
-    struct
+  defp count_associated_services(%ServiceGroup{} = record) do
+    record
     |> Ecto.assoc(:services)
     |> where([s], s.is_active == true)
     |> select([s], count(s.id))

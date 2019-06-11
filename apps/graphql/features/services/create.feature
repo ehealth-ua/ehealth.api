@@ -20,6 +20,21 @@ Feature: Create service
       | name              | category               | code     | isComposition | requestAllowed |
       | "Нейросонографія" | "laboratory_procedure" | "AF2 01" | false         | true           |
 
+  Scenario: Successful creation with deactivated existing code
+    Given the following services exist:
+      | code     | isActive |
+      | "AF2 01" | false    |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+    When I create service with attributes:
+      | name              | category               | code     | isComposition | requestAllowed |
+      | "Нейросонографія" | "laboratory_procedure" | "AF2 01" | false         | true           |
+    Then no errors should be returned
+    And request id should be returned
+    And I should receive requested item
+    And the code of the requested item should be "AF2 01"
+
   Scenario: Create with incorrect scope
     Given my scope is "service_catalog:read"
     And my consumer ID is "04796283-74b8-4632-9f7f-9e227ae9426e"
@@ -67,4 +82,16 @@ Feature: Create service
       | "Нейросонографія" | "imaging"   | ""    | false         |
       | ""                | "education" | "123" | false         |
 
-
+  Scenario: Create with already existing code
+    Given the following services exist:
+      | code     | isActive |
+      | "AF2 01" | true     |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "8341b7d6-f9c7-472a-960c-7da953cc4ea4"
+    When I create service with attributes:
+      | name              | category               | code     | isComposition | requestAllowed |
+      | "Нейросонографія" | "laboratory_procedure" | "AF2 01" | true          | true           |
+    Then the "UNPROCESSABLE_ENTITY" error should be returned
+    And request id should be returned
+    And I should not receive requested item

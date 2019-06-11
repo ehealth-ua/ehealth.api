@@ -27,6 +27,21 @@ Feature: Create service group
     And I should receive requested item
     And the databaseId in parentGroup of the requested item should be "f4ce3fdf-d49b-426c-9636-8b186db75d73"
 
+  Scenario: Successful creation with deactivated existing code
+    Given the following service groups exist:
+      | code  | isActive |
+      | "2FA" | false    |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "1ad3c0e6-e2fc-2d3c-a15c-5101874165a7"
+    When I create service group with attributes:
+      | name                                     | code  |
+      | "Ультразвукові дослідження в неврології" | "2FA" |
+    Then no errors should be returned
+    And request id should be returned
+    And I should receive requested item
+    And the code of the requested item should be "2FA"
+
   Scenario: Create with incorrect scope
     Given my scope is "service_catalog:read"
     And my consumer ID is "04796283-74b8-4632-9f7f-9e227ae9426e"
@@ -63,3 +78,17 @@ Feature: Create service group
       | name                           | code  |
       | ""                             | "2FA" |
       | "Діагностичні інструментальні" | ""    |
+
+  Scenario: Create with already existing code
+    Given the following service groups exist:
+      | code  | isActive |
+      | "2FA" | true     |
+    And my scope is "service_catalog:write"
+    And my client type is "NHS"
+    And my consumer ID is "1ad3c0e6-e2fc-2d3c-a15c-5101874165a7"
+    When I create service group with attributes:
+      | name                                     | code  |
+      | "Ультразвукові дослідження в неврології" | "2FA" |
+    Then the "UNPROCESSABLE_ENTITY" error should be returned
+    And request id should be returned
+    And I should not receive requested item

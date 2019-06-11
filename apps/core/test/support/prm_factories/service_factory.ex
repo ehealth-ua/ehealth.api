@@ -11,7 +11,7 @@ defmodule Core.PRMFactories.ServiceFactory do
 
       def service_factory do
         %Service{
-          code: "FJ",
+          code: sequence(:service_code, &"AA#{100 + &1}"),
           name: "Ультразвукові дослідження",
           is_active: true,
           request_allowed: false,
@@ -23,7 +23,7 @@ defmodule Core.PRMFactories.ServiceFactory do
       def service_group_factory do
         %ServiceGroup{
           name: "Ультразвукові дослідження в гастроентерології",
-          code: "2FJ",
+          code: sequence(:service_group_code, &"#{&1}AA"),
           is_active: true,
           request_allowed: false,
           inserted_by: UUID.generate(),

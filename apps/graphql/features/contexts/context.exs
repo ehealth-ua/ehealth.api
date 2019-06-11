@@ -3747,6 +3747,7 @@ defmodule GraphQL.Features.Context do
         createServiceGroup(input: $input) {
           serviceGroup {
             name
+            code
             parentGroup {
               databaseId
             }
