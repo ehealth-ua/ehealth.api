@@ -104,7 +104,7 @@ defmodule Jobs.EdrSynchronizationJob do
         PRMRepo.transaction(fn ->
           edr_data =
             %EdrData{}
-            |> EdrData.changeset(data)
+            |> EdrData.changeset(Map.merge(data, %{"inserted_by" => Confex.fetch_env!(:core, :system_user)}))
             |> PRMRepo.insert()
 
           legal_entity

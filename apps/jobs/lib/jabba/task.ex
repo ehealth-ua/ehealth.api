@@ -40,7 +40,7 @@ defmodule Jobs.Jabba.Task do
   end
 
   def new(@edr_synchronize_type, legal_entity) do
-    callback = {"ehealth", Jobs.EdrSynchronizeJob, :synchronize, [legal_entity]}
+    callback = {"ehealth", Jobs.EdrSynchronizationJob, :synchronize, [legal_entity]}
     struct(__MODULE__, %{name: "Synchronize legal entity with edr", callback: callback})
   end
 
