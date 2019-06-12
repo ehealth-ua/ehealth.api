@@ -105,11 +105,11 @@ defmodule Jobs.EdrSynchronizationJob do
           edr_data =
             %EdrData{}
             |> EdrData.changeset(Map.merge(data, %{"inserted_by" => Confex.fetch_env!(:core, :system_user)}))
-            |> PRMRepo.insert()
+            |> PRMRepo.insert!()
 
           legal_entity
           |> LegalEntities.changeset(Map.merge(changes, %{edr_data_id: edr_data.id}))
-          |> PRMRepo.update()
+          |> PRMRepo.update!()
         end)
     end
   end
