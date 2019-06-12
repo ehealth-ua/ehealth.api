@@ -49,10 +49,7 @@ defmodule Core.LegalEntities do
     name
     status
     type
-    owner_property_type
-    legal_form
     edrpou
-    kveds
     addresses
     inserted_by
     updated_by
@@ -64,6 +61,9 @@ defmodule Core.LegalEntities do
     public_name
     phones
     email
+    owner_property_type
+    legal_form
+    kveds
     is_active
     status_reason
     reason
